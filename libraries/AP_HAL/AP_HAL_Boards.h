@@ -55,6 +55,7 @@
 #define HAL_CPU_CLASS HAL_CPU_CLASS_16
 
 #elif CONFIG_HAL_BOARD == HAL_BOARD_APM2
+#pragma message ("APM2 Board defined in AP_HAL")
 #define AP_HAL_BOARD_DRIVER AP_HAL_AVR_APM2
 #define HAL_BOARD_NAME "APM 2"
 #define HAL_CPU_CLASS HAL_CPU_CLASS_16

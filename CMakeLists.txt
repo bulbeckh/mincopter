@@ -25,13 +25,8 @@ list(APPEND LIBS
 	AP_Declination
 	AP_EPM
 	AP_GPS
-	AP_HAL
+	#AP_HAL ## Don't need to make AP_HAL
 	AP_HAL_AVR
-	AP_HAL_AVR_SITL
-	AP_HAL_Empty
-	AP_HAL_FLYMAPLE
-	AP_HAL_Linux
-	AP_HAL_PX4
 	AP_InertialNav
 	AP_InertialSensor
 	AP_L1_Control
@@ -60,8 +55,8 @@ list(APPEND LIBS
 	DataFlash
 	doc
 	Filter
-	GCS_Console
-	GCS_MAVLink
+	#GCS_Console ## Excluding for now
+	#GCS_MAVLink ## Excluding for now
 	PID
 	RC_Channel
 	SITL
@@ -93,6 +88,14 @@ add_compile_options(
 foreach(lib IN LISTS LIBS)
 	list(APPEND MINCOPTER_INCLUDE_DIRS libraries/${lib})
 endforeach()
+
+## Add removed libraries back in 
+list(APPEND MINCOPTER_INCLUDE_DIRS
+	libraries/AP_HAL
+	libraries/GCS_Console
+	libraries/GCS_MAVLink
+)
+
 message(STATUS ${MINCOPTER_INCLUDE_DIRS})
 
 foreach(lib IN LISTS LIBS)
