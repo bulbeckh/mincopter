@@ -17,6 +17,6 @@
 //
 
 #include "config.h"     // Parent Config File
-#include "APM_Config.h" // User Overrides
+// #include "APM_Config.h" // User Overrides
 
 #endif // __ARDUCOPTER_CONFIG_MOTORS_H__

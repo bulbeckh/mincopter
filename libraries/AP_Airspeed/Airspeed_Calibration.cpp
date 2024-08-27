@@ -153,6 +153,8 @@ void AP_Airspeed::update_calibration(const Vector3f &vground)
 }
 
 // log airspeed calibration data to MAVLink
+// NOTE REMOVED
+/*
 void AP_Airspeed::log_mavlink_send(mavlink_channel_t chan, const Vector3f &vground)
 {
     mavlink_msg_airspeed_autocal_send(chan,
@@ -169,3 +171,4 @@ void AP_Airspeed::log_mavlink_send(mavlink_channel_t chan, const Vector3f &vgrou
                                       _calibration.P.b.y,
                                       _calibration.P.c.z);
 }
+*/

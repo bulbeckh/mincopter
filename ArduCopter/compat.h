@@ -8,8 +8,10 @@
 #define HIGH 1
 #define LOW 0
 
+#include <AP_HAL.h>
+
 /* Forward declarations to avoid broken auto-prototyper (coughs on '::'?) */
-static void run_cli(AP_HAL::UARTDriver *port);
+void run_cli(AP_HAL::UARTDriver *port);
 
 #endif // __COMPAT_H__
 

@@ -6,7 +6,7 @@
 #include <AP_Common.h>
 #include <AP_HAL.h>
 #include <AP_Param.h>
-#include <GCS_MAVLink.h>
+// HASH include <GCS_MAVLink.h>
 #include <AP_Vehicle.h>
 #include <AP_Airspeed_Backend.h>
 #include <AP_Airspeed_analog.h>
@@ -126,7 +126,7 @@ public:
     void update_calibration(const Vector3f &vground);
 
 	// log data to MAVLink
-	void log_mavlink_send(mavlink_channel_t chan, const Vector3f &vground);
+	//void log_mavlink_send(mavlink_channel_t chan, const Vector3f &vground);
 
     // return health status of sensor
     bool healthy(void) const { return _healthy; }
