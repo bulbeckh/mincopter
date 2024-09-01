@@ -180,18 +180,18 @@ AP_ADC_ADS7844 adc;
  #endif
 
 // NOTE(henry) Which IMU does APM2.5 use
- #if CONFIG_IMU_TYPE == CONFIG_IMU_MPU6000
+#if CONFIG_IMU_TYPE == CONFIG_IMU_MPU6000
 AP_InertialSensor_MPU6000 ins;
 #elif CONFIG_IMU_TYPE == CONFIG_IMU_OILPAN
-AP_InertialSensor_Oilpan ins(&adc);
+//AP_InertialSensor_Oilpan ins(&adc);
 #elif CONFIG_IMU_TYPE == CONFIG_IMU_SITL
-AP_InertialSensor_HIL ins;
+//AP_InertialSensor_HIL ins;
 #elif CONFIG_IMU_TYPE == CONFIG_IMU_PX4
-AP_InertialSensor_PX4 ins;
+//AP_InertialSensor_PX4 ins;
 #elif CONFIG_IMU_TYPE == CONFIG_IMU_FLYMAPLE
-AP_InertialSensor_Flymaple ins;
+//AP_InertialSensor_Flymaple ins;
 #elif CONFIG_IMU_TYPE == CONFIG_IMU_L3G4200D
-AP_InertialSensor_L3G4200D ins;
+//AP_InertialSensor_L3G4200D ins;
 #endif
 
 // NOTE which baro
