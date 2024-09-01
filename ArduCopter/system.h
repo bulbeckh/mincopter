@@ -28,6 +28,8 @@
 #include "motors.h"
 #include "log.h"
 #include "config.h"
+#include "control_modes.h"
+
 
 extern AP_HAL::AnalogSource* board_vcc_analog_source;
 uint8_t get_wp_yaw_mode(bool rtl);
@@ -85,4 +87,5 @@ uint32_t map_baudrate(int8_t rate, uint32_t default_baud);
 void check_usb_mux(void);
 void print_flight_mode(AP_HAL::BetterStream *port, uint8_t mode);
 
+extern const AP_InertialSensor::Sample_rate ins_sample_rate;
 

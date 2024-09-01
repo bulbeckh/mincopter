@@ -9,55 +9,9 @@
 
 // These are function definitions so the Menu can be constructed before the functions
 // are defined below. Order matters to the compiler.
-bool     print_log_menu(void);
 int8_t   dump_log(uint8_t argc,                  const Menu::arg *argv);
 int8_t   erase_logs(uint8_t argc,                const Menu::arg *argv);
 int8_t   select_logs(uint8_t argc,               const Menu::arg *argv);
-
-// Creates a constant array of structs representing menu options
-// and stores them in Flash memory, not RAM.
-// User enters the string in the console to call the functions on the right.
-// See class Menu in AP_Coommon for implementation details
-const struct Menu::command log_menu_commands[] PROGMEM = {
-    {"dump",        dump_log},
-    {"erase",       erase_logs},
-    {"enable",      select_logs},
-    {"disable",     select_logs}
-};
-
-// A Macro to create the Menu
-MENU2(log_menu, "Log", log_menu_commands, print_log_menu);
-
-bool
-print_log_menu(void)
-{
-    cliSerial->printf_P(PSTR("logs enabled: "));
-
-    if (0 == g.log_bitmask) {
-        cliSerial->printf_P(PSTR("none"));
-    }else{
-        if (g.log_bitmask & MASK_LOG_ATTITUDE_FAST) cliSerial->printf_P(PSTR(" ATTITUDE_FAST"));
-        if (g.log_bitmask & MASK_LOG_ATTITUDE_MED) cliSerial->printf_P(PSTR(" ATTITUDE_MED"));
-        if (g.log_bitmask & MASK_LOG_GPS) cliSerial->printf_P(PSTR(" GPS"));
-        if (g.log_bitmask & MASK_LOG_PM) cliSerial->printf_P(PSTR(" PM"));
-        if (g.log_bitmask & MASK_LOG_CTUN) cliSerial->printf_P(PSTR(" CTUN"));
-        if (g.log_bitmask & MASK_LOG_NTUN) cliSerial->printf_P(PSTR(" NTUN"));
-        if (g.log_bitmask & MASK_LOG_RCIN) cliSerial->printf_P(PSTR(" RCIN"));
-        if (g.log_bitmask & MASK_LOG_IMU) cliSerial->printf_P(PSTR(" IMU"));
-        if (g.log_bitmask & MASK_LOG_CMD) cliSerial->printf_P(PSTR(" CMD"));
-        if (g.log_bitmask & MASK_LOG_CURRENT) cliSerial->printf_P(PSTR(" CURRENT"));
-        if (g.log_bitmask & MASK_LOG_RCOUT) cliSerial->printf_P(PSTR(" RCOUT"));
-        if (g.log_bitmask & MASK_LOG_OPTFLOW) cliSerial->printf_P(PSTR(" OPTFLOW"));
-        if (g.log_bitmask & MASK_LOG_COMPASS) cliSerial->printf_P(PSTR(" COMPASS"));
-        if (g.log_bitmask & MASK_LOG_CAMERA) cliSerial->printf_P(PSTR(" CAMERA"));
-    }
-
-    cliSerial->println();
-
-    DataFlash.ListAvailableLogs(cliSerial);
-
-    return(true);
-}
 
 int8_t
 dump_log(uint8_t argc, const Menu::arg *argv)
@@ -150,13 +104,6 @@ select_logs(uint8_t argc, const Menu::arg *argv)
     }
 
     return(0);
-}
-
-int8_t
-process_logs(uint8_t argc, const Menu::arg *argv)
-{
-    log_menu.run();
-    return 0;
 }
 
 #if AUTOTUNE == ENABLED
@@ -722,18 +669,8 @@ const struct LogStructure log_structure[] PROGMEM = {
 // Read the DataFlash log memory
 void Log_Read(uint16_t log_num, uint16_t start_page, uint16_t end_page)
 {
- #ifdef AIRFRAME_NAME
-    cliSerial->printf_P(PSTR((AIRFRAME_NAME)));
- #endif
-
-    cliSerial->printf_P(PSTR("\n" FIRMWARE_STRING
-                             "\nFree RAM: %u\n"),
-                        (unsigned) hal.util->available_memory());
-
-    cliSerial->println_P(PSTR(HAL_BOARD_NAME));
-
 	DataFlash.LogReadProcess(log_num, start_page, end_page, 
-                             print_flight_mode,
+                             NULL,
                              cliSerial);
 }
 

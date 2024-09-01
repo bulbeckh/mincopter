@@ -37,6 +37,14 @@ extern float scaleLongUp;
 extern float scaleLongDown;
 extern int16_t climb_rate;
 
+
+// from sensors but added into util
+void init_barometer(bool full_calibration);
+int32_t read_barometer(void);
+void init_compass();
+void read_battery(void);
+void read_receiver_rssi(void);
+
 // from arducopter.cpp
 void update_super_simple_bearing(bool force_update);
 

@@ -142,8 +142,6 @@ add_executable(ArduCopter
 	ArduCopter/motors.cpp
 	ArduCopter/navigation.cpp
 	ArduCopter/radio.cpp
-	ArduCopter/sensors.cpp
-	ArduCopter/setup.cpp
 	ArduCopter/system.cpp
 	ArduCopter/log.cpp
 	ArduCopter/commands.cpp

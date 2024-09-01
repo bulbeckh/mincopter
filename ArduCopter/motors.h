@@ -25,7 +25,6 @@
 #include "failsafe.h"
 #include "log.h"
 #include "navigation.h"
-#include "sensors.h"
 
 #include "system.h"
 #include "radio.h"

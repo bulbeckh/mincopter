@@ -158,7 +158,7 @@ void reset_optflow_I(void);
 void reset_throttle_I(void);
 void set_accel_throttle_I_from_pilot_throttle(int16_t pilot_throttle);
 
-void update_rate_contoller_targets();
+void update_rate_controller_targets();
 void run_rate_controllers();
 
 void set_roll_rate_target( int32_t desired_rate, uint8_t earth_or_body_frame );

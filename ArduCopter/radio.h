@@ -21,7 +21,6 @@
 #include "navigation.h"
 #include "util.h"
 #include "motors.h"
-#include "setup.h"
 
 // system.cpp
 bool set_mode(uint8_t mode);
@@ -46,6 +45,8 @@ extern AP_FAILSAFE_T failsafe;
 extern AC_Fence fence;
 
 void default_dead_zones();
+void init_esc();
+
 void init_rc_in();
 void init_rc_out();
 void output_min();

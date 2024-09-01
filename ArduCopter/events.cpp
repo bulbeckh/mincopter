@@ -178,7 +178,6 @@ void failsafe_gps_check()
     if (g.failsafe_gps_enabled == FS_GPS_DISABLED || !ap.home_is_set) {
         // if we have just disabled the gps failsafe, ensure the gps failsafe event is cleared
         if (failsafe.gps) {
-            failsafe_gps_off_event();
             set_failsafe_gps(false);
         }
         return;
@@ -191,7 +190,6 @@ void failsafe_gps_check()
     if( last_gps_update_ms < FAILSAFE_GPS_TIMEOUT_MS) {
         // check for recovery from gps failsafe
         if( failsafe.gps ) {
-            failsafe_gps_off_event();
             set_failsafe_gps(false);
         }
         return;
@@ -217,102 +215,6 @@ void failsafe_gps_check()
         }
     }
 }
-
-// failsafe_gps_off_event - actions to take when GPS contact is restored
-void failsafe_gps_off_event(void)
-{
-    // log recovery of GPS in logs?
-    Log_Write_Error(ERROR_SUBSYSTEM_FAILSAFE_GPS, ERROR_CODE_FAILSAFE_RESOLVED);
-}
-
-// failsafe_gcs_check - check for ground station failsafe
-/*
-void failsafe_gcs_check()
-{
-    uint32_t last_gcs_update_ms;
-
-    // return immediately if gcs failsafe is disabled, gcs has never been connected or we are not overriding rc controls from the gcs
-    if( g.failsafe_gcs == FS_GCS_DISABLED || failsafe.last_heartbeat_ms == 0 || !failsafe.rc_override_active) {
-        return;
-    }
-
-    // calc time since last gcs update
-    last_gcs_update_ms = millis() - failsafe.last_heartbeat_ms;
-
-    // check if all is well
-    if( last_gcs_update_ms < FS_GCS_TIMEOUT_MS) {
-        // check for recovery from gcs failsafe
-        if (failsafe.gcs) {
-            failsafe_gcs_off_event();
-            set_failsafe_gcs(false);
-        }
-        return;
-    }
-
-    // do nothing if gcs failsafe already triggered or motors disarmed
-    if( failsafe.gcs || !motors.armed()) {
-        return;
-    }
-
-    // GCS failsafe event has occured
-    // update state, log to dataflash
-    set_failsafe_gcs(true);
-    Log_Write_Error(ERROR_SUBSYSTEM_FAILSAFE_GCS, ERROR_CODE_FAILSAFE_OCCURRED);
-
-    // This is how to handle a failsafe.
-    // use the throttle failsafe setting to decide what to do
-    switch(control_mode) {
-        case STABILIZE:
-        case ACRO:
-        case SPORT:
-            // if throttle is zero disarm motors
-            if (g.rc_3.control_in == 0) {
-                init_disarm_motors();
-            }else if(home_distance > wp_nav.get_waypoint_radius()) {
-                if (!set_mode(RTL)) {
-                    set_mode(LAND);
-                }
-            }else{
-                // We have no GPS or are very close to home so we will land
-                set_mode(LAND);
-            }
-            break;
-        case AUTO:
-            // if g.failsafe_gcs is 1 do RTL, 2 means continue with the mission
-            if (g.failsafe_gcs == FS_GCS_ENABLED_ALWAYS_RTL) {
-                if (home_distance > wp_nav.get_waypoint_radius()) {
-                    if (!set_mode(RTL)) {
-                        set_mode(LAND);
-                    }
-                }else{
-                    // We are very close to home so we will land
-                    set_mode(LAND);
-                }
-            }
-            // if failsafe_throttle is 2 (i.e. FS_THR_ENABLED_CONTINUE_MISSION) no need to do anything
-            break;
-        default:
-            if(home_distance > wp_nav.get_waypoint_radius()) {
-                if (!set_mode(RTL)) {
-                    set_mode(LAND);
-                }
-            }else{
-                // We have no GPS or are very close to home so we will land
-                set_mode(LAND);
-            }
-            break;
-    }
-}
-*/
-
-// failsafe_gcs_off_event - actions to take when GCS contact is restored
-/*
-void failsafe_gcs_off_event(void)
-{
-    // log recovery of GCS in logs?
-    Log_Write_Error(ERROR_SUBSYSTEM_FAILSAFE_GCS, ERROR_CODE_FAILSAFE_RESOLVED);
-}
-*/
 
 void update_events()
 {

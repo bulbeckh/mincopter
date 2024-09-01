@@ -374,3 +374,59 @@ float pv_get_bearing_cd(const Vector3f &origin, const Vector3f &destination)
     }
     return bearing;
 }
+
+void init_barometer(bool full_calibration)
+{
+    if (full_calibration) {
+        barometer.calibrate();
+    }else{
+        barometer.update_calibration();
+    }
+}
+
+// return barometric altitude in centimeters
+int32_t read_barometer(void)
+{
+    barometer.read();
+    return barometer.get_altitude() * 100.0f;
+}
+
+void init_compass()
+{
+    if (!compass.init() || !compass.read()) {
+        return;
+    }
+    ahrs.set_compass(&compass);
+}
+
+// read_battery - check battery voltage and current and invoke failsafe if necessary
+// called at 10hz
+void read_battery(void)
+{
+    battery.read();
+
+    // update compass with current value
+    if (battery.monitoring() == AP_BATT_MONITOR_VOLTAGE_AND_CURRENT) {
+        compass.set_current(battery.current_amps());
+    }
+
+    // check for low voltage or current if the low voltage check hasn't already been triggered
+    // we only check when we're not powered by USB to avoid false alarms during bench tests
+    if (!ap.usb_connected && !failsafe.battery && battery.exhausted(g.fs_batt_voltage, g.fs_batt_mah)) {
+        failsafe_battery_event();
+    }
+}
+
+// read the receiver RSSI as an 8 bit number for MAVLink
+// RC_CHANNELS_SCALED message
+void read_receiver_rssi(void)
+{
+    // avoid divide by zero
+    if (g.rssi_range <= 0) {
+        receiver_rssi = 0;
+    }else{
+        rssi_analog_source->set_pin(g.rssi_pin);
+        float ret = rssi_analog_source->voltage_average() * 255 / g.rssi_range;
+        receiver_rssi = constrain_int16(ret, 0, 255);
+    }
+}
