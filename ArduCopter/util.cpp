@@ -430,3 +430,32 @@ void read_receiver_rssi(void)
         receiver_rssi = constrain_int16(ret, 0, 255);
     }
 }
+
+void init_home()
+{
+    set_home_is_set(true);
+    home.id         = MAV_CMD_NAV_WAYPOINT;
+    home.lng        = g_gps->longitude;                                 // Lon * 10**7
+    home.lat        = g_gps->latitude;                                  // Lat * 10**7
+    home.alt        = 0;                                                        // Home is always 0
+
+    // Save Home to EEPROM
+    // -------------------
+    // no need to save this to EPROM
+		// REMOVED
+    //set_cmd_with_index(home, 0);
+
+    // set inertial nav's home position
+    inertial_nav.set_home_position(g_gps->longitude, g_gps->latitude);
+
+    if (g.log_bitmask & MASK_LOG_CMD)
+        Log_Write_Cmd(0, &home);
+
+    // update navigation scalers.  used to offset the shrinking longitude as we go towards the poles
+    scaleLongDown = longitude_scale(home);
+    scaleLongUp   = 1.0f/scaleLongDown;
+}
+
+
+
+

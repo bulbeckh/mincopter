@@ -23,7 +23,7 @@ bool set_mode(uint8_t mode);
 
 extern int16_t control_roll;
 extern int16_t control_pitch;
-extern uint32_t throttle_integrator;
+//extern uint32_t throttle_integrator;
 float get_target_alt_for_reporting();
 extern int16_t pmTest1;
 

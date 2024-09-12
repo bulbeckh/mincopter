@@ -156,7 +156,7 @@ struct PACKED log_Current {
     LOG_PACKET_HEADER;
     uint32_t time_ms;
     int16_t  throttle_out;
-    uint32_t throttle_integrator;
+    //uint32_t throttle_integrator;
     int16_t  battery_voltage;
     int16_t  current_amps;
     uint16_t board_voltage;
@@ -170,7 +170,7 @@ void Log_Write_Current()
         LOG_PACKET_HEADER_INIT(LOG_CURRENT_MSG),
         time_ms             : hal.scheduler->millis(),
         throttle_out        : g.rc_3.servo_out,
-        throttle_integrator : throttle_integrator,
+        //throttle_integrator : throttle_integrator,
         battery_voltage     : (int16_t) (battery.voltage() * 100.0f),
         current_amps        : (int16_t) (battery.current_amps() * 100.0f),
         board_voltage       : board_voltage(),

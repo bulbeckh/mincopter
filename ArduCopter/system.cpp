@@ -220,26 +220,13 @@ void init_ardupilot()
     init_barometer(true);
 #endif
 
-/*
-    // initialise sonar
-#if CONFIG_SONAR == ENABLED
-    init_sonar();
-#endif
-*/
-
     // initialize commands
-    // -------------------
-    init_commands();
+    //init_commands();
 
     // initialise the flight mode and aux switch
     // ---------------------------
     reset_control_switch();
     init_aux_switches();
-
-#if FRAME_CONFIG == HELI_FRAME
-    // trad heli specific initialisation
-    heli_init();
-#endif
 
     startup_ground(true);
 
@@ -247,7 +234,6 @@ void init_ardupilot()
     Log_Write_Startup();
 #endif
 
-    cliSerial->print_P(PSTR("\nReady to FLY "));
 }
 
 
@@ -340,13 +326,15 @@ bool set_mode(uint8_t mode)
             if ((GPS_ok() && g.command_total > 1) || ignore_checks) {
                 success = true;
                 // roll-pitch, throttle and yaw modes will all be set by the first nav command
-                init_commands();            // clear the command queues. will be reloaded when "run_autopilot" calls "update_commands" function
+                //init_commands();            // clear the command queues. will be reloaded when "run_autopilot" calls "update_commands" function
+								// NOTE removed commands - need to reconfigure how autpilot starts and runs
             }
             break;
 
         case LAND:
             success = true;
-            do_land(NULL);  // land at current location
+						// NOTE As with above, need to reconfigure how autopilot works here
+            //do_land(NULL);  // land at current location
             break;
 
         default:

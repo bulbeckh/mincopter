@@ -1,18 +1,12 @@
 
 #include "attitude.h"
 
-// From arducopter.cpp
-extern float roll_in_filtered;     // roll-in in filtered with RC_FEEL_RP parameter
-extern float pitch_in_filtered;    // pitch-in filtered with RC_FEEL_RP parameter
-
 void reset_roll_pitch_in_filters(int16_t roll_in, int16_t pitch_in)
 {
     roll_in_filtered = constrain_int16(roll_in, -ROLL_PITCH_INPUT_MAX, ROLL_PITCH_INPUT_MAX);
     pitch_in_filtered = constrain_int16(pitch_in, -ROLL_PITCH_INPUT_MAX, ROLL_PITCH_INPUT_MAX);
 }
 
-// get_pilot_desired_angle - transform pilot's roll or pitch input into a desired lean angle
-// returns desired angle in centi-degrees
 void get_pilot_desired_lean_angles(int16_t roll_in, int16_t pitch_in, int16_t &roll_out, int16_t &pitch_out)
 {
     static float _scaler = 1.0;
@@ -115,6 +109,8 @@ get_stabilize_yaw(int32_t target_angle)
     // set targets for rate controller
     set_yaw_rate_target(target_rate, EARTH_FRAME);
 }
+
+// NOTE can optimise these since all will be EARTH FRAME now I think
 
 // set_roll_rate_target - to be called by upper controllers to set roll rate targets in the earth frame
 void set_roll_rate_target( int32_t desired_rate, uint8_t earth_or_body_frame ) {
@@ -378,21 +374,6 @@ void throttle_accel_deactivate()
     throttle_accel_controller_active = false;
 }
 
-// set_throttle_takeoff - allows parents to tell throttle controller we are taking off so I terms can be cleared
-void
-set_throttle_takeoff()
-{
-    // set alt target
-    controller_desired_alt = current_loc.alt + ALT_HOLD_TAKEOFF_JUMP;
-
-    // clear i term from acceleration controller
-    if (g.pid_throttle_accel.get_integrator() < 0) {
-        g.pid_throttle_accel.reset_I();
-    }
-    // tell motors to do a slow start
-    motors.slow_start(true);
-}
-
 // get_throttle_accel - accelerometer based throttle controller
 // returns an actual throttle output (0 ~ 1000) to be sent to the motors
 int16_t
@@ -466,41 +447,6 @@ int16_t get_pilot_desired_throttle(int16_t throttle_control)
     }
 
     return throttle_out;
-}
-
-// get_pilot_desired_climb_rate - transform pilot's throttle input to
-// climb rate in cm/s.  we use radio_in instead of control_in to get the full range
-// without any deadzone at the bottom
-#define THROTTLE_IN_DEADBAND_TOP (THROTTLE_IN_MIDDLE+THROTTLE_IN_DEADBAND)  // top of the deadband
-#define THROTTLE_IN_DEADBAND_BOTTOM (THROTTLE_IN_MIDDLE-THROTTLE_IN_DEADBAND)  // bottom of the deadband
-int16_t get_pilot_desired_climb_rate(int16_t throttle_control)
-{
-    int16_t desired_rate = 0;
-
-    // throttle failsafe check
-    if( failsafe.radio ) {
-        return 0;
-    }
-
-    // ensure a reasonable throttle value
-    throttle_control = constrain_int16(throttle_control,0,1000);
-
-    // check throttle is above, below or in the deadband
-    if (throttle_control < THROTTLE_IN_DEADBAND_BOTTOM) {
-        // below the deadband
-        desired_rate = (int32_t)g.pilot_velocity_z_max * (throttle_control-THROTTLE_IN_DEADBAND_BOTTOM) / (THROTTLE_IN_MIDDLE - THROTTLE_IN_DEADBAND);
-    }else if (throttle_control > THROTTLE_IN_DEADBAND_TOP) {
-        // above the deadband
-        desired_rate = (int32_t)g.pilot_velocity_z_max * (throttle_control-THROTTLE_IN_DEADBAND_TOP) / (THROTTLE_IN_MIDDLE - THROTTLE_IN_DEADBAND);
-    }else{
-        // must be in the deadband
-        desired_rate = 0;
-    }
-
-    // desired climb rate for logging
-    desired_climb_rate = desired_rate;
-
-    return desired_rate;
 }
 
 // get_initial_alt_hold - get new target altitude based on current altitude and climb rate
@@ -664,8 +610,8 @@ get_throttle_rate_stabilized(int16_t target_rate)
 void
 get_throttle_land()
 {
-    // if we are above 10m and the sonar does not sense anything perform regular alt hold descent
-    if (current_loc.alt >= LAND_START_ALT && !(g.sonar_enabled && sonar_alt_health >= SONAR_ALT_HEALTH_MAX)) {
+    // if we are above 10m
+    if (current_loc.alt >= LAND_START_ALT) {
         get_throttle_althold_with_slew(LAND_START_ALT, -wp_nav.get_descent_velocity(), -abs(g.land_speed));
     }else{
         get_throttle_rate_stabilized(-abs(g.land_speed));
@@ -713,41 +659,6 @@ bool update_land_detector()
 
     // return current state of landing
     return ap.land_complete;
-}
-
-// get_throttle_surface_tracking - hold copter at the desired distance above the ground
-// updates accel based throttle controller targets
-void
-get_throttle_surface_tracking(int16_t target_rate)
-{
-    static uint32_t last_call_ms = 0;
-    float distance_error;
-    float velocity_correction;
-
-    uint32_t now = millis();
-
-    // reset target altitude if this controller has just been engaged
-    if( now - last_call_ms > 200 ) {
-        target_sonar_alt = sonar_alt + controller_desired_alt - current_loc.alt;
-    }
-    last_call_ms = now;
-
-    // adjust sonar target alt if motors have not hit their limits
-    if ((target_rate<0 && !motors.limit.throttle_lower) || (target_rate>0 && !motors.limit.throttle_upper)) {
-        target_sonar_alt += target_rate * 0.02f;
-    }
-
-    // do not let target altitude get too far from current altitude above ground
-    // Note: the 750cm limit is perhaps too wide but is consistent with the regular althold limits and helps ensure a smooth transition
-    target_sonar_alt = constrain_float(target_sonar_alt,sonar_alt-750,sonar_alt+750);
-
-    // calc desired velocity correction from target sonar alt vs actual sonar alt
-    distance_error = target_sonar_alt-sonar_alt;
-    velocity_correction = distance_error * g.sonar_gain;
-    velocity_correction = constrain_float(velocity_correction, -THR_SURFACE_TRACKING_VELZ_MAX, THR_SURFACE_TRACKING_VELZ_MAX);
-
-    // call regular rate stabilize alt hold controller
-    get_throttle_rate_stabilized(target_rate + velocity_correction);
 }
 
 /*

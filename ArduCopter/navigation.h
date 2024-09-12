@@ -22,7 +22,6 @@
 #include "navigation.h"
 #include "util.h"
 #include "motors.h"
-#include "commands.h"
 
 extern uint8_t prev_nav_index;
 extern uint8_t command_cond_index;

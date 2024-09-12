@@ -106,4 +106,7 @@ int32_t pv_get_lon(const Vector3f &pos_vec);
 float pv_get_horizontal_distance_cm(const Vector3f &origin, const Vector3f &destination);
 float pv_get_bearing_cd(const Vector3f &origin, const Vector3f &destination);
 
+void init_home();
+
+
 

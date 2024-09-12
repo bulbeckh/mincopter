@@ -129,6 +129,8 @@ void init_aux_switches()
     }
 }
 
+// NOTE This functionality should be updated
+
 // do_aux_switch_function - implement the function invoked by the ch7 or ch8 switch
 void do_aux_switch_function(int8_t ch_function, uint8_t ch_flag)
 {
@@ -183,85 +185,6 @@ void do_aux_switch_function(int8_t ch_function, uint8_t ch_flag)
             }
             break;
 			
-				/*
-        case AUX_SWITCH_SAVE_WP:
-            // save waypoint when switch is brought high
-            if (ch_flag == AUX_SWITCH_HIGH) {
-
-                // if in auto mode, reset the mission
-                if(control_mode == AUTO) {
-                    aux_switch_wp_index = 0;
-                    g.command_total.set_and_save(1);
-                    set_mode(RTL);  // if by chance we are unable to switch to RTL we just stay in AUTO and hope the GPS failsafe will take-over
-                    Log_Write_Event(DATA_SAVEWP_CLEAR_MISSION_RTL);
-                    return;
-                }
-
-				// we're on the ground
-				if((g.rc_3.control_in == 0) && (aux_switch_wp_index == 0)){
-					// nothing to do
-					return;
-				}
-
-                // initialise new waypoint to current location
-                Location new_wp;
-
-                if(aux_switch_wp_index == 0) {
-                    // this is our first WP, let's save WP 1 as a takeoff
-                    // increment index to WP index of 1 (home is stored at 0)
-                    aux_switch_wp_index = 1;
-
-                    // set our location ID to 16, MAV_CMD_NAV_WAYPOINT
-                    new_wp.id = MAV_CMD_NAV_TAKEOFF;
-                    new_wp.options = 0;
-                    new_wp.p1 = 0;
-                    new_wp.lat = 0;
-                    new_wp.lng = 0;
-                    new_wp.alt = max(current_loc.alt,100);
-
-                    // save command:
-                    // we use the current altitude to be the target for takeoff.
-                    // only altitude will matter to the AP mission script for takeoff.
-                    // If we are above the altitude, we will skip the command.
-                    set_cmd_with_index(new_wp, aux_switch_wp_index);
-                }
-
-                // initialise new waypoint to current location
-                new_wp = current_loc;
-
-                // increment index
-                aux_switch_wp_index++;
-
-                // set the next_WP (home is stored at 0)
-                // max out at 100 since I think we need to stay under the EEPROM limit
-                aux_switch_wp_index = constrain_int16(aux_switch_wp_index, 1, 100);
-
-                if(g.rc_3.control_in > 0) {
-                    // set our location ID to 16, MAV_CMD_NAV_WAYPOINT
-                    new_wp.id = MAV_CMD_NAV_WAYPOINT;
-                }else{
-					// set our location ID to 21, MAV_CMD_NAV_LAND
-					new_wp.id = MAV_CMD_NAV_LAND;
-                }
-
-                // save command
-                set_cmd_with_index(new_wp, aux_switch_wp_index);
-
-                // log event
-                Log_Write_Event(DATA_SAVEWP_ADD_WP);
-            }
-            break;
-				*/
-
-        case AUX_SWITCH_SONAR:
-            // enable or disable the sonar
-            if (ch_flag == AUX_SWITCH_HIGH) {
-                g.sonar_enabled = true;
-            }else{
-                g.sonar_enabled = false;
-            }
-            break;
-
 #if AC_FENCE == ENABLED
         case AUX_SWITCH_FENCE:
             // enable or disable the fence

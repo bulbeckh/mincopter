@@ -44,7 +44,7 @@ extern int32_t initial_armed_bearing;
 
 void reset_I_all(void);
 
-// commands.h
+// util.h
 void init_home();
 
 uint16_t board_voltage(void);

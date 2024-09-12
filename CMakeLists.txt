@@ -144,7 +144,6 @@ add_executable(ArduCopter
 	ArduCopter/radio.cpp
 	ArduCopter/system.cpp
 	ArduCopter/log.cpp
-	ArduCopter/commands.cpp
 	ArduCopter/parameters.cpp
 )
 
