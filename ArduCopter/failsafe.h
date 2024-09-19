@@ -7,9 +7,14 @@
 
 extern uint16_t mainLoop_count;
 
-// failsafe.h
+/* @brief Helper functions for enabling and disabling failsafe
+*/
 void failsafe_enable();
 void failsafe_disable();
+
+/* @brief Tracks failsafe status by modifying in_failsafe parameter. Registered to run by scheduler during init_autopilot
+*/
 void failsafe_check();
+
 
 

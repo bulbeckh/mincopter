@@ -1,14 +1,5 @@
-// -*- tab-width: 4; Mode: C++; c-basic-offset: 4; indent-tabs-mode: nil -*-
-/*****************************************************************************
-*   The init_ardupilot function processes everything we need for an in - air restart
-*        We will determine later if we are actually on the ground and process a
-*        ground start in that case.
-*
-*****************************************************************************/
 
 #include "system.h"
-
-// REMOVED CLI
 
 void init_ardupilot()
 {
@@ -233,6 +224,8 @@ void init_ardupilot()
 #if LOGGING_ENABLED == ENABLED
     Log_Write_Startup();
 #endif
+
+		cliSerial->println_P(PSTR("Initialisation complete"));
 
 }
 

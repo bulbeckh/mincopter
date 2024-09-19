@@ -145,6 +145,8 @@
 #include "system.h"
 #include "util.h"
 
+#include "serial.h"
+
 // HAL Objects
 
 AP_HAL::BetterStream* cliSerial;
@@ -172,6 +174,7 @@ AP_Baro_PX4 barometer;
    #if CONFIG_MS5611_SERIAL == AP_BARO_MS5611_SPI
 AP_Baro_MS5611 barometer(&AP_Baro_MS5611::spi);
    #elif CONFIG_MS5611_SERIAL == AP_BARO_MS5611_I2C
+		// Confirmed this is the baro (the I2C version)
 AP_Baro_MS5611 barometer(&AP_Baro_MS5611::i2c);
    #else
     #error Unrecognized CONFIG_MS5611_SERIAL setting.
@@ -1096,6 +1099,9 @@ void three_hz_loop()
 // one_hz_loop - runs at 1Hz
 void one_hz_loop()
 {
+		// from serial.h
+		print_GPS();
+		print_RPY();
 
     // pass latest alt hold kP value to navigation controller
     wp_nav.set_althold_kP(g.pi_alt_hold.kP());
@@ -1129,6 +1135,7 @@ void one_hz_loop()
     enable_aux_servos();
 
     check_usb_mux();
+
 }
 
 // update_yaw_mode - run high level yaw controllers

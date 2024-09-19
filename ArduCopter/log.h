@@ -43,28 +43,40 @@ extern AP_FAILSAFE_T failsafe;
 extern AC_Fence fence;
 #include "config.h"
 
+/* @brief Various logging functions
+*/
 bool     print_log_menu(void);
 int8_t   dump_log(uint8_t argc,                  const Menu::arg *argv);
 int8_t   erase_logs(uint8_t argc,                const Menu::arg *argv);
 int8_t   select_logs(uint8_t argc,               const Menu::arg *argv);
 void do_erase_logs(void);
 
+/* @brief Commence logging of variables. Called after arming is complete
+*/
 void start_logging(void);
+
+/* @brief Wrapper for reading DataFlash logs
+* @param log_num Number of log to read
+* @param start_page First page of log
+* @param end_page Last page of log
+*/
 void Log_Read(uint16_t log_num, uint16_t start_page, uint16_t end_page);
 
+// NOTE this can be removed
 int8_t process_logs(uint8_t argc, const Menu::arg *argv);
 
+// NOTE can remove some of these like optflow
+/* @brief Functions to write logs
+*/
 void Log_Write_Startup();
 void Log_Write_Cmd(uint8_t num, const struct Location *wp);
 void Log_Write_Mode(uint8_t mode);
 void Log_Write_IMU();
 void Log_Write_GPS();
-
 #if AUTOTUNE == ENABLED
 void Log_Write_AutoTune(uint8_t axis, uint8_t tune_step, float rate_min, float rate_max, float new_gain_rp, float new_gain_rd, float new_gain_sp);
 void Log_Write_AutoTuneDetails(int16_t angle_cd, float rate_cds);
 #endif
-
 void Log_Write_Current();
 void Log_Write_Compass();
 void Log_Write_Attitude();

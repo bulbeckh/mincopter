@@ -66,26 +66,40 @@ extern AP_FAILSAFE_T failsafe;
 extern AC_Fence fence;
 
 extern AP_BattMonitor battery;
-int8_t   process_logs(uint8_t argc, const Menu::arg *argv);      // in Log.pde
-int8_t   setup_mode(uint8_t argc, const Menu::arg *argv);        // in setup.pde
-int8_t   test_mode(uint8_t argc, const Menu::arg *argv);         // in test.cpp
+extern const AP_InertialSensor::Sample_rate ins_sample_rate;
 
-int8_t   main_menu_help(uint8_t argc, const Menu::arg *argv);
-
+/* @brief Gets board voltage
+* @returns Board voltage
+*/
 uint16_t board_voltage(void);
 
-int8_t reboot_board(uint8_t argc, const Menu::arg *argv);
-void run_cli(AP_HAL::UARTDriver *port);
+/* @brief Initialises ardupilot on startup. Called during setup function (HAL function) right before scheduler is started.
+*/
 void init_ardupilot();
+
+/* @brief Sets the control_mode (e.g. ALT_HOLD, STABILIZE, etc.)
+* @param mode The control mode to be set.
+*/
+bool set_mode(uint8_t mode);
+
+/* @brief Initialises ahrs and gyros (ins)
+* @param force_gyro_cal Whether or not to use COLD or WARM start for INS
+*/
 void startup_ground(bool force_gyro_cal);
+
+
+/* @brief Checks if GPS is ok
+* @returns True if GPS is ok otherwise false
+*/
 bool GPS_ok();
+
+// NOTE can probably replace these now, having slimmed down the modes
 bool mode_requires_GPS(uint8_t mode);
 bool manual_flight_mode(uint8_t mode);
-bool set_mode(uint8_t mode);
+
 void update_auto_armed();
 uint32_t map_baudrate(int8_t rate, uint32_t default_baud);
 void check_usb_mux(void);
 void print_flight_mode(AP_HAL::BetterStream *port, uint8_t mode);
 
-extern const AP_InertialSensor::Sample_rate ins_sample_rate;
 

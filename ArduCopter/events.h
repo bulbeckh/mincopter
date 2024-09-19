@@ -20,20 +20,33 @@
 #include "system.h"
 
 // events.h
+
+/* @brief Called when radio loses connection, triggering the failsafe to kick-in
+*/
 void failsafe_radio_on_event();
+
+/* @brief Called when returning from a failsafe mode
+*/
 void failsafe_radio_off_event();
+
+/* @brief Called when a low battery occurs, triggering failsafe
+*/
 void failsafe_battery_event(void);
+
+/* @brief Called when losing GPS signal
+*/
 void failsafe_gps_check();
+
+/* @brief Called when GPS returns signal
+*/
 void failsafe_gps_off_event(void);
-//void failsafe_gcs_check();
-//void failsafe_gcs_off_event(void);
+
+/* @brief Calls the update_events method of AP_ServoRelayEvents
+*/
 void update_events();
 
 extern AP_ServoRelayEvents ServoRelayEvents;
-
-
 extern int32_t home_distance;
-
 extern Parameters g;
 extern Vector3f omega;
 extern AP_AHRS_DCM ahrs;

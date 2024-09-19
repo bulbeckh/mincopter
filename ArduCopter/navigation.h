@@ -54,24 +54,46 @@ extern AP_UNION_T ap;
 extern AP_FAILSAFE_T failsafe;
 extern AC_Fence fence;
 
-// navigation.h
-void run_nav_updates(void);
-void calc_position();
-void calc_distance_and_bearing();
-void run_autopilot();
-bool set_nav_mode(uint8_t new_nav_mode);
-void update_nav_mode();
-void reset_nav_params(void);
-int32_t get_yaw_slew(int32_t current_yaw, int32_t desired_yaw, int16_t deg_per_sec);
-void circle_set_center(const Vector3f current_position, float heading_in_radians);
-void update_circle();
-
-extern Vector3f circle_center;
-extern float circle_angle;
-extern float circle_angle_total;
-extern uint8_t circle_desired_rotations;
-extern float circle_angular_acceleration;       // circle mode's angular acceleration
-extern float circle_angular_velocity;           // circle mode's angular velocity
-extern float circle_angular_velocity_max;       // circle mode's max angular velocity
 extern uint16_t loiter_time_max;
 extern uint32_t loiter_time;
+
+// navigation.h
+
+/* @brief Prepare to run autopilot which makes decisions about which navigation control mode to use.
+*/
+void run_nav_updates(void);
+
+// NOTE This function now doesn't do anything?
+/* @brief Uses the current control_mode to set the parameters required for autopilot. Actual autopilot controller is in update_nav_mode
+*/
+void run_autopilot();
+
+/* @brief Gets latitude and longitude from inertial nav
+*/
+void calc_position();
+
+/* @brief Calculates distance and bearing to waypoint. Sets wp_distance and wp_bearing
+*/
+void calc_distance_and_bearing();
+
+/* @brief Sets the navigation mode. Sub-function of set_mode
+* @param new_nav_mode The new navigation mode. This is NAV_NONE for the manual modes.
+*/
+bool set_nav_mode(uint8_t new_nav_mode);
+
+/* @brief Runs navigation controller. Called by scheduler
+*/
+void update_nav_mode();
+
+/* @brief Zeroes-out wp_bearing, wp_location, lat, and long
+*/
+void reset_nav_params(void);
+
+// NOTE why are these here
+/* @brief Reduces rate-of-change of yaw to a maximum value
+* @param current_yaw The current yaw value. Usually control_yaw
+* @param desired_yaw The target yaw value.
+* @param deg_per_sec The maximum rate-of-change of yaw value. For example AUTO_YAW_SLEW_RATE
+*/
+int32_t get_yaw_slew(int32_t current_yaw, int32_t desired_yaw, int16_t deg_per_sec);
+

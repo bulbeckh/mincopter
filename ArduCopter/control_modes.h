@@ -34,14 +34,42 @@ extern uint8_t throttle_mode;
 
 extern uint8_t auto_trim_counter;
 
-// control_modes.h
+/* @brief Reads value of control mode switch. Called during fast_loop. Calls set_mode with new switch value.
+*/
 void read_control_switch();
+
+/* @brief Helper function to return index based on rc PWM value
+*/
 uint8_t readSwitch(void);
+
+/* @brief Re-runs read_control_switch but forcing an update
+*/
 void reset_control_switch();
+
+/* @brief Converts auxiliary switch PWM to index
+* @param radio_in The radio PWM signal
+*/
 uint8_t read_3pos_switch(int16_t radio_in);
+
+/* @brief Read auxiliary switches. Channels 7 and 8 (g.rc_<7,8>)
+* called at 10hz by scheduler
+*/
 void read_aux_switches();
+
+/* @brief Initializes auxiliary functions. Called during init_autopilot
+*/
 void init_aux_switches();
+
+/* @brief Run the correct auxiliary function. Executed during read_aux_switches
+* @param ch_function Which auxiliary code to execute
+* @param ch_flag The index identified by read_3pos_switch
+*/
 void do_aux_switch_function(int8_t ch_function, uint8_t ch_flag);
+
+// NOTE are these used?
 void save_trim();
 void auto_trim();
+
+
+
 

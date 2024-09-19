@@ -119,9 +119,13 @@ Each rate controller is run at 100hz
 The update of the lean angle to target rate is also called at 100hz??
 
 **********************************
-AUTO mode - xx
+RTL/AUTO mode - xx
 **********************************
+Use WP_NAV here.
 
+set_roll_pitch_mode(RTL_RP);
+set_throttle_mode(RTL_THR);
+set_yaw_mode(YAW_HOLD);
 
 
 

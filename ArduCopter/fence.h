@@ -22,7 +22,8 @@
 
 bool set_mode(uint8_t mode);
 
-// fence.h
+/* @brief Check for brief of fence. 
+*/
 void fence_check();
 
 extern int32_t home_distance;

@@ -145,6 +145,8 @@ add_executable(ArduCopter
 	ArduCopter/system.cpp
 	ArduCopter/log.cpp
 	ArduCopter/parameters.cpp
+	## Additional
+	ArduCopter/serial.cpp
 )
 
 target_include_directories(ArduCopter PUBLIC

@@ -194,11 +194,6 @@ void init_arm_motors()
         return;
     }
 
-#if SPRAYER == ENABLED
-    // turn off sprayer's test if on
-    sprayer.test_pump(false);
-#endif
-
     // enable output to motors
     output_min();
 
