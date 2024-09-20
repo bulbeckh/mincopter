@@ -1103,6 +1103,10 @@ void one_hz_loop()
 		print_GPS();
 		print_RPY();
 
+		// Print num logs
+		uint16_t nl = DataFlash.get_num_logs();
+		cliSerial->printf_P(PSTR("Num logs: %d\n"), nl);
+
     // pass latest alt hold kP value to navigation controller
     wp_nav.set_althold_kP(g.pi_alt_hold.kP());
 

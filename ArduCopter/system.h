@@ -36,6 +36,7 @@ uint8_t get_wp_yaw_mode(bool rtl);
 bool set_throttle_mode( uint8_t new_throttle_mode );
 
 extern const struct LogStructure log_structure[] PROGMEM;
+extern DataFlash_APM2 DataFlash;
 
 extern AP_GPS_Auto    g_gps_driver;
 

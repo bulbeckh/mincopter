@@ -135,6 +135,8 @@ void init_ardupilot()
 		* but here we are getting the sizeof(log_structure). 
 		*/
     //DataFlash.Init(log_structure, sizeof(log_structure)/sizeof(log_structure[0]));
+		/* NOTE: Using 23 different structures instead of counting due to issue in separation of log_structure object */
+    DataFlash.Init(log_structure, 23);
     if (!DataFlash.CardInserted()) {
         //gcs_send_text_P(SEVERITY_LOW, PSTR("No dataflash inserted"));
         g.log_bitmask.set(0);
@@ -143,6 +145,8 @@ void init_ardupilot()
         do_erase_logs();
         //gcs[0].reset_cli_timeout();
     }
+
+		cliSerial->println_P(PSTR("Dataflash initialised\n"));
 #endif
 
     init_rc_in();               // sets up rc channels from radio
@@ -226,6 +230,13 @@ void init_ardupilot()
 #endif
 
 		cliSerial->println_P(PSTR("Initialisation complete"));
+
+
+		/* Dump Log on start */
+		uint16_t dl_start;
+		uint16_t dl_end;
+		DataFlash.get_log_boundaries(1,dl_start, dl_end);
+		Log_Read(1,dl_start, dl_end);
 
 }
 
