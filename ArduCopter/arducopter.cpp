@@ -213,6 +213,7 @@ AP_GPS_None     g_gps_driver;
 // AHRS DCM
 AP_AHRS_DCM ahrs(ins, g_gps);
 
+
 #include "ap_union.h"
 AP_UNION_T ap;
 

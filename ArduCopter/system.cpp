@@ -136,7 +136,7 @@ void init_ardupilot()
 		*/
     //DataFlash.Init(log_structure, sizeof(log_structure)/sizeof(log_structure[0]));
 		/* NOTE: Using 23 different structures instead of counting due to issue in separation of log_structure object */
-    DataFlash.Init(log_structure, 23);
+    DataFlash.Init(log_structure, 22);
     if (!DataFlash.CardInserted()) {
         //gcs_send_text_P(SEVERITY_LOW, PSTR("No dataflash inserted"));
         g.log_bitmask.set(0);
@@ -229,14 +229,23 @@ void init_ardupilot()
     Log_Write_Startup();
 #endif
 
-		cliSerial->println_P(PSTR("Initialisation complete"));
-
-
 		/* Dump Log on start */
+
+		DataFlash.ListAvailableLogs(cliSerial);
+		
+		uint16_t nl = DataFlash.get_num_logs();
+		cliSerial->printf_P(PSTR("Num Logs: %u\n"), nl);
+
+	
+		int16_t lognum=19;
 		uint16_t dl_start;
 		uint16_t dl_end;
-		DataFlash.get_log_boundaries(1,dl_start, dl_end);
-		Log_Read(1,dl_start, dl_end);
+
+		DataFlash.get_log_boundaries(lognum, dl_start, dl_end);
+		cliSerial->printf_P(PSTR("Reading Log 19: %u %u\n"), dl_start, dl_end);
+		Log_Read((uint16_t)lognum,dl_start, dl_end);
+		
+		cliSerial->println_P(PSTR("Initialisation complete"));
 
 }
 

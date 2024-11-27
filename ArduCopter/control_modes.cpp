@@ -20,9 +20,11 @@ void read_control_switch()
             // set flight mode and simple mode setting
             if (set_mode(flight_modes[switchPosition])) {
 
-                if(g.ch7_option != AUX_SWITCH_SIMPLE_MODE && g.ch8_option != AUX_SWITCH_SIMPLE_MODE && g.ch7_option != AUX_SWITCH_SUPERSIMPLE_MODE && g.ch8_option != AUX_SWITCH_SUPERSIMPLE_MODE) {
-                    // set Simple mode using stored paramters from Mission planner
-                    // rather than by the control switch
+                if(g.ch7_option != AUX_SWITCH_SIMPLE_MODE
+											&& g.ch8_option != AUX_SWITCH_SIMPLE_MODE
+											&& g.ch7_option != AUX_SWITCH_SUPERSIMPLE_MODE
+											&& g.ch8_option != AUX_SWITCH_SUPERSIMPLE_MODE) {
+
                     if (BIT_IS_SET(g.super_simple, switchPosition)) {
                         set_simple_mode(2);
                     }else{
