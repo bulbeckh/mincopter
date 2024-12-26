@@ -296,6 +296,7 @@ bool mode_requires_GPS(uint8_t mode) {
 }
 
 // manual_flight_mode - returns true if flight mode is completely manual (i.e. roll, pitch and yaw controlled by pilot)
+/*
 bool manual_flight_mode(uint8_t mode) {
     switch(mode) {
         case AUTO:
@@ -306,13 +307,10 @@ bool manual_flight_mode(uint8_t mode) {
 
     return false;
 }
-
-// NOTE(henry) Now only supporting AUTO and STABILIZE modes
+*/
 
 // set_mode - change flight mode and perform any necessary initialisation
-// optional force parameter used to force the flight mode change (used only first time mode is set)
-// returns true if mode was succesfully set
-// ACRO, STABILIZE, ALTHOLD, LAND, DRIFT and SPORT can always be set successfully but the return state of other flight modes should be checked and the caller should deal with failures appropriately
+/* NOTE deprecated in favour of auto-only modes */
 bool set_mode(uint8_t mode)
 {
     // boolean to record if flight mode could be set
@@ -379,7 +377,7 @@ void update_auto_armed()
             return;
         }
         // if in stabilize or acro flight mode and throttle is zero, auto-armed should become false
-        if(manual_flight_mode(control_mode) && g.rc_3.control_in == 0 && !failsafe.radio) {
+        if(/* manual_flight_mode(control_mode) && */ g.rc_3.control_in == 0 && !failsafe.radio) {
             set_auto_armed(false);
         }
     }else{

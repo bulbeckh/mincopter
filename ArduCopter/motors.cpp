@@ -21,9 +21,11 @@ void arm_motors_check()
     }
 
     // allow arming/disarming in fully manual flight modes ACRO, STABILIZE, SPORT and DRIFT
+		/*
     if (manual_flight_mode(control_mode)) {
         allow_arming = true;
     }
+		*/
 
     // allow arming/disarming in Loiter and AltHold if landed
     if (ap.land_complete && (control_mode == LOITER || control_mode == ALT_HOLD)) {
@@ -103,7 +105,7 @@ void auto_disarm_check()
     }
 
     // allow auto disarm in manual flight modes or Loiter/AltHold if we're landed
-    if(manual_flight_mode(control_mode) || (ap.land_complete && (control_mode == LOITER || control_mode == ALT_HOLD))) {
+    if(/* manual_flight_mode(control_mode) || */ (ap.land_complete && (control_mode == LOITER || control_mode == ALT_HOLD))) {
         auto_disarming_counter++;
 
         if(auto_disarming_counter >= AUTO_DISARMING_DELAY) {
@@ -152,7 +154,7 @@ void init_arm_motors()
 
     // Remember Orientation
     // --------------------
-    init_simple_bearing();
+    //init_simple_bearing();
 
     initial_armed_bearing = ahrs.yaw_sensor;
 

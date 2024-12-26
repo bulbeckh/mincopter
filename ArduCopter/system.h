@@ -32,7 +32,6 @@
 
 
 extern AP_HAL::AnalogSource* board_vcc_analog_source;
-uint8_t get_wp_yaw_mode(bool rtl);
 bool set_throttle_mode( uint8_t new_throttle_mode );
 
 extern const struct LogStructure log_structure[] PROGMEM;
