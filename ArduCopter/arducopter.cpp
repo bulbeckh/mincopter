@@ -28,12 +28,8 @@
 #include <AC_PID.h>             // PID library
 #include <RC_Channel.h>         // RC Channel Library
 #include <AP_Motors.h>          // AP Motors library
-#include <AP_RangeFinder.h>     // Range finder library
-#include <AP_OpticalFlow.h>     // Optical Flow library
 #include <Filter.h>             // Filter library
 #include <AP_Buffer.h>          // APM FIFO Buffer
-#include <AP_Relay.h>           // APM relay
-#include <AP_ServoRelayEvents.h>
 #include <AP_Airspeed.h>        // needed for AHRS build
 #include <AP_Vehicle.h>         // needed for AHRS build
 #include <AP_InertialNav.h>     // ArduPilot Mega inertial navigation library
@@ -70,29 +66,26 @@
 #include "radio.h"
 #include "system.h"
 #include "util.h"
-
 #include "serial.h"
+#include "ap_union.h"
 
-/* @brief Reference to BetterStream used for communicating over serial */
-AP_HAL::BetterStream* cliSerial;
+/* --- COMPONENTS ---------------------------------------------------------------------
+* The following objects all represent the backend implementations of HAL components.
+* They expose functions for retrieving data and updating state. Their individual driver
+* libraries are found in libraries/ and are component-specific, not board-specific.
+* ---------------------------------------------------------------------------------- */
 
-/* @brief HAL reference */
-const AP_HAL::HAL& hal = AP_HAL_BOARD_DRIVER;
-
-Parameters g;
-AP_Scheduler scheduler;
-AP_Notify notify;
+/* @brief ATMEL DataFlash interface for flash storage */
 DataFlash_APM2 DataFlash;
+
+/* @brief ADC Instance used to obtain battery voltage levels */
+AP_ADC_ADS7844 adc;
+
+/* @brief Inertial Measurement Unit interface */
+AP_InertialSensor_MPU6000 ins;
 const AP_InertialSensor::Sample_rate ins_sample_rate = AP_InertialSensor::RATE_100HZ;
 
-GPS         *g_gps;
-GPS_Glitch   gps_glitch(g_gps);
-
-AP_Int8 *flight_modes = &g.flight_mode1;
-
-AP_ADC_ADS7844 adc;
-AP_InertialSensor_MPU6000 ins;
-
+/* @brief Barometer instance */
 #if CONFIG_MS5611_SERIAL == AP_BARO_MS5611_SPI
 AP_Baro_MS5611 barometer(&AP_Baro_MS5611::spi);
 #elif CONFIG_MS5611_SERIAL == AP_BARO_MS5611_I2C
@@ -100,10 +93,14 @@ AP_Baro_MS5611 barometer(&AP_Baro_MS5611::spi);
 AP_Baro_MS5611 barometer(&AP_Baro_MS5611::i2c);
 #endif
 
+/* @brief Compass instance */
 AP_Compass_HMC5843 compass;
 
+/* @brief GPS Interface */
+GPS         *g_gps;
+GPS_Glitch   gps_glitch(g_gps);
+
 // NOTE Almost certain ours is ublox
-// real GPS selection
  #if   GPS_PROTOCOL == GPS_PROTOCOL_AUTO
 AP_GPS_Auto     g_gps_driver(&g_gps);
 
@@ -129,11 +126,32 @@ AP_GPS_None     g_gps_driver;
   #error Unrecognised GPS_PROTOCOL setting.
  #endif // GPS PROTOCOL
 
-// AHRS DCM
+/* --- FLIGHT ABSTRACTIONS  -----------------------------------------------------------
+*
+*
+* ---------------------------------------------------------------------------------- */
+
+/* @brief HAL reference */
+const AP_HAL::HAL& hal = AP_HAL_BOARD_DRIVER;
+
+/* @brief ahrs tracks the copter orientation and heading */
 AP_AHRS_DCM ahrs(ins, g_gps);
 
+/* @brief Reference to BetterStream used for communicating over serial */
+AP_HAL::BetterStream* cliSerial;
 
-#include "ap_union.h"
+/* @brief Core parameters class which holds PID controllers and other objects */
+Parameters g;
+
+/* @brief Scheduler instance, implementing RTOS-like behaviours */
+AP_Scheduler scheduler;
+
+/* @brief notify is used to control onboard LED behaviour */
+AP_Notify notify;
+
+/* @brief Array of flight modes, defaulting to 1 */
+AP_Int8 *flight_modes = &g.flight_mode1;
+
 AP_UNION_T ap;
 
 AP_BattMonitor battery;
@@ -152,14 +170,14 @@ AP_FAILSAFE_T failsafe;
 // Motor Output
 AP_MotorsQuad motors(&g.rc_1, &g.rc_2, &g.rc_3, &g.rc_4);
 
-// Reference to the relay object (APM1 -> PORTL 2) (APM2 -> PORTB 7)
-AP_Relay relay;
-// handle repeated servo and relay events
-AP_ServoRelayEvents ServoRelayEvents(relay);
+
+
 // a pin for reading the receiver RSSI voltage.
 AP_HAL::AnalogSource* rssi_analog_source;
 // Input sources for battery voltage, battery current, board vcc
 AP_HAL::AnalogSource* board_vcc_analog_source;
+
+// Fence instance
 AC_Fence    fence(&inertial_nav);
 
 AP_InertialNav inertial_nav(&ahrs, &barometer, g_gps, gps_glitch);
@@ -724,7 +742,7 @@ void three_hz_loop()
     // check if we have breached a fence
     fence_check();
 
-    update_events();
+    //update_events();
 
 		// No manual tuning
 		/*

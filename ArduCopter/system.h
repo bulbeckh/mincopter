@@ -16,7 +16,6 @@
 #include <AC_WPNav.h>
 #include <AP_BattMonitor.h>
 #include <AP_BoardConfig.h>
-#include <AP_Relay.h>
 #include <AP_HAL.h>
 #include <DataFlash.h>
 #include <AP_GPS.h>
@@ -44,7 +43,6 @@ extern AP_HAL::AnalogSource* rssi_analog_source;
 
 void load_parameters(void);
 
-extern AP_Relay relay;
 extern AP_BoardConfig BoardConfig;
 
 // system.cpp

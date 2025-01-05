@@ -216,8 +216,3 @@ void failsafe_gps_check()
     }
 }
 
-void update_events()
-{
-    ServoRelayEvents.update_events();
-}
-

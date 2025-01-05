@@ -11,7 +11,6 @@
 #include <AC_Fence.h>
 #include <AC_WPNav.h>
 
-#include <AP_ServoRelayEvents.h>
 
 #include "ap_union.h"
 #include "navigation.h"
@@ -41,11 +40,6 @@ void failsafe_gps_check();
 */
 void failsafe_gps_off_event(void);
 
-/* @brief Calls the update_events method of AP_ServoRelayEvents
-*/
-void update_events();
-
-extern AP_ServoRelayEvents ServoRelayEvents;
 extern int32_t home_distance;
 extern Parameters g;
 extern Vector3f omega;

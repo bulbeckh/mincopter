@@ -1041,7 +1041,7 @@ const AP_Param::Info var_info[] PROGMEM = {
 
     // @Group: RELAY_
     // @Path: ../libraries/AP_Relay/AP_Relay.cpp
-    GOBJECT(relay,                  "RELAY_", AP_Relay),
+    //GOBJECT(relay,                  "RELAY_", AP_Relay),
 
 #if EPM_ENABLED == ENABLED
 	// @Group: EPM_

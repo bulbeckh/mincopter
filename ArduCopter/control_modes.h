@@ -34,6 +34,11 @@ extern uint8_t throttle_mode;
 
 extern uint8_t auto_trim_counter;
 
+/* --- CONTROL MODES ------------------------------------------------------------------
+*
+*
+* ---------------------------------------------------------------------------------- */
+
 /* @brief Reads value of control mode switch. Called during fast_loop. Calls set_mode with new switch value.
 */
 void read_control_switch();

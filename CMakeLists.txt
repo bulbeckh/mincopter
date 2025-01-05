@@ -50,7 +50,7 @@ list(APPEND MC_INCLUDE_DIRS
 	AP_ADC_AnalogSource
 	AP_AHRS
 	AP_Airspeed
-	AP_Arming
+	#AP_Arming
 	AP_Baro
 	AP_BattMonitor
 	AP_BoardConfig
@@ -60,7 +60,6 @@ list(APPEND MC_INCLUDE_DIRS
 	AP_Compass
 	AP_Curve
 	AP_Declination
-	AP_EPM
 	AP_GPS
 	AP_HAL
 	AP_HAL/utility
@@ -68,28 +67,28 @@ list(APPEND MC_INCLUDE_DIRS
 	AP_HAL_AVR/utility
 	AP_InertialNav
 	AP_InertialSensor
-	AP_L1_Control
-	AP_Limits
+	#AP_L1_Control
+	#AP_Limits
 	AP_Math
-	APM_Control
+	#APM_Control
 	AP_Menu
-	APM_OBC
+	#APM_OBC
 	AP_Motors
 	#AP_Mount
 	APM_PI
-	AP_Navigation
+	#AP_Navigation
 	AP_Notify
-	AP_OpticalFlow
+	#AP_OpticalFlow
 	AP_Param
 	AP_PerfMon
 	AP_Progmem
-	AP_RangeFinder
+	#AP_RangeFinder
 	AP_RCMapper
-	AP_Relay
+	#AP_Relay
 	AP_Scheduler
-	AP_ServoRelayEvents
-	AP_SpdHgtControl
-	AP_TECS
+	#AP_ServoRelayEvents
+	#AP_SpdHgtControl
+	#AP_TECS
 	AP_Vehicle
 	DataFlash
 	Filter
