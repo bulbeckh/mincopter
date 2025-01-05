@@ -94,10 +94,6 @@ void pre_arm_rc_checks();
 bool pre_arm_gps_checks(bool display_failure);
 bool arm_checks(bool display_failure);
 
-/* @brief Send output to motors via motors.output(). Called during fast_loop.
-*/
-void set_servos_4();
-
 // NOTE not used - can remove
 /* @brief Writes value to a channel
 */

@@ -173,7 +173,6 @@ AP_MotorsQuad motors(&g.rc_1, &g.rc_2, &g.rc_3, &g.rc_4);
 
 
 // a pin for reading the receiver RSSI voltage.
-AP_HAL::AnalogSource* rssi_analog_source;
 // Input sources for battery voltage, battery current, board vcc
 AP_HAL::AnalogSource* board_vcc_analog_source;
 
@@ -322,7 +321,6 @@ void throttle_loop(void);
 void read_AHRS();
 void update_trig();
 void run_rate_controllers();
-void set_servos_4();
 void read_control_switch();
 void update_roll_pitch_mode();
 void update_rate_controller_targets();
@@ -389,9 +387,9 @@ void fast_loop()
 		// Run controllers that take body frame rate targets and convert to motor values using PID rate controllers (get_rate_{roll,pitch,yaw})
     run_rate_controllers();
 
-    // write out the servo PWM values
+    // write out the servo PWM values to motors
     // ------------------------------
-    set_servos_4();
+    motors.output();
 
     // Inertial Nav
     // --------------------

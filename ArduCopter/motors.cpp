@@ -538,14 +538,6 @@ void init_disarm_motors()
     ahrs.set_correct_centrifugal(false);
 }
 
-/*****************************************
-* Set the flight control servos based on the current calculated values
-*****************************************/
-void
-set_servos_4()
-{
-    motors.output();
-}
 
 // servo_write - writes to a servo after checking the channel is not used for a motor
 void servo_write(uint8_t ch, uint16_t pwm)
