@@ -12,6 +12,9 @@
 #include "config.h"
 #include "util.h"
 
+#include "attitude.h"
+
+
 extern Parameters g;
 extern AP_Int8 *flight_modes;
 
@@ -34,42 +37,21 @@ extern uint8_t throttle_mode;
 
 extern uint8_t auto_trim_counter;
 
+extern int16_t nav_throttle;
+
 /* --- CONTROL MODES ------------------------------------------------------------------
 *
 *
 * ---------------------------------------------------------------------------------- */
 
-/* @brief Reads value of control mode switch. Called during fast_loop. Calls set_mode with new switch value.
-*/
-void read_control_switch();
+bool set_throttle_mode( uint8_t new_throttle_mode );
+void update_throttle_mode(void);
 
-/* @brief Helper function to return index based on rc PWM value
-*/
-uint8_t readSwitch(void);
+bool set_roll_pitch_mode(uint8_t new_roll_pitch_mode);
+void update_roll_pitch_mode(void);
 
-/* @brief Re-runs read_control_switch but forcing an update
-*/
-void reset_control_switch();
-
-/* @brief Converts auxiliary switch PWM to index
-* @param radio_in The radio PWM signal
-*/
-uint8_t read_3pos_switch(int16_t radio_in);
-
-/* @brief Read auxiliary switches. Channels 7 and 8 (g.rc_<7,8>)
-* called at 10hz by scheduler
-*/
-void read_aux_switches();
-
-/* @brief Initializes auxiliary functions. Called during init_autopilot
-*/
-void init_aux_switches();
-
-/* @brief Run the correct auxiliary function. Executed during read_aux_switches
-* @param ch_function Which auxiliary code to execute
-* @param ch_flag The index identified by read_3pos_switch
-*/
-void do_aux_switch_function(int8_t ch_function, uint8_t ch_flag);
+bool set_yaw_mode(uint8_t new_yaw_mode);
+void update_yaw_mode(void);
 
 // NOTE are these used?
 void save_trim();

@@ -188,7 +188,7 @@ AP_Param param_loader(var_info, WP_START_BYTE);
 
 // receiver RSSI
 uint8_t receiver_rssi;
-
+AP_HAL::AnalogSource* rssi_analog_source;
 
 /* @brief IMU roll rates that get updated during read_AHRS */
 Vector3f omega;
@@ -372,6 +372,11 @@ void loop()
 }
 
 
+/* fast_loop Performance Monitoring */
+uint32_t n_measure=0;
+uint32_t t_avg_run_rate_controllers;
+uint32_t t_avg_update_modes;
+
 // Main loop - 100hz
 void fast_loop()
 {
@@ -385,7 +390,11 @@ void fast_loop()
     update_trig();
 
 		// Run controllers that take body frame rate targets and convert to motor values using PID rate controllers (get_rate_{roll,pitch,yaw})
+		uint32_t rr_pre = micros();
     run_rate_controllers();
+		uint32_t diff = micros() - rr_pre;
+		t_avg_run_rate_controllers += diff;
+
 
     // write out the servo PWM values to motors
     // ------------------------------
@@ -397,15 +406,29 @@ void fast_loop()
 
     // Read radio and 3-position switch on radio
 		/* NOTE No need to read radio input during autonomous flight */
-    read_radio();
-    read_control_switch();
+    //read_radio();
+    //read_control_switch();
 
 		// Calls flight P controller to convert desired angle into desired rate
+
+		uint32_t um_pre = micros();
     update_yaw_mode();
     update_roll_pitch_mode();
+		uint32_t udiff = micros() - um_pre;
+		t_avg_update_modes += udiff;
 
 		// convert rate targets to body frame using DCM values (stored in variables like cos_roll_x and cos_pitch_x)
     update_rate_controller_targets();
+	
+		// Performance profiling
+		n_measure += 1;
+		if (n_measure>100) {
+			cliSerial->printf_P(PSTR("T_RR: %fus\n"), (float)t_avg_run_rate_controllers/(1.0f* n_measure));
+			cliSerial->printf_P(PSTR("T_UM: %fus\n"), (float)t_avg_update_modes/(1.0f* n_measure));
+			n_measure=0;
+			t_avg_run_rate_controllers=0;
+			t_avg_update_modes=0;
+		}
 }
 
 // throttle_loop - should be run at 50 hz
@@ -424,155 +447,6 @@ void throttle_loop()
 
     // check auto_armed status
     update_auto_armed();
-}
-
-// update_roll_pitch_mode - run high level roll and pitch controllers
-// 100hz update rate
-void update_roll_pitch_mode(void)
-{
-    switch(roll_pitch_mode) {
-		// NO ACRO MODE
-
-		// NO manual modes
-    case ROLL_PITCH_AUTO:
-				// Get control roll/pitch from the waypoint controller
-        control_roll = wp_nav.get_desired_roll();
-        control_pitch = wp_nav.get_desired_pitch();
-
-        get_stabilize_roll(control_roll);
-        get_stabilize_pitch(control_pitch);
-        break;
-    }
-
-    if(g.rc_3.control_in == 0 && control_mode <= ACRO) {
-        reset_rate_I();
-    }
-
-    if(ap.new_radio_frame) {
-        // clear new radio frame info
-        ap.new_radio_frame = false;
-    }
-}
-// throttle_mode_manual - returns true if the throttle is directly controlled by the pilot
-bool throttle_mode_manual(uint8_t thr_mode)
-{
-    return (thr_mode == THROTTLE_MANUAL || thr_mode == THROTTLE_MANUAL_TILT_COMPENSATED || thr_mode == THROTTLE_MANUAL_HELI);
-}
-
-// set_throttle_mode - sets the throttle mode and initialises any variables as required
-bool set_throttle_mode( uint8_t new_throttle_mode )
-{
-    // boolean to ensure proper initialisation of throttle modes
-    bool throttle_initialised = false;
-
-    // return immediately if no change
-    if( new_throttle_mode == throttle_mode ) {
-        return true;
-    }
-
-    // initialise any variables required for the new throttle mode
-    switch(new_throttle_mode) {
-        case THROTTLE_MANUAL_TILT_COMPENSATED:
-						// NOTE This is throttle mode used during STABILIZE
-            throttle_accel_deactivate();                // this controller does not use accel based throttle controller
-            altitude_error = 0;                         // clear altitude error reported to GCS
-            throttle_initialised = true;
-            break;
-
-        case THROTTLE_HOLD:
-        case THROTTLE_AUTO:
-            controller_desired_alt = get_initial_alt_hold(current_loc.alt, climb_rate);     // reset controller desired altitude to current altitude
-            wp_nav.set_desired_alt(controller_desired_alt);                                 // same as above but for loiter controller
-            if (throttle_mode_manual(throttle_mode)) {  // reset the alt hold I terms if previous throttle mode was manual
-                reset_throttle_I();
-                set_accel_throttle_I_from_pilot_throttle(get_pilot_desired_throttle(g.rc_3.control_in));
-            }
-            throttle_initialised = true;
-            break;
-
-        case THROTTLE_LAND:
-            reset_land_detector();  // initialise land detector
-            controller_desired_alt = get_initial_alt_hold(current_loc.alt, climb_rate);   // reset controller desired altitude to current altitude
-            throttle_initialised = true;
-            break;
-    }
-
-    // update the throttle mode
-    if( throttle_initialised ) {
-        throttle_mode = new_throttle_mode;
-
-        // reset some variables used for logging
-        desired_climb_rate = 0;
-        nav_throttle = 0;
-    }
-
-    // return success or failure
-    return throttle_initialised;
-}
-
-// update_throttle_mode - run high level throttle controllers
-// 50 hz update rate
-void update_throttle_mode(void)
-{
-    int16_t pilot_climb_rate;
-    int16_t pilot_throttle_scaled;
-
-    // do not run throttle controllers if motors disarmed
-    if( !motors.armed() ) {
-        set_throttle_out(0, false);
-        throttle_accel_deactivate();    // do not allow the accel based throttle to override our command
-        set_target_alt_for_reporting(0);
-        return;
-    }
-
-    switch(throttle_mode) {
-
-    case THROTTLE_MANUAL_TILT_COMPENSATED:
-        // manual throttle but with angle boost
-        if (g.rc_3.control_in <= 0) {
-            set_throttle_out(0, false); // no need for angle boost with zero throttle
-        }else{
-            pilot_throttle_scaled = get_pilot_desired_throttle(g.rc_3.control_in);
-            set_throttle_out(pilot_throttle_scaled, true);
-
-            // update estimate of throttle cruise
-						update_throttle_cruise(pilot_throttle_scaled);
-
-            if (!ap.takeoff_complete && motors.armed()) {
-                if (pilot_throttle_scaled > g.throttle_cruise) {
-                    // we must be in the air by now
-                    set_takeoff_complete(true);
-                }
-            }
-        }
-        set_target_alt_for_reporting(0);
-        break;
-
-    case THROTTLE_AUTO:
-        // auto pilot altitude controller with target altitude held in wp_nav.get_desired_alt()
-        if(ap.auto_armed) {
-            // special handling if we are just taking off
-            if (ap.land_complete) {
-                // tell motors to do a slow start.
-                motors.slow_start(true);
-            }
-            get_throttle_althold_with_slew(wp_nav.get_desired_alt(), -wp_nav.get_descent_velocity(), wp_nav.get_climb_velocity());
-            set_target_alt_for_reporting(wp_nav.get_desired_alt()); // To-Do: return get_destination_alt if we are flying to a waypoint
-        }else{
-            // pilot's throttle must be at zero so keep motors off
-            set_throttle_out(0, false);
-            // deactivate accel based throttle controller
-            throttle_accel_deactivate();
-            set_target_alt_for_reporting(0);
-        }
-        break;
-
-    case THROTTLE_LAND:
-        // landing throttle controller
-        get_throttle_land();
-        set_target_alt_for_reporting(0);
-        break;
-    }
 }
 
 // set_target_alt_for_reporting - set target altitude in cm for reporting purposes (logs and gcs)
@@ -632,13 +506,6 @@ void update_altitude()
 {
     // read in baro altitude
     baro_alt            = read_barometer();
-
-    // write altitude info to dataflash logs
-		/*
-    if (g.log_bitmask & MASK_LOG_CTUN) {
-        Log_Write_Control_Tuning();
-    }
-		*/
 }
 
 // called at 50hz
@@ -739,26 +606,21 @@ void three_hz_loop()
 
     // check if we have breached a fence
     fence_check();
-
-    //update_events();
-
-		// No manual tuning
-		/*
-    if(g.radio_tuning > 0)
-        tuning();
-		*/
 }
 
 // one_hz_loop - runs at 1Hz
 void one_hz_loop()
 {
 		// from serial.h
-		print_GPS();
-		print_RPY();
+		//print_GPS();
+		//print_RPY();
+		print_roll_rates_and_accel();
 
 		// Print num logs
+		/*
 		uint16_t nl = DataFlash.get_num_logs();
 		cliSerial->printf_P(PSTR("Num logs: %d\n"), nl);
+		*/
 
     // pass latest alt hold kP value to navigation controller
     wp_nav.set_althold_kP(g.pi_alt_hold.kP());
@@ -787,218 +649,10 @@ void one_hz_loop()
         motors.set_frame_orientation(g.frame_orientation);
     }
 
-    // update assigned functions and enable auxiliar servos
-    aux_servos_update_fn();
-    enable_aux_servos();
-
     check_usb_mux();
 
 }
 
-// update_yaw_mode - run high level yaw controllers
-// 100hz update rate
-void update_yaw_mode(void)
-{
-    int16_t pilot_yaw = g.rc_4.control_in;
-
-    // do not process pilot's yaw input during radio failsafe
-    if (failsafe.radio) {
-        pilot_yaw = 0;
-    }
-
-    switch(yaw_mode) {
-
-		/* NOTE REMOVE DUE TO ACRO VARIABLE IN get_yaw_rate_stabilized_ef
-    case YAW_HOLD:
-        // if we are landed reset yaw target to current heading
-        if (ap.land_complete) {
-            control_yaw = ahrs.yaw_sensor;
-        }
-        // heading hold at heading held in control_yaw but allow input from pilot
-        get_yaw_rate_stabilized_ef(pilot_yaw);
-        break;
-		*/
-
-		/* REMOVE ACRO
-    case YAW_ACRO:
-        // pilot controlled yaw using rate controller
-        get_yaw_rate_stabilized_bf(pilot_yaw);
-        break;
-		*/
-
-    case YAW_LOOK_AT_NEXT_WP:
-        // if we are landed reset yaw target to current heading
-        if (ap.land_complete) {
-            control_yaw = ahrs.yaw_sensor;
-        }else{
-            // point towards next waypoint (no pilot input accepted)
-            // we don't use wp_bearing because we don't want the copter to turn too much during flight
-            control_yaw = get_yaw_slew(control_yaw, original_wp_bearing, AUTO_YAW_SLEW_RATE);
-        }
-        get_stabilize_yaw(control_yaw);
-
-        // if there is any pilot input, switch to YAW_HOLD mode for the next iteration
-        if (pilot_yaw != 0) {
-            set_yaw_mode(YAW_HOLD);
-        }
-        break;
-
-    case YAW_LOOK_AT_LOCATION:
-        // if we are landed reset yaw target to current heading
-        if (ap.land_complete) {
-            control_yaw = ahrs.yaw_sensor;
-        }
-        // point towards a location held in yaw_look_at_WP
-        get_look_at_yaw();
-
-        // if there is any pilot input, switch to YAW_HOLD mode for the next iteration
-        if (pilot_yaw != 0) {
-            set_yaw_mode(YAW_HOLD);
-        }
-        break;
-
-		// REMOVED get_circle_yaw
-
-    case YAW_LOOK_AT_HOME:
-        // if we are landed reset yaw target to current heading
-        if (ap.land_complete) {
-            control_yaw = ahrs.yaw_sensor;
-        }else{
-            // keep heading always pointing at home with no pilot input allowed
-            control_yaw = get_yaw_slew(control_yaw, home_bearing, AUTO_YAW_SLEW_RATE);
-        }
-        get_stabilize_yaw(control_yaw);
-
-        // if there is any pilot input, switch to YAW_HOLD mode for the next iteration
-        if (pilot_yaw != 0) {
-            set_yaw_mode(YAW_HOLD);
-        }
-        break;
-
-    case YAW_LOOK_AT_HEADING:
-        // if we are landed reset yaw target to current heading
-        if (ap.land_complete) {
-            control_yaw = ahrs.yaw_sensor;
-        }else{
-            // keep heading pointing in the direction held in yaw_look_at_heading with no pilot input allowed
-            control_yaw = get_yaw_slew(control_yaw, yaw_look_at_heading, yaw_look_at_heading_slew);
-        }
-        get_stabilize_yaw(control_yaw);
-        break;
-
-	case YAW_LOOK_AHEAD:
-        // if we are landed reset yaw target to current heading
-        if (ap.land_complete) {
-            control_yaw = ahrs.yaw_sensor;
-        }
-		// Commanded Yaw to automatically look ahead.
-        get_look_ahead_yaw(pilot_yaw);
-        break;
-
-    case YAW_RESETTOARMEDYAW:
-        // if we are landed reset yaw target to current heading
-        if (ap.land_complete) {
-            control_yaw = ahrs.yaw_sensor;
-        }else{
-            // changes yaw to be same as when quad was armed
-            control_yaw = get_yaw_slew(control_yaw, initial_armed_bearing, AUTO_YAW_SLEW_RATE);
-        }
-        get_stabilize_yaw(control_yaw);
-
-        // if there is any pilot input, switch to YAW_HOLD mode for the next iteration
-        if (pilot_yaw != 0) {
-            set_yaw_mode(YAW_HOLD);
-        }
-
-        break;
-    }
-}
-
-// set_roll_pitch_mode - update roll/pitch mode and initialise any variables as required
-bool set_roll_pitch_mode(uint8_t new_roll_pitch_mode)
-{
-    // boolean to ensure proper initialisation of throttle modes
-    bool roll_pitch_initialised = false;
-
-    // return immediately if no change
-    if( new_roll_pitch_mode == roll_pitch_mode ) {
-        return true;
-    }
-
-    switch( new_roll_pitch_mode ) {
-        case ROLL_PITCH_STABLE:
-            reset_roll_pitch_in_filters(g.rc_1.control_in, g.rc_2.control_in);
-            roll_pitch_initialised = true;
-            break;
-        case ROLL_PITCH_AUTO:
-            roll_pitch_initialised = true;
-            break;
-
-    }
-
-    // if initialisation has been successful update the yaw mode
-    if( roll_pitch_initialised ) {
-        roll_pitch_mode = new_roll_pitch_mode;
-    }
-
-    // return success or failure
-    return roll_pitch_initialised;
-}
-
-// set_yaw_mode - update yaw mode and initialise any variables required
-bool set_yaw_mode(uint8_t new_yaw_mode)
-{
-    // boolean to ensure proper initialisation of throttle modes
-    bool yaw_initialised = false;
-
-    // return immediately if no change
-    if( new_yaw_mode == yaw_mode ) {
-        return true;
-    }
-
-    switch( new_yaw_mode ) {
-        case YAW_HOLD:
-            yaw_initialised = true;
-            break;
-        case YAW_LOOK_AT_NEXT_WP:
-            if( ap.home_is_set ) {
-                yaw_initialised = true;
-            }
-            break;
-        case YAW_LOOK_AT_LOCATION:
-            if( ap.home_is_set ) {
-                // update bearing - assumes yaw_look_at_WP has been intialised before set_yaw_mode was called
-                yaw_look_at_WP_bearing = pv_get_bearing_cd(inertial_nav.get_position(), yaw_look_at_WP);
-                yaw_initialised = true;
-            }
-            break;
-        case YAW_LOOK_AT_HEADING:
-            yaw_initialised = true;
-            break;
-        case YAW_LOOK_AT_HOME:
-            if( ap.home_is_set ) {
-                yaw_initialised = true;
-            }
-            break;
-        case YAW_LOOK_AHEAD:
-            if( ap.home_is_set ) {
-                yaw_initialised = true;
-            }
-            break;
-        case YAW_RESETTOARMEDYAW:
-            control_yaw = ahrs.yaw_sensor; // store current yaw so we can start rotating back to correct one
-            yaw_initialised = true;
-            break;
-    }
-
-    // if initialisation has been successful update the yaw mode
-    if( yaw_initialised ) {
-        yaw_mode = new_yaw_mode;
-    }
-
-    // return success or failure
-    return yaw_initialised;
-}
 
 
 // NOTE henry - move scheduler table to end
@@ -1014,7 +668,6 @@ const AP_Scheduler::Task scheduler_tasks[] PROGMEM = {
     { update_GPS,            2,     900 },
     { update_nav_mode,       1,     400 },
     { update_batt_compass,  10,     720 },
-    { read_aux_switches,    10,      50 },
     { arm_motors_check,     10,      10 },
     { update_altitude,      10,    1000 },
     { run_nav_updates,      10,     800 },

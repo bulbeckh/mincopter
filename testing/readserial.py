@@ -16,7 +16,7 @@ if __name__=="__main__":
 	
 	while(True):
 		resp = ser.readline()
-		print(resp)
+		print(type(resp), resp)
 	
 		'''
 		for e in resp:

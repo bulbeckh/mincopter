@@ -91,10 +91,6 @@ void startup_ground(bool force_gyro_cal);
 */
 bool GPS_ok();
 
-// NOTE can probably replace these now, having slimmed down the modes
-bool mode_requires_GPS(uint8_t mode);
-bool manual_flight_mode(uint8_t mode);
-
 void update_auto_armed();
 uint32_t map_baudrate(int8_t rate, uint32_t default_baud);
 void check_usb_mux(void);

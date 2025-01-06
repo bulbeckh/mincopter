@@ -20,42 +20,6 @@ void default_dead_zones()
     g.rc_6.set_default_dead_zone(0);
 }
 
-void init_rc_in()
-{
-    // set rc channel ranges
-    g.rc_1.set_angle(ROLL_PITCH_INPUT_MAX);
-    g.rc_2.set_angle(ROLL_PITCH_INPUT_MAX);
-    g.rc_3.set_range(g.throttle_min, g.throttle_max);
-    g.rc_4.set_angle(4500);
-
-    g.rc_1.set_type(RC_CHANNEL_TYPE_ANGLE_RAW);
-    g.rc_2.set_type(RC_CHANNEL_TYPE_ANGLE_RAW);
-    g.rc_4.set_type(RC_CHANNEL_TYPE_ANGLE_RAW);
-#if FRAME_CONFIG == SINGLE_FRAME
-    // we set four servos to angle
-    g.single_servo_1.set_type(RC_CHANNEL_TYPE_ANGLE);
-    g.single_servo_2.set_type(RC_CHANNEL_TYPE_ANGLE);
-    g.single_servo_3.set_type(RC_CHANNEL_TYPE_ANGLE);
-    g.single_servo_4.set_type(RC_CHANNEL_TYPE_ANGLE);
-    g.single_servo_1.set_angle(DEFAULT_ANGLE_MAX);
-    g.single_servo_2.set_angle(DEFAULT_ANGLE_MAX);
-    g.single_servo_3.set_angle(DEFAULT_ANGLE_MAX);
-    g.single_servo_4.set_angle(DEFAULT_ANGLE_MAX);
-#endif
-
-    //set auxiliary servo ranges
-    g.rc_5.set_range(0,1000);
-    g.rc_6.set_range(0,1000);
-    g.rc_7.set_range(0,1000);
-    g.rc_8.set_range(0,1000);
-
-    // update assigned functions for auxiliary servos
-    aux_servos_update_fn();
-
-    // set default dead zones
-    default_dead_zones();
-}
-
 void init_esc()
 {
 	motors.set_update_rate(50);
@@ -78,10 +42,12 @@ void init_rc_out()
     motors.Init();                                              // motor initialisation
     motors.set_min_throttle(g.throttle_min);
 
+		/*
     for(uint8_t i = 0; i < 5; i++) {
         delay(20);
         read_radio();
     }
+		*/
 
     // we want the input to be scaled correctly
     g.rc_3.set_range_out(0,1000);
@@ -125,41 +91,6 @@ void output_min()
     motors.output_min();
 }
 
-#define FAILSAFE_RADIO_TIMEOUT_MS 2000       // 2 seconds
-void read_radio()
-{
-    static uint32_t last_update = 0;
-    if (hal.rcin->valid_channels() > 0) {
-        last_update = millis();
-        ap.new_radio_frame = true;
-        uint16_t periods[8];
-        hal.rcin->read(periods,8);
-        g.rc_1.set_pwm(periods[rcmap.roll()-1]);
-        g.rc_2.set_pwm(periods[rcmap.pitch()-1]);
-
-        set_throttle_and_failsafe(periods[rcmap.throttle()-1]);
-
-        g.rc_4.set_pwm(periods[rcmap.yaw()-1]);
-        g.rc_5.set_pwm(periods[4]);
-        g.rc_6.set_pwm(periods[5]);
-        g.rc_7.set_pwm(periods[6]);
-        g.rc_8.set_pwm(periods[7]);
-
-        // flag we must have an rc receiver attached
-        if (!failsafe.rc_override_active) {
-            ap.rc_receiver_present = true;
-        }
-    }else{
-        uint32_t elapsed = millis() - last_update;
-        // turn on throttle failsafe if no update from ppm encoder for 2 seconds
-        if ((elapsed >= FAILSAFE_RADIO_TIMEOUT_MS)
-                && g.failsafe_throttle && motors.armed() && !failsafe.radio) {
-            Log_Write_Error(ERROR_SUBSYSTEM_RADIO, ERROR_CODE_RADIO_LATE_FRAME);
-            set_failsafe_radio(true);
-        }
-    }
-}
-
 #define FS_COUNTER 3        // radio failsafe kicks in after 3 consecutive throttle values below failsafe_throttle_value
 void set_throttle_and_failsafe(uint16_t throttle_pwm)
 {
@@ -200,27 +131,5 @@ void set_throttle_and_failsafe(uint16_t throttle_pwm)
         // pass through throttle
         g.rc_3.set_pwm(throttle_pwm);
     }
-}
-
-// aux_servos_update - update auxiliary servos assigned functions in case the user has changed them
-void aux_servos_update_fn()
-{
-// Quads can use RC5 and higher as auxiliary channels
-    update_aux_servo_function(&g.rc_5, &g.rc_6, &g.rc_7, &g.rc_8, &g.rc_10, &g.rc_11);
-}
-
-void trim_radio()
-{
-    for (uint8_t i = 0; i < 30; i++) {
-        read_radio();
-    }
-
-    g.rc_1.trim();      // roll
-    g.rc_2.trim();      // pitch
-    g.rc_4.trim();      // yaw
-
-    g.rc_1.save_eeprom();
-    g.rc_2.save_eeprom();
-    g.rc_4.save_eeprom();
 }
 

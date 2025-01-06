@@ -149,7 +149,8 @@ void init_ardupilot()
 		cliSerial->println_P(PSTR("Dataflash initialised\n"));
 #endif
 
-    init_rc_in();               // sets up rc channels from radio
+		/* NOTE no RC input in auto modes */
+    //init_rc_in();               // sets up rc channels from radio
     init_rc_out();              // sets up motors and output to escs
 
     /*
@@ -188,8 +189,9 @@ void init_ardupilot()
 #endif
 
 #if CLI_ENABLED == ENABLED
-    const prog_char_t *msg = PSTR("\nPress ENTER 3 times to start interactive setup\n");
-    cliSerial->println_P(msg);
+    //const prog_char_t *msg = PSTR("\nPress ENTER 3 times to start interactive setup\n");
+    //cliSerial->println_P(msg);
+
 		/*
     if (gcs[1].initialised) {
         hal.uartC->println_P(msg);
@@ -219,9 +221,11 @@ void init_ardupilot()
     //init_commands();
 
     // initialise the flight mode and aux switch
-    // ---------------------------
-    reset_control_switch();
-    init_aux_switches();
+		/* NOTE removed */
+    //reset_control_switch();
+
+		/* NOTE removed */
+    //init_aux_switches();
 
     startup_ground(true);
 
@@ -231,6 +235,7 @@ void init_ardupilot()
 
 		/* Dump Log on start */
 
+		/*
 		DataFlash.ListAvailableLogs(cliSerial);
 		
 		uint16_t nl = DataFlash.get_num_logs();
@@ -244,7 +249,8 @@ void init_ardupilot()
 		DataFlash.get_log_boundaries(lognum, dl_start, dl_end);
 		cliSerial->printf_P(PSTR("Reading Log 19: %u %u\n"), dl_start, dl_end);
 		Log_Read((uint16_t)lognum,dl_start, dl_end);
-		
+		*/
+
 		cliSerial->println_P(PSTR("Initialisation complete"));
 
 }
@@ -281,33 +287,6 @@ bool GPS_ok()
         return false;
     }
 }
-
-// returns true or false whether mode requires GPS
-bool mode_requires_GPS(uint8_t mode) {
-    switch(mode) {
-			// NOTE only supporting AUTO and STABILIZE
-        case AUTO:
-            return true;
-        default:
-            return false;
-    }
-
-    return false;
-}
-
-// manual_flight_mode - returns true if flight mode is completely manual (i.e. roll, pitch and yaw controlled by pilot)
-/*
-bool manual_flight_mode(uint8_t mode) {
-    switch(mode) {
-        case AUTO:
-            return false;
-        default:
-            return true;
-    }
-
-    return false;
-}
-*/
 
 // set_mode - change flight mode and perform any necessary initialisation
 /* NOTE deprecated in favour of auto-only modes */
@@ -376,10 +355,7 @@ void update_auto_armed()
             set_auto_armed(false);
             return;
         }
-        // if in stabilize or acro flight mode and throttle is zero, auto-armed should become false
-        if(/* manual_flight_mode(control_mode) && */ g.rc_3.control_in == 0 && !failsafe.radio) {
-            set_auto_armed(false);
-        }
+
     }else{
         // arm checks
         

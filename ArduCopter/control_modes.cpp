@@ -1,299 +1,326 @@
-/// -*- tab-width: 4; Mode: C++; c-basic-offset: 4; indent-tabs-mode: nil -*-
 
-#define CONTROL_SWITCH_COUNTER  20  // 20 iterations at 100hz (i.e. 2/10th of a second) at a new switch position will cause flight mode change
 #include "control_modes.h"
 
-void read_control_switch()
+// set_throttle_mode - sets the throttle mode and initialises any variables as required
+bool set_throttle_mode( uint8_t new_throttle_mode )
 {
-    static uint8_t switch_counter = 0;
+    // boolean to ensure proper initialisation of throttle modes
+    bool throttle_initialised = false;
 
-    uint8_t switchPosition = readSwitch();
-
-    // has switch moved?
-    // ignore flight mode changes if in failsafe
-    if (oldSwitchPosition != switchPosition && !failsafe.radio && failsafe.radio_counter == 0) {
-        switch_counter++;
-        if(switch_counter >= CONTROL_SWITCH_COUNTER) {
-            oldSwitchPosition       = switchPosition;
-            switch_counter          = 0;
-
-            // set flight mode and simple mode setting
-            if (set_mode(flight_modes[switchPosition])) {
-
-                if(g.ch7_option != AUX_SWITCH_SIMPLE_MODE
-											&& g.ch8_option != AUX_SWITCH_SIMPLE_MODE
-											&& g.ch7_option != AUX_SWITCH_SUPERSIMPLE_MODE
-											&& g.ch8_option != AUX_SWITCH_SUPERSIMPLE_MODE) {
-										// No simple mode in automated flight
-										/*
-                    if (BIT_IS_SET(g.super_simple, switchPosition)) {
-                        set_simple_mode(2);
-                    }else{
-                        set_simple_mode(BIT_IS_SET(g.simple_modes, switchPosition));
-                    }
-										*/
-                }
-            }
-
-        }
-    }else{
-        // reset switch_counter if there's been no change
-        // we don't want 10 intermittant blips causing a flight mode change
-        switch_counter = 0;
+    // return immediately if no change
+    if( new_throttle_mode == throttle_mode ) {
+        return true;
     }
+
+    // initialise any variables required for the new throttle mode
+    switch(new_throttle_mode) {
+
+        case THROTTLE_HOLD:
+        case THROTTLE_AUTO:
+            controller_desired_alt = get_initial_alt_hold(current_loc.alt, climb_rate);     // reset controller desired altitude to current altitude
+            wp_nav.set_desired_alt(controller_desired_alt);                                 // same as above but for loiter controller
+						/* REMOVED 
+            if (throttle_mode_manual(throttle_mode)) {  // reset the alt hold I terms if previous throttle mode was manual
+                reset_throttle_I();
+                set_accel_throttle_I_from_pilot_throttle(get_pilot_desired_throttle(g.rc_3.control_in));
+            }
+						*/
+            throttle_initialised = true;
+            break;
+
+        case THROTTLE_LAND:
+            reset_land_detector();  // initialise land detector
+            controller_desired_alt = get_initial_alt_hold(current_loc.alt, climb_rate);   // reset controller desired altitude to current altitude
+            throttle_initialised = true;
+            break;
+    }
+
+    // update the throttle mode
+    if( throttle_initialised ) {
+        throttle_mode = new_throttle_mode;
+
+        // reset some variables used for logging
+        desired_climb_rate = 0;
+        nav_throttle = 0;
+    }
+
+    // return success or failure
+    return throttle_initialised;
 }
 
-uint8_t readSwitch(void){
-    int16_t pulsewidth = g.rc_5.radio_in;   // default for Arducopter
-
-    if (pulsewidth < 1231) return 0;
-    if (pulsewidth < 1361) return 1;
-    if (pulsewidth < 1491) return 2;
-    if (pulsewidth < 1621) return 3;
-    if (pulsewidth < 1750) return 4;        // Software Manual
-    return 5;                               // Hardware Manual
-}
-
-void reset_control_switch()
+// update_throttle_mode - run high level throttle controllers
+// 50 hz update rate
+void update_throttle_mode(void)
 {
-    oldSwitchPosition = -1;
-    read_control_switch();
-}
+    int16_t pilot_climb_rate;
+    int16_t pilot_throttle_scaled;
 
-// read_3pos_switch
-uint8_t read_3pos_switch(int16_t radio_in){
-    if (radio_in < AUX_SWITCH_PWM_TRIGGER_LOW) return AUX_SWITCH_LOW;      // switch is in low position
-    if (radio_in > AUX_SWITCH_PWM_TRIGGER_HIGH) return AUX_SWITCH_HIGH;    // switch is in high position
-    return AUX_SWITCH_MIDDLE;                                       // switch is in middle position
-}
-
-// read_aux_switches - checks aux switch positions and invokes configured actions
-void read_aux_switches()
-{
-    uint8_t switch_position;
-
-    // exit immediately during radio failsafe
-    if (failsafe.radio || failsafe.radio_counter != 0) {
+    // do not run throttle controllers if motors disarmed
+    if( !motors.armed() ) {
+        set_throttle_out(0, false);
+        throttle_accel_deactivate();    // do not allow the accel based throttle to override our command
+        set_target_alt_for_reporting(0);
         return;
     }
 
-    // check if ch7 switch has changed position
-    switch_position = read_3pos_switch(g.rc_7.radio_in);
-    if (ap.CH7_flag != switch_position) {
-        // set the CH7 flag
-        ap.CH7_flag = switch_position;
+    switch(throttle_mode) {
 
-        // invoke the appropriate function
-        do_aux_switch_function(g.ch7_option, ap.CH7_flag);
-    }
-
-    // check if Ch8 switch has changed position
-    switch_position = read_3pos_switch(g.rc_8.radio_in);
-    if (ap.CH8_flag != switch_position) {
-        // set the CH8 flag
-        ap.CH8_flag = switch_position;
-
-        // invoke the appropriate function
-        do_aux_switch_function(g.ch8_option, ap.CH8_flag);
-    }
-}
-
-// init_aux_switches - invoke configured actions at start-up for aux function where it is safe to do so
-void init_aux_switches()
-{
-    // set the CH7 flag
-    ap.CH7_flag = read_3pos_switch(g.rc_7.radio_in);
-    ap.CH8_flag = read_3pos_switch(g.rc_8.radio_in);
-
-    // init channel 7 options
-    switch(g.ch7_option) {
-        case AUX_SWITCH_SIMPLE_MODE:
-        case AUX_SWITCH_SONAR:
-        case AUX_SWITCH_FENCE:
-        case AUX_SWITCH_RESETTOARMEDYAW:
-        case AUX_SWITCH_SUPERSIMPLE_MODE:
-        case AUX_SWITCH_ACRO_TRAINER:
-        case AUX_SWITCH_EPM:
-        case AUX_SWITCH_SPRAYER:
-            do_aux_switch_function(g.ch7_option, ap.CH7_flag);
-            break;
-    }
-    // init channel 8 option
-    switch(g.ch8_option) {
-        case AUX_SWITCH_SIMPLE_MODE:
-        case AUX_SWITCH_SONAR:
-        case AUX_SWITCH_FENCE:
-        case AUX_SWITCH_RESETTOARMEDYAW:
-        case AUX_SWITCH_SUPERSIMPLE_MODE:
-        case AUX_SWITCH_ACRO_TRAINER:
-        case AUX_SWITCH_EPM:
-        case AUX_SWITCH_SPRAYER:
-            do_aux_switch_function(g.ch8_option, ap.CH8_flag);
-            break;
-    }
-}
-
-// NOTE This functionality should be updated
-
-// do_aux_switch_function - implement the function invoked by the ch7 or ch8 switch
-void do_aux_switch_function(int8_t ch_function, uint8_t ch_flag)
-{
-    int8_t tmp_function = ch_function;
-
-    // multi mode check
-    if(ch_function == AUX_SWITCH_MULTI_MODE) {
-        if (g.rc_6.radio_in < CH6_PWM_TRIGGER_LOW) {
-            tmp_function = AUX_SWITCH_FLIP;
-        }else if (g.rc_6.radio_in > CH6_PWM_TRIGGER_HIGH) {
-            tmp_function = AUX_SWITCH_SAVE_WP;
+    case THROTTLE_AUTO:
+        // auto pilot altitude controller with target altitude held in wp_nav.get_desired_alt()
+        if(ap.auto_armed) {
+            // special handling if we are just taking off
+            if (ap.land_complete) {
+                // tell motors to do a slow start.
+                motors.slow_start(true);
+            }
+            get_throttle_althold_with_slew(wp_nav.get_desired_alt(), -wp_nav.get_descent_velocity(), wp_nav.get_climb_velocity());
+            set_target_alt_for_reporting(wp_nav.get_desired_alt()); // To-Do: return get_destination_alt if we are flying to a waypoint
         }else{
-            tmp_function = AUX_SWITCH_RTL;
+            // pilot's throttle must be at zero so keep motors off
+            set_throttle_out(0, false);
+            // deactivate accel based throttle controller
+            throttle_accel_deactivate();
+            set_target_alt_for_reporting(0);
         }
+        break;
+
+    case THROTTLE_LAND:
+        // landing throttle controller
+        get_throttle_land();
+        set_target_alt_for_reporting(0);
+        break;
+    }
+}
+
+// set_roll_pitch_mode - update roll/pitch mode and initialise any variables as required
+bool set_roll_pitch_mode(uint8_t new_roll_pitch_mode)
+{
+    // boolean to ensure proper initialisation of throttle modes
+    bool roll_pitch_initialised = false;
+
+    // return immediately if no change
+    if( new_roll_pitch_mode == roll_pitch_mode ) {
+        return true;
     }
 
-    switch(tmp_function) {
-				/* REMOVE FLIP
-        case AUX_SWITCH_FLIP:
-            // flip if switch is on, positive throttle and we're actually flying
-            if((ch_flag == AUX_SWITCH_HIGH) && (g.rc_3.control_in >= 0) && ap.takeoff_complete) {
-                init_flip();
-            }
+    switch( new_roll_pitch_mode ) {
+        case ROLL_PITCH_STABLE:
+            reset_roll_pitch_in_filters(g.rc_1.control_in, g.rc_2.control_in);
+            roll_pitch_initialised = true;
             break;
-				*/
-
-				/*
-        case AUX_SWITCH_SIMPLE_MODE:
-            // low = simple mode off, middle or high position turns simple mode on
-            set_simple_mode(ch_flag == AUX_SWITCH_HIGH || ch_flag == AUX_SWITCH_MIDDLE);
+        case ROLL_PITCH_AUTO:
+            roll_pitch_initialised = true;
             break;
 
-        case AUX_SWITCH_SUPERSIMPLE_MODE:
-            // low = simple mode off, middle = simple mode, high = super simple mode
-            set_simple_mode(ch_flag);
-            break;
-				*/
+    }
 
-        case AUX_SWITCH_RTL:
-            if (ch_flag == AUX_SWITCH_HIGH) {
-                // engage RTL (if not possible we remain in current flight mode)
-                set_mode(RTL);
-            }else{
-                // return to flight mode switch's flight mode if we are currently in RTL
-                if (control_mode == RTL) {
-                    reset_control_switch();
-                }
-            }
-            break;
+    // if initialisation has been successful update the yaw mode
+    if( roll_pitch_initialised ) {
+        roll_pitch_mode = new_roll_pitch_mode;
+    }
 
-        case AUX_SWITCH_SAVE_TRIM:
-            if ((ch_flag == AUX_SWITCH_HIGH) && (control_mode <= ACRO) && (g.rc_3.control_in == 0)) {
-                save_trim();
-            }
-            break;
-			
-#if AC_FENCE == ENABLED
-        case AUX_SWITCH_FENCE:
-            // enable or disable the fence
-            if (ch_flag == AUX_SWITCH_HIGH) {
-                fence.enable(true);
-                Log_Write_Event(DATA_FENCE_ENABLE);
-            }else{
-                fence.enable(false);
-                Log_Write_Event(DATA_FENCE_DISABLE);
-            }
-            break;
-#endif
-        case AUX_SWITCH_RESETTOARMEDYAW:
-            if (ch_flag == AUX_SWITCH_HIGH) {
-                set_yaw_mode(YAW_RESETTOARMEDYAW);
-            }else{
-                set_yaw_mode(YAW_HOLD);
-            }
-            break;
+    // return success or failure
+    return roll_pitch_initialised;
+}
 
-        case AUX_SWITCH_ACRO_TRAINER:
-            switch(ch_flag) {
-                case AUX_SWITCH_LOW:
-                    g.acro_trainer = ACRO_TRAINER_DISABLED;
-                    Log_Write_Event(DATA_ACRO_TRAINER_DISABLED);
-                    break;
-                case AUX_SWITCH_MIDDLE:
-                    g.acro_trainer = ACRO_TRAINER_LEVELING;
-                    Log_Write_Event(DATA_ACRO_TRAINER_LEVELING);
-                    break;
-                case AUX_SWITCH_HIGH:
-                    g.acro_trainer = ACRO_TRAINER_LIMITED;
-                    Log_Write_Event(DATA_ACRO_TRAINER_LIMITED);
-                    break;
-            }
-            break;
-#if EPM_ENABLED == ENABLED
-        case AUX_SWITCH_EPM:
-            switch(ch_flag) {
-                case AUX_SWITCH_LOW:
-                    epm.off();
-                    Log_Write_Event(DATA_EPM_OFF);
-                    break;
-                case AUX_SWITCH_MIDDLE:
-                    epm.neutral();
-                    Log_Write_Event(DATA_EPM_NEUTRAL);
-                    break;
-                case AUX_SWITCH_HIGH:
-                    epm.on();
-                    Log_Write_Event(DATA_EPM_ON);
-                    break;
-            }
-            break;
-#endif
-#if SPRAYER == ENABLED
-        case AUX_SWITCH_SPRAYER:
-            sprayer.enable(ch_flag == AUX_SWITCH_HIGH);
-            // if we are disarmed the pilot must want to test the pump
-            sprayer.test_pump((ch_flag == AUX_SWITCH_HIGH) && !motors.armed());
-            break;
-#endif
+// set_yaw_mode - update yaw mode and initialise any variables required
+bool set_yaw_mode(uint8_t new_yaw_mode)
+{
+    // boolean to ensure proper initialisation of throttle modes
+    bool yaw_initialised = false;
 
-        case AUX_SWITCH_AUTO:
-            if (ch_flag == AUX_SWITCH_HIGH) {
-                set_mode(AUTO);
-            }else{
-                // return to flight mode switch's flight mode if we are currently in AUTO
-                if (control_mode == AUTO) {
-                    reset_control_switch();
-                }
-            }
-            break;
+    // return immediately if no change
+    if( new_yaw_mode == yaw_mode ) {
+        return true;
+    }
 
-#if AUTOTUNE == ENABLED
-        case AUX_SWITCH_AUTOTUNE:
-            // turn on auto tuner
-            switch(ch_flag) {
-                case AUX_SWITCH_LOW:
-                case AUX_SWITCH_MIDDLE:
-                    // turn off tuning and return to standard pids
-                    if (roll_pitch_mode == ROLL_PITCH_AUTOTUNE) {
-                        set_roll_pitch_mode(ROLL_PITCH_STABLE);
-                    }
-                    break;
-                case AUX_SWITCH_HIGH:
-                    // start an auto tuning session
-                    // set roll-pitch mode to our special auto tuning stabilize roll-pitch mode
-                    set_roll_pitch_mode(ROLL_PITCH_AUTOTUNE);
-                    break;
+    switch( new_yaw_mode ) {
+        case YAW_HOLD:
+            yaw_initialised = true;
+            break;
+        case YAW_LOOK_AT_NEXT_WP:
+            if( ap.home_is_set ) {
+                yaw_initialised = true;
             }
             break;
-#endif
+        case YAW_LOOK_AT_LOCATION:
+            if( ap.home_is_set ) {
+                // update bearing - assumes yaw_look_at_WP has been intialised before set_yaw_mode was called
+                yaw_look_at_WP_bearing = pv_get_bearing_cd(inertial_nav.get_position(), yaw_look_at_WP);
+                yaw_initialised = true;
+            }
+            break;
+        case YAW_LOOK_AT_HEADING:
+            yaw_initialised = true;
+            break;
+        case YAW_LOOK_AT_HOME:
+            if( ap.home_is_set ) {
+                yaw_initialised = true;
+            }
+            break;
+        case YAW_LOOK_AHEAD:
+            if( ap.home_is_set ) {
+                yaw_initialised = true;
+            }
+            break;
+        case YAW_RESETTOARMEDYAW:
+            control_yaw = ahrs.yaw_sensor; // store current yaw so we can start rotating back to correct one
+            yaw_initialised = true;
+            break;
+    }
 
-        case AUX_SWITCH_LAND:
-            if (ch_flag == AUX_SWITCH_HIGH) {
-                set_mode(LAND);
-            }else{
-                // return to flight mode switch's flight mode if we are currently in LAND
-                if (control_mode == LAND) {
-                    reset_control_switch();
-                }
-            }
-            break;
+    // if initialisation has been successful update the yaw mode
+    if( yaw_initialised ) {
+        yaw_mode = new_yaw_mode;
+    }
+
+    // return success or failure
+    return yaw_initialised;
+}
+
+// update_yaw_mode - run high level yaw controllers
+// 100hz update rate
+void update_yaw_mode(void)
+{
+    int16_t pilot_yaw = g.rc_4.control_in;
+
+    // do not process pilot's yaw input during radio failsafe
+    if (failsafe.radio) {
+        pilot_yaw = 0;
+    }
+
+    switch(yaw_mode) {
+
+		/* NOTE REMOVE DUE TO ACRO VARIABLE IN get_yaw_rate_stabilized_ef
+    case YAW_HOLD:
+        // if we are landed reset yaw target to current heading
+        if (ap.land_complete) {
+            control_yaw = ahrs.yaw_sensor;
+        }
+        // heading hold at heading held in control_yaw but allow input from pilot
+        get_yaw_rate_stabilized_ef(pilot_yaw);
+        break;
+		*/
+
+		/* REMOVE ACRO
+    case YAW_ACRO:
+        // pilot controlled yaw using rate controller
+        get_yaw_rate_stabilized_bf(pilot_yaw);
+        break;
+		*/
+
+    case YAW_LOOK_AT_NEXT_WP:
+        // if we are landed reset yaw target to current heading
+        if (ap.land_complete) {
+            control_yaw = ahrs.yaw_sensor;
+        }else{
+            // point towards next waypoint (no pilot input accepted)
+            // we don't use wp_bearing because we don't want the copter to turn too much during flight
+            control_yaw = get_yaw_slew(control_yaw, original_wp_bearing, AUTO_YAW_SLEW_RATE);
+        }
+        get_stabilize_yaw(control_yaw);
+
+        // if there is any pilot input, switch to YAW_HOLD mode for the next iteration
+        if (pilot_yaw != 0) {
+            set_yaw_mode(YAW_HOLD);
+        }
+        break;
+
+    case YAW_LOOK_AT_LOCATION:
+        // if we are landed reset yaw target to current heading
+        if (ap.land_complete) {
+            control_yaw = ahrs.yaw_sensor;
+        }
+        // point towards a location held in yaw_look_at_WP
+        get_look_at_yaw();
+
+        // if there is any pilot input, switch to YAW_HOLD mode for the next iteration
+        if (pilot_yaw != 0) {
+            set_yaw_mode(YAW_HOLD);
+        }
+        break;
+
+		// REMOVED get_circle_yaw
+
+    case YAW_LOOK_AT_HOME:
+        // if we are landed reset yaw target to current heading
+        if (ap.land_complete) {
+            control_yaw = ahrs.yaw_sensor;
+        }else{
+            // keep heading always pointing at home with no pilot input allowed
+            control_yaw = get_yaw_slew(control_yaw, home_bearing, AUTO_YAW_SLEW_RATE);
+        }
+        get_stabilize_yaw(control_yaw);
+
+        // if there is any pilot input, switch to YAW_HOLD mode for the next iteration
+        if (pilot_yaw != 0) {
+            set_yaw_mode(YAW_HOLD);
+        }
+        break;
+
+    case YAW_LOOK_AT_HEADING:
+        // if we are landed reset yaw target to current heading
+        if (ap.land_complete) {
+            control_yaw = ahrs.yaw_sensor;
+        }else{
+            // keep heading pointing in the direction held in yaw_look_at_heading with no pilot input allowed
+            control_yaw = get_yaw_slew(control_yaw, yaw_look_at_heading, yaw_look_at_heading_slew);
+        }
+        get_stabilize_yaw(control_yaw);
+        break;
+
+	case YAW_LOOK_AHEAD:
+        // if we are landed reset yaw target to current heading
+        if (ap.land_complete) {
+            control_yaw = ahrs.yaw_sensor;
+        }
+		// Commanded Yaw to automatically look ahead.
+        get_look_ahead_yaw(pilot_yaw);
+        break;
+
+    case YAW_RESETTOARMEDYAW:
+        // if we are landed reset yaw target to current heading
+        if (ap.land_complete) {
+            control_yaw = ahrs.yaw_sensor;
+        }else{
+            // changes yaw to be same as when quad was armed
+            control_yaw = get_yaw_slew(control_yaw, initial_armed_bearing, AUTO_YAW_SLEW_RATE);
+        }
+        get_stabilize_yaw(control_yaw);
+
+        // if there is any pilot input, switch to YAW_HOLD mode for the next iteration
+        if (pilot_yaw != 0) {
+            set_yaw_mode(YAW_HOLD);
+        }
+
+        break;
+    }
+}
+// update_roll_pitch_mode - run high level roll and pitch controllers
+// 100hz update rate
+void update_roll_pitch_mode(void)
+{
+    switch(roll_pitch_mode) {
+		// NO ACRO MODE
+
+		// NO manual modes
+    case ROLL_PITCH_AUTO:
+				// Get control roll/pitch from the waypoint controller
+        control_roll = wp_nav.get_desired_roll();
+        control_pitch = wp_nav.get_desired_pitch();
+
+        get_stabilize_roll(control_roll);
+        get_stabilize_pitch(control_pitch);
+        break;
+    }
+
+    if(g.rc_3.control_in == 0 && control_mode <= ACRO) {
+        reset_rate_I();
+    }
+
+    if(ap.new_radio_frame) {
+        // clear new radio frame info
+        ap.new_radio_frame = false;
     }
 }
 

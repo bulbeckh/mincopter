@@ -7,6 +7,19 @@ void print_RPY()
 	return;
 }
 
+void print_roll_rates_and_accel()
+{
+	// Get roll rates
+	Vector3f roll_rates = ins.get_gyro();
+
+	cliSerial->printf_P(PSTR("IMUR:%9.4f,%9.4f,%9.4f\n"), roll_rates.x, roll_rates.y, roll_rates.z);
+
+	// Get acceleration from IMU
+	Vector3f accel = ins.get_accel();
+
+	cliSerial->printf_P(PSTR("IMUA:%9.4f,%9.4f,%9.4f\n"), accel.x, accel.y, accel.z);
+} 
+
 void print_GPS()
 {
 	if (GPS_ok()) {

@@ -20,13 +20,6 @@ void arm_motors_check()
         return;
     }
 
-    // allow arming/disarming in fully manual flight modes ACRO, STABILIZE, SPORT and DRIFT
-		/*
-    if (manual_flight_mode(control_mode)) {
-        allow_arming = true;
-    }
-		*/
-
     // allow arming/disarming in Loiter and AltHold if landed
     if (ap.land_complete && (control_mode == LOITER || control_mode == ALT_HOLD)) {
         allow_arming = true;
@@ -105,7 +98,7 @@ void auto_disarm_check()
     }
 
     // allow auto disarm in manual flight modes or Loiter/AltHold if we're landed
-    if(/* manual_flight_mode(control_mode) || */ (ap.land_complete && (control_mode == LOITER || control_mode == ALT_HOLD))) {
+    if(ap.land_complete && (control_mode == LOITER || control_mode == ALT_HOLD)) {
         auto_disarming_counter++;
 
         if(auto_disarming_counter >= AUTO_DISARMING_DELAY) {
@@ -189,7 +182,7 @@ void init_arm_motors()
     motors.set_mid_throttle(g.throttle_mid);
 
     // Cancel arming if throttle is raised too high so that copter does not suddenly take off
-    read_radio();
+    //read_radio();
     if (g.rc_3.control_in > g.throttle_cruise && g.throttle_cruise > 100) {
         motors.output_min();
         failsafe_enable();
@@ -291,7 +284,7 @@ void pre_arm_checks(bool display_failure)
     // check GPS
     if ((g.arming_check == ARMING_CHECK_ALL) || (g.arming_check & ARMING_CHECK_GPS)) {
         // check gps is ok if required - note this same check is repeated again in arm_checks
-        if ((mode_requires_GPS(control_mode) || g.failsafe_gps_enabled == FS_GPS_LAND_EVEN_STABILIZE) && !pre_arm_gps_checks(display_failure)) {
+        if (!pre_arm_gps_checks(display_failure)) {
             return;
         }
 
@@ -456,7 +449,7 @@ bool arm_checks(bool display_failure)
 
     // check gps is ok if required - note this same check is also done in pre-arm checks
     if ((g.arming_check == ARMING_CHECK_ALL) || (g.arming_check & ARMING_CHECK_GPS)) {
-        if ((mode_requires_GPS(control_mode) || g.failsafe_gps_enabled == FS_GPS_LAND_EVEN_STABILIZE) && !pre_arm_gps_checks(display_failure)) {
+        if (!pre_arm_gps_checks(display_failure)) {
             return false;
         }
     }

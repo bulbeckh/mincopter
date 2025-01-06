@@ -207,12 +207,10 @@ void failsafe_gps_check()
     Log_Write_Error(ERROR_SUBSYSTEM_FAILSAFE_GPS, ERROR_CODE_FAILSAFE_OCCURRED);
 
     // take action based on flight mode and FS_GPS_ENABLED parameter
-    if (mode_requires_GPS(control_mode) || g.failsafe_gps_enabled == FS_GPS_LAND_EVEN_STABILIZE) {
-        if (g.failsafe_gps_enabled == FS_GPS_ALTHOLD && !failsafe.radio) {
-            set_mode(ALT_HOLD);
-        }else{
-            set_mode(LAND);
-        }
+    if (g.failsafe_gps_enabled == FS_GPS_ALTHOLD && !failsafe.radio) {
+    	set_mode(ALT_HOLD);
+    } else {
+      set_mode(LAND);
     }
 }
 
