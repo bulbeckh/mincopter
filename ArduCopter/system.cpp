@@ -168,6 +168,7 @@ void init_ardupilot()
 
     // Do GPS init
     g_gps = &g_gps_driver;
+
     // GPS Initialization
     g_gps->init(hal.uartB, GPS::GPS_ENGINE_AIRBORNE_1G);
 

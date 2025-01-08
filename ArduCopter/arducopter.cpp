@@ -373,61 +373,75 @@ void loop()
 
 
 /* fast_loop Performance Monitoring */
-uint32_t n_measure=0;
-uint32_t t_avg_run_rate_controllers;
-uint32_t t_avg_update_modes;
+#define MC_PROFILE(name, fcall) uint32_t name##_pre = micros();\
+							{ fcall }\
+							uint32_t name##_diff = micros() - name##_pre;\
+							(name).t_sum += name##_diff;\
+							(name).n_measure +=1;
+
+#define MC_RESET(name) (name).n_measure=0; (name).t_sum=0;
+
+typedef struct {
+	uint32_t n_measure=0;
+	uint32_t t_sum=0;
+} FLFunctionProfile;
+
+/* List of functions to profile */
+FLFunctionProfile updatemodes;
+FLFunctionProfile rrcontrollers;
+FLFunctionProfile readahrs;
+FLFunctionProfile updatetrig;
+FLFunctionProfile updatemotors;
+FLFunctionProfile readinertia;
 
 // Main loop - 100hz
 void fast_loop()
 {
+		static uint32_t n_measure=0;
 
     // IMU DCM Algorithm
     // --------------------
-    read_AHRS();
+    MC_PROFILE(readahrs,{read_AHRS();})
 
     // reads all of the necessary trig functions for cameras, throttle, etc.
     // --------------------------------------------------------------------
-    update_trig();
+    MC_PROFILE(updatetrig,{update_trig();})
 
 		// Run controllers that take body frame rate targets and convert to motor values using PID rate controllers (get_rate_{roll,pitch,yaw})
-		uint32_t rr_pre = micros();
-    run_rate_controllers();
-		uint32_t diff = micros() - rr_pre;
-		t_avg_run_rate_controllers += diff;
-
+		MC_PROFILE(rrcontrollers,{run_rate_controllers();})
 
     // write out the servo PWM values to motors
     // ------------------------------
-    motors.output();
+    MC_PROFILE(updatemotors,{motors.output();})
 
     // Inertial Nav
     // --------------------
-    read_inertia();
-
-    // Read radio and 3-position switch on radio
-		/* NOTE No need to read radio input during autonomous flight */
-    //read_radio();
-    //read_control_switch();
+    MC_PROFILE(readinertia,{read_inertia();})
 
 		// Calls flight P controller to convert desired angle into desired rate
-
-		uint32_t um_pre = micros();
-    update_yaw_mode();
-    update_roll_pitch_mode();
-		uint32_t udiff = micros() - um_pre;
-		t_avg_update_modes += udiff;
+		MC_PROFILE(updatemodes,{update_yaw_mode(); update_roll_pitch_mode();})
 
 		// convert rate targets to body frame using DCM values (stored in variables like cos_roll_x and cos_pitch_x)
     update_rate_controller_targets();
-	
+
+		n_measure+=1;
 		// Performance profiling
-		n_measure += 1;
 		if (n_measure>100) {
-			cliSerial->printf_P(PSTR("T_RR: %fus\n"), (float)t_avg_run_rate_controllers/(1.0f* n_measure));
-			cliSerial->printf_P(PSTR("T_UM: %fus\n"), (float)t_avg_update_modes/(1.0f* n_measure));
+			cliSerial->printf_P(PSTR("T_UMOD: %fus\n"), (float)updatemodes.t_sum/(1.0f* updatemodes.n_measure));
+			cliSerial->printf_P(PSTR("T_RR: %fus\n"), (float)rrcontrollers.t_sum/(1.0f* rrcontrollers.n_measure));
+			cliSerial->printf_P(PSTR("T_RA: %fus\n"), (float)readahrs.t_sum/(1.0f* readahrs.n_measure));
+			cliSerial->printf_P(PSTR("T_UT: %fus\n"), (float)updatetrig.t_sum/(1.0f* updatetrig.n_measure));
+			cliSerial->printf_P(PSTR("T_UMOT: %fus\n"), (float)updatemotors.t_sum/(1.0f* updatemotors.n_measure));
+			cliSerial->printf_P(PSTR("T_RI: %fus\n"), (float)readinertia.t_sum/(1.0f* readinertia.n_measure));
+
+			// Rest global measure variable
 			n_measure=0;
-			t_avg_run_rate_controllers=0;
-			t_avg_update_modes=0;
+			MC_RESET(updatemodes)
+			MC_RESET(rrcontrollers)
+			MC_RESET(readahrs)
+			MC_RESET(updatetrig)
+			MC_RESET(updatemotors)
+			MC_RESET(readinertia)
 		}
 }
 
@@ -614,7 +628,7 @@ void one_hz_loop()
 		// from serial.h
 		//print_GPS();
 		//print_RPY();
-		print_roll_rates_and_accel();
+		//print_roll_rates_and_accel();
 
 		// Print num logs
 		/*
