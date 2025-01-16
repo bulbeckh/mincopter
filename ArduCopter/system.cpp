@@ -252,7 +252,30 @@ void init_ardupilot()
 		Log_Read((uint16_t)lognum,dl_start, dl_end);
 		*/
 
-		cliSerial->println_P(PSTR("Initialisation complete"));
+		cliSerial->println_P(PSTR("Initialisation complete - commencing serial transmission statistics test"));
+
+		/* -- Transmission statistics --
+			- Send 100 packets of the same string and measure tranmission time
+		*/
+
+		// 1302.930us AVG for 16 byte packet
+		// 2700 for 32 byte
+
+
+		uint32_t sum=0;
+		for (int i=0;i<100;i++) { 
+			uint32_t pre = micros();
+			// send transmission of 16 byte packet
+			cliSerial->println_P(PSTR("TEST1234567891-TEST1234567891"));
+			sum += micros() - pre;
+		}
+		float res = sum/100.0;
+		cliSerial->printf_P(PSTR("Final stat - %f"),res);
+		
+		// Init telemetry uartC
+		/* NOTE - See article in README.md for guide on how to move telem to UART2 (uartC) */
+    hal.uartC->begin(SERIAL1_BAUD, 128, 128);
+		hal.uartC->printf_P(PSTR("TEST-send"));
 
 }
 

@@ -19,6 +19,13 @@ extern float cos_roll_x;
 extern float cos_pitch_x;
 extern float cos_yaw;
 
+/* serial.h
+* This is a library for Serial Communication, either via uartA (hal.console or the cliConsole alias), or uartB (which
+* is now the telemetry interface).
+*
+* For logging to DataFlash, use the interface in log.h
+*/
+
 
 /* @brief Prints information about current location
 */
@@ -86,6 +93,18 @@ State Variables
   current draw since startup	: float : battery.current_total_mah()
 
 6. RC Out
+
+*** State Variables ************************************************
+
+1. Location and attitude
+	Location where copter was armed : Location : home
+	Current location								: Location : current_loc
+
+
+
+
+
+
 
 
 */
