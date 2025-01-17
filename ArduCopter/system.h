@@ -15,7 +15,6 @@
 #include <AC_Fence.h>
 #include <AC_WPNav.h>
 #include <AP_BattMonitor.h>
-#include <AP_BoardConfig.h>
 #include <AP_HAL.h>
 #include <DataFlash.h>
 #include <AP_GPS.h>
@@ -43,7 +42,6 @@ extern AP_HAL::AnalogSource* rssi_analog_source;
 
 void load_parameters(void);
 
-extern AP_BoardConfig BoardConfig;
 
 // system.cpp
 bool set_mode(uint8_t mode);
