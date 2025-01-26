@@ -1,4 +1,4 @@
-
+#pragma once
 
 #include <AP_AHRS.h>
 #include <AP_InertialNav.h>     // ArduPilot Mega inertial navigation library
@@ -7,6 +7,9 @@
 
 #include <AP_BattMonitor.h>     // Battery monitor library
 
+// Forward Declaration of MCInstance
+class MCInstance;
+
 class MCState
 {
 
@@ -14,25 +17,23 @@ class MCState
 		/* @brief MCState
 		* @param mci (MCInstance*) Pointer to an MCInstance object containing interfaces to sensor inputs and control outputs
 		*/
-		MCState(MCInstance*);
+		MCState(MCInstance* mc);
 
 	public:
 	
 		MCInstance* mci;
 
 		/* @brief ahrs tracks the copter orientation and heading */
-		AP_AHRS_DCM ahrs(mci->ins, mci->g_gps);
-
-		AP_BattMonitor battery;
+		AP_AHRS_DCM ahrs;
 
 		// Failsafe
 		AP_FAILSAFE_T failsafe;
 
-		AC_Fence    fence(&inertial_nav);
-		AP_InertialNav inertial_nav(&ahrs, &barometer, g_gps, gps_glitch);
+		AP_InertialNav inertial_nav;
+		AC_Fence fence;
 
 		// TODO Move this to BTree as this is a control function not a state function
-		AC_WPNav wp_nav(&inertial_nav, &ahrs, &g.pi_loiter_lat, &g.pi_loiter_lon, &g.pid_loiter_rate_lat, &g.pid_loiter_rate_lon);
+		//AC_WPNav wp_nav(&inertial_nav, &ahrs, &g.pi_loiter_lat, &g.pi_loiter_lon, &g.pid_loiter_rate_lat, &g.pid_loiter_rate_lon);
 
 	public:
 		/* @brief IMU roll rates that get updated during read_AHRS */
@@ -64,8 +65,8 @@ class MCState
 
 		void read_AHRS(void);
 
+		void failsafe_gps_check(void);
 
-
-}
+};
 
 

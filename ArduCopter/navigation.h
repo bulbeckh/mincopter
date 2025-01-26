@@ -18,10 +18,10 @@
 #include <AC_Fence.h>
 #include <AC_WPNav.h>
 
-#include "ap_union.h"
 #include "navigation.h"
 #include "util.h"
 #include "motors.h"
+#include "failsafe.h"
 
 extern uint8_t prev_nav_index;
 extern uint8_t command_cond_index;
@@ -49,10 +49,6 @@ extern GPS         *g_gps;
 extern GPS_Glitch   gps_glitch;
 extern AP_Compass_HMC5843 compass;
 extern AC_WPNav wp_nav;
-
-extern AP_UNION_T ap;
-extern AP_FAILSAFE_T failsafe;
-extern AC_Fence fence;
 
 extern uint16_t loiter_time_max;
 extern uint32_t loiter_time;

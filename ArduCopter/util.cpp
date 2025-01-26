@@ -334,12 +334,6 @@ void init_barometer(bool full_calibration)
     }
 }
 
-// return barometric altitude in centimeters
-int32_t read_barometer(void)
-{
-    barometer.read();
-    return barometer.get_altitude() * 100.0f;
-}
 
 void init_compass()
 {
@@ -347,24 +341,6 @@ void init_compass()
         return;
     }
     ahrs.set_compass(&compass);
-}
-
-// read_battery - check battery voltage and current and invoke failsafe if necessary
-// called at 10hz
-void read_battery(void)
-{
-    battery.read();
-
-    // update compass with current value
-    if (battery.monitoring() == AP_BATT_MONITOR_VOLTAGE_AND_CURRENT) {
-        compass.set_current(battery.current_amps());
-    }
-
-    // check for low voltage or current if the low voltage check hasn't already been triggered
-    // we only check when we're not powered by USB to avoid false alarms during bench tests
-    if (!ap.usb_connected && !failsafe.battery && battery.exhausted(g.fs_batt_voltage, g.fs_batt_mah)) {
-        failsafe_battery_event();
-    }
 }
 
 // read the receiver RSSI as an 8 bit number for MAVLink

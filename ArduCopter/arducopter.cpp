@@ -1,40 +1,76 @@
 // mincopter - henry
 
+/** MinCopter - A modular end-to-end flight controller for AVR-based Quadcopters
+*
+* The runtime defines the MCInstance object and the AP_Scheduler object at the global level.
+* 
+* The scheduler will run the sensor update methods at 100Hz and will give the remaining time
+* to run the behaviour tree. The behaviour tree is the modular part and will handle updating
+* of the copter state and executing the control libraries.
+*
+* ## Sensor Updates
+* The following sensors are updated at 100Hz via the scheduler.
+* - Compass (Magnetometer)
+* - Barometer
+* - IMU (currently indirectly via call to `update_altitude`
+* - GPS
+*
+* ## State Updates
+* The behaviour tree is responsible for choosing and updating the copter state periodically.
+* 
+* ## Control Updates
+* The behaviour tree is also responsible for using the current copter state to determine
+* control outputs.
+* 
+* ## Behaviour Tree Control
+* The default control algorithms call hierarchy looks like the following:
+*
+* - update_roll_pitch_mode
+* 	- get_stabilize_roll
+* 		- set_roll_rate_target
+* 	- get_stabilize_pitch
+* 		- set_pitch_rate_target
+* - update_yaw_mode
+* 	- get_stabilize_yaw
+* - update_throttle_mode ??
+* - run_rate_controllers
+* 	- get_rate_roll
+* 	- get_rate_pitch
+* 	
+* 
+*
+*/
+
 
 
 #include <AP_Scheduler.h>       // main loop scheduler
 
 #include "compat.h"
 
-// Configuration
 #include "defines.h"
 #include "config.h"
 #include "config_channels.h"
 
 // Local modules
 #include "parameters.h"
-#include "GCS.h"
-
-// New headers
 #include "attitude.h"
 #include "compat.h"
 #include "control_modes.h"
-#include "events.h"
 #include "failsafe.h"
-#include "fence.h"
-#include "log.h"
 #include "motors.h"
+#include "log.h"
 #include "navigation.h"
 #include "radio.h"
 #include "system.h"
 #include "util.h"
 #include "serial.h"
-#include "ap_union.h"
 
+#include "mcinstance.h"
+#include "mcstate.h"
 
 // Forward Declarations
 void loop(void);
-void fast_loop(void);
+void sensor_update_loop(void);
 void throttle_loop(void);
 void read_AHRS();
 void update_trig();
@@ -51,9 +87,17 @@ bool set_yaw_mode(uint8_t new_yaw_mode);
 void update_yaw_mode();
 void update_roll_pitch_mode();
 
-// func globals
+/* GLOBAL Objects */
+static MCInstance mincopter;
+static AP_Scheduler scheduler;
+
+static MCState state(&mincopter);
 
 
+// Time in microseconds of main control loop
+uint32_t fast_loopTimer;
+// Counter of main loop executions.  Used for performance monitoring and failsafe processing
+uint16_t mainLoop_count;
 
 void loop()
 {
@@ -73,7 +117,8 @@ void loop()
 
     // Execute the fast loop
     // ---------------------
-    fast_loop();
+
+    sensor_update_loop();
 
     // tell the scheduler one tick has passed
     scheduler.tick();
@@ -88,7 +133,7 @@ void loop()
 }
 
 
-/* fast_loop Performance Monitoring */
+/* sensor_update Performance Monitoring */
 #define MC_PROFILE(name, fcall) uint32_t name##_pre = micros();\
 							{ fcall }\
 							uint32_t name##_diff = micros() - name##_pre;\
@@ -111,7 +156,7 @@ FLFunctionProfile updatemotors;
 FLFunctionProfile readinertia;
 
 // Main loop - 100hz
-void fast_loop()
+void sensor_update_loop()
 {
 		static uint32_t n_measure=0;
 
@@ -123,22 +168,26 @@ void fast_loop()
     // --------------------------------------------------------------------
     MC_PROFILE(updatetrig,{update_trig();})
 
+		// #TODO Move this to the behaviour tree
 		// Run controllers that take body frame rate targets and convert to motor values using PID rate controllers (get_rate_{roll,pitch,yaw})
-		MC_PROFILE(rrcontrollers,{run_rate_controllers();})
+		//MC_PROFILE(rrcontrollers,{run_rate_controllers();})
 
+		// #TODO Move to behaviour tree ?? Should updating  motors should be responsbility of control algorithm?
     // write out the servo PWM values to motors
     // ------------------------------
-    MC_PROFILE(updatemotors,{motors.output();})
+    //MC_PROFILE(updatemotors,{motors.output();})
 
     // Inertial Nav
     // --------------------
     MC_PROFILE(readinertia,{read_inertia();})
 
+		// #TODO Move to behaviour tree
 		// Calls flight P controller to convert desired angle into desired rate
-		MC_PROFILE(updatemodes,{update_yaw_mode(); update_roll_pitch_mode();})
+		//MC_PROFILE(updatemodes,{update_yaw_mode(); update_roll_pitch_mode();})
 
+		// #TODO Remove or replace. I think all calcs are now done using body frame anyway after removing other modes
 		// convert rate targets to body frame using DCM values (stored in variables like cos_roll_x and cos_pitch_x)
-    update_rate_controller_targets();
+    //update_rate_controller_targets();
 
 		n_measure+=1;
 		// Performance profiling
@@ -180,19 +229,6 @@ void throttle_loop()
     update_auto_armed();
 }
 
-// set_target_alt_for_reporting - set target altitude in cm for reporting purposes (logs and gcs)
-void set_target_alt_for_reporting(float alt_cm)
-{
-    target_alt_for_reporting = alt_cm;
-}
-
-// get_target_alt_for_reporting - returns target altitude in cm for reporting purposes (logs and gcs)
-float get_target_alt_for_reporting()
-{
-    return target_alt_for_reporting;
-}
-
-
 
 
 /*
@@ -215,29 +251,25 @@ The only thing that should be scheduled like this is sensor updates
 // TODO Move the ins update from the AHRS into the below scheduled function
 
 */
+
 const AP_Scheduler::Task scheduler_tasks[] PROGMEM = {
-    { throttle_loop,         2,     450 },
-    { update_GPS,            2,     900 },
-    { update_nav_mode,       1,     400 },
+    //{ throttle_loop,         2,     450 },
+    { update_GPS, 2,     900 },
+    //{ update_nav_mode,       1,     400 },
     { read_batt_compass  ,  10,     720 },
-    { arm_motors_check,     10,      10 },
+    //{ arm_motors_check,     10,      10 },
     { update_altitude,      10,    1000 },
-    { run_nav_updates,      10,     800 },
-    { fence_check	 ,        33,      90 },
+    //{ run_nav_updates,      10,     800 },
+    //{ fence_check	 ,        33,      90 },
     { read_compass	    ,    2,     420 },
     { read_baro      ,  2,     250 },
-    { update_notify,         2,     100 },
-    { one_hz_loop,         100,     420 },
-    { crash_check,          10,      20 },
-    { read_receiver_rssi,   10,      50 }
+    //{ update_notify,         2,     100 },
+    { one_hz_loop,         100,     420 }
+    //{ crash_check,          10,      20 },
+    //{ read_receiver_rssi,   10,      50 }
 };
 
 
-/* GLOBAL Objects */
-
-static MCInstance mincopter;
-
-AP_Scheduler scheduler;
 
 /* The scheduler should schedule functions that execute sensor and state updates.
 * It should then 'tick' the behaviour tree which runs control libraries.

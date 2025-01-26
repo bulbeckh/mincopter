@@ -18,7 +18,6 @@
 #include <AP_Baro.h>
 #include <DataFlash.h>
 
-#include "ap_union.h"
 #include "navigation.h"
 #include "util.h"
 #include "motors.h"
@@ -64,10 +63,6 @@ extern GPS         *g_gps;
 extern GPS_Glitch   gps_glitch;
 extern AP_Compass_HMC5843 compass;
 extern AC_WPNav wp_nav;
-
-extern AP_UNION_T ap;
-extern AP_FAILSAFE_T failsafe;
-extern AC_Fence fence;
 
 
 /* @brief Checks for sustained pilot input required to arm/disarm motor (throttle down and stick to right). Function call is

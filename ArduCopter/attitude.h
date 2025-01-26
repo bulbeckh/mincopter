@@ -17,10 +17,10 @@
 #include <AC_Fence.h>
 #include <AC_WPNav.h>
 
-#include "ap_union.h"
 #include "navigation.h"
 #include "util.h"
 #include "motors.h"
+#include "failsafe.h"
 
 // system.cpp
 bool set_mode(uint8_t mode);
@@ -36,9 +36,6 @@ extern GPS_Glitch   gps_glitch;
 extern AP_Compass_HMC5843 compass;
 extern AC_WPNav wp_nav;
 
-extern AP_UNION_T ap;
-extern AP_FAILSAFE_T failsafe;
-extern AC_Fence fence;
 
 void set_target_alt_for_reporting(float alt_cm);
 

@@ -34,7 +34,6 @@
 #include <AC_Fence.h>
 #include <AC_WPNav.h>
 
-#include "ap_union.h"
 #include "navigation.h"
 #include "util.h"
 #include "motors.h"
@@ -1104,16 +1103,6 @@ const AP_Param::Info var_info[] PROGMEM = {
     // @Group: BATT_
     // @Path: ../libraries/AP_BattMonitor/AP_BattMonitor.cpp
     GOBJECT(battery,                "BATT_",       AP_BattMonitor),
-
-    // @Group: BRD_
-    // @Path: ../libraries/AP_BoardConfig/AP_BoardConfig.cpp
-    GOBJECT(BoardConfig,            "BRD_",       AP_BoardConfig),    
-
-#if SPRAYER == ENABLED
-    // @Group: SPRAYER_
-    // @Path: ../libraries/AC_Sprayer/AC_Sprayer.cpp
-    GOBJECT(sprayer,                "SPRAY_",       AC_Sprayer),
-#endif
 
 #if CONFIG_HAL_BOARD == HAL_BOARD_AVR_SITL
     GOBJECT(sitl, "SIM_", SITL),

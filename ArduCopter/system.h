@@ -20,13 +20,13 @@
 #include <AP_GPS.h>
 #include <AP_Progmem.h>
 
-#include "ap_union.h"
 #include "navigation.h"
 #include "util.h"
 #include "motors.h"
 #include "log.h"
 #include "config.h"
 #include "control_modes.h"
+#include "failsafe.h"
 
 
 extern AP_HAL::AnalogSource* board_vcc_analog_source;
@@ -57,9 +57,6 @@ extern GPS_Glitch   gps_glitch;
 extern AP_Compass_HMC5843 compass;
 extern AC_WPNav wp_nav;
 
-extern AP_UNION_T ap;
-extern AP_FAILSAFE_T failsafe;
-extern AC_Fence fence;
 
 extern AP_BattMonitor battery;
 extern const AP_InertialSensor::Sample_rate ins_sample_rate;

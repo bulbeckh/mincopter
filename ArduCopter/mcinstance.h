@@ -1,7 +1,4 @@
-// TODO add header guard
-// HASH ifndef
-
-// TODO add libs here
+#pragma once
 
 #include <math.h>
 // HASH include <stdio.h>
@@ -34,6 +31,11 @@
 // HASH include <AP_Declination.h>     // ArduPilot Mega Declination Helper Library
 // HASH include <AP_RCMapper.h>        // RC input mapping library
 #include <AP_Notify.h>          // Notify library
+#include <AP_BattMonitor.h>
+
+#include "defines.h"
+#include "log.h"
+#include "util.h"
 
 /* MCInstance is an abstraction of the MinCopter inputs and outputs. It holds the interfaces for each of the sensors
 * like the IMU (ins), GPS, and also the interface to the motors (ESCs).
@@ -41,10 +43,22 @@
 *
 */
 
+// NOTE This should be in header file of AP_Baro
+extern AP_Baro_MS5611_SPI AP_Baro_MS5611::spi;
+
+class MCState;
+
 class MCInstance {
 
 	public:
-		MCInstance();
+		MCInstance::MCInstance() :
+			barometer(&AP_Baro_MS5611::spi),
+			gps_glitch(g_gps),
+			g_gps_driver(&g_gps),
+			motors(&g.rc_1, &g.rc_2, &g.rc_3, &g.rc_4),
+			param_loader(var_info, WP_START_BYTE)
+		{
+		}
 
 	public:
 		/* --- COMPONENTS ---------------------------------------------------------------------
@@ -52,6 +66,8 @@ class MCInstance {
 		* They expose functions for retrieving data and updating state. Their individual driver
 		* libraries are found in libraries/ and are component-specific, not board-specific.
 		* ---------------------------------------------------------------------------------- */
+
+		AP_BattMonitor battery;
 
 		/* @brief ATMEL DataFlash interface for flash storage */
 		DataFlash_APM2 DataFlash;
@@ -65,8 +81,9 @@ class MCInstance {
 
 		/* @brief Barometer instance */
 		#if CONFIG_MS5611_SERIAL == AP_BARO_MS5611_SPI
-		AP_Baro_MS5611 barometer(&AP_Baro_MS5611::spi);
+		AP_Baro_MS5611 barometer;
 		#elif CONFIG_MS5611_SERIAL == AP_BARO_MS5611_I2C
+		// TODO Remove this - I2C is not used for Baro
 		// Confirmed this is the baro (the I2C version)
 		AP_Baro_MS5611 barometer(&AP_Baro_MS5611::i2c);
 		#endif
@@ -76,12 +93,13 @@ class MCInstance {
 
 		/* @brief GPS Interface */
 		GPS         *g_gps;
-		GPS_Glitch   gps_glitch(g_gps);
+		GPS_Glitch   gps_glitch;
 
 		// NOTE Almost certain ours is ublox
 		 #if   GPS_PROTOCOL == GPS_PROTOCOL_AUTO
-		AP_GPS_Auto     g_gps_driver(&g_gps);
+		AP_GPS_Auto     g_gps_driver;
 
+		// TODO Remove the remaining GPS objects
 		 #elif GPS_PROTOCOL == GPS_PROTOCOL_NMEA
 		AP_GPS_NMEA     g_gps_driver;
 
@@ -111,8 +129,12 @@ class MCInstance {
 		/* @brief notify is used to control onboard LED behaviour */
 		AP_Notify notify;
 
+		// TODO Remove/Replace
+		/* @brief Core parameters class which holds PID controllers and other objects */
+		Parameters g;
+
 		// Motor Output
-		AP_MotorsQuad motors(&g.rc_1, &g.rc_2, &g.rc_3, &g.rc_4);
+		AP_MotorsQuad motors;
 
 		// a pin for reading the receiver RSSI voltage.
 		// Input sources for battery voltage, battery current, board vcc
@@ -140,13 +162,10 @@ class MCInstance {
 
 		AP_UNION_T ap;
 
-		// TODO Remove/Replace
-		/* @brief Core parameters class which holds PID controllers and other objects */
-		Parameters g;
 
 		// TODO Remove
 		// setup the var_info table
-		AP_Param param_loader(var_info, WP_START_BYTE);
+		AP_Param param_loader;
 
 		// TODO Move to BTree
 		// Rate Frame
@@ -237,10 +256,6 @@ class MCInstance {
 		// Performance monitoring
 		int16_t pmTest1;
 
-		// Time in microseconds of main control loop
-		uint32_t fast_loopTimer;
-		// Counter of main loop executions.  Used for performance monitoring and failsafe processing
-		uint16_t mainLoop_count;
 		// Used to exit the roll and pitch auto trim function
 		uint8_t auto_trim_counter;
 
@@ -251,21 +266,22 @@ class MCInstance {
 
 	public:
 
-		// NOTE there are set of functions in util.h that can be removed as they are effectively wrappers around sensor update functions
-
 		// TODO remove the call to ins.update() from the ahrs library and add the sensor update here
 
-		void read_compass(void);
-
-		void read_baro(void);
-
-		void update_altitude();
-
-		void update_GPS(void);
-		
-		void read_batt_compass(void);
-
-		// NOTE REMOVED three_hz_loop - 3.3hz loop
-		void one_hz_loop();
 
 };
+
+
+/* Sensor updates */
+
+void read_compass(void);
+
+void read_baro(void);
+
+void update_altitude(void);
+
+void update_GPS(void);
+		
+void read_batt_compass(void);
+
+void one_hz_loop(void);

@@ -1,13 +1,13 @@
 #pragma once
 
 #include <stdint.h>
-#include "ap_union.h"
 #include <AP_Common.h>
 #include <AP_Math.h>
 #include <AC_Fence.h>
 
 #include "parameters.h"
 #include "system.h"
+#include "failsafe.h"
 
 #include "config.h"
 #include "util.h"
@@ -23,9 +23,6 @@ extern uint8_t oldSwitchPosition;
 
 extern int8_t aux_switch_wp_index;
 
-extern AP_UNION_T ap;
-extern AP_FAILSAFE_T failsafe;
-extern AC_Fence fence;
 
 // from arducopter.cpp
 bool set_yaw_mode(uint8_t new_yaw_mode);

@@ -53,7 +53,7 @@ list(APPEND MC_INCLUDE_DIRS
 	#AP_Arming
 	AP_Baro
 	AP_BattMonitor
-	AP_BoardConfig
+	#AP_BoardConfig
 	AP_Buffer
 	#AP_Camera
 	AP_Common
@@ -94,6 +94,7 @@ list(APPEND MC_INCLUDE_DIRS
 	Filter
 	#GCS_Console
 	GCS_MAVLink
+	## NOTE Mavlink only included due to having a dependency with other libs - remove this dependency
 	PID
 	RC_Channel
 	#SITL
@@ -135,8 +136,6 @@ add_executable(ArduCopter
 	ArduCopter/attitude.cpp
 	ArduCopter/util.cpp
 	ArduCopter/control_modes.cpp
-	ArduCopter/events.cpp
-	ArduCopter/fence.cpp
 	ArduCopter/failsafe.cpp
 	ArduCopter/motors.cpp
 	ArduCopter/navigation.cpp
@@ -146,6 +145,9 @@ add_executable(ArduCopter
 	ArduCopter/parameters.cpp
 	## Additional
 	ArduCopter/serial.cpp
+	ArduCopter/mcinstance.cpp
+	ArduCopter/mcstate.cpp
+	ArduCopter/btree.cpp
 )
 
 target_include_directories(ArduCopter PUBLIC
@@ -174,4 +176,11 @@ endforeach()
 
 ## manuall add libgcc
 target_link_libraries(ArduCopter /usr/lib/gcc/avr/7.3.0/avr6/libgcc.a)
+
+## DEPENDENCIES
+
+# BTree
+add_subdirectory(./btree)
+target_link_libraries(ArduCopter btree)
+
 
