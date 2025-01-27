@@ -1,14 +1,22 @@
 // -*- tab-width: 4; Mode: C++; c-basic-offset: 4; indent-tabs-mode: nil -*-
 #include "util.h"
 
+#include "mcinstance.h"
+#include "mcstate.h"
+
+#include "log.h"
+
+extern MCInstance mincopter;
+extern MCState mcstate;
+
 // ap_state.pde
 void set_home_is_set(bool b)
 {
     // if no change, exit immediately
-    if( ap.home_is_set == b )
+    if( mincopter.ap.home_is_set == b )
         return;
 
-    ap.home_is_set 	= b;
+    mincopter.ap.home_is_set 	= b;
     if(b) {
         Log_Write_Event(DATA_SET_HOME);
     }
@@ -18,46 +26,28 @@ void set_home_is_set(bool b)
 void set_auto_armed(bool b)
 {
     // if no change, exit immediately
-    if( ap.auto_armed == b )
+    if( mincopter.ap.auto_armed == b )
         return;
 
-    ap.auto_armed = b;
+    mincopter.ap.auto_armed = b;
     if(b){
         Log_Write_Event(DATA_AUTO_ARMED);
     }
 }
 
-// ---------------------------------------------
-/*
-void set_simple_mode(uint8_t b)
-{
-    if(ap.simple_mode != b){
-        if(b == 0){
-            Log_Write_Event(DATA_SET_SIMPLE_OFF);
-        }else if(b == 1){
-            Log_Write_Event(DATA_SET_SIMPLE_ON);
-        }else{
-            // initialise super simple heading
-            update_super_simple_bearing(true);
-            Log_Write_Event(DATA_SET_SUPERSIMPLE_ON);
-        }
-        ap.simple_mode = b;
-    }
-}
-*/
-
+// TODO Why aren't these in failsafe.cpp
 // ---------------------------------------------
 void set_failsafe_radio(bool b)
 {
     // only act on changes
     // -------------------
-    if(failsafe.radio != b) {
+    if(mcstate.failsafe.radio != b) {
 
         // store the value so we don't trip the gate twice
         // -----------------------------------------------
-        failsafe.radio = b;
+        mcstate.failsafe.radio = b;
 
-        if (failsafe.radio == false) {
+        if (mcstate.failsafe.radio == false) {
             // We've regained radio contact
             // ----------------------------
             failsafe_radio_off_event();
@@ -76,7 +66,7 @@ void set_failsafe_radio(bool b)
 // ---------------------------------------------
 void set_failsafe_battery(bool b)
 {
-    failsafe.battery = b;
+    mcstate.failsafe.battery = b;
     AP_Notify::flags.failsafe_battery = b;
 }
 
@@ -84,38 +74,30 @@ void set_failsafe_battery(bool b)
 // ---------------------------------------------
 void set_failsafe_gps(bool b)
 {
-    failsafe.gps = b;
+    mcstate.failsafe.gps = b;
 
     // update AP_Notify
     AP_Notify::flags.failsafe_gps = b;
 }
 
 // ---------------------------------------------
-/*
-void set_failsafe_gcs(bool b)
-{
-    failsafe.gcs = b;
-}
-*/
-
-// ---------------------------------------------
 void set_takeoff_complete(bool b)
 {
     // if no change, exit immediately
-    if( ap.takeoff_complete == b )
+    if( mincopter.ap.takeoff_complete == b )
         return;
 
     if(b){
         Log_Write_Event(DATA_TAKEOFF);
     }
-    ap.takeoff_complete = b;
+    mincopter.ap.takeoff_complete = b;
 }
 
 // ---------------------------------------------
 void set_land_complete(bool b)
 {
     // if no change, exit immediately
-    if( ap.land_complete == b )
+    if( mincopter.ap.land_complete == b )
         return;
 
     if(b){
@@ -123,66 +105,65 @@ void set_land_complete(bool b)
     }else{
         Log_Write_Event(DATA_NOT_LANDED);
     }
-    ap.land_complete = b;
+    mincopter.ap.land_complete = b;
 }
 
 // ---------------------------------------------
 
 void set_pre_arm_check(bool b)
 {
-    if(ap.pre_arm_check != b) {
-        ap.pre_arm_check = b;
+    if(mincopter.ap.pre_arm_check != b) {
+        mincopter.ap.pre_arm_check = b;
         AP_Notify::flags.pre_arm_check = b;
     }
 }
 
 void set_pre_arm_rc_check(bool b)
 {
-    if(ap.pre_arm_rc_check != b) {
-        ap.pre_arm_rc_check = b;
+    if(mincopter.ap.pre_arm_rc_check != b) {
+        mincopter.ap.pre_arm_rc_check = b;
     }
 }
 
 // compat.pde
 
+// TODO Why are these two the same? remove one
 void delay(uint32_t ms)
 {
-    hal.scheduler->delay(ms);
+    mincopter.hal.scheduler->delay(ms);
 }
 
 void mavlink_delay(uint32_t ms)
 {
-    hal.scheduler->delay(ms);
+    mincopter.hal.scheduler->delay(ms);
 }
 
+// TODO inline this
 uint32_t millis()
 {
-    return hal.scheduler->millis();
+    return mincopter.hal.scheduler->millis();
 }
 
 uint32_t micros()
 {
-    return hal.scheduler->micros();
+    return mincopter.hal.scheduler->micros();
 }
 
 void pinMode(uint8_t pin, uint8_t output)
 {
-    hal.gpio->pinMode(pin, output);
+    mincopter.hal.gpio->pinMode(pin, output);
 }
 
 void digitalWrite(uint8_t pin, uint8_t out)
 {
-    hal.gpio->write(pin,out);
+    mincopter.hal.gpio->write(pin,out);
 }
 
 uint8_t digitalRead(uint8_t pin)
 {
-    return hal.gpio->read(pin);
+    return mincopter.hal.gpio->read(pin);
 }
 
-// crash_check.pde
-
-/// -*- tab-width: 4; Mode: C++; c-basic-offset: 4; indent-tabs-mode: nil -*-
 
 // Code to detect a crash main ArduCopter code
 #ifndef CRASH_CHECK_ITERATIONS_MAX
@@ -204,20 +185,20 @@ void crash_check()
     static int32_t baro_alt_prev;
 
     // return immediately if motors are not armed or pilot's throttle is above zero
-    if (!motors.armed() || (g.rc_3.control_in != 0 && !failsafe.radio)) {
+    if (!mincopter.motors.armed() || (mincopter.g.rc_3.control_in != 0 && !mcstate.failsafe.radio)) {
         inverted_count = 0;
         return;
     }
 
     // return immediately if we are not in an angle stabilize flight mode or we are flipping
-    if (control_mode == ACRO || ap.do_flip) {
+    if (mincopter.control_mode == ACRO || mincopter.ap.do_flip) {
         inverted_count = 0;
         return;
     }
 
     // check angles
-    int32_t lean_max = g.angle_max + CRASH_CHECK_ANGLE_DEVIATION_CD;
-    if (labs(ahrs.roll_sensor) > lean_max || labs(ahrs.pitch_sensor) > lean_max) {
+    int32_t lean_max = mincopter.g.angle_max + CRASH_CHECK_ANGLE_DEVIATION_CD;
+    if (labs(mcstate.ahrs.roll_sensor) > lean_max || labs(mcstate.ahrs.pitch_sensor) > lean_max) {
         inverted_count++;
 
         // if we have just become inverted record the baro altitude
@@ -245,31 +226,29 @@ void crash_check()
 }
 
 // inertia.pde
-/// -*- tab-width: 4; Mode: C++; c-basic-offset: 4; indent-tabs-mode: nil -*-
 
 // read_inertia - read inertia in from accelerometers
 void read_inertia()
 {
     // inertial altitude estimates
-    inertial_nav.update(G_Dt);
+    mcstate.inertial_nav.update(G_Dt);
 }
 
 // read_inertial_altitude - pull altitude and climb rate from inertial nav library
 void read_inertial_altitude()
 {
     // with inertial nav we can update the altitude and climb rate at 50hz
-    current_loc.alt = inertial_nav.get_altitude();
-    climb_rate = inertial_nav.get_velocity_z();
+    mcstate.current_loc.alt = mcstate.inertial_nav.get_altitude();
+    climb_rate = mcstate.inertial_nav.get_velocity_z();
 }
 
 // leds.pde
-/// -*- tab-width: 4; Mode: C++; c-basic-offset: 4; indent-tabs-mode: nil -*-
 
 // updates the status of notify
 // should be called at 50hz
 void update_notify()
 {
-    notify.update();
+    mincopter.notify.update();
 }
 
 // position_vector.pde
@@ -286,27 +265,27 @@ void update_notify()
 // pv_latlon_to_vector - convert lat/lon coordinates to a position vector
 Vector3f pv_latlon_to_vector(int32_t lat, int32_t lon, int32_t alt)
 {
-    Vector3f tmp((lat-home.lat) * LATLON_TO_CM, (lon-home.lng) * LATLON_TO_CM * scaleLongDown, alt);
+    Vector3f tmp((lat-mcstate.home.lat) * LATLON_TO_CM, (lon-mcstate.home.lng) * LATLON_TO_CM * scaleLongDown, alt);
     return tmp;
 }
 
 // pv_latlon_to_vector - convert lat/lon coordinates to a position vector
 Vector3f pv_location_to_vector(Location loc)
 {
-    Vector3f tmp((loc.lat-home.lat) * LATLON_TO_CM, (loc.lng-home.lng) * LATLON_TO_CM * scaleLongDown, loc.alt);
+    Vector3f tmp((loc.lat-mcstate.home.lat) * LATLON_TO_CM, (loc.lng-mcstate.home.lng) * LATLON_TO_CM * scaleLongDown, loc.alt);
     return tmp;
 }
 
 // pv_get_lon - extract latitude from position vector
 int32_t pv_get_lat(const Vector3f pos_vec)
 {
-    return home.lat + (int32_t)(pos_vec.x / LATLON_TO_CM);
+    return mcstate.home.lat + (int32_t)(pos_vec.x / LATLON_TO_CM);
 }
 
 // pv_get_lon - extract longitude from position vector
 int32_t pv_get_lon(const Vector3f &pos_vec)
 {
-    return home.lng + (int32_t)(pos_vec.y / LATLON_TO_CM * scaleLongUp);
+    return mcstate.home.lng + (int32_t)(pos_vec.y / LATLON_TO_CM * scaleLongUp);
 }
 
 // pv_get_horizontal_distance_cm - return distance between two positions in cm
@@ -328,19 +307,19 @@ float pv_get_bearing_cd(const Vector3f &origin, const Vector3f &destination)
 void init_barometer(bool full_calibration)
 {
     if (full_calibration) {
-        barometer.calibrate();
+        mincopter.barometer.calibrate();
     }else{
-        barometer.update_calibration();
+        mincopter.barometer.update_calibration();
     }
 }
 
 
 void init_compass()
 {
-    if (!compass.init() || !compass.read()) {
+    if (!mincopter.compass.init() || !mincopter.compass.read()) {
         return;
     }
-    ahrs.set_compass(&compass);
+    mcstate.ahrs.set_compass(&mincopter.compass);
 }
 
 // read the receiver RSSI as an 8 bit number for MAVLink
@@ -348,22 +327,22 @@ void init_compass()
 void read_receiver_rssi(void)
 {
     // avoid divide by zero
-    if (g.rssi_range <= 0) {
-        receiver_rssi = 0;
+    if (mincopter.g.rssi_range <= 0) {
+        mincopter.receiver_rssi = 0;
     }else{
-        rssi_analog_source->set_pin(g.rssi_pin);
-        float ret = rssi_analog_source->voltage_average() * 255 / g.rssi_range;
-        receiver_rssi = constrain_int16(ret, 0, 255);
+        mincopter.rssi_analog_source->set_pin(mincopter.g.rssi_pin);
+        float ret = mincopter.rssi_analog_source->voltage_average() * 255 / mincopter.g.rssi_range;
+        mincopter.receiver_rssi = constrain_int16(ret, 0, 255);
     }
 }
 
 void init_home()
 {
     set_home_is_set(true);
-    home.id         = MAV_CMD_NAV_WAYPOINT;
-    home.lng        = g_gps->longitude;                                 // Lon * 10**7
-    home.lat        = g_gps->latitude;                                  // Lat * 10**7
-    home.alt        = 0;                                                        // Home is always 0
+    mincopter.home.id         = MAV_CMD_NAV_WAYPOINT;
+    mincopter.home.lng        = mincopter.g_gps->longitude;                                 // Lon * 10**7
+    mincopter.home.lat        = mincopter.g_gps->latitude;                                  // Lat * 10**7
+    mincopter.home.alt        = 0;                                                        // Home is always 0
 
     // Save Home to EEPROM
     // -------------------
@@ -372,9 +351,9 @@ void init_home()
     //set_cmd_with_index(home, 0);
 
     // set inertial nav's home position
-    inertial_nav.set_home_position(g_gps->longitude, g_gps->latitude);
+    mcstate.inertial_nav.set_home_position(mincopter.g_gps->longitude, mincopter.g_gps->latitude);
 
-    if (g.log_bitmask & MASK_LOG_CMD)
+    if (mincopter.g.log_bitmask & MASK_LOG_CMD)
         Log_Write_Cmd(0, &home);
 
     // update navigation scalers.  used to offset the shrinking longitude as we go towards the poles

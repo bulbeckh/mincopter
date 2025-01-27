@@ -20,6 +20,7 @@
 #include <AP_GPS.h>
 #include <AP_Progmem.h>
 
+// TODO Remove all of these libs
 #include "navigation.h"
 #include "util.h"
 #include "motors.h"
@@ -29,36 +30,13 @@
 #include "failsafe.h"
 
 
-extern AP_HAL::AnalogSource* board_vcc_analog_source;
-bool set_throttle_mode( uint8_t new_throttle_mode );
-
-extern const struct LogStructure log_structure[] PROGMEM;
-extern DataFlash_APM2 DataFlash;
-
-extern AP_GPS_Auto    g_gps_driver;
-
-extern uint8_t receiver_rssi;
-extern AP_HAL::AnalogSource* rssi_analog_source;
-
-void load_parameters(void);
-
+// 
+//void load_parameters(void);
 
 // system.cpp
 bool set_mode(uint8_t mode);
 
-extern Parameters g;
-extern Vector3f omega;
-extern AP_AHRS_DCM ahrs;
-extern float G_Dt;
-extern AP_MotorsQuad motors;
-extern AP_InertialNav inertial_nav;
-extern GPS         *g_gps;
-extern GPS_Glitch   gps_glitch;
-extern AP_Compass_HMC5843 compass;
-extern AC_WPNav wp_nav;
-
-
-extern AP_BattMonitor battery;
+// TODO what is this?
 extern const AP_InertialSensor::Sample_rate ins_sample_rate;
 
 /* @brief Gets board voltage

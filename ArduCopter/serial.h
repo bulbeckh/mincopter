@@ -1,24 +1,5 @@
 // For printing serial information to console
 
-#include <AP_HAL.h>
-#include <AP_HAL_AVR.h>
-
-#include <AP_InertialSensor.h>
-#include <AP_Math.h>
-
-#include "system.h"
-
-#include <AP_Common.h>
-
-extern AP_HAL::BetterStream* cliSerial;
-
-extern AP_InertialSensor_MPU6000 ins;
-
-extern struct Location current_loc;
-extern float cos_roll_x;
-extern float cos_pitch_x;
-extern float cos_yaw;
-
 /* serial.h
 * This is a library for Serial Communication, either via uartA (hal.console or the cliConsole alias), or uartB (which
 * is now the telemetry interface).
@@ -38,7 +19,6 @@ void print_RPY();
 /* @brief Prints the current imu roll and accel rates
 */
 void print_roll_rates_and_accel();
-
 
 /*
 

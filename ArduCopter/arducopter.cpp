@@ -36,12 +36,12 @@
 * - run_rate_controllers
 * 	- get_rate_roll
 * 	- get_rate_pitch
-* 	
-* 
+*
+*
+*
+*
 *
 */
-
-
 
 #include <AP_Scheduler.h>       // main loop scheduler
 
@@ -88,10 +88,11 @@ void update_yaw_mode();
 void update_roll_pitch_mode();
 
 /* GLOBAL Objects */
-static MCInstance mincopter;
-static AP_Scheduler scheduler;
 
-static MCState state(&mincopter);
+MCInstance mincopter;
+AP_Scheduler scheduler;
+
+MCState state;
 
 
 // Time in microseconds of main control loop
@@ -131,6 +132,8 @@ void loop()
     uint32_t time_available = (timer + 10000) - micros();
     scheduler.run(time_available - 300);
 }
+
+
 
 
 /* sensor_update Performance Monitoring */
@@ -192,12 +195,12 @@ void sensor_update_loop()
 		n_measure+=1;
 		// Performance profiling
 		if (n_measure>100) {
-			cliSerial->printf_P(PSTR("T_UMOD: %fus\n"), (float)updatemodes.t_sum/(1.0f* updatemodes.n_measure));
-			cliSerial->printf_P(PSTR("T_RR: %fus\n"), (float)rrcontrollers.t_sum/(1.0f* rrcontrollers.n_measure));
-			cliSerial->printf_P(PSTR("T_RA: %fus\n"), (float)readahrs.t_sum/(1.0f* readahrs.n_measure));
-			cliSerial->printf_P(PSTR("T_UT: %fus\n"), (float)updatetrig.t_sum/(1.0f* updatetrig.n_measure));
-			cliSerial->printf_P(PSTR("T_UMOT: %fus\n"), (float)updatemotors.t_sum/(1.0f* updatemotors.n_measure));
-			cliSerial->printf_P(PSTR("T_RI: %fus\n"), (float)readinertia.t_sum/(1.0f* readinertia.n_measure));
+			mincopter.cliSerial->printf_P(PSTR("T_UMOD: %fus\n"), (float)updatemodes.t_sum/(1.0f* updatemodes.n_measure));
+			mincopter.cliSerial->printf_P(PSTR("T_RR: %fus\n"), (float)rrcontrollers.t_sum/(1.0f* rrcontrollers.n_measure));
+			mincopter.cliSerial->printf_P(PSTR("T_RA: %fus\n"), (float)readahrs.t_sum/(1.0f* readahrs.n_measure));
+			mincopter.cliSerial->printf_P(PSTR("T_UT: %fus\n"), (float)updatetrig.t_sum/(1.0f* updatetrig.n_measure));
+			mincopter.cliSerial->printf_P(PSTR("T_UMOT: %fus\n"), (float)updatemotors.t_sum/(1.0f* updatemotors.n_measure));
+			mincopter.cliSerial->printf_P(PSTR("T_RI: %fus\n"), (float)readinertia.t_sum/(1.0f* readinertia.n_measure));
 
 			// Rest global measure variable
 			n_measure=0;
@@ -278,7 +281,8 @@ const AP_Scheduler::Task scheduler_tasks[] PROGMEM = {
 // Called by HAL
 void setup() 
 {
-    cliSerial = hal.console;
+		// NOTE cliSerial is an alias for mincopter.hal.console
+    mincopter.cliSerial = mincopter.hal.console;
 
     // Load the default values of variables listed in var_info[]s
     AP_Param::setup_sketch_defaults();

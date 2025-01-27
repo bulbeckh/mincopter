@@ -33,9 +33,8 @@
 #include <AP_Notify.h>          // Notify library
 #include <AP_BattMonitor.h>
 
-#include "defines.h"
-#include "log.h"
-#include "util.h"
+#include "parameters.h"
+#include "failsafe.h"
 
 /* MCInstance is an abstraction of the MinCopter inputs and outputs. It holds the interfaces for each of the sensors
 * like the IMU (ins), GPS, and also the interface to the motors (ESCs).
@@ -46,12 +45,10 @@
 // NOTE This should be in header file of AP_Baro
 extern AP_Baro_MS5611_SPI AP_Baro_MS5611::spi;
 
-class MCState;
-
 class MCInstance {
 
 	public:
-		MCInstance::MCInstance() :
+		MCInstance() :
 			barometer(&AP_Baro_MS5611::spi),
 			gps_glitch(g_gps),
 			g_gps_driver(&g_gps),

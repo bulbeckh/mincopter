@@ -2,6 +2,9 @@
 #include "mcinstance.h"
 #include "mcstate.h"
 
+#include "defines.h"
+#include "failsafe.h"
+
 extern MCInstance* mincopter;
 extern MCState* state;
 

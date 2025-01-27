@@ -1,6 +1,12 @@
 
 #include "attitude.h"
 
+#include "mcinstance.h"
+#include "mcstate.h"
+
+extern MCInstance mincopter;
+extern MCState mcstate;
+
 void reset_roll_pitch_in_filters(int16_t roll_in, int16_t pitch_in)
 {
     roll_in_filtered = constrain_int16(roll_in, -ROLL_PITCH_INPUT_MAX, ROLL_PITCH_INPUT_MAX);
@@ -17,17 +23,17 @@ void get_pilot_desired_lean_angles(int16_t roll_in, int16_t pitch_in, int16_t &r
     pitch_in = constrain_int16(pitch_in, -ROLL_PITCH_INPUT_MAX, ROLL_PITCH_INPUT_MAX);
 
     // filter input for feel
-    if (g.rc_feel_rp >= RC_FEEL_RP_VERY_CRISP) {
+    if (mincopter.g.rc_feel_rp >= RC_FEEL_RP_VERY_CRISP) {
         // no filtering required
         roll_in_filtered = roll_in;
         pitch_in_filtered = pitch_in;
     }else{
         float filter_gain;
-        if (g.rc_feel_rp >= RC_FEEL_RP_CRISP) {
+        if (mincopter.g.rc_feel_rp >= RC_FEEL_RP_CRISP) {
             filter_gain = 0.5;
-        } else if(g.rc_feel_rp >= RC_FEEL_RP_MEDIUM) {
+        } else if(mincopter.g.rc_feel_rp >= RC_FEEL_RP_MEDIUM) {
             filter_gain = 0.3;
-        } else if(g.rc_feel_rp >= RC_FEEL_RP_SOFT) {
+        } else if(mincopter.g.rc_feel_rp >= RC_FEEL_RP_SOFT) {
             filter_gain = 0.05;
         } else {
             // must be RC_FEEL_RP_VERY_SOFT
@@ -38,16 +44,16 @@ void get_pilot_desired_lean_angles(int16_t roll_in, int16_t pitch_in, int16_t &r
     }
 
     // return filtered roll if no scaling required
-    if (g.angle_max == ROLL_PITCH_INPUT_MAX) {
+    if (mincopter.g.angle_max == ROLL_PITCH_INPUT_MAX) {
         roll_out = (int16_t)roll_in_filtered;
         pitch_out = (int16_t)pitch_in_filtered;
         return;
     }
 
     // check if angle_max has been updated and redo scaler
-    if (g.angle_max != _angle_max) {
-        _angle_max = g.angle_max;
-        _scaler = (float)g.angle_max/(float)ROLL_PITCH_INPUT_MAX;
+    if (mincopter.g.angle_max != _angle_max) {
+        _angle_max = mincopter.g.angle_max;
+        _scaler = (float)mincopter.g.angle_max/(float)ROLL_PITCH_INPUT_MAX;
     }
 
     // convert pilot input to lean angle
@@ -59,14 +65,14 @@ void
 get_stabilize_roll(int32_t target_angle)
 {
     // angle error
-    target_angle = wrap_180_cd(target_angle - ahrs.roll_sensor);
+    target_angle = wrap_180_cd(target_angle - mcstate.ahrs.roll_sensor);
 
     // convert to desired rate
-    int32_t target_rate = g.pi_stabilize_roll.kP() * target_angle;
+    int32_t target_rate = mincopter.g.pi_stabilize_roll.kP() * target_angle;
 
     // constrain the target rate
-    if (!ap.disable_stab_rate_limit) {
-        target_rate = constrain_int32(target_rate, -g.angle_rate_max, g.angle_rate_max);
+    if (!mincopter.ap.disable_stab_rate_limit) {
+        target_rate = constrain_int32(target_rate, -mincopter.g.angle_rate_max, mincopter.g.angle_rate_max);
     }
 
     // set targets for rate controller
@@ -77,14 +83,14 @@ void
 get_stabilize_pitch(int32_t target_angle)
 {
     // angle error
-    target_angle            = wrap_180_cd(target_angle - ahrs.pitch_sensor);
+    target_angle            = wrap_180_cd(target_angle - mcstate.ahrs.pitch_sensor);
 
     // convert to desired rate
-    int32_t target_rate = g.pi_stabilize_pitch.kP() * target_angle;
+    int32_t target_rate = mincopter.g.pi_stabilize_pitch.kP() * target_angle;
 
     // constrain the target rate
-    if (!ap.disable_stab_rate_limit) {
-        target_rate = constrain_int32(target_rate, -g.angle_rate_max, g.angle_rate_max);
+    if (!mincopter.ap.disable_stab_rate_limit) {
+        target_rate = constrain_int32(target_rate, -mincopter.g.angle_rate_max, mincopter.g.angle_rate_max);
     }
 
     // set targets for rate controller
@@ -98,19 +104,19 @@ get_stabilize_yaw(int32_t target_angle)
     int32_t angle_error;
 
     // angle error
-    angle_error = wrap_180_cd(target_angle - ahrs.yaw_sensor);
+    angle_error = wrap_180_cd(target_angle - mcstate.ahrs.yaw_sensor);
 
     // limit the error we're feeding to the PID
     angle_error = constrain_int32(angle_error, -4500, 4500);
 
     // convert angle error to desired Rate:
-    target_rate = g.pi_stabilize_yaw.kP() * angle_error;
+    target_rate = mincopter.g.pi_stabilize_yaw.kP() * angle_error;
 
     // set targets for rate controller
     set_yaw_rate_target(target_rate, EARTH_FRAME);
 }
 
-// NOTE can optimise these since all will be EARTH FRAME now I think
+// TODO can optimise these since all will be EARTH FRAME now I think
 
 // set_roll_rate_target - to be called by upper controllers to set roll rate targets in the earth frame
 void set_roll_rate_target( int32_t desired_rate, uint8_t earth_or_body_frame ) {
@@ -148,9 +154,9 @@ update_rate_controller_targets()
 	// NOTE rate_targets_frame should always be EARTH_FRAME now
     if( rate_targets_frame == EARTH_FRAME ) {
         // convert earth frame rates to body frame rates
-        roll_rate_target_bf     = roll_rate_target_ef - sin_pitch * yaw_rate_target_ef;
-        pitch_rate_target_bf    = cos_roll_x  * pitch_rate_target_ef + sin_roll * cos_pitch_x * yaw_rate_target_ef;
-        yaw_rate_target_bf      = cos_pitch_x * cos_roll_x * yaw_rate_target_ef - sin_roll * pitch_rate_target_ef;
+        roll_rate_target_bf     = roll_rate_target_ef - mcstate.sin_pitch * yaw_rate_target_ef;
+        pitch_rate_target_bf    = mcstate.cos_roll_x  * pitch_rate_target_ef + mcstate.sin_roll * mcstate.cos_pitch_x * yaw_rate_target_ef;
+        yaw_rate_target_bf      = mcstate.cos_pitch_x * mcstate.cos_roll_x * yaw_rate_target_ef - mcstate.sin_roll * pitch_rate_target_ef;
     } 
 }
 
@@ -160,9 +166,9 @@ void
 run_rate_controllers()
 {
     // call rate controllers
-    g.rc_1.servo_out = get_rate_roll(roll_rate_target_bf);
-    g.rc_2.servo_out = get_rate_pitch(pitch_rate_target_bf);
-    g.rc_4.servo_out = get_rate_yaw(yaw_rate_target_bf);
+    mincopter.g.rc_1.servo_out = get_rate_roll(roll_rate_target_bf);
+    mincopter.g.rc_2.servo_out = get_rate_pitch(pitch_rate_target_bf);
+    mincopter.g.rc_4.servo_out = get_rate_yaw(yaw_rate_target_bf);
 
     // run throttle controller if accel based throttle controller is enabled and active (active means it has been given a target)
     if( throttle_accel_controller_active ) {
@@ -179,21 +185,21 @@ get_rate_roll(int32_t target_rate)
     int32_t output;                 // output from pid controller
 
     // get current rate
-    current_rate    = (omega.x * DEGX100);
+    current_rate    = (mcstate.omega.x * DEGX100);
 
     // call pid controller
     rate_error  = target_rate - current_rate;
-    p           = g.pid_rate_roll.get_p(rate_error);
+    p           = mincopter.g.pid_rate_roll.get_p(rate_error);
 
     // get i term
-    i = g.pid_rate_roll.get_integrator();
+    i = mincopter.g.pid_rate_roll.get_integrator();
 
     // update i term as long as we haven't breached the limits or the I term will certainly reduce
-    if (!motors.limit.roll_pitch || ((i>0&&rate_error<0)||(i<0&&rate_error>0))) {
-        i = g.pid_rate_roll.get_i(rate_error, G_Dt);
+    if (!mincopter.motors.limit.roll_pitch || ((i>0&&rate_error<0)||(i<0&&rate_error>0))) {
+        i = mincopter.g.pid_rate_roll.get_i(rate_error, G_Dt);
     }
 
-    d = g.pid_rate_roll.get_d(rate_error, G_Dt);
+    d = mincopter.g.pid_rate_roll.get_d(rate_error, G_Dt);
     output = p + i + d;
 
     // constrain output
@@ -212,21 +218,21 @@ get_rate_pitch(int32_t target_rate)
     int32_t output;                                                                     // output from pid controller
 
     // get current rate
-    current_rate    = (omega.y * DEGX100);
+    current_rate    = (mcstate.omega.y * DEGX100);
 
     // call pid controller
     rate_error      = target_rate - current_rate;
-    p               = g.pid_rate_pitch.get_p(rate_error);
+    p               = mincopter.g.pid_rate_pitch.get_p(rate_error);
 
     // get i term
-    i = g.pid_rate_pitch.get_integrator();
+    i = mincopter.g.pid_rate_pitch.get_integrator();
 
     // update i term as long as we haven't breached the limits or the I term will certainly reduce
-    if (!motors.limit.roll_pitch || ((i>0&&rate_error<0)||(i<0&&rate_error>0))) {
-        i = g.pid_rate_pitch.get_i(rate_error, G_Dt);
+    if (!mincopter.motors.limit.roll_pitch || ((i>0&&rate_error<0)||(i<0&&rate_error>0))) {
+        i = mincopter.g.pid_rate_pitch.get_i(rate_error, G_Dt);
     }
 
-    d = g.pid_rate_pitch.get_d(rate_error, G_Dt);
+    d = mincopter.g.pid_rate_pitch.get_d(rate_error, G_Dt);
     output = p + i + d;
 
     // constrain output
@@ -244,21 +250,21 @@ get_rate_yaw(int32_t target_rate)
     int32_t output;
 
     // rate control
-    rate_error              = target_rate - (omega.z * DEGX100);
+    rate_error              = target_rate - (mcstate.omega.z * DEGX100);
 
     // separately calculate p, i, d values for logging
-    p = g.pid_rate_yaw.get_p(rate_error);
+    p = mincopter.g.pid_rate_yaw.get_p(rate_error);
 
     // get i term
-    i = g.pid_rate_yaw.get_integrator();
+    i = mincopter.g.pid_rate_yaw.get_integrator();
 
     // update i term as long as we haven't breached the limits or the I term will certainly reduce
-    if (!motors.limit.yaw || ((i>0&&rate_error<0)||(i<0&&rate_error>0))) {
-        i = g.pid_rate_yaw.get_i(rate_error, G_Dt);
+    if (!mincopter.motors.limit.yaw || ((i>0&&rate_error<0)||(i<0&&rate_error>0))) {
+        i = mincopter.g.pid_rate_yaw.get_i(rate_error, G_Dt);
     }
 
     // get d value
-    d = g.pid_rate_yaw.get_d(rate_error, G_Dt);
+    d = mincopter.g.pid_rate_yaw.get_d(rate_error, G_Dt);
 
     output  = p+i+d;
     output = constrain_int32(output, -4500, 4500);
@@ -281,11 +287,11 @@ void get_look_at_yaw()
     look_at_yaw_counter++;
     if( look_at_yaw_counter >= 10 ) {
         look_at_yaw_counter = 0;
-        yaw_look_at_WP_bearing = pv_get_bearing_cd(inertial_nav.get_position(), yaw_look_at_WP);
+        yaw_look_at_WP_bearing = pv_get_bearing_cd(mcstate.inertial_nav.get_position(), yaw_look_at_WP);
     }
 
     // slew yaw and call stabilize controller
-    control_yaw = get_yaw_slew(control_yaw, yaw_look_at_WP_bearing, AUTO_YAW_SLEW_RATE);
+    mcstate.control_yaw = get_yaw_slew(control_yaw, yaw_look_at_WP_bearing, AUTO_YAW_SLEW_RATE);
     get_stabilize_yaw(control_yaw);
 }
 

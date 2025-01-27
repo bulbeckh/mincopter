@@ -1,38 +1,16 @@
 #pragma once
 
-#include <stdint.h>
-#include <AP_Math.h>
-#include <AP_Common.h>
-#include <AP_Notify.h>
-#include <AP_HAL.h>
-#include <AP_Motors.h>
-#include "parameters.h"
-#include <AP_AHRS.h>
-#include <AP_InertialNav.h>
-
-#include "defines.h"
-#include "log.h"
-#include "motors.h"
-#include "failsafe.h"
-
-extern const AP_HAL::HAL& hal;
-extern AP_MotorsQuad motors;
-extern Parameters g;
-extern int8_t control_mode;
-extern AP_AHRS_DCM ahrs;
-extern int32_t baro_alt;
-extern float G_Dt;
-extern AP_InertialNav inertial_nav;
-
-extern struct   Location home;
-extern struct   Location current_loc;
-
-extern AP_Notify notify;
-
-extern float scaleLongUp; 
-extern float scaleLongDown;
-extern int16_t climb_rate;
-
+/*
+ HASH include <stdint.h>
+ HASH include <AP_Math.h>
+ HASH include <AP_Common.h>
+ HASH include <AP_Notify.h>
+ HASH include <AP_HAL.h>
+ HASH include <AP_Motors.h>
+ HASH include "parameters.h"
+ HASH include <AP_AHRS.h>
+ HASH include <AP_InertialNav.h>
+*/
 
 // from sensors but added into util
 void init_barometer(bool full_calibration);
@@ -42,7 +20,6 @@ void read_receiver_rssi(void);
 
 // from arducopter.cpp
 void update_super_simple_bearing(bool force_update);
-
 
 // AP_State.pde
 void set_auto_armed(bool b);

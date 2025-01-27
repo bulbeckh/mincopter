@@ -182,5 +182,6 @@ target_link_libraries(ArduCopter /usr/lib/gcc/avr/7.3.0/avr6/libgcc.a)
 # BTree
 add_subdirectory(./btree)
 target_link_libraries(ArduCopter btree)
+target_include_directories(ArduCopter PUBLIC ./btree/src)
 
 

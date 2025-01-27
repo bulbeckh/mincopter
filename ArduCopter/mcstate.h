@@ -5,10 +5,7 @@
 #include <AC_WPNav.h>     		// ArduCopter waypoint navigation library
 #include <AC_Fence.h>           // Arducopter Fence library
 
-#include <AP_BattMonitor.h>     // Battery monitor library
-
-// Forward Declaration of MCInstance
-class MCInstance;
+// HASH include <AP_BattMonitor.h>     // Battery monitor library
 
 class MCState
 {
@@ -17,12 +14,10 @@ class MCState
 		/* @brief MCState
 		* @param mci (MCInstance*) Pointer to an MCInstance object containing interfaces to sensor inputs and control outputs
 		*/
-		MCState(MCInstance* mc);
+		MCState();
 
 	public:
 	
-		MCInstance* mci;
-
 		/* @brief ahrs tracks the copter orientation and heading */
 		AP_AHRS_DCM ahrs;
 
@@ -37,9 +32,11 @@ class MCState
 
 	public:
 		/* @brief IMU roll rates that get updated during read_AHRS */
+		// TODO does this really need to be here - can we use ins readings directly instead?
 		Vector3f omega;
 
 		/* @brief Desired Roll/Pitch angles in (centi-degrees) and desired yaw */
+		// TODO Should the control values be part of the btree? Should there be a separate class holding control variables and PID controllers
 		int16_t control_roll;
 		int16_t control_pitch;
 		int32_t control_yaw;

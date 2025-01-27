@@ -5,31 +5,38 @@
 
 #include "radio.h"
 
+#include "mcinstance.h"
+#include "mcstate.h"
+#include "motors.h"
+
+extern MCInstance mincopter;
+extern MCState mcstate;
+
 void default_dead_zones()
 {
-    g.rc_1.set_default_dead_zone(30);
-    g.rc_2.set_default_dead_zone(30);
+    mincopter.g.rc_1.set_default_dead_zone(30);
+    mincopter.g.rc_2.set_default_dead_zone(30);
 #if FRAME_CONFIG == HELI_FRAME
-    g.rc_3.set_default_dead_zone(10);
-    g.rc_4.set_default_dead_zone(15);
-    g.rc_8.set_default_dead_zone(10);
+    mincopter.g.rc_3.set_default_dead_zone(10);
+    mincopter.g.rc_4.set_default_dead_zone(15);
+    mincopter.g.rc_8.set_default_dead_zone(10);
 #else
-    g.rc_3.set_default_dead_zone(30);
-    g.rc_4.set_default_dead_zone(40);
+    mincopter.g.rc_3.set_default_dead_zone(30);
+    mincopter.g.rc_4.set_default_dead_zone(40);
 #endif
-    g.rc_6.set_default_dead_zone(0);
+    mincopter.g.rc_6.set_default_dead_zone(0);
 }
 
 void init_esc()
 {
-	motors.set_update_rate(50);
-	motors.enable();
-	motors.armed(true);
+	mincopter.motors.set_update_rate(50);
+	mincopter.motors.enable();
+	mincopter.motors.armed(true);
 	while(0) {
 		read_radio();
 		delay(100);
 		AP_Notify::flags.esc_calibration = true;
-		motors.throttle_pass_through();
+		mincopter.motors.throttle_pass_through();
 	}
 
 }
@@ -37,10 +44,10 @@ void init_esc()
  // init_rc_out -- initialise motors and check if pilot wants to perform ESC calibration
 void init_rc_out()
 {
-    motors.set_update_rate(g.rc_speed);
-    motors.set_frame_orientation(g.frame_orientation);
-    motors.Init();                                              // motor initialisation
-    motors.set_min_throttle(g.throttle_min);
+    mincopter.motors.set_update_rate(g.rc_speed);
+    mincopter.motors.set_frame_orientation(g.frame_orientation);
+    mincopter.motors.Init();                                              // motor initialisation
+    mincopter.motors.set_min_throttle(g.throttle_min);
 
 		/*
     for(uint8_t i = 0; i < 5; i++) {
@@ -50,35 +57,35 @@ void init_rc_out()
 		*/
 
     // we want the input to be scaled correctly
-    g.rc_3.set_range_out(0,1000);
+    mincopter.g.rc_3.set_range_out(0,1000);
 
     // full throttle means to enter ESC calibration
-    if(g.rc_3.control_in >= (g.throttle_max - 50)) {
-        if(g.esc_calibrate == 0) {
+    if(mincopter.g.rc_3.control_in >= (mincopter.g.throttle_max - 50)) {
+        if(mincopter.g.esc_calibrate == 0) {
             // we will enter esc_calibrate mode on next reboot
-            g.esc_calibrate.set_and_save(1);
+            mincopter.g.esc_calibrate.set_and_save(1);
             // display message on console
-            cliSerial->printf_P(PSTR("Entering ESC Calibration: please restart APM.\n"));
+            mincopter.cliSerial->printf_P(PSTR("Entering ESC Calibration: please restart APM.\n"));
             // turn on esc calibration notification
             AP_Notify::flags.esc_calibration = true;
             // block until we restart
             while(1) { delay(5); }
         }else{
-            cliSerial->printf_P(PSTR("ESC Calibration active: passing throttle through to ESCs.\n"));
+            mincopter.cliSerial->printf_P(PSTR("ESC Calibration active: passing throttle through to ESCs.\n"));
             // clear esc flag
-            g.esc_calibrate.set_and_save(0);
+            mincopter.g.esc_calibrate.set_and_save(0);
             // pass through user throttle to escs
             init_esc();
         }
     }else{
         // did we abort the calibration?
-        if(g.esc_calibrate == 1)
-            g.esc_calibrate.set_and_save(0);
+        if(mincopter.g.esc_calibrate == 1)
+            mincopter.g.esc_calibrate.set_and_save(0);
     }
 
     // enable output to motors
     pre_arm_rc_checks();
-    if (ap.pre_arm_rc_check) {
+    if (mincopter.ap.pre_arm_rc_check) {
         output_min();
     }
 }
@@ -87,49 +94,49 @@ void init_rc_out()
 void output_min()
 {
     // enable motors
-    motors.enable();
-    motors.output_min();
+    mincopter.motors.enable();
+    mincopter.motors.output_min();
 }
 
 #define FS_COUNTER 3        // radio failsafe kicks in after 3 consecutive throttle values below failsafe_throttle_value
 void set_throttle_and_failsafe(uint16_t throttle_pwm)
 {
     // if failsafe not enabled pass through throttle and exit
-    if(g.failsafe_throttle == FS_THR_DISABLED) {
-        g.rc_3.set_pwm(throttle_pwm);
+    if(mincopter.g.failsafe_throttle == FS_THR_DISABLED) {
+        mincopter.g.rc_3.set_pwm(throttle_pwm);
         return;
     }
 
     //check for low throttle value
-    if (throttle_pwm < (uint16_t)g.failsafe_throttle_value) {
+    if (throttle_pwm < (uint16_t)mincopter.g.failsafe_throttle_value) {
 
         // if we are already in failsafe or motors not armed pass through throttle and exit
-        if (failsafe.radio || !motors.armed()) {
-            g.rc_3.set_pwm(throttle_pwm);
+        if (mcstate.failsafe.radio || !mincopter.motors.armed()) {
+            mincopter.g.rc_3.set_pwm(throttle_pwm);
             return;
         }
 
         // check for 3 low throttle values
         // Note: we do not pass through the low throttle until 3 low throttle values are recieved
-        failsafe.radio_counter++;
-        if( failsafe.radio_counter >= FS_COUNTER ) {
-            failsafe.radio_counter = FS_COUNTER;  // check to ensure we don't overflow the counter
+        mcstate.failsafe.radio_counter++;
+        if( mcstate.failsafe.radio_counter >= FS_COUNTER ) {
+            mcstate.failsafe.radio_counter = FS_COUNTER;  // check to ensure we don't overflow the counter
             set_failsafe_radio(true);
-            g.rc_3.set_pwm(throttle_pwm);   // pass through failsafe throttle
+            mincopter.g.rc_3.set_pwm(throttle_pwm);   // pass through failsafe throttle
         }
     }else{
         // we have a good throttle so reduce failsafe counter
-        failsafe.radio_counter--;
-        if( failsafe.radio_counter <= 0 ) {
-            failsafe.radio_counter = 0;   // check to ensure we don't underflow the counter
+        mcstate.failsafe.radio_counter--;
+        if( mcstate.failsafe.radio_counter <= 0 ) {
+            mcstate.failsafe.radio_counter = 0;   // check to ensure we don't underflow the counter
 
             // disengage failsafe after three (nearly) consecutive valid throttle values
-            if (failsafe.radio) {
+            if (mcstate.failsafe.radio) {
                 set_failsafe_radio(false);
             }
         }
         // pass through throttle
-        g.rc_3.set_pwm(throttle_pwm);
+        mincopter.g.rc_3.set_pwm(throttle_pwm);
     }
 }
 

@@ -3,12 +3,15 @@
 /* Implementation of MinCopter State Algorithms */
 
 #include "mcstate.h"
+#include "mcinstance.h"
 
-MCState::MCState(MCInstance* mci) : 
-		mci(mci),
-		ahrs(mci->ins, mci->g_gps),
+extern MCInstance* mincopter;
+extern MCState* state;
+
+MCState::MCState() : 
+		ahrs(mincopter->ins, mincopter->g_gps),
 		fence(&this->inertial_nav),
-		inertial_nav(&this->ahrs, &mci->barometer, mic->g_gps, mci->gps_glitch)
+		inertial_nav(&this->ahrs, &mincopter->barometer, mincopter->g_gps, mincopter->gps_glitch)
 {
 
 }
@@ -17,7 +20,7 @@ void MCState::read_AHRS(void)
 {
 		// Perform IMU calculations and get attitude info
 		this->ahrs.update();
-		this->omega = this->ins.get_gyro();
+		this->omega = mincopter->ins.get_gyro();
 }
 
 void MCState::update_trig(void){
@@ -59,7 +62,7 @@ void MCState::failsafe_gps_check()
     uint32_t last_gps_update_ms;
 
     // return immediately if gps failsafe is disabled or we have never had GPS lock
-    if (g.failsafe_gps_enabled == FS_GPS_DISABLED || !ap.home_is_set) {
+    if (mincopter->g.failsafe_gps_enabled == FS_GPS_DISABLED || !ap.home_is_set) {
         // if we have just disabled the gps failsafe, ensure the gps failsafe event is cleared
         if (failsafe.gps) {
             set_failsafe_gps(false);
@@ -91,7 +94,7 @@ void MCState::failsafe_gps_check()
     Log_Write_Error(ERROR_SUBSYSTEM_FAILSAFE_GPS, ERROR_CODE_FAILSAFE_OCCURRED);
 
     // take action based on flight mode and FS_GPS_ENABLED parameter
-    if (g.failsafe_gps_enabled == FS_GPS_ALTHOLD && !failsafe.radio) {
+    if (mincopter->g.failsafe_gps_enabled == FS_GPS_ALTHOLD && !failsafe.radio) {
     	set_mode(ALT_HOLD);
     } else {
       set_mode(LAND);

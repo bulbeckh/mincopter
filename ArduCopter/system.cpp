@@ -1,9 +1,15 @@
 
 #include "system.h"
 
+#include "mcinstance.h"
+#include "mcstate.h"
+
+extern MCInstance mincopter;
+extern MCState mcstate;
+
 void init_ardupilot()
 {
-    if (!hal.gpio->usb_connected()) {
+    if (!mincopter.hal.gpio->usb_connected()) {
         // USB is not connected, this means UART0 may be a Xbee, with
         // its darned bricking problem. We can't write to it for at
         // least one second after powering up. Simplest solution for
@@ -19,10 +25,10 @@ void init_ardupilot()
     //
 #if HIL_MODE != HIL_MODE_DISABLED
     // we need more memory for HIL, as we get a much higher packet rate
-    hal.uartA->begin(SERIAL0_BAUD, 256, 256);
+    mincopter.hal.uartA->begin(SERIAL0_BAUD, 256, 256);
 #else
     // use a bit less for non-HIL operation
-    hal.uartA->begin(SERIAL0_BAUD, 512, 128);
+    mincopter.hal.uartA->begin(SERIAL0_BAUD, 512, 128);
 #endif
 
     // GPS serial port.
@@ -30,19 +36,19 @@ void init_ardupilot()
 #if GPS_PROTOCOL != GPS_PROTOCOL_IMU
     // standard gps running. Note that we need a 256 byte buffer for some
     // GPS types (eg. UBLOX)
-    hal.uartB->begin(38400, 256, 16);
+    mincopter.hal.uartB->begin(38400, 256, 16);
 #endif
 
-    cliSerial->printf_P(PSTR("\n\nInit " FIRMWARE_STRING
+    mincopter.cliSerial->printf_P(PSTR("\n\nInit " FIRMWARE_STRING
                          "\n\nFree RAM: %u\n"),
-                        hal.util->available_memory());
+                        mincopter.hal.util->available_memory());
 
 #if CONFIG_HAL_BOARD == HAL_BOARD_APM2
     /*
       run the timer a bit slower on APM2 to reduce the interrupt load
       on the CPU
      */
-    hal.scheduler->set_timer_speed(500);
+    mincopter.hal.scheduler->set_timer_speed(500);
 #endif
 
 
@@ -56,41 +62,17 @@ void init_ardupilot()
 
     bool enable_external_leds = true;
 
-    // init EPM cargo gripper
-#if EPM_ENABLED == ENABLED
-    epm.init();
-    enable_external_leds = !epm.enabled();
-#endif
-
     // initialise notify system
     // disable external leds if epm is enabled because of pin conflict on the APM
-    notify.init(enable_external_leds);
+    mincopter.notify.init(enable_external_leds);
 
     // initialise battery monitor
-    battery.init();
-    
-/*
-#if CONFIG_SONAR == ENABLED
- #if CONFIG_SONAR_SOURCE == SONAR_SOURCE_ADC
-    sonar_analog_source = new AP_ADC_AnalogSource(
-            &adc, CONFIG_SONAR_SOURCE_ADC_CHANNEL, 0.25);
- #elif CONFIG_SONAR_SOURCE == SONAR_SOURCE_ANALOG_PIN
-    sonar_analog_source = hal.analogin->channel(
-            CONFIG_SONAR_SOURCE_ANALOG_PIN);
- #else
-  #warning "Invalid CONFIG_SONAR_SOURCE"
- #endif
-    sonar = new AP_RangeFinder_MaxsonarXL(sonar_analog_source,
-            &sonar_mode_filter);
-#endif
-*/
+    mincopter.battery.init();
 
-    rssi_analog_source      = hal.analogin->channel(g.rssi_pin);
-    board_vcc_analog_source = hal.analogin->channel(ANALOG_INPUT_BOARD_VCC);
+    rssi_analog_source      = mincopter.hal.analogin->channel(g.rssi_pin);
+    board_vcc_analog_source = mincopter.hal.analogin->channel(ANALOG_INPUT_BOARD_VCC);
 
-#if HIL_MODE != HIL_MODE_ATTITUDE
-    barometer.init();
-#endif
+    mincopter.barometer.init();
 
     // init the GCS
 		// REMOVE GCS
@@ -104,19 +86,20 @@ void init_ardupilot()
 
     // we start by assuming USB connected, as we initialed the serial
     // port with SERIAL0_BAUD. check_usb_mux() fixes this if need be.
-    ap.usb_connected = true;
+    mincopter.ap.usb_connected = true;
+
     check_usb_mux();
 
 #if CONFIG_HAL_BOARD != HAL_BOARD_APM2
     // we have a 2nd serial port for telemetry on all boards except
     // APM2. We actually do have one on APM2 but it isn't necessary as
     // a MUX is used
-    hal.uartC->begin(map_baudrate(g.serial1_baud, SERIAL1_BAUD), 128, 128);
+    mincopter.hal.uartC->begin(map_baudrate(g.serial1_baud, SERIAL1_BAUD), 128, 128);
     //gcs[1].init(hal.uartC);
 #endif
 #if MAVLINK_COMM_NUM_BUFFERS > 2
-    if (hal.uartD != NULL) {
-        hal.uartD->begin(map_baudrate(g.serial2_baud, SERIAL2_BAUD), 128, 128);
+    if (mincopter.hal.uartD != NULL) {
+        mincopter.hal.uartD->begin(map_baudrate(mincopter.g.serial2_baud, SERIAL2_BAUD), 128, 128);
         //gcs[2].init(hal.uartD);
     }
 #endif
@@ -134,17 +117,17 @@ void init_ardupilot()
 		*/
     //DataFlash.Init(log_structure, sizeof(log_structure)/sizeof(log_structure[0]));
 		/* NOTE: Using 23 different structures instead of counting due to issue in separation of log_structure object */
-    DataFlash.Init(log_structure, 22);
-    if (!DataFlash.CardInserted()) {
+    mincopter.DataFlash.Init(log_structure, 22);
+    if (!mincopter.DataFlash.CardInserted()) {
         //gcs_send_text_P(SEVERITY_LOW, PSTR("No dataflash inserted"));
-        g.log_bitmask.set(0);
-    } else if (DataFlash.NeedErase()) {
+        mincopter.g.log_bitmask.set(0);
+    } else if (mincopter.DataFlash.NeedErase()) {
         //gcs_send_text_P(SEVERITY_LOW, PSTR("ERASING LOGS"));
         do_erase_logs();
         //gcs[0].reset_cli_timeout();
     }
 
-		cliSerial->println_P(PSTR("Dataflash initialised\n"));
+		mincopter.cliSerial->println_P(PSTR("Dataflash initialised\n"));
 #endif
 
 		/* NOTE no RC input in auto modes */
@@ -155,22 +138,22 @@ void init_ardupilot()
      *  setup the 'main loop is dead' check. Note that this relies on
      *  the RC library being initialised.
      */
-    hal.scheduler->register_timer_failsafe(failsafe_check, 1000);
+    mincopter.hal.scheduler->register_timer_failsafe(failsafe_check, 1000);
 
 #if HIL_MODE != HIL_MODE_ATTITUDE
  #if CONFIG_ADC == ENABLED
     // begin filtering the ADC Gyros
-    adc.Init();           // APM ADC library initialization
+    mincopter.adc.Init();           // APM ADC library initialization
  #endif // CONFIG_ADC
 #endif // HIL_MODE
 
     // Do GPS init
-    g_gps = &g_gps_driver;
+    mincopter.g_gps = &mincopter.g_gps_driver;
 
     // GPS Initialization
-    g_gps->init(hal.uartB, GPS::GPS_ENGINE_AIRBORNE_1G);
+    mincopter.g_gps->init(mincopter.hal.uartB, GPS::GPS_ENGINE_AIRBORNE_1G);
 
-    if(g.compass_enabled)
+    if(mincopter.g.compass_enabled)
         init_compass();
 
 		/*
@@ -181,7 +164,7 @@ void init_ardupilot()
 		*/
 
     // initialise inertial nav
-    inertial_nav.init();
+    mcstate.inertial_nav.init();
 
 #ifdef USERHOOK_INIT
     USERHOOK_INIT
@@ -202,7 +185,7 @@ void init_ardupilot()
 #endif // CLI_ENABLED
 
 #if HIL_MODE != HIL_MODE_DISABLED
-    while (!barometer.healthy) {
+    while (!mincopter.barometer.healthy) {
         // the barometer becomes healthy when we get the first
         // HIL_STATE message
         //gcs_send_text_P(SEVERITY_LOW, PSTR("Waiting for first HIL_STATE message"));
@@ -250,7 +233,7 @@ void init_ardupilot()
 		Log_Read((uint16_t)lognum,dl_start, dl_end);
 		*/
 
-		cliSerial->println_P(PSTR("Initialisation complete - commencing serial transmission statistics test"));
+		mincopter.cliSerial->println_P(PSTR("Initialisation complete - commencing serial transmission statistics test"));
 
 		/* -- Transmission statistics --
 			- Send 100 packets of the same string and measure tranmission time
@@ -264,16 +247,16 @@ void init_ardupilot()
 		for (int i=0;i<100;i++) { 
 			uint32_t pre = micros();
 			// send transmission of 16 byte packet
-			cliSerial->println_P(PSTR("TEST1234567891-TEST1234567891"));
+			mincopter.cliSerial->println_P(PSTR("TEST1234567891-TEST1234567891"));
 			sum += micros() - pre;
 		}
 		float res = sum/100.0;
-		cliSerial->printf_P(PSTR("Final stat - %f"),res);
+		mincopter.cliSerial->printf_P(PSTR("Final stat - %f"),res);
 		
 		// Init telemetry uartC
 		/* NOTE - See article in README.md for guide on how to move telem to UART2 (uartC) */
-    hal.uartC->begin(SERIAL1_BAUD, 128, 128);
-		hal.uartC->printf_P(PSTR("TEST-send"));
+    mincopter.hal.uartC->begin(SERIAL1_BAUD, 128, 128);
+		mincopter.hal.uartC->printf_P(PSTR("TEST-send"));
 
 }
 
@@ -286,15 +269,15 @@ void startup_ground(bool force_gyro_cal)
     //gcs_send_text_P(SEVERITY_LOW,PSTR("GROUND START"));
 
     // initialise ahrs (may push imu calibration into the mpu6000 if using that device).
-    ahrs.init();
+    mcstate.ahrs.init();
 
     // Warm up and read Gyro offsets
     // -----------------------------
-    ins.init(force_gyro_cal?AP_InertialSensor::COLD_START:AP_InertialSensor::WARM_START,
+    mincopter.ins.init(force_gyro_cal?AP_InertialSensor::COLD_START:AP_InertialSensor::WARM_START,
              ins_sample_rate);
 
     // setup fast AHRS gains to get right attitude
-    ahrs.set_fast_gains(true);
+    mcstate.ahrs.set_fast_gains(true);
 
     // set landed flag
     set_land_complete(true);
@@ -303,7 +286,7 @@ void startup_ground(bool force_gyro_cal)
 // returns true if the GPS is ok and home position is set
 bool GPS_ok()
 {
-    if (g_gps != NULL && ap.home_is_set && g_gps->status() == GPS::GPS_OK_FIX_3D && !gps_glitch.glitching() && !failsafe.gps) {
+    if (mincopter.g_gps != NULL && mincopter.ap.home_is_set && mincopter.g_gps->status() == GPS::GPS_OK_FIX_3D && !mincopter.gps_glitch.glitching() && !mcstate.failsafe.gps) {
         return true;
     }else{
         return false;
@@ -319,7 +302,8 @@ bool set_mode(uint8_t mode)
     bool ignore_checks = !motors.armed();   // allow switching to any mode if disarmed.  We rely on the arming check to perform
 
     // return immediately if we are already in the desired mode
-    if (mode == control_mode) {
+		// #TODO control_mode is part of MCInstance but will be moved either as a state variable or the btree
+    if (mode == mincopter.control_mode) {
         return true;
     }
 
@@ -335,7 +319,7 @@ bool set_mode(uint8_t mode)
 
         case AUTO:
             // check we have a GPS and at least one mission command (note the home position is always command 0)
-            if ((GPS_ok() && g.command_total > 1) || ignore_checks) {
+            if ((GPS_ok() && mincopter.g.command_total > 1) || ignore_checks) {
                 success = true;
                 // roll-pitch, throttle and yaw modes will all be set by the first nav command
                 //init_commands();            // clear the command queues. will be reloaded when "run_autopilot" calls "update_commands" function
@@ -356,7 +340,7 @@ bool set_mode(uint8_t mode)
 
     // update flight mode
     if (success) {
-        control_mode = mode;
+        mincopter.control_mode = mode;
         //Log_Write_Mode(control_mode);
     }else{
         // Log error that we failed to enter desired flight mode
@@ -371,9 +355,9 @@ bool set_mode(uint8_t mode)
 void update_auto_armed()
 {
     // disarm checks
-    if(ap.auto_armed){
+    if(mincopter.ap.auto_armed){
         // if motors are disarmed, auto_armed should also be false
-        if(!motors.armed()) {
+        if(!mincopter.motors.armed()) {
             set_auto_armed(false);
             return;
         }
@@ -382,7 +366,7 @@ void update_auto_armed()
         // arm checks
         
         // if motors are armed and throttle is above zero auto_armed should be true
-        if(motors.armed() && g.rc_3.control_in != 0) {
+        if(mincopter.motors.armed() && mincopter.g.rc_3.control_in != 0) {
             set_auto_armed(true);
         }
     }
@@ -410,23 +394,23 @@ uint32_t map_baudrate(int8_t rate, uint32_t default_baud)
 
 void check_usb_mux(void)
 {
-    bool usb_check = hal.gpio->usb_connected();
-    if (usb_check == ap.usb_connected) {
+    bool usb_check = mincopter.hal.gpio->usb_connected();
+    if (usb_check == mincopter.ap.usb_connected) {
         return;
     }
 
     // the user has switched to/from the telemetry port
-    ap.usb_connected = usb_check;
+    mincopter.ap.usb_connected = usb_check;
 
 #if CONFIG_HAL_BOARD == HAL_BOARD_APM2
     // the APM2 has a MUX setup where the first serial port switches
     // between USB and a TTL serial connection. When on USB we use
     // SERIAL0_BAUD, but when connected as a TTL serial port we run it
     // at SERIAL1_BAUD.
-    if (ap.usb_connected) {
-        hal.uartA->begin(SERIAL0_BAUD);
+    if (mincopter.ap.usb_connected) {
+        mincopter.hal.uartA->begin(SERIAL0_BAUD);
     } else {
-        hal.uartA->begin(map_baudrate(g.serial1_baud, SERIAL1_BAUD));
+        mincopter.hal.uartA->begin(map_baudrate(mincopter.g.serial1_baud, SERIAL1_BAUD));
     }
 #endif
 }
@@ -436,6 +420,6 @@ void check_usb_mux(void)
  */
 uint16_t board_voltage(void)
 {
-    return board_vcc_analog_source->voltage_latest() * 1000;
+    return mincopter.board_vcc_analog_source->voltage_latest() * 1000;
 }
 
