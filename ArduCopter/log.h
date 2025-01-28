@@ -1,24 +1,6 @@
 #pragma once
 
-
 #include <AP_Menu.h>
-/*
-HASH include "parameters.h"
-HASH include <AP_Math.h>
-HASH include <AP_AHRS.h>
-HASH include <AP_Motors.h>
-HASH include <AP_InertialNav.h>
-HASH include <GPS.h>
-HASH include <AP_GPS_Glitch.h>
-HASH include <AP_Compass.h>
-HASH include <AC_Fence.h>
-HASH include <AC_WPNav.h>
-HASH include "navigation.h"
-HASH include "util.h"
-HASH include "motors.h"
-HASH include "failsafe.h"
-HASH include "config.h"
-*/
 
 // TODO Is this the correct way to declare this?
 extern const struct LogStructure log_structure[];

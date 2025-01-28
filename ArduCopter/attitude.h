@@ -1,34 +1,10 @@
 /* GLOBALS */
 
-// float roll_in_filtered;     // roll-in in filtered with RC_FEEL_RP parameter
-// float pitch_in_filtered;    // pitch-in filtered with RC_FEEL_RP parameter
 #pragma once
 
 #include <stdint.h>
 
-/*
-HASH include "parameters.h"
-HASH include <AP_Math.h>
-HASH include <AP_AHRS.h>
-HASH include <AP_Motors.h>
-HASH include <AP_InertialNav.h>
-HASH include <GPS.h>
-HASH include <AP_GPS_Glitch.h>
-HASH include <AP_Compass.h>
-HASH include <AC_Fence.h>
-HASH include <AC_WPNav.h>
-HASH include "navigation.h"
-HASH include "util.h"
-HASH include "motors.h"
-HASH include "failsafe.h"
-*/
 
-// system.cpp
-bool set_mode(uint8_t mode);
-
-void set_target_alt_for_reporting(float alt_cm);
-
-// from arducopter.cpp
 
 /*********************************
  MANUAL mode - cascaded PID approach

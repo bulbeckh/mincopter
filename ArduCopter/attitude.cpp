@@ -610,9 +610,6 @@ get_throttle_rate_stabilized(int16_t target_rate)
     }
 #endif
 
-    // update target altitude for reporting purposes
-    set_target_alt_for_reporting(mincopter.controller_desired_alt);
-
     get_throttle_althold(mincopter.controller_desired_alt, -mincopter.g.pilot_velocity_z_max-250, mincopter.g.pilot_velocity_z_max+250);   // 250 is added to give head room to alt hold controller
 }
 

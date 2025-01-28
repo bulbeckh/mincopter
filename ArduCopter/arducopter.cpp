@@ -71,21 +71,6 @@
 #include "mcstate.h"
 
 // Forward Declarations
-void loop(void);
-void sensor_update_loop(void);
-void throttle_loop(void);
-void read_AHRS();
-void update_trig();
-void run_rate_controllers();
-void read_control_switch();
-void update_roll_pitch_mode();
-void update_rate_controller_targets();
-void update_throttle_mode();
-void read_inertial_altitude();
-void update_auto_armed();
-bool set_yaw_mode(uint8_t new_yaw_mode);
-void update_yaw_mode();
-void update_roll_pitch_mode();
 
 /* GLOBAL Objects */
 
@@ -99,10 +84,14 @@ MCState mcstate;
 const AP_HAL::HAL& hal = mincopter.hal;
 
 
+
 // Time in microseconds of main control loop
 uint32_t fast_loopTimer;
 // Counter of main loop executions.  Used for performance monitoring and failsafe processing
 uint16_t mainLoop_count;
+
+// Forward Declaration
+void sensor_update_loop();
 
 void loop()
 {

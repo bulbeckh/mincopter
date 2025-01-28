@@ -71,7 +71,6 @@ void update_throttle_mode(void)
     if( !mincopter.motors.armed() ) {
         set_throttle_out(0, false);
         throttle_accel_deactivate();    // do not allow the accel based throttle to override our command
-        set_target_alt_for_reporting(0);
         return;
     }
 
@@ -86,20 +85,17 @@ void update_throttle_mode(void)
                 mincopter.motors.slow_start(true);
             }
             get_throttle_althold_with_slew(mcstate.wp_nav.get_desired_alt(), -mcstate.wp_nav.get_descent_velocity(), mcstate.wp_nav.get_climb_velocity());
-            set_target_alt_for_reporting(mcstate.wp_nav.get_desired_alt()); // To-Do: return get_destination_alt if we are flying to a waypoint
         }else{
             // pilot's throttle must be at zero so keep motors off
             set_throttle_out(0, false);
             // deactivate accel based throttle controller
             throttle_accel_deactivate();
-            set_target_alt_for_reporting(0);
         }
         break;
 
     case THROTTLE_LAND:
         // landing throttle controller
         get_throttle_land();
-        set_target_alt_for_reporting(0);
         break;
     }
 }
@@ -345,7 +341,6 @@ void save_trim()
     float pitch_trim = ToRad((float)mincopter.g.rc_2.control_in/100.0f);
     mcstate.ahrs.add_trim(roll_trim, pitch_trim);
     Log_Write_Event(DATA_SAVE_TRIM);
-    //gcs_send_text_P(SEVERITY_HIGH, PSTR("Trim saved"));
 }
 
 // auto_trim - slightly adjusts the ahrs.roll_trim and ahrs.pitch_trim towards the current stick positions

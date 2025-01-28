@@ -14,27 +14,8 @@
 #include <AP_HAL.h>
 #include <AP_HAL_AVR.h>
 
-
 #include "parameters.h"
 #include "failsafe.h"
-
-/*
-HASH include <AP_Common.h>
-HASH include <AP_Progmem.h>
-HASH include <AP_Param.h>
-HASH include <APM_PI.h>             // PI library
-HASH include <AC_PID.h>             // PID library
-HASH include <AP_Notify.h>          // Notify library
-*/
-
-// HASH include <RC_Channel.h>         // RC Channel Library
-// HASH include <AP_Math.h>            // ArduPilot Mega Vector/Matrix math Library
-// HASH include <AP_Curve.h>           // Curve used to linearlise throttle pwm to thrust
-// HASH include <Filter.h>             // Filter library
-// HASH include <AP_Buffer.h>          // APM FIFO Buffer
-// HASH include <AP_Vehicle.h>         // needed for AHRS build
-// HASH include <AP_Declination.h>     // ArduPilot Mega Declination Helper Library
-// HASH include <AP_RCMapper.h>        // RC input mapping library
 
 /* MCInstance is an abstraction of the MinCopter inputs and outputs. It holds the interfaces for each of the sensors
 * like the IMU (ins), GPS, and also the interface to the motors (ESCs).
@@ -269,16 +250,31 @@ class MCInstance {
 };
 
 
-/* Sensor updates */
+/* --- SENSOR UPDATES -----------------------------------------------------------------
+* Each of these functions triggers an update round for a sensor in MCInstance.
+* These functions should be called at 100Hz approx.
+* ---------------------------------------------------------------------------------- */
 
+/* @brief Triggers accumulation of compass sensor
+*/
 void read_compass(void);
 
+/* @brief Triggers accumulation of barometer sensor
+*/ 
 void read_baro(void);
 
+/* @brief Triggers reading of barometer and updates the `baro_alt` variable
+*/
 void update_altitude(void);
 
+/* @brief Triggers update of the onboard GPS
+*/
 void update_GPS(void);
 		
+/* @brief Triggers reading of both the battery sensors (via `battery`) and the reading of the compass
+*/
 void read_batt_compass(void);
 
+/* @brief Contains functions that should execute at 1Hz. Currently contains disarm checks and USB Mux checks
+*/
 void one_hz_loop(void);

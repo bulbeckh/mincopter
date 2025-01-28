@@ -4,16 +4,6 @@
 
 #include <AP_Math.h>
 
-/*
- HASH include <AP_Common.h>
- HASH include <AP_Notify.h>
- HASH include <AP_HAL.h>
- HASH include <AP_Motors.h>
- HASH include "parameters.h"
- HASH include <AP_AHRS.h>
- HASH include <AP_InertialNav.h>
-*/
-
 // from sensors but added into util
 void init_barometer(bool full_calibration);
 int32_t read_barometer(void);
@@ -39,9 +29,6 @@ void set_pre_arm_rc_check(bool b);
 // compat.pde 
 void delay(uint32_t ms);
 
-// REMOVE mavlink func
-// void mavlink_delay(uint32_t ms);
-
 uint32_t millis();
 uint32_t micros();
 void pinMode(uint8_t pin, uint8_t output);
@@ -57,14 +44,6 @@ void read_inertial_altitude();
 
 // leds.pde
 void update_notify();
-
-// perf_info.pde
-/* GLOBALS */
-/*
-uint16_t perf_info_loop_count;
-uint32_t perf_info_max_time;
-uint16_t perf_info_long_running;
-*/
 
 void perf_info_reset();
 void perf_info_check_loop_time(uint32_t time_in_micros);
