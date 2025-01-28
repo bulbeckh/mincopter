@@ -179,7 +179,4 @@ void set_roll_rate_target( int32_t desired_rate, uint8_t earth_or_body_frame );
 void set_pitch_rate_target( int32_t desired_rate, uint8_t earth_or_body_frame );
 void set_yaw_rate_target( int32_t desired_rate, uint8_t earth_or_body_frame );
 
-// From arducopter.cpp
-extern float roll_in_filtered;     // roll-in in filtered with RC_FEEL_RP parameter
-extern float pitch_in_filtered;    // pitch-in filtered with RC_FEEL_RP parameter
 

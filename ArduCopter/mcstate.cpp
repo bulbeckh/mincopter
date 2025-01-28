@@ -7,11 +7,15 @@
 
 extern MCInstance mincopter;
 
+#include "util.h"
+#include "log.h"
+#include "system.h"
+
 MCState::MCState() : 
 		ahrs(mincopter.ins, mincopter.g_gps),
 		fence(&this->inertial_nav),
 		inertial_nav(&this->ahrs, &mincopter.barometer, mincopter.g_gps, mincopter.gps_glitch),
-		wp_nav(&this->inertial_nav, &this->ahrs, &mincopter.g.pi_loiter_lat, &mincopter.g.pi_loiter_lon, &mincopter.g.pid_loiter_rate_lat, &mincopter.g.pid_loiter_rate_lon);
+		wp_nav(&this->inertial_nav, &this->ahrs, &mincopter.g.pi_loiter_lat, &mincopter.g.pi_loiter_lon, &mincopter.g.pid_loiter_rate_lat, &mincopter.g.pid_loiter_rate_lon)
 {
 
 }
@@ -20,11 +24,12 @@ void MCState::read_AHRS(void)
 {
 		// Perform IMU calculations and get attitude info
 		this->ahrs.update();
-		this->omega = mincopter->ins.get_gyro();
+		this->omega = mincopter.ins.get_gyro();
 }
 
 void MCState::update_trig(void){
 		Vector2f yawvector;
+		// TODO add this-> infront of class members. more verbose is better
 		const Matrix3f &temp   = ahrs.get_dcm_matrix();
 
 		yawvector.x     = temp.a.x;     // sin
@@ -62,7 +67,7 @@ void MCState::failsafe_gps_check()
     uint32_t last_gps_update_ms;
 
     // return immediately if gps failsafe is disabled or we have never had GPS lock
-    if (mincopter->g.failsafe_gps_enabled == FS_GPS_DISABLED || !ap.home_is_set) {
+    if (mincopter.g.failsafe_gps_enabled == FS_GPS_DISABLED || !mincopter.ap.home_is_set) {
         // if we have just disabled the gps failsafe, ensure the gps failsafe event is cleared
         if (failsafe.gps) {
             set_failsafe_gps(false);
@@ -71,7 +76,7 @@ void MCState::failsafe_gps_check()
     }
 
     // calc time since last gps update
-    last_gps_update_ms = millis() - gps_glitch.last_good_update();
+    last_gps_update_ms = millis() - mincopter.gps_glitch.last_good_update();
 
     // check if all is well
     if( last_gps_update_ms < FAILSAFE_GPS_TIMEOUT_MS) {
@@ -83,7 +88,7 @@ void MCState::failsafe_gps_check()
     }
 
     // do nothing if gps failsafe already triggered or motors disarmed
-    if( failsafe.gps || !motors.armed()) {
+    if( failsafe.gps || !mincopter.motors.armed()) {
         return;
     }
 
@@ -94,7 +99,7 @@ void MCState::failsafe_gps_check()
     Log_Write_Error(ERROR_SUBSYSTEM_FAILSAFE_GPS, ERROR_CODE_FAILSAFE_OCCURRED);
 
     // take action based on flight mode and FS_GPS_ENABLED parameter
-    if (mincopter->g.failsafe_gps_enabled == FS_GPS_ALTHOLD && !failsafe.radio) {
+    if (mincopter.g.failsafe_gps_enabled == FS_GPS_ALTHOLD && !failsafe.radio) {
     	set_mode(ALT_HOLD);
     } else {
       set_mode(LAND);

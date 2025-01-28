@@ -49,11 +49,11 @@ void update_GPS(void)
 				}
 
 				// run glitch protection and update AP_Notify if home has been initialised
-				if (mincopter->ap.home_is_set) {
-						mincopter->gps_glitch.check_position();
-						report_gps_glitch = (mincopter->gps_glitch.glitching() && !mincopter->ap.usb_connected);
+				if (mincopter.ap.home_is_set) {
+						mincopter.gps_glitch.check_position();
+						report_gps_glitch = (mincopter.gps_glitch.glitching() && !mincopter.ap.usb_connected);
 						if (AP_Notify::flags.gps_glitching != report_gps_glitch) {
-								if (mincopter->gps_glitch.glitching()) {
+								if (mincopter.gps_glitch.glitching()) {
 										Log_Write_Error(ERROR_SUBSYSTEM_GPS, ERROR_CODE_GPS_GLITCH);
 								}else{
 										Log_Write_Error(ERROR_SUBSYSTEM_GPS, ERROR_CODE_ERROR_RESOLVED);
@@ -64,14 +64,14 @@ void update_GPS(void)
 		}
 
 		// checks to initialise home and take location based pictures
-		if (mincopter->g_gps->new_data && mincopter->g_gps->status() >= GPS::GPS_OK_FIX_3D) {
+		if (mincopter.g_gps->new_data && mincopter.g_gps->status() >= GPS::GPS_OK_FIX_3D) {
 				// clear new data flag
-				mincopter->g_gps->new_data = false;
+				mincopter.g_gps->new_data = false;
 
 				// check if we can initialise home yet
-				if (!mincopter->ap.home_is_set) {
+				if (!mincopter.ap.home_is_set) {
 						// if we have a 3d lock and valid location
-						if(mincopter->g_gps->status() >= GPS::GPS_OK_FIX_3D && mincopter->g_gps->latitude != 0) {
+						if(mincopter.g_gps->status() >= GPS::GPS_OK_FIX_3D && mincopter.g_gps->latitude != 0) {
 								if( ground_start_count > 0 ) {
 										ground_start_count--;
 								}else{
@@ -83,11 +83,11 @@ void update_GPS(void)
 										init_home();
 
 										// set system clock for log timestamps
-										mincopter->hal.util->set_system_clock(mincopter->g_gps->time_epoch_usec());
+										mincopter.hal.util->set_system_clock(mincopter.g_gps->time_epoch_usec());
 
-										if (mincopter->g.compass_enabled) {
+										if (mincopter.g.compass_enabled) {
 												// Set compass declination automatically
-												mincopter->compass.set_initial_location(mincopter->g_gps->latitude, mincopter->g_gps->longitude);
+												mincopter.compass.set_initial_location(mincopter.g_gps->latitude, mincopter.g_gps->longitude);
 										}
 								}
 						} else {
@@ -103,28 +103,28 @@ void update_GPS(void)
 void read_batt_compass(void)
 {
 		// read battery before compass because it may be used for motor interference compensation
-    mincopter->battery.read();
+    mincopter.battery.read();
 
     // update compass with current value
-    if (mincopter->battery.monitoring() == AP_BATT_MONITOR_VOLTAGE_AND_CURRENT) {
-        mincopter->compass.set_current(mincopter->battery.current_amps());
+    if (mincopter.battery.monitoring() == AP_BATT_MONITOR_VOLTAGE_AND_CURRENT) {
+        mincopter.compass.set_current(mincopter.battery.current_amps());
     }
 
 		// TODO Move these checks to ap_state as the failsafe lives there too
 
     // check for low voltage or current if the low voltage check hasn't already been triggered
     // we only check when we're not powered by USB to avoid false alarms during bench tests
-    if (!mincopter->ap.usb_connected && !failsafe.battery && battery.exhausted(g.fs_batt_voltage, g.fs_batt_mah)) {
+    if (!mincopter.ap.usb_connected && !mcstate.failsafe.battery && mincopter.battery.exhausted(mincopter.g.fs_batt_voltage, mincopter.g.fs_batt_mah)) {
         failsafe_battery_event();
     }
 
 #if HIL_MODE != HIL_MODE_ATTITUDE  // don't execute in HIL mode
-		if(mincopter->g.compass_enabled) {
-				if (mincopter->compass.read()) {
-						mincopter->compass.null_offsets();
+		if(mincopter.g.compass_enabled) {
+				if (mincopter.compass.read()) {
+						mincopter.compass.null_offsets();
 				}
 				// log compass information
-				if (mincopter->g.log_bitmask & MASK_LOG_COMPASS) {
+				if (mincopter.g.log_bitmask & MASK_LOG_COMPASS) {
 						Log_Write_Compass();
 				}
 		}
@@ -150,10 +150,10 @@ void one_hz_loop()
 
 		// TODO Move these to btree
 		// pass latest alt hold kP value to navigation controller
-		mcstate.wp_nav.set_althold_kP(g.pi_alt_hold.kP());
+		mcstate.wp_nav.set_althold_kP(mincopter.g.pi_alt_hold.kP());
 
 		// update latest lean angle to navigation controller
-		mcstate.wp_nav.set_lean_angle_max(g.angle_max);
+		mcstate.wp_nav.set_lean_angle_max(mincopter.g.angle_max);
 
 		// TODO Move arming to btree
 		// perform pre-arm checks & display failures every 30 seconds
@@ -174,7 +174,7 @@ void one_hz_loop()
 				mcstate.ahrs.set_orientation();
 
 				// check the user hasn't updated the frame orientation
-				mincopter.motors.set_frame_orientation(g.frame_orientation);
+				mincopter.motors.set_frame_orientation(mincopter.g.frame_orientation);
 		}
 
 		check_usb_mux();

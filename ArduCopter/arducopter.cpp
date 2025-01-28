@@ -91,7 +91,10 @@ void update_roll_pitch_mode();
 MCInstance mincopter;
 AP_Scheduler scheduler;
 
-MCState state;
+MCState mcstate;
+
+// NOTE Bad hack to resolve linking errors as AP_Scheduler library uses an extern hal reference as original HAL was defined globally
+const AP_HAL::HAL& hal = mincopter.hal;
 
 
 // Time in microseconds of main control loop
@@ -164,11 +167,11 @@ void sensor_update_loop()
 
     // IMU DCM Algorithm
     // --------------------
-    MC_PROFILE(readahrs,{read_AHRS();})
+    MC_PROFILE(readahrs,{mcstate.read_AHRS();})
 
     // reads all of the necessary trig functions for cameras, throttle, etc.
     // --------------------------------------------------------------------
-    MC_PROFILE(updatetrig,{update_trig();})
+    MC_PROFILE(updatetrig,{mcstate.update_trig();})
 
 		// #TODO Move this to the behaviour tree
 		// Run controllers that take body frame rate targets and convert to motor values using PID rate controllers (get_rate_{roll,pitch,yaw})

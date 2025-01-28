@@ -5,7 +5,7 @@
 #include <AC_WPNav.h>     		// ArduCopter waypoint navigation library
 #include <AC_Fence.h>           // Arducopter Fence library
 
-// HASH include <AP_BattMonitor.h>     // Battery monitor library
+#include "failsafe.h"
 
 class MCState
 {
@@ -58,6 +58,7 @@ class MCState
 		struct   Location current_loc;
 
 	public:
+		// TODO Do these really need to be class methods
 		void update_trig(void);
 
 		void read_AHRS(void);

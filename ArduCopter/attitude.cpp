@@ -13,8 +13,8 @@ extern MCState mcstate;
 
 void reset_roll_pitch_in_filters(int16_t roll_in, int16_t pitch_in)
 {
-    roll_in_filtered = constrain_int16(roll_in, -ROLL_PITCH_INPUT_MAX, ROLL_PITCH_INPUT_MAX);
-    pitch_in_filtered = constrain_int16(pitch_in, -ROLL_PITCH_INPUT_MAX, ROLL_PITCH_INPUT_MAX);
+    mincopter.roll_in_filtered = constrain_int16(roll_in, -ROLL_PITCH_INPUT_MAX, ROLL_PITCH_INPUT_MAX);
+    mincopter.pitch_in_filtered = constrain_int16(pitch_in, -ROLL_PITCH_INPUT_MAX, ROLL_PITCH_INPUT_MAX);
 }
 
 void get_pilot_desired_lean_angles(int16_t roll_in, int16_t pitch_in, int16_t &roll_out, int16_t &pitch_out)
@@ -29,8 +29,8 @@ void get_pilot_desired_lean_angles(int16_t roll_in, int16_t pitch_in, int16_t &r
     // filter input for feel
     if (mincopter.g.rc_feel_rp >= RC_FEEL_RP_VERY_CRISP) {
         // no filtering required
-        roll_in_filtered = roll_in;
-        pitch_in_filtered = pitch_in;
+        mincopter.roll_in_filtered = roll_in;
+        mincopter.pitch_in_filtered = pitch_in;
     }else{
         float filter_gain;
         if (mincopter.g.rc_feel_rp >= RC_FEEL_RP_CRISP) {
@@ -43,14 +43,14 @@ void get_pilot_desired_lean_angles(int16_t roll_in, int16_t pitch_in, int16_t &r
             // must be RC_FEEL_RP_VERY_SOFT
             filter_gain = 0.02;
         }
-        roll_in_filtered = roll_in_filtered * (1.0 - filter_gain) + (float)roll_in * filter_gain;
-        pitch_in_filtered = pitch_in_filtered * (1.0 - filter_gain) + (float)pitch_in * filter_gain;
+        mincopter.roll_in_filtered = mincopter.roll_in_filtered * (1.0 - filter_gain) + (float)roll_in * filter_gain;
+        mincopter.pitch_in_filtered = mincopter.pitch_in_filtered * (1.0 - filter_gain) + (float)pitch_in * filter_gain;
     }
 
     // return filtered roll if no scaling required
     if (mincopter.g.angle_max == ROLL_PITCH_INPUT_MAX) {
-        roll_out = (int16_t)roll_in_filtered;
-        pitch_out = (int16_t)pitch_in_filtered;
+        roll_out = (int16_t)mincopter.roll_in_filtered;
+        pitch_out = (int16_t)mincopter.pitch_in_filtered;
         return;
     }
 
@@ -61,8 +61,8 @@ void get_pilot_desired_lean_angles(int16_t roll_in, int16_t pitch_in, int16_t &r
     }
 
     // convert pilot input to lean angle
-    roll_out = (int16_t)(roll_in_filtered * _scaler);
-    pitch_out = (int16_t)(pitch_in_filtered * _scaler);
+    roll_out = (int16_t)(mincopter.roll_in_filtered * _scaler);
+    pitch_out = (int16_t)(mincopter.pitch_in_filtered * _scaler);
 }
 
 void

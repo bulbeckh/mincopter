@@ -43,7 +43,7 @@ HASH include <AP_Notify.h>          // Notify library
 */
 
 // NOTE This should be in header file of AP_Baro
-extern AP_Baro_MS5611_SPI AP_Baro_MS5611::spi;
+//extern AP_Baro_MS5611_SPI AP_Baro_MS5611::spi;
 
 class MCInstance {
 
