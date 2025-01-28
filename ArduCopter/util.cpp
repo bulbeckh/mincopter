@@ -9,6 +9,8 @@
 extern MCInstance mincopter;
 extern MCState mcstate;
 
+#include "motors.h"
+
 // ap_state.pde
 void set_home_is_set(bool b)
 {
@@ -203,10 +205,10 @@ void crash_check()
 
         // if we have just become inverted record the baro altitude
         if (inverted_count == 1) {
-            baro_alt_prev = baro_alt;
+            baro_alt_prev = mincopter.baro_alt;
 
         // exit if baro altitude change indicates we are moving (probably falling)
-        }else if (labs(baro_alt - baro_alt_prev) > CRASH_CHECK_ALT_CHANGE_LIMIT_CM) {
+        }else if (labs(mincopter.baro_alt - baro_alt_prev) > CRASH_CHECK_ALT_CHANGE_LIMIT_CM) {
             inverted_count = 0;
             return;
 
@@ -231,7 +233,7 @@ void crash_check()
 void read_inertia()
 {
     // inertial altitude estimates
-    mcstate.inertial_nav.update(G_Dt);
+    mcstate.inertial_nav.update(mincopter.G_Dt);
 }
 
 // read_inertial_altitude - pull altitude and climb rate from inertial nav library
@@ -239,7 +241,7 @@ void read_inertial_altitude()
 {
     // with inertial nav we can update the altitude and climb rate at 50hz
     mcstate.current_loc.alt = mcstate.inertial_nav.get_altitude();
-    climb_rate = mcstate.inertial_nav.get_velocity_z();
+    mincopter.climb_rate = mcstate.inertial_nav.get_velocity_z();
 }
 
 // leds.pde
@@ -265,14 +267,14 @@ void update_notify()
 // pv_latlon_to_vector - convert lat/lon coordinates to a position vector
 Vector3f pv_latlon_to_vector(int32_t lat, int32_t lon, int32_t alt)
 {
-    Vector3f tmp((lat-mcstate.home.lat) * LATLON_TO_CM, (lon-mcstate.home.lng) * LATLON_TO_CM * scaleLongDown, alt);
+    Vector3f tmp((lat-mcstate.home.lat) * LATLON_TO_CM, (lon-mcstate.home.lng) * LATLON_TO_CM * mincopter.scaleLongDown, alt);
     return tmp;
 }
 
 // pv_latlon_to_vector - convert lat/lon coordinates to a position vector
 Vector3f pv_location_to_vector(Location loc)
 {
-    Vector3f tmp((loc.lat-mcstate.home.lat) * LATLON_TO_CM, (loc.lng-mcstate.home.lng) * LATLON_TO_CM * scaleLongDown, loc.alt);
+    Vector3f tmp((loc.lat-mcstate.home.lat) * LATLON_TO_CM, (loc.lng-mcstate.home.lng) * LATLON_TO_CM * mincopter.scaleLongDown, loc.alt);
     return tmp;
 }
 
@@ -285,7 +287,7 @@ int32_t pv_get_lat(const Vector3f pos_vec)
 // pv_get_lon - extract longitude from position vector
 int32_t pv_get_lon(const Vector3f &pos_vec)
 {
-    return mcstate.home.lng + (int32_t)(pos_vec.y / LATLON_TO_CM * scaleLongUp);
+    return mcstate.home.lng + (int32_t)(pos_vec.y / LATLON_TO_CM * mincopter.scaleLongUp);
 }
 
 // pv_get_horizontal_distance_cm - return distance between two positions in cm
@@ -339,10 +341,10 @@ void read_receiver_rssi(void)
 void init_home()
 {
     set_home_is_set(true);
-    mincopter.home.id         = MAV_CMD_NAV_WAYPOINT;
-    mincopter.home.lng        = mincopter.g_gps->longitude;                                 // Lon * 10**7
-    mincopter.home.lat        = mincopter.g_gps->latitude;                                  // Lat * 10**7
-    mincopter.home.alt        = 0;                                                        // Home is always 0
+    mcstate.home.id         = MAV_CMD_NAV_WAYPOINT;
+    mcstate.home.lng        = mincopter.g_gps->longitude;                                 // Lon * 10**7
+    mcstate.home.lat        = mincopter.g_gps->latitude;                                  // Lat * 10**7
+    mcstate.home.alt        = 0;                                                        // Home is always 0
 
     // Save Home to EEPROM
     // -------------------
@@ -354,11 +356,11 @@ void init_home()
     mcstate.inertial_nav.set_home_position(mincopter.g_gps->longitude, mincopter.g_gps->latitude);
 
     if (mincopter.g.log_bitmask & MASK_LOG_CMD)
-        Log_Write_Cmd(0, &home);
+        Log_Write_Cmd(0, &mcstate.home);
 
     // update navigation scalers.  used to offset the shrinking longitude as we go towards the poles
-    scaleLongDown = longitude_scale(home);
-    scaleLongUp   = 1.0f/scaleLongDown;
+    mincopter.scaleLongDown = longitude_scale(mcstate.home);
+    mincopter.scaleLongUp   = 1.0f/mincopter.scaleLongDown;
 }
 
 

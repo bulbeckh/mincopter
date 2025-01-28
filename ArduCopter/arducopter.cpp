@@ -81,14 +81,13 @@ void update_rate_controller_targets();
 void update_throttle_mode();
 void read_inertial_altitude();
 void update_auto_armed();
-void set_target_alt_for_reporting(float alt_cm);
-float get_target_alt_for_reporting();
 bool set_yaw_mode(uint8_t new_yaw_mode);
 void update_yaw_mode();
 void update_roll_pitch_mode();
 
 /* GLOBAL Objects */
 
+// TODO Check that accessing mincopter directly without dereferencing via pointer will not mess up any virtual methods/inheritance
 MCInstance mincopter;
 AP_Scheduler scheduler;
 
@@ -103,14 +102,14 @@ uint16_t mainLoop_count;
 void loop()
 {
     // wait for an INS sample
-    if (!ins.wait_for_sample(1000)) {
+    if (!mincopter.ins.wait_for_sample(1000)) {
         Log_Write_Error(ERROR_SUBSYSTEM_MAIN, ERROR_CODE_MAIN_INS_DELAY);
         return;
     }
     uint32_t timer = micros();
 
     // used by PI Loops
-    G_Dt                    = (float)(timer - fast_loopTimer) / 1000000.f;
+    mincopter.G_Dt                    = (float)(timer - fast_loopTimer) / 1000000.f;
     fast_loopTimer          = timer;
 
     // for mainloop failure monitoring
@@ -293,6 +292,18 @@ void setup()
     scheduler.init(&scheduler_tasks[0], sizeof(scheduler_tasks)/sizeof(scheduler_tasks[0]));
 }
 
-AP_HAL_MAIN();
+// NOTE Replaced the macro expansion with the main entrypoint to avoid modifying AP_HAL_AVR library
+// AP_HAL_MAIN();
+
+extern "C" {
+  int main (void) {
+		mincopter.hal.init(0, NULL);
+    setup();
+    mincopter.hal.scheduler->system_initialized();
+    for(;;) loop();
+    return 0;
+	}
+}
+
 
 

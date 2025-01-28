@@ -1,54 +1,29 @@
 #pragma once
 
-#include <AP_Common.h>
 #include <stdint.h>
 
-#include <AP_Math.h>
-
-#include "config.h"
-#include "defines.h"
-
-#include "parameters.h"
-#include <AP_AHRS.h>
-#include <AP_Motors.h>
-#include <AP_InertialNav.h>
-#include <GPS.h>
-#include <AP_GPS_Glitch.h>
-#include <AP_Compass.h>
-#include <AC_Fence.h>
-#include <AC_WPNav.h>
-
-#include "navigation.h"
-#include "util.h"
-#include "motors.h"
-#include "failsafe.h"
-
-extern uint8_t prev_nav_index;
-extern uint8_t command_cond_index;
-
-extern float lon_error;
-extern float lat_error;
-
-extern int32_t wp_bearing;
-extern int32_t original_wp_bearing;
-extern int32_t home_bearing;
-extern int32_t home_distance;
-extern uint32_t wp_distance;
-extern uint8_t nav_mode;
+/*
+HASH include <AP_Common.h>
+HASH include <AP_Math.h>
+HASH include "config.h"
+HASH include "defines.h"
+HASH include "parameters.h"
+HASH include <AP_AHRS.h>
+HASH include <AP_Motors.h>
+HASH include <AP_InertialNav.h>
+HASH include <GPS.h>
+HASH include <AP_GPS_Glitch.h>
+HASH include <AP_Compass.h>
+HASH include <AC_Fence.h>
+HASH include <AC_WPNav.h>
+HASH include "navigation.h"
+HASH include "util.h"
+HASH include "motors.h"
+HASH include "failsafe.h"
+*/
 
 // system.cpp
 bool set_mode(uint8_t mode);
-
-extern Parameters g;
-extern Vector3f omega;
-extern AP_AHRS_DCM ahrs;
-extern float G_Dt;
-extern AP_MotorsQuad motors;
-extern AP_InertialNav inertial_nav;
-extern GPS         *g_gps;
-extern GPS_Glitch   gps_glitch;
-extern AP_Compass_HMC5843 compass;
-extern AC_WPNav wp_nav;
 
 extern uint16_t loiter_time_max;
 extern uint32_t loiter_time;

@@ -7,6 +7,13 @@
 extern MCInstance mincopter;
 extern MCState mcstate;
 
+#include "control_modes.h"
+#include "navigation.h"
+#include "util.h"
+#include "log.h"
+#include "radio.h"
+#include "parameters.h"
+
 void init_ardupilot()
 {
     if (!mincopter.hal.gpio->usb_connected()) {
@@ -69,8 +76,8 @@ void init_ardupilot()
     // initialise battery monitor
     mincopter.battery.init();
 
-    rssi_analog_source      = mincopter.hal.analogin->channel(g.rssi_pin);
-    board_vcc_analog_source = mincopter.hal.analogin->channel(ANALOG_INPUT_BOARD_VCC);
+    mincopter.rssi_analog_source      = mincopter.hal.analogin->channel(mincopter.g.rssi_pin);
+    mincopter.board_vcc_analog_source = mincopter.hal.analogin->channel(ANALOG_INPUT_BOARD_VCC);
 
     mincopter.barometer.init();
 
@@ -274,7 +281,7 @@ void startup_ground(bool force_gyro_cal)
     // Warm up and read Gyro offsets
     // -----------------------------
     mincopter.ins.init(force_gyro_cal?AP_InertialSensor::COLD_START:AP_InertialSensor::WARM_START,
-             ins_sample_rate);
+             mincopter.ins_sample_rate);
 
     // setup fast AHRS gains to get right attitude
     mcstate.ahrs.set_fast_gains(true);
@@ -299,7 +306,7 @@ bool set_mode(uint8_t mode)
 {
     // boolean to record if flight mode could be set
     bool success = false;
-    bool ignore_checks = !motors.armed();   // allow switching to any mode if disarmed.  We rely on the arming check to perform
+    bool ignore_checks = !mincopter.motors.armed();   // allow switching to any mode if disarmed.  We rely on the arming check to perform
 
     // return immediately if we are already in the desired mode
 		// #TODO control_mode is part of MCInstance but will be moved either as a state variable or the btree

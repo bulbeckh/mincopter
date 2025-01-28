@@ -4,6 +4,10 @@
 #include "mcinstance.h"
 #include "mcstate.h"
 
+#include "util.h"
+#include "navigation.h"
+#include "motors.h"
+
 extern MCInstance mincopter;
 extern MCState mcstate;
 
@@ -117,34 +121,35 @@ get_stabilize_yaw(int32_t target_angle)
 }
 
 // TODO can optimise these since all will be EARTH FRAME now I think
+// TODO Consolidate these into one function
 
 // set_roll_rate_target - to be called by upper controllers to set roll rate targets in the earth frame
 void set_roll_rate_target( int32_t desired_rate, uint8_t earth_or_body_frame ) {
-    rate_targets_frame = earth_or_body_frame;
+    mincopter.rate_targets_frame = earth_or_body_frame;
     if( earth_or_body_frame == BODY_FRAME ) {
-        roll_rate_target_bf = desired_rate;
-    }else{
-        roll_rate_target_ef = desired_rate;
+        mincopter.roll_rate_target_bf = desired_rate;
+    } else {
+        mincopter.roll_rate_target_ef = desired_rate;
     }
 }
 
 // set_pitch_rate_target - to be called by upper controllers to set pitch rate targets in the earth frame
 void set_pitch_rate_target( int32_t desired_rate, uint8_t earth_or_body_frame ) {
-    rate_targets_frame = earth_or_body_frame;
+    mincopter.rate_targets_frame = earth_or_body_frame;
     if( earth_or_body_frame == BODY_FRAME ) {
-        pitch_rate_target_bf = desired_rate;
+        mincopter.pitch_rate_target_bf = desired_rate;
     }else{
-        pitch_rate_target_ef = desired_rate;
+        mincopter.pitch_rate_target_ef = desired_rate;
     }
 }
 
 // set_yaw_rate_target - to be called by upper controllers to set yaw rate targets in the earth frame
 void set_yaw_rate_target( int32_t desired_rate, uint8_t earth_or_body_frame ) {
-    rate_targets_frame = earth_or_body_frame;
+    mincopter.rate_targets_frame = earth_or_body_frame;
     if( earth_or_body_frame == BODY_FRAME ) {
-        yaw_rate_target_bf = desired_rate;
+        mincopter.yaw_rate_target_bf = desired_rate;
     }else{
-        yaw_rate_target_ef = desired_rate;
+        mincopter.yaw_rate_target_ef = desired_rate;
     }
 }
 
@@ -152,11 +157,11 @@ void
 update_rate_controller_targets()
 {
 	// NOTE rate_targets_frame should always be EARTH_FRAME now
-    if( rate_targets_frame == EARTH_FRAME ) {
+    if( mincopter.rate_targets_frame == EARTH_FRAME ) {
         // convert earth frame rates to body frame rates
-        roll_rate_target_bf     = roll_rate_target_ef - mcstate.sin_pitch * yaw_rate_target_ef;
-        pitch_rate_target_bf    = mcstate.cos_roll_x  * pitch_rate_target_ef + mcstate.sin_roll * mcstate.cos_pitch_x * yaw_rate_target_ef;
-        yaw_rate_target_bf      = mcstate.cos_pitch_x * mcstate.cos_roll_x * yaw_rate_target_ef - mcstate.sin_roll * pitch_rate_target_ef;
+        mincopter.roll_rate_target_bf     = mincopter.roll_rate_target_ef - mcstate.sin_pitch * mincopter.yaw_rate_target_ef;
+        mincopter.pitch_rate_target_bf    = mcstate.cos_roll_x  * mincopter.pitch_rate_target_ef + mcstate.sin_roll * mcstate.cos_pitch_x * mincopter.yaw_rate_target_ef;
+        mincopter.yaw_rate_target_bf      = mcstate.cos_pitch_x * mcstate.cos_roll_x * mincopter.yaw_rate_target_ef - mcstate.sin_roll * mincopter.pitch_rate_target_ef;
     } 
 }
 
@@ -166,13 +171,13 @@ void
 run_rate_controllers()
 {
     // call rate controllers
-    mincopter.g.rc_1.servo_out = get_rate_roll(roll_rate_target_bf);
-    mincopter.g.rc_2.servo_out = get_rate_pitch(pitch_rate_target_bf);
-    mincopter.g.rc_4.servo_out = get_rate_yaw(yaw_rate_target_bf);
+    mincopter.g.rc_1.servo_out = get_rate_roll(mincopter.roll_rate_target_bf);
+    mincopter.g.rc_2.servo_out = get_rate_pitch(mincopter.pitch_rate_target_bf);
+    mincopter.g.rc_4.servo_out = get_rate_yaw(mincopter.yaw_rate_target_bf);
 
     // run throttle controller if accel based throttle controller is enabled and active (active means it has been given a target)
-    if( throttle_accel_controller_active ) {
-        set_throttle_out(get_throttle_accel(throttle_accel_target_ef), true);
+    if( mincopter.throttle_accel_controller_active ) {
+        set_throttle_out(get_throttle_accel(mincopter.throttle_accel_target_ef), true);
     }
 }
 
@@ -196,10 +201,10 @@ get_rate_roll(int32_t target_rate)
 
     // update i term as long as we haven't breached the limits or the I term will certainly reduce
     if (!mincopter.motors.limit.roll_pitch || ((i>0&&rate_error<0)||(i<0&&rate_error>0))) {
-        i = mincopter.g.pid_rate_roll.get_i(rate_error, G_Dt);
+        i = mincopter.g.pid_rate_roll.get_i(rate_error, mincopter.G_Dt);
     }
 
-    d = mincopter.g.pid_rate_roll.get_d(rate_error, G_Dt);
+    d = mincopter.g.pid_rate_roll.get_d(rate_error, mincopter.G_Dt);
     output = p + i + d;
 
     // constrain output
@@ -229,10 +234,10 @@ get_rate_pitch(int32_t target_rate)
 
     // update i term as long as we haven't breached the limits or the I term will certainly reduce
     if (!mincopter.motors.limit.roll_pitch || ((i>0&&rate_error<0)||(i<0&&rate_error>0))) {
-        i = mincopter.g.pid_rate_pitch.get_i(rate_error, G_Dt);
+        i = mincopter.g.pid_rate_pitch.get_i(rate_error, mincopter.G_Dt);
     }
 
-    d = mincopter.g.pid_rate_pitch.get_d(rate_error, G_Dt);
+    d = mincopter.g.pid_rate_pitch.get_d(rate_error, mincopter.G_Dt);
     output = p + i + d;
 
     // constrain output
@@ -260,11 +265,11 @@ get_rate_yaw(int32_t target_rate)
 
     // update i term as long as we haven't breached the limits or the I term will certainly reduce
     if (!mincopter.motors.limit.yaw || ((i>0&&rate_error<0)||(i<0&&rate_error>0))) {
-        i = mincopter.g.pid_rate_yaw.get_i(rate_error, G_Dt);
+        i = mincopter.g.pid_rate_yaw.get_i(rate_error, mincopter.G_Dt);
     }
 
     // get d value
-    d = mincopter.g.pid_rate_yaw.get_d(rate_error, G_Dt);
+    d = mincopter.g.pid_rate_yaw.get_d(rate_error, mincopter.G_Dt);
 
     output  = p+i+d;
     output = constrain_int32(output, -4500, 4500);
@@ -287,20 +292,20 @@ void get_look_at_yaw()
     look_at_yaw_counter++;
     if( look_at_yaw_counter >= 10 ) {
         look_at_yaw_counter = 0;
-        yaw_look_at_WP_bearing = pv_get_bearing_cd(mcstate.inertial_nav.get_position(), yaw_look_at_WP);
+        mincopter.yaw_look_at_WP_bearing = pv_get_bearing_cd(mcstate.inertial_nav.get_position(), mincopter.yaw_look_at_WP);
     }
 
     // slew yaw and call stabilize controller
-    mcstate.control_yaw = get_yaw_slew(control_yaw, yaw_look_at_WP_bearing, AUTO_YAW_SLEW_RATE);
-    get_stabilize_yaw(control_yaw);
+    mcstate.control_yaw = get_yaw_slew(mcstate.control_yaw, mincopter.yaw_look_at_WP_bearing, AUTO_YAW_SLEW_RATE);
+    get_stabilize_yaw(mcstate.control_yaw);
 }
 
 void get_look_ahead_yaw(int16_t pilot_yaw)
 {
     // Commanded Yaw to automatically look ahead.
-    if (g_gps->fix && g_gps->ground_speed_cm > YAW_LOOK_AHEAD_MIN_SPEED) {
-        control_yaw = get_yaw_slew(control_yaw, g_gps->ground_course_cd, AUTO_YAW_SLEW_RATE);
-        get_stabilize_yaw(wrap_360_cd(control_yaw + pilot_yaw));   // Allow pilot to "skid" around corners up to 45 degrees
+    if (mincopter.g_gps->fix && mincopter.g_gps->ground_speed_cm > YAW_LOOK_AHEAD_MIN_SPEED) {
+        mcstate.control_yaw = get_yaw_slew(mcstate.control_yaw, mincopter.g_gps->ground_course_cd, AUTO_YAW_SLEW_RATE);
+        get_stabilize_yaw(wrap_360_cd(mcstate.control_yaw + pilot_yaw));   // Allow pilot to "skid" around corners up to 45 degrees
     } /* REMOVING ACRO
 		else{
         control_yaw += pilot_yaw * g.acro_yaw_p * G_Dt;
@@ -318,13 +323,13 @@ void get_look_ahead_yaw(int16_t pilot_yaw)
 void update_throttle_cruise(int16_t throttle)
 {
     // ensure throttle_avg has been initialised
-    if( throttle_avg == 0 ) {
-        throttle_avg = g.throttle_cruise;
+    if( mincopter.throttle_avg == 0 ) {
+        mincopter.throttle_avg = mincopter.g.throttle_cruise;
     }
     // calc average throttle if we are in a level hover
-    if (throttle > g.throttle_min && abs(climb_rate) < 60 && labs(ahrs.roll_sensor) < 500 && labs(ahrs.pitch_sensor) < 500) {
-        throttle_avg = throttle_avg * 0.99f + (float)throttle * 0.01f;
-        g.throttle_cruise = throttle_avg;
+    if (throttle > mincopter.g.throttle_min && abs(mincopter.climb_rate) < 60 && labs(mcstate.ahrs.roll_sensor) < 500 && labs(mcstate.ahrs.pitch_sensor) < 500) {
+        mincopter.throttle_avg = mincopter.throttle_avg * 0.99f + (float)throttle * 0.01f;
+        mincopter.g.throttle_cruise = mincopter.throttle_avg;
     }
 }
 
@@ -332,19 +337,19 @@ void update_throttle_cruise(int16_t throttle)
 // throttle value should be 0 ~ 1000
 int16_t get_angle_boost(int16_t throttle)
 {
-    float temp = cos_pitch_x * cos_roll_x;
+    float temp = mcstate.cos_pitch_x * mcstate.cos_roll_x;
     int16_t throttle_out;
 
     temp = constrain_float(temp, 0.5f, 1.0f);
 
     // reduce throttle if we go inverted
-    temp = constrain_float(9000-max(labs(ahrs.roll_sensor),labs(ahrs.pitch_sensor)), 0, 3000) / (3000 * temp);
+    temp = constrain_float(9000-max(labs(mcstate.ahrs.roll_sensor),labs(mcstate.ahrs.pitch_sensor)), 0, 3000) / (3000 * temp);
 
     // apply scale and constrain throttle
-    throttle_out = constrain_float((float)(throttle-g.throttle_min) * temp + g.throttle_min, g.throttle_min, 1000);
+    throttle_out = constrain_float((float)(throttle-mincopter.g.throttle_min) * temp + mincopter.g.throttle_min, mincopter.g.throttle_min, 1000);
 
     // to allow logging of angle boost
-    angle_boost = throttle_out - throttle;
+    mincopter.angle_boost = throttle_out - throttle;
 
     return throttle_out;
 }
@@ -354,22 +359,22 @@ int16_t get_angle_boost(int16_t throttle)
 void set_throttle_out( int16_t throttle_out, bool apply_angle_boost )
 {
     if( apply_angle_boost ) {
-        g.rc_3.servo_out = get_angle_boost(throttle_out);
+        mincopter.g.rc_3.servo_out = get_angle_boost(throttle_out);
     } else {
-        g.rc_3.servo_out = throttle_out;
+        mincopter.g.rc_3.servo_out = throttle_out;
         // clear angle_boost for logging purposes
-        angle_boost = 0;
+        mincopter.angle_boost = 0;
     }
 
     // update compass with throttle value
-    compass.set_throttle((float)g.rc_3.servo_out/1000.0f);
+    mincopter.compass.set_throttle((float)mincopter.g.rc_3.servo_out/1000.0f);
 }
 
 // set_throttle_accel_target - to be called by upper throttle controllers to set desired vertical acceleration in earth frame
 void set_throttle_accel_target( int16_t desired_acceleration )
 {
-    throttle_accel_target_ef = desired_acceleration;
-    throttle_accel_controller_active = true;
+    mincopter.throttle_accel_target_ef = desired_acceleration;
+    mincopter.throttle_accel_controller_active = true;
 }
 
 // disable_throttle_accel - disables the accel based throttle controller
@@ -377,7 +382,7 @@ void set_throttle_accel_target( int16_t desired_acceleration )
 // required when we wish to set motors to zero when pilot inputs zero throttle
 void throttle_accel_deactivate()
 {
-    throttle_accel_controller_active = false;
+    mincopter.throttle_accel_controller_active = false;
 }
 
 // get_throttle_accel - accelerometer based throttle controller
@@ -393,7 +398,7 @@ get_throttle_accel(int16_t z_target_accel)
     uint32_t now = millis();
 
     // Calculate Earth Frame Z acceleration
-    z_accel_meas = -(ahrs.get_accel_ef().z + GRAVITY_MSS) * 100;
+    z_accel_meas = -(mcstate.ahrs.get_accel_ef().z + GRAVITY_MSS) * 100;
 
     // reset target altitude if this controller has just been engaged
     if( now - last_call_ms > 100 ) {
@@ -406,19 +411,19 @@ get_throttle_accel(int16_t z_target_accel)
     last_call_ms = now;
 
     // separately calculate p, i, d values for logging
-    p = g.pid_throttle_accel.get_p(z_accel_error);
+    p = mincopter.g.pid_throttle_accel.get_p(z_accel_error);
 
     // get i term
-    i = g.pid_throttle_accel.get_integrator();
+    i = mincopter.g.pid_throttle_accel.get_integrator();
 
     // update i term as long as we haven't breached the limits or the I term will certainly reduce
-    if ((!motors.limit.throttle_lower && !motors.limit.throttle_upper) || (i>0&&z_accel_error<0) || (i<0&&z_accel_error>0)) {
-        i = g.pid_throttle_accel.get_i(z_accel_error, .01f);
+    if ((!mincopter.motors.limit.throttle_lower && !mincopter.motors.limit.throttle_upper) || (i>0&&z_accel_error<0) || (i<0&&z_accel_error>0)) {
+        i = mincopter.g.pid_throttle_accel.get_i(z_accel_error, .01f);
     }
 
-    d = g.pid_throttle_accel.get_d(z_accel_error, .01f);
+    d = mincopter.g.pid_throttle_accel.get_d(z_accel_error, .01f);
 
-    output =  constrain_float(p+i+d+g.throttle_cruise, g.throttle_min, g.throttle_max);
+    output =  constrain_float(p+i+d+mincopter.g.throttle_cruise, mincopter.g.throttle_min, mincopter.g.throttle_max);
 
     return output;
 }
@@ -432,24 +437,24 @@ int16_t get_pilot_desired_throttle(int16_t throttle_control)
     int16_t throttle_out;
 
     // exit immediately in the simple cases
-    if( throttle_control == 0 || g.throttle_mid == 500) {
+    if( throttle_control == 0 || mincopter.g.throttle_mid == 500) {
         return throttle_control;
     }
 
     // ensure reasonable throttle values
     throttle_control = constrain_int16(throttle_control,0,1000);
-    g.throttle_mid = constrain_int16(g.throttle_mid,300,700);
+    mincopter.g.throttle_mid = constrain_int16(mincopter.g.throttle_mid,300,700);
 
     // check throttle is above, below or in the deadband
     if (throttle_control < THROTTLE_IN_MIDDLE) {
         // below the deadband
-        throttle_out = g.throttle_min + ((float)(throttle_control-g.throttle_min))*((float)(g.throttle_mid - g.throttle_min))/((float)(500-g.throttle_min));
+        throttle_out = mincopter.g.throttle_min + ((float)(throttle_control-mincopter.g.throttle_min))*((float)(mincopter.g.throttle_mid - mincopter.g.throttle_min))/((float)(500-mincopter.g.throttle_min));
     }else if(throttle_control > THROTTLE_IN_MIDDLE) {
         // above the deadband
-        throttle_out = g.throttle_mid + ((float)(throttle_control-500))*(float)(1000-g.throttle_mid)/500.0f;
+        throttle_out = mincopter.g.throttle_mid + ((float)(throttle_control-500))*(float)(1000-mincopter.g.throttle_mid)/500.0f;
     }else{
         // must be in the deadband
-        throttle_out = g.throttle_mid;
+        throttle_out = mincopter.g.throttle_mid;
     }
 
     return throttle_out;
@@ -463,12 +468,12 @@ get_initial_alt_hold( int32_t alt_cm, int16_t climb_rate_cms)
     int32_t linear_distance;      // half the distace we swap between linear and sqrt and the distace we offset sqrt.
     int32_t linear_velocity;      // the velocity we swap between linear and sqrt.
 
-    linear_velocity = ALT_HOLD_ACCEL_MAX/g.pi_alt_hold.kP();
+    linear_velocity = ALT_HOLD_ACCEL_MAX/mincopter.g.pi_alt_hold.kP();
 
     if (abs(climb_rate_cms) < linear_velocity) {
-        target_alt = alt_cm + climb_rate_cms/g.pi_alt_hold.kP();
+        target_alt = alt_cm + climb_rate_cms/mincopter.g.pi_alt_hold.kP();
     } else {
-        linear_distance = ALT_HOLD_ACCEL_MAX/(2*g.pi_alt_hold.kP()*g.pi_alt_hold.kP());
+        linear_distance = ALT_HOLD_ACCEL_MAX/(2*mincopter.g.pi_alt_hold.kP()*mincopter.g.pi_alt_hold.kP());
         if (climb_rate_cms > 0){
             target_alt = alt_cm + linear_distance + (int32_t)climb_rate_cms*(int32_t)climb_rate_cms/(2*ALT_HOLD_ACCEL_MAX);
         } else {
@@ -499,7 +504,7 @@ get_throttle_rate(float z_target_speed)
         output = 0;
     } else {
         // calculate rate error and filter with cut off frequency of 2 Hz
-        z_rate_error    = z_rate_error + 0.20085f * ((z_target_speed - climb_rate) - z_rate_error);
+        z_rate_error    = z_rate_error + 0.20085f * ((z_target_speed - mincopter.climb_rate) - z_rate_error);
         // feed forward acceleration based on change in the filtered desired speed.
         z_target_speed_delta = 0.20085f * (z_target_speed - z_target_speed_filt);
         z_target_speed_filt    = z_target_speed_filt + z_target_speed_delta;
@@ -508,7 +513,7 @@ get_throttle_rate(float z_target_speed)
     last_call_ms = now;
 
     // calculate p
-    p = g.pid_throttle_rate.kP() * z_rate_error;
+    p = mincopter.g.pid_throttle_rate.kP() * z_rate_error;
 
     // consolidate and constrain target acceleration
     output += p;
@@ -520,7 +525,7 @@ get_throttle_rate(float z_target_speed)
     // update throttle cruise
     // TO-DO: this may not be correct because g.rc_3.servo_out has not been updated for this iteration
     if( z_target_speed == 0 ) {
-        update_throttle_cruise(g.rc_3.servo_out);
+        update_throttle_cruise(mincopter.g.rc_3.servo_out);
     }
 }
 
@@ -535,17 +540,17 @@ get_throttle_althold(int32_t target_alt, int16_t min_climb_rate, int16_t max_cli
     int32_t linear_distance;      // half the distace we swap between linear and sqrt and the distace we offset sqrt.
 
     // calculate altitude error
-    alt_error    = target_alt - current_loc.alt;
+    alt_error    = target_alt - mcstate.current_loc.alt;
 
     // check kP to avoid division by zero
-    if( g.pi_alt_hold.kP() != 0 ) {
-        linear_distance = ALT_HOLD_ACCEL_MAX/(2*g.pi_alt_hold.kP()*g.pi_alt_hold.kP());
+    if( mincopter.g.pi_alt_hold.kP() != 0 ) {
+        linear_distance = ALT_HOLD_ACCEL_MAX/(2*mincopter.g.pi_alt_hold.kP()*mincopter.g.pi_alt_hold.kP());
         if( alt_error > 2*linear_distance ) {
             desired_rate = safe_sqrt(2*ALT_HOLD_ACCEL_MAX*(alt_error-linear_distance));
         }else if( alt_error < -2*linear_distance ) {
             desired_rate = -safe_sqrt(2*ALT_HOLD_ACCEL_MAX*(-alt_error-linear_distance));
         }else{
-            desired_rate = g.pi_alt_hold.get_p(alt_error);
+            desired_rate = mincopter.g.pi_alt_hold.get_p(alt_error);
         }
     }else{
         desired_rate = 0;
@@ -557,7 +562,8 @@ get_throttle_althold(int32_t target_alt, int16_t min_climb_rate, int16_t max_cli
     get_throttle_rate(desired_rate);
 
     // update altitude error reported to GCS
-    altitude_error = alt_error;
+		// TODO Does this actually need to be reported
+    mincopter.altitude_error = alt_error;
 
     // TO-DO: enabled PID logging for this controller
 }
@@ -567,16 +573,16 @@ get_throttle_althold(int32_t target_alt, int16_t min_climb_rate, int16_t max_cli
 void
 get_throttle_althold_with_slew(int32_t target_alt, int16_t min_climb_rate, int16_t max_climb_rate)
 {
-    float alt_change = target_alt-controller_desired_alt;
+    float alt_change = target_alt-mincopter.controller_desired_alt;
     // adjust desired alt if motors have not hit their limits
-    if ((alt_change<0 && !motors.limit.throttle_lower) || (alt_change>0 && !motors.limit.throttle_upper)) {
-        controller_desired_alt += constrain_float(alt_change, min_climb_rate*0.02f, max_climb_rate*0.02f);
+    if ((alt_change<0 && !mincopter.motors.limit.throttle_lower) || (alt_change>0 && !mincopter.motors.limit.throttle_upper)) {
+        mincopter.controller_desired_alt += constrain_float(alt_change, min_climb_rate*0.02f, max_climb_rate*0.02f);
     }
 
     // do not let target altitude get too far from current altitude
-    controller_desired_alt = constrain_float(controller_desired_alt,current_loc.alt-750,current_loc.alt+750);
+    mincopter.controller_desired_alt = constrain_float(mincopter.controller_desired_alt,mcstate.current_loc.alt-750,mcstate.current_loc.alt+750);
 
-    get_throttle_althold(controller_desired_alt, min_climb_rate-250, max_climb_rate+250);   // 250 is added to give head room to alt hold controller
+    get_throttle_althold(mincopter.controller_desired_alt, min_climb_rate-250, max_climb_rate+250);   // 250 is added to give head room to alt hold controller
 }
 
 // get_throttle_rate_stabilized - rate controller with additional 'stabilizer'
@@ -586,28 +592,28 @@ void
 get_throttle_rate_stabilized(int16_t target_rate)
 {
     // adjust desired alt if motors have not hit their limits
-    if ((target_rate<0 && !motors.limit.throttle_lower) || (target_rate>0 && !motors.limit.throttle_upper)) {
-        controller_desired_alt += target_rate * 0.02f;
+    if ((target_rate<0 && !mincopter.motors.limit.throttle_lower) || (target_rate>0 && !mincopter.motors.limit.throttle_upper)) {
+        mincopter.controller_desired_alt += target_rate * 0.02f;
     }
 
     // do not let target altitude get too far from current altitude
-    controller_desired_alt = constrain_float(controller_desired_alt,current_loc.alt-750,current_loc.alt+750);
+    mincopter.controller_desired_alt = constrain_float(mincopter.controller_desired_alt,mcstate.current_loc.alt-750,mcstate.current_loc.alt+750);
 
 #if AC_FENCE == ENABLED
     // do not let target altitude be too close to the fence
     // To-Do: add this to other altitude controllers
-    if((fence.get_enabled_fences() & AC_FENCE_TYPE_ALT_MAX) != 0) {
-        float alt_limit = fence.get_safe_alt() * 100.0f;
-        if (controller_desired_alt > alt_limit) {
-            controller_desired_alt = alt_limit;
+    if((mcstate.fence.get_enabled_fences() & AC_FENCE_TYPE_ALT_MAX) != 0) {
+        float alt_limit = mcstate.fence.get_safe_alt() * 100.0f;
+        if (mincopter.controller_desired_alt > alt_limit) {
+            mincopter.controller_desired_alt = alt_limit;
         }
     }
 #endif
 
     // update target altitude for reporting purposes
-    set_target_alt_for_reporting(controller_desired_alt);
+    set_target_alt_for_reporting(mincopter.controller_desired_alt);
 
-    get_throttle_althold(controller_desired_alt, -g.pilot_velocity_z_max-250, g.pilot_velocity_z_max+250);   // 250 is added to give head room to alt hold controller
+    get_throttle_althold(mincopter.controller_desired_alt, -mincopter.g.pilot_velocity_z_max-250, mincopter.g.pilot_velocity_z_max+250);   // 250 is added to give head room to alt hold controller
 }
 
 // get_throttle_land - high level landing logic
@@ -617,16 +623,16 @@ void
 get_throttle_land()
 {
     // if we are above 10m
-    if (current_loc.alt >= LAND_START_ALT) {
-        get_throttle_althold_with_slew(LAND_START_ALT, -wp_nav.get_descent_velocity(), -abs(g.land_speed));
+    if (mcstate.current_loc.alt >= LAND_START_ALT) {
+        get_throttle_althold_with_slew(LAND_START_ALT, -mcstate.wp_nav.get_descent_velocity(), -abs(mincopter.g.land_speed));
     }else{
-        get_throttle_rate_stabilized(-abs(g.land_speed));
+        get_throttle_rate_stabilized(-abs(mincopter.g.land_speed));
 
         // disarm when the landing detector says we've landed and throttle is at min (or we're in failsafe so we have no pilot thorottle input)
 #if LAND_REQUIRE_MIN_THROTTLE_TO_DISARM == ENABLED
-        if( ap.land_complete && (g.rc_3.control_in == 0 || failsafe.radio) ) {
+        if( mincopter.ap.land_complete && (mincopter.g.rc_3.control_in == 0 || mcstate.failsafe.radio) ) {
 #else
-        if (ap.land_complete) {
+        if (mincopter.ap.land_complete) {
 #endif
             init_disarm_motors();
         }
@@ -637,7 +643,7 @@ get_throttle_land()
 void reset_land_detector()
 {
     set_land_complete(false);
-    land_detector = 0;
+    mincopter.land_detector = 0;
 }
 
 // update_land_detector - checks if we have landed and updates the ap.land_complete flag
@@ -645,26 +651,26 @@ void reset_land_detector()
 bool update_land_detector()
 {
     // detect whether we have landed by watching for low climb rate and minimum throttle
-    if (abs(climb_rate) < 20 && motors.limit.throttle_lower) {
-        if (!ap.land_complete) {
+    if (abs(mincopter.climb_rate) < 20 && mincopter.motors.limit.throttle_lower) {
+        if (!mincopter.ap.land_complete) {
             // run throttle controller if accel based throttle controller is enabled and active (active means it has been given a target)
-            if( land_detector < LAND_DETECTOR_TRIGGER) {
-                land_detector++;
+            if( mincopter.land_detector < LAND_DETECTOR_TRIGGER) {
+                mincopter.land_detector++;
             }else{
                 set_land_complete(true);
-                land_detector = 0;
+                mincopter.land_detector = 0;
             }
         }
-    }else if (g.rc_3.control_in != 0 || failsafe.radio){    // zero throttle locks land_complete as true
+    }else if (mincopter.g.rc_3.control_in != 0 || mcstate.failsafe.radio){    // zero throttle locks land_complete as true
         // we've sensed movement up or down so reset land_detector
-        land_detector = 0;
-        if(ap.land_complete) {
+        mincopter.land_detector = 0;
+        if(mincopter.ap.land_complete) {
             set_land_complete(false);
         }
     }
 
     // return current state of landing
-    return ap.land_complete;
+    return mincopter.ap.land_complete;
 }
 
 /*
@@ -679,20 +685,22 @@ void reset_I_all(void)
 
 void reset_rate_I()
 {
-    g.pid_rate_roll.reset_I();
-    g.pid_rate_pitch.reset_I();
-    g.pid_rate_yaw.reset_I();
+    mincopter.g.pid_rate_roll.reset_I();
+    mincopter.g.pid_rate_pitch.reset_I();
+    mincopter.g.pid_rate_yaw.reset_I();
 }
 
 void reset_throttle_I(void)
 {
     // For Altitude Hold
-    g.pi_alt_hold.reset_I();
-    g.pid_throttle_accel.reset_I();
+    mincopter.g.pi_alt_hold.reset_I();
+    mincopter.g.pid_throttle_accel.reset_I();
 }
 
 void set_accel_throttle_I_from_pilot_throttle(int16_t pilot_throttle)
 {
     // shift difference between pilot's throttle and hover throttle into accelerometer I
-    g.pid_throttle_accel.set_integrator(pilot_throttle-g.throttle_cruise);
+    mincopter.g.pid_throttle_accel.set_integrator(pilot_throttle-mincopter.g.throttle_cruise);
 }
+
+

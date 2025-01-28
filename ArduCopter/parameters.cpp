@@ -21,46 +21,42 @@
 
 #include "parameters.h"
 
+#include "mcinstance.h"
+#include "mcstate.h"
 #include <AP_Scheduler.h>
-#include "config.h"
 
-#include <AP_Math.h>
-#include <AP_AHRS.h>
-#include <AP_Motors.h>
-#include <AP_InertialNav.h>
-#include <GPS.h>
-#include <AP_GPS_Glitch.h>
-#include <AP_Compass.h>
-#include <AC_Fence.h>
-#include <AC_WPNav.h>
-
-#include "navigation.h"
-#include "util.h"
-#include "motors.h"
-
-// system.cpp
-bool set_mode(uint8_t mode);
-
-extern Vector3f omega;
-extern AP_AHRS_DCM ahrs;
-extern float G_Dt;
-extern AP_MotorsQuad motors;
-extern AP_InertialNav inertial_nav;
-extern GPS         *g_gps;
-extern GPS_Glitch   gps_glitch;
-extern AP_Compass_HMC5843 compass;
-extern AC_WPNav wp_nav;
-
-extern AP_UNION_T ap;
-extern AP_FAILSAFE_T failsafe;
-extern AC_Fence fence;
+extern MCInstance mincopter;
+extern MCState mcstate;
 
 extern AP_Scheduler scheduler;
 
-#define GSCALAR(v, name, def) { g.v.vtype, name, Parameters::k_param_ ## v, &g.v, {def_value : def} }
-#define GGROUP(v, name, class) { AP_PARAM_GROUP, name, Parameters::k_param_ ## v, &g.v, {group_info : class::var_info} }
+#include "util.h"
+
+/*
+HASH include <AP_Scheduler.h>
+HASH include "config.h"
+HASH include <AP_Math.h>
+HASH include <AP_AHRS.h>
+HASH include <AP_Motors.h>
+HASH include <AP_InertialNav.h>
+HASH include <GPS.h>
+HASH include <AP_GPS_Glitch.h>
+HASH include <AP_Compass.h>
+HASH include <AC_Fence.h>
+HASH include <AC_WPNav.h>
+HASH include "navigation.h"
+HASH include "util.h"
+HASH include "motors.h"
+*/
+
+#define GSCALAR(v, name, def) { mincopter.g.v.vtype, name, Parameters::k_param_ ## v, &mincopter.g.v, {def_value : def} }
+#define GGROUP(v, name, class) { AP_PARAM_GROUP, name, Parameters::k_param_ ## v, &mincopter.g.v, {group_info : class::var_info} }
 #define GOBJECT(v, name, class) { AP_PARAM_GROUP, name, Parameters::k_param_ ## v, &v, {group_info : class::var_info} }
 #define GOBJECTN(v, pname, name, class) { AP_PARAM_GROUP, name, Parameters::k_param_ ## pname, &v, {group_info : class::var_info} }
+
+// New macros to handle class objects
+#define MCINSTANCE_GOBJECT(v, name, class) { AP_PARAM_GROUP, name, Parameters::k_param_ ## v, &mincopter.v, {group_info : class::var_info} }
+#define MCSTATE_GOBJECT(v, name, class) { AP_PARAM_GROUP, name, Parameters::k_param_ ## v, &mcstate.v, {group_info : class::var_info} }
 
 const AP_Param::Info var_info[] PROGMEM = {
     // @Param: SYSID_SW_MREV
@@ -1050,21 +1046,21 @@ const AP_Param::Info var_info[] PROGMEM = {
 
     // @Group: COMPASS_
     // @Path: ../libraries/AP_Compass/Compass.cpp
-    GOBJECT(compass,        "COMPASS_", Compass),
+    MCINSTANCE_GOBJECT(compass,        "COMPASS_", Compass),
 
     // @Group: INS_
     // @Path: ../libraries/AP_InertialSensor/AP_InertialSensor.cpp
 #if HIL_MODE != HIL_MODE_ATTITUDE
-    GOBJECT(ins,            "INS_", AP_InertialSensor),
+    MCINSTANCE_GOBJECT(ins,            "INS_", AP_InertialSensor),
 #endif
 
     // @Group: INAV_
     // @Path: ../libraries/AP_InertialNav/AP_InertialNav.cpp
-    GOBJECT(inertial_nav,           "INAV_",    AP_InertialNav),
+    MCSTATE_GOBJECT(inertial_nav,           "INAV_",    AP_InertialNav),
 
     // @Group: WPNAV_
     // @Path: ../libraries/AC_WPNav/AC_WPNav.cpp
-    GOBJECT(wp_nav, "WPNAV_",       AC_WPNav),
+    MCSTATE_GOBJECT(wp_nav, "WPNAV_",       AC_WPNav),
 
 /* REMOVE GCS
     // @Group: SR0_
@@ -1084,7 +1080,7 @@ const AP_Param::Info var_info[] PROGMEM = {
 
     // @Group: AHRS_
     // @Path: ../libraries/AP_AHRS/AP_AHRS.cpp
-    GOBJECT(ahrs,                   "AHRS_",    AP_AHRS),
+    MCSTATE_GOBJECT(ahrs,                   "AHRS_",    AP_AHRS),
 
 /*
 #if MOUNT == ENABLED
@@ -1102,7 +1098,7 @@ const AP_Param::Info var_info[] PROGMEM = {
 
     // @Group: BATT_
     // @Path: ../libraries/AP_BattMonitor/AP_BattMonitor.cpp
-    GOBJECT(battery,                "BATT_",       AP_BattMonitor),
+    MCINSTANCE_GOBJECT(battery,                "BATT_",       AP_BattMonitor),
 
 #if CONFIG_HAL_BOARD == HAL_BOARD_AVR_SITL
     GOBJECT(sitl, "SIM_", SITL),
@@ -1110,7 +1106,7 @@ const AP_Param::Info var_info[] PROGMEM = {
 
     // @Group: GND_
     // @Path: ../libraries/AP_Baro/AP_Baro.cpp
-    GOBJECT(barometer, "GND_", AP_Baro),
+    MCINSTANCE_GOBJECT(barometer, "GND_", AP_Baro),
 
     // @Group: SCHED_
     // @Path: ../libraries/AP_Scheduler/AP_Scheduler.cpp
@@ -1119,17 +1115,17 @@ const AP_Param::Info var_info[] PROGMEM = {
 #if AC_FENCE == ENABLED
     // @Group: FENCE_
     // @Path: ../libraries/AC_Fence/AC_Fence.cpp
-    GOBJECT(fence,      "FENCE_",   AC_Fence),
+    MCSTATE_GOBJECT(fence,      "FENCE_",   AC_Fence),
 #endif
 
     // @Group: GPSGLITCH_
     // @Path: ../libraries/AP_GPS/AP_GPS_Glitch.cpp
-    GOBJECT(gps_glitch,      "GPSGLITCH_",   GPS_Glitch),
+    MCINSTANCE_GOBJECT(gps_glitch,      "GPSGLITCH_",   GPS_Glitch),
 
 #if FRAME_CONFIG ==     HELI_FRAME
     // @Group: H_
     // @Path: ../libraries/AP_Motors/AP_MotorsHeli.cpp
-    GOBJECT(motors, "H_",           AP_MotorsHeli),
+    MCINSTANCE_GOBJECT(motors, "H_",           AP_MotorsHeli),
 
 #elif FRAME_CONFIG == SINGLE_FRAME
     // @Group: SS1_
@@ -1146,18 +1142,19 @@ const AP_Param::Info var_info[] PROGMEM = {
     GGROUP(single_servo_4,    "SS4_", RC_Channel),
     // @Group: MOT_
     // @Path: ../libraries/AP_Motors/AP_MotorsSingle.cpp
-    GOBJECT(motors, "MOT_",           AP_MotorsSingle),
+    MCINSTANCE_GOBJECT(motors, "MOT_",           AP_MotorsSingle),
 
 #else
     // @Group: MOT_
     // @Path: ../libraries/AP_Motors/AP_Motors_Class.cpp
-    GOBJECT(motors, "MOT_",         AP_Motors),
+    MCINSTANCE_GOBJECT(motors, "MOT_",         AP_Motors),
 #endif
 
     // @Group: RCMAP_
     // @Path: ../libraries/AP_RCMapper/AP_RCMapper.cpp
+		/* REMOVED
     GOBJECT(rcmap, "RCMAP_",        RCMapper),
-
+		*/
     AP_VAREND
 };
 
@@ -1187,42 +1184,42 @@ void load_parameters(void)
 {
     // change the default for the AHRS_GPS_GAIN for ArduCopter
     // if it hasn't been set by the user
-    if (!ahrs.gps_gain.load()) {
-        ahrs.gps_gain.set_and_save(1.0);
+    if (!mcstate.ahrs.gps_gain.load()) {
+        mcstate.ahrs.gps_gain.set_and_save(1.0);
     }
     // disable centrifugal force correction, it will be enabled as part of the arming process
-    ahrs.set_correct_centrifugal(false);
+    mcstate.ahrs.set_correct_centrifugal(false);
 
     // setup different AHRS gains for ArduCopter than the default
     // but allow users to override in their config
-    if (!ahrs._kp.load()) {
-        ahrs._kp.set_and_save(0.1);
+    if (!mcstate.ahrs._kp.load()) {
+        mcstate.ahrs._kp.set_and_save(0.1);
     }
-    if (!ahrs._kp_yaw.load()) {
-        ahrs._kp_yaw.set_and_save(0.1);
+    if (!mcstate.ahrs._kp_yaw.load()) {
+        mcstate.ahrs._kp_yaw.set_and_save(0.1);
     }
 
     // setup different Compass learn setting for ArduCopter than the default
     // but allow users to override in their config
-    if (!compass._learn.load()) {
-        compass._learn.set_and_save(0);
+    if (!mincopter.compass._learn.load()) {
+        mincopter.compass._learn.set_and_save(0);
     }
 
-    if (!g.format_version.load() ||
-        g.format_version != Parameters::k_format_version) {
+    if (!mincopter.g.format_version.load() ||
+        mincopter.g.format_version != Parameters::k_format_version) {
 
         // erase all parameters
-        cliSerial->printf_P(PSTR("Firmware change: erasing EEPROM...\n"));
+        mincopter.cliSerial->printf_P(PSTR("Firmware change: erasing EEPROM...\n"));
         AP_Param::erase_all();
 
         // save the current format version
-        g.format_version.set_and_save(Parameters::k_format_version);
-        cliSerial->println_P(PSTR("done."));
+        mincopter.g.format_version.set_and_save(Parameters::k_format_version);
+        mincopter.cliSerial->println_P(PSTR("done."));
     } else {
         uint32_t before = micros();
         // Load all auto-loaded EEPROM variables
         AP_Param::load_all();
         AP_Param::convert_old_parameters(&conversion_table[0], sizeof(conversion_table)/sizeof(conversion_table[0]));
-        cliSerial->printf_P(PSTR("load_all took %luus\n"), micros() - before);
+        mincopter.cliSerial->printf_P(PSTR("load_all took %luus\n"), micros() - before);
     }
 }

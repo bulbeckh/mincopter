@@ -1,40 +1,40 @@
 #pragma once
 
 #include <math.h>
-// HASH include <stdio.h>
-// HASH include <stdarg.h>
-
-#include <AP_Common.h>
-#include <AP_Progmem.h>
-#include <AP_Param.h>
-
-#include <AP_HAL.h>
-#include <AP_HAL_AVR.h>
-
 #include <AP_GPS.h>             // ArduPilot GPS library
 #include <AP_GPS_Glitch.h>      // GPS glitch protection library
+#include <AP_Baro.h>
+#include <AP_Compass.h>         // ArduPilot Mega Magnetometer Library
+#include <AP_InertialSensor.h>  // ArduPilot Mega Inertial Sensor (accel & gyro) Library
+#include <AP_Motors.h>          // AP Motors library
 #include <DataFlash.h>          // ArduPilot Mega Flash Memory Library
 #include <AP_ADC.h>             // ArduPilot Mega Analog to Digital Converter Library
 #include <AP_ADC_AnalogSource.h>
-#include <AP_Baro.h>
-#include <AP_Compass.h>         // ArduPilot Mega Magnetometer Library
+#include <AP_BattMonitor.h>
+#include <AP_HAL.h>
+#include <AP_HAL_AVR.h>
+
+
+#include "parameters.h"
+#include "failsafe.h"
+
+/*
+HASH include <AP_Common.h>
+HASH include <AP_Progmem.h>
+HASH include <AP_Param.h>
+HASH include <APM_PI.h>             // PI library
+HASH include <AC_PID.h>             // PID library
+HASH include <AP_Notify.h>          // Notify library
+*/
+
+// HASH include <RC_Channel.h>         // RC Channel Library
 // HASH include <AP_Math.h>            // ArduPilot Mega Vector/Matrix math Library
 // HASH include <AP_Curve.h>           // Curve used to linearlise throttle pwm to thrust
-#include <AP_InertialSensor.h>  // ArduPilot Mega Inertial Sensor (accel & gyro) Library
-#include <APM_PI.h>             // PI library
-#include <AC_PID.h>             // PID library
-// HASH include <RC_Channel.h>         // RC Channel Library
-#include <AP_Motors.h>          // AP Motors library
 // HASH include <Filter.h>             // Filter library
 // HASH include <AP_Buffer.h>          // APM FIFO Buffer
 // HASH include <AP_Vehicle.h>         // needed for AHRS build
 // HASH include <AP_Declination.h>     // ArduPilot Mega Declination Helper Library
 // HASH include <AP_RCMapper.h>        // RC input mapping library
-#include <AP_Notify.h>          // Notify library
-#include <AP_BattMonitor.h>
-
-#include "parameters.h"
-#include "failsafe.h"
 
 /* MCInstance is an abstraction of the MinCopter inputs and outputs. It holds the interfaces for each of the sensors
 * like the IMU (ins), GPS, and also the interface to the motors (ESCs).

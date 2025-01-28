@@ -1,8 +1,10 @@
 #pragma once
 
+#include <stdint.h>
+
+#include <AP_Math.h>
+
 /*
- HASH include <stdint.h>
- HASH include <AP_Math.h>
  HASH include <AP_Common.h>
  HASH include <AP_Notify.h>
  HASH include <AP_HAL.h>

@@ -7,6 +7,8 @@
 extern MCInstance mincopter;
 extern MCState mcstate;
 
+#include "system.h"
+
 void print_RPY()
 {
 	mincopter.cliSerial->printf_P(PSTR("RPY: %f %f %f\n"), mcstate.cos_roll_x, mcstate.cos_pitch_x, mcstate.cos_yaw);

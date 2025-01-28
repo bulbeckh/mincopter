@@ -1,22 +1,5 @@
 #pragma once
 
-#include "parameters.h"
-#include <AP_Math.h>
-#include <AP_AHRS.h>
-#include <AP_Motors.h>
-#include <AP_InertialNav.h>
-#include <GPS.h>
-#include <AP_GPS_Glitch.h>
-#include <AP_Compass.h>
-#include <AC_Fence.h>
-#include <AC_WPNav.h>
-
-
-#include "navigation.h"
-#include "util.h"
-#include "motors.h"
-#include "system.h"
-
 #include <stdint.h>
 
 // Union and and Failsafe typedefs
@@ -92,23 +75,8 @@ void failsafe_gps_off_event(void);
 
 void fence_check();
 
-extern int32_t home_distance;
-extern Parameters g;
-extern Vector3f omega;
-extern AP_AHRS_DCM ahrs;
-extern float G_Dt;
-extern AP_MotorsQuad motors;
-extern AP_InertialNav inertial_nav;
-extern GPS         *g_gps;
-extern GPS_Glitch   gps_glitch;
-extern AP_Compass_HMC5843 compass;
-extern AC_WPNav wp_nav;
-
-extern AP_UNION_T ap;
-extern AP_FAILSAFE_T failsafe;
-extern AC_Fence fence;
-
 // from arducopter.cpp
+/*
 extern float cos_roll_x;
 extern float cos_pitch_x;
 extern float cos_yaw;
@@ -159,6 +127,6 @@ extern float circle_angular_velocity;           // circle mode's angular velocit
 extern float circle_angular_velocity_max;       // circle mode's max angular velocity
 extern uint16_t loiter_time_max;
 extern uint32_t loiter_time;
-
+*/
 
 

@@ -28,7 +28,7 @@ class MCState
 		AC_Fence fence;
 
 		// TODO Move this to BTree as this is a control function not a state function
-		//AC_WPNav wp_nav(&inertial_nav, &ahrs, &g.pi_loiter_lat, &g.pi_loiter_lon, &g.pid_loiter_rate_lat, &g.pid_loiter_rate_lon);
+		AC_WPNav wp_nav;
 
 	public:
 		/* @brief IMU roll rates that get updated during read_AHRS */

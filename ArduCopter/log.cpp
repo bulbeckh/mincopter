@@ -4,6 +4,15 @@
 
 #if LOGGING_ENABLED == ENABLED
 
+#include "mcinstance.h"
+#include "mcstate.h"
+
+extern MCInstance mincopter;
+extern MCState mcstate;
+
+#include "system.h"
+#include "util.h"
+
 // Code to Write and Read packets from DataFlash log memory
 // Code to interact with the user to dump or erase logs
 
@@ -23,21 +32,21 @@ dump_log(uint8_t argc, const Menu::arg *argv)
 
     // check that the requested log number can be read
     dump_log = argv[1].i;
-    last_log_num = DataFlash.find_last_log();
+    last_log_num = mincopter.DataFlash.find_last_log();
 
     if (dump_log == -2) {
-        DataFlash.DumpPageInfo(cliSerial);
+        mincopter.DataFlash.DumpPageInfo(mincopter.cliSerial);
         return(-1);
     } else if (dump_log <= 0) {
-        cliSerial->printf_P(PSTR("dumping all\n"));
+        mincopter.cliSerial->printf_P(PSTR("dumping all\n"));
         Log_Read(0, 1, 0);
         return(-1);
-    } else if ((argc != 2) || ((uint16_t)dump_log <= (last_log_num - DataFlash.get_num_logs())) || (static_cast<uint16_t>(dump_log) > last_log_num)) {
-        cliSerial->printf_P(PSTR("bad log number\n"));
+    } else if ((argc != 2) || ((uint16_t)dump_log <= (last_log_num - mincopter.DataFlash.get_num_logs())) || (static_cast<uint16_t>(dump_log) > last_log_num)) {
+        mincopter.cliSerial->printf_P(PSTR("bad log number\n"));
         return(-1);
     }
 
-    DataFlash.get_log_boundaries(dump_log, dump_log_start, dump_log_end);
+    mincopter.DataFlash.get_log_boundaries(dump_log, dump_log_start, dump_log_end);
     Log_Read((uint16_t)dump_log, dump_log_start, dump_log_end);
     return (0);
 }
@@ -45,7 +54,7 @@ dump_log(uint8_t argc, const Menu::arg *argv)
 void do_erase_logs(void)
 {
 	//gcs_send_text_P(SEVERITY_LOW, PSTR("Erasing logs\n"));
-    DataFlash.EraseAll();
+    mincopter.DataFlash.EraseAll();
 	//gcs_send_text_P(SEVERITY_LOW, PSTR("Log erase complete\n"));
 }
 
@@ -64,7 +73,7 @@ select_logs(uint8_t argc, const Menu::arg *argv)
     uint16_t bits;
 
     if (argc != 2) {
-        cliSerial->printf_P(PSTR("missing log type\n"));
+        mincopter.cliSerial->printf_P(PSTR("missing log type\n"));
         return(-1);
     }
 
@@ -98,9 +107,9 @@ select_logs(uint8_t argc, const Menu::arg *argv)
     }
 
     if (!strcasecmp_P(argv[0].str, PSTR("enable"))) {
-        g.log_bitmask.set_and_save(g.log_bitmask | bits);
+        mincopter.g.log_bitmask.set_and_save(mincopter.g.log_bitmask | bits);
     }else{
-        g.log_bitmask.set_and_save(g.log_bitmask & ~bits);
+        mincopter.g.log_bitmask.set_and_save(mincopter.g.log_bitmask & ~bits);
     }
 
     return(0);
@@ -131,7 +140,7 @@ void Log_Write_AutoTune(uint8_t axis, uint8_t tune_step, float rate_min, float r
         new_gain_rd  : new_gain_rd,
         new_gain_sp  : new_gain_sp
     };
-    DataFlash.WriteBlock(&pkt, sizeof(pkt));
+    mincopter.DataFlash.WriteBlock(&pkt, sizeof(pkt));
 }
 
 struct PACKED log_AutoTuneDetails {
@@ -148,7 +157,7 @@ void Log_Write_AutoTuneDetails(int16_t angle_cd, float rate_cds)
         angle_cd    : angle_cd,
         rate_cds    : rate_cds
     };
-    DataFlash.WriteBlock(&pkt, sizeof(pkt));
+    mincopter.DataFlash.WriteBlock(&pkt, sizeof(pkt));
 }
 #endif
 
@@ -168,17 +177,18 @@ void Log_Write_Current()
 {
     struct log_Current pkt = {
         LOG_PACKET_HEADER_INIT(LOG_CURRENT_MSG),
-        time_ms             : hal.scheduler->millis(),
-        throttle_out        : g.rc_3.servo_out,
+        time_ms             : mincopter.hal.scheduler->millis(),
+        throttle_out        : mincopter.g.rc_3.servo_out,
         //throttle_integrator : throttle_integrator,
-        battery_voltage     : (int16_t) (battery.voltage() * 100.0f),
-        current_amps        : (int16_t) (battery.current_amps() * 100.0f),
+        battery_voltage     : (int16_t) (mincopter.battery.voltage() * 100.0f),
+        current_amps        : (int16_t) (mincopter.battery.current_amps() * 100.0f),
         board_voltage       : board_voltage(),
-        current_total       : battery.current_total_mah()
+        current_total       : mincopter.battery.current_total_mah()
     };
-    DataFlash.WriteBlock(&pkt, sizeof(pkt));
+    mincopter.DataFlash.WriteBlock(&pkt, sizeof(pkt));
 }
 
+// TODO This can be removed
 struct PACKED log_Optflow {
     LOG_PACKET_HEADER;
     int16_t dx;
@@ -228,25 +238,25 @@ struct PACKED log_Nav_Tuning {
 // Write an Nav Tuning packet
 void Log_Write_Nav_Tuning()
 {
-    const Vector3f &desired_position = wp_nav.get_loiter_target();
-    const Vector3f &position = inertial_nav.get_position();
-    const Vector3f &velocity = inertial_nav.get_velocity();
+    const Vector3f &desired_position = mcstate.wp_nav.get_loiter_target();
+    const Vector3f &position = mcstate.inertial_nav.get_position();
+    const Vector3f &velocity = mcstate.inertial_nav.get_velocity();
 
     struct log_Nav_Tuning pkt = {
         LOG_PACKET_HEADER_INIT(LOG_NAV_TUNING_MSG),
-        time_ms         : hal.scheduler->millis(),
+        time_ms         : mincopter.hal.scheduler->millis(),
         desired_pos_x   : desired_position.x,
         desired_pos_y   : desired_position.y,
         pos_x           : position.x,
         pos_y           : position.y,
-        desired_vel_x   : wp_nav.desired_vel.x,
-        desired_vel_y   : wp_nav.desired_vel.y,
+        desired_vel_x   : mcstate.wp_nav.desired_vel.x,
+        desired_vel_y   : mcstate.wp_nav.desired_vel.y,
         vel_x           : velocity.x,
         vel_y           : velocity.y,
-        desired_accel_x : wp_nav.desired_accel.x,
-        desired_accel_y : wp_nav.desired_accel.y
+        desired_accel_x : mcstate.wp_nav.desired_accel.x,
+        desired_accel_y : mcstate.wp_nav.desired_accel.y
     };
-    DataFlash.WriteBlock(&pkt, sizeof(pkt));
+    mincopter.DataFlash.WriteBlock(&pkt, sizeof(pkt));
 }
 
 struct PACKED log_Control_Tuning {
@@ -258,8 +268,10 @@ struct PACKED log_Control_Tuning {
     float    desired_alt;
     float    inav_alt;
     int32_t  baro_alt;
+		/*
     int16_t  desired_sonar_alt;
     int16_t  sonar_alt;
+		*/
     int16_t  desired_climb_rate;
     int16_t  climb_rate;
 };
@@ -269,19 +281,21 @@ void Log_Write_Control_Tuning()
 {
     struct log_Control_Tuning pkt = {
         LOG_PACKET_HEADER_INIT(LOG_CONTROL_TUNING_MSG),
-        time_ms             : hal.scheduler->millis(),
-        throttle_in         : g.rc_3.control_in,
-        angle_boost         : angle_boost,
-        throttle_out        : g.rc_3.servo_out,
-        desired_alt         : get_target_alt_for_reporting() / 100.0f,
-        inav_alt            : current_loc.alt / 100.0f,
-        baro_alt            : baro_alt,
+        time_ms             : mincopter.hal.scheduler->millis(),
+        throttle_in         : mincopter.g.rc_3.control_in,
+        angle_boost         : mincopter.angle_boost,
+        throttle_out        : mincopter.g.rc_3.servo_out,
+        desired_alt         : 0.0, // NOTE rmeoved the following function: get_target_alt_for_reporting() / 100.0f,
+        inav_alt            : mcstate.current_loc.alt / 100.0f,
+        baro_alt            : mincopter.baro_alt,
+				/*
         desired_sonar_alt   : (int16_t)target_sonar_alt,
         sonar_alt           : sonar_alt,
-        desired_climb_rate  : desired_climb_rate,
-        climb_rate          : climb_rate
+				*/
+        desired_climb_rate  : mincopter.desired_climb_rate,
+        climb_rate          : mincopter.climb_rate
     };
-    DataFlash.WriteBlock(&pkt, sizeof(pkt));
+    mincopter.DataFlash.WriteBlock(&pkt, sizeof(pkt));
 }
 
 struct PACKED log_Compass {
@@ -301,12 +315,12 @@ struct PACKED log_Compass {
 // Write a Compass packet
 void Log_Write_Compass()
 {
-    const Vector3f &mag_offsets = compass.get_offsets(0);
-    const Vector3f &mag_motor_offsets = compass.get_motor_offsets(0);
-    const Vector3f &mag = compass.get_field(0);
+    const Vector3f &mag_offsets = mincopter.compass.get_offsets(0);
+    const Vector3f &mag_motor_offsets = mincopter.compass.get_motor_offsets(0);
+    const Vector3f &mag = mincopter.compass.get_field(0);
     struct log_Compass pkt = {
         LOG_PACKET_HEADER_INIT(LOG_COMPASS_MSG),
-        time_ms         : hal.scheduler->millis(),
+        time_ms         : mincopter.hal.scheduler->millis(),
         mag_x           : (int16_t)mag.x,
         mag_y           : (int16_t)mag.y,
         mag_z           : (int16_t)mag.z,
@@ -317,15 +331,15 @@ void Log_Write_Compass()
         motor_offset_y  : (int16_t)mag_motor_offsets.y,
         motor_offset_z  : (int16_t)mag_motor_offsets.z
     };
-    DataFlash.WriteBlock(&pkt, sizeof(pkt));
+    mincopter.DataFlash.WriteBlock(&pkt, sizeof(pkt));
 #if COMPASS_MAX_INSTANCES > 1
-    if (compass.get_count() > 1) {
-        const Vector3f &mag2_offsets = compass.get_offsets(1);
-        const Vector3f &mag2_motor_offsets = compass.get_motor_offsets(1);
-        const Vector3f &mag2 = compass.get_field(1);
+    if (mincopter.compass.get_count() > 1) {
+        const Vector3f &mag2_offsets = mincopter.compass.get_offsets(1);
+        const Vector3f &mag2_motor_offsets = mincopter.compass.get_motor_offsets(1);
+        const Vector3f &mag2 = mincopter.compass.get_field(1);
         struct log_Compass pkt2 = {
             LOG_PACKET_HEADER_INIT(LOG_COMPASS2_MSG),
-            time_ms         : hal.scheduler->millis(),
+            time_ms         : mincopter.hal.scheduler->millis(),
             mag_x           : (int16_t)mag2.x,
             mag_y           : (int16_t)mag2.y,
             mag_z           : (int16_t)mag2.z,
@@ -336,7 +350,7 @@ void Log_Write_Compass()
             motor_offset_y  : (int16_t)mag2_motor_offsets.y,
             motor_offset_z  : (int16_t)mag2_motor_offsets.z
         };
-        DataFlash.WriteBlock(&pkt2, sizeof(pkt2));
+        mincopter.DataFlash.WriteBlock(&pkt2, sizeof(pkt2));
     }
 #endif
 }
@@ -359,17 +373,17 @@ void Log_Write_Performance()
 {
     struct log_Performance pkt = {
         LOG_PACKET_HEADER_INIT(LOG_PERFORMANCE_MSG),
-        renorm_count     : ahrs.renorm_range_count,
-        renorm_blowup    : ahrs.renorm_blowup_count,
+        renorm_count     : mcstate.ahrs.renorm_range_count,
+        renorm_blowup    : mcstate.ahrs.renorm_blowup_count,
         num_long_running : perf_info_get_num_long_running(),
         num_loops        : perf_info_get_num_loops(),
         max_time         : perf_info_get_max_time(),
-        pm_test          : pmTest1,
-        i2c_lockup_count : hal.i2c->lockup_count(),
-        ins_error_count  : ins.error_count(),
-        inav_error_count : inertial_nav.error_count()
+        pm_test          : mincopter.pmTest1,
+        i2c_lockup_count : mincopter.hal.i2c->lockup_count(),
+        ins_error_count  : mincopter.ins.error_count(),
+        inav_error_count : mcstate.inertial_nav.error_count()
     };
-    DataFlash.WriteBlock(&pkt, sizeof(pkt));
+    mincopter.DataFlash.WriteBlock(&pkt, sizeof(pkt));
 }
 
 struct PACKED log_Cmd {
@@ -389,7 +403,7 @@ void Log_Write_Cmd(uint8_t num, const struct Location *wp)
 {
     struct log_Cmd pkt = {
         LOG_PACKET_HEADER_INIT(LOG_CMD_MSG),
-        command_total       : g.command_total,
+        command_total       : mincopter.g.command_total,
         command_number      : num,
         waypoint_id         : wp->id,
         waypoint_options    : wp->options,
@@ -398,7 +412,7 @@ void Log_Write_Cmd(uint8_t num, const struct Location *wp)
         waypoint_latitude   : wp->lat,
         waypoint_longitude  : wp->lng
     };
-    DataFlash.WriteBlock(&pkt, sizeof(pkt));
+    mincopter.DataFlash.WriteBlock(&pkt, sizeof(pkt));
 }
 
 struct PACKED log_Attitude {
@@ -417,15 +431,15 @@ void Log_Write_Attitude()
 {
     struct log_Attitude pkt = {
         LOG_PACKET_HEADER_INIT(LOG_ATTITUDE_MSG),
-        time_ms         : hal.scheduler->millis(),
-        control_roll    : (int16_t)control_roll,
-        roll            : (int16_t)ahrs.roll_sensor,
-        control_pitch   : (int16_t)control_pitch,
-        pitch           : (int16_t)ahrs.pitch_sensor,
-        control_yaw     : (uint16_t)control_yaw,
-        yaw             : (uint16_t)ahrs.yaw_sensor
+        time_ms         : mincopter.hal.scheduler->millis(),
+        control_roll    : (int16_t)mcstate.control_roll,
+        roll            : (int16_t)mcstate.ahrs.roll_sensor,
+        control_pitch   : (int16_t)mcstate.control_pitch,
+        pitch           : (int16_t)mcstate.ahrs.pitch_sensor,
+        control_yaw     : (uint16_t)mcstate.control_yaw,
+        yaw             : (uint16_t)mcstate.ahrs.yaw_sensor
     };
-    DataFlash.WriteBlock(&pkt, sizeof(pkt));
+    mincopter.DataFlash.WriteBlock(&pkt, sizeof(pkt));
 }
 
 struct PACKED log_Mode {
@@ -440,9 +454,9 @@ void Log_Write_Mode(uint8_t mode)
     struct log_Mode pkt = {
         LOG_PACKET_HEADER_INIT(LOG_MODE_MSG),
         mode            : mode,
-        throttle_cruise : g.throttle_cruise,
+        throttle_cruise : mincopter.g.throttle_cruise,
     };
-    DataFlash.WriteBlock(&pkt, sizeof(pkt));
+    mincopter.DataFlash.WriteBlock(&pkt, sizeof(pkt));
 }
 
 struct PACKED log_Startup {
@@ -455,7 +469,7 @@ void Log_Write_Startup()
     struct log_Startup pkt = {
         LOG_PACKET_HEADER_INIT(LOG_STARTUP_MSG)
     };
-    DataFlash.WriteBlock(&pkt, sizeof(pkt));
+    mincopter.DataFlash.WriteBlock(&pkt, sizeof(pkt));
 }
 
 struct PACKED log_Event {
@@ -466,12 +480,12 @@ struct PACKED log_Event {
 // Wrote an event packet
 void Log_Write_Event(uint8_t id)
 {
-    if (g.log_bitmask != 0) {
+    if (mincopter.g.log_bitmask != 0) {
         struct log_Event pkt = {
             LOG_PACKET_HEADER_INIT(LOG_EVENT_MSG),
             id  : id
         };
-        DataFlash.WriteBlock(&pkt, sizeof(pkt));
+        mincopter.DataFlash.WriteBlock(&pkt, sizeof(pkt));
     }
 }
 
@@ -484,13 +498,13 @@ struct PACKED log_Data_Int16t {
 // Write an int16_t data packet
 void Log_Write_Data(uint8_t id, int16_t value)
 {
-    if (g.log_bitmask != 0) {
+    if (mincopter.g.log_bitmask != 0) {
         struct log_Data_Int16t pkt = {
             LOG_PACKET_HEADER_INIT(LOG_DATA_INT16_MSG),
             id          : id,
             data_value  : value
         };
-        DataFlash.WriteBlock(&pkt, sizeof(pkt));
+        mincopter.DataFlash.WriteBlock(&pkt, sizeof(pkt));
     }
 }
 
@@ -503,13 +517,13 @@ struct PACKED log_Data_UInt16t {
 // Write an uint16_t data packet
 void Log_Write_Data(uint8_t id, uint16_t value)
 {
-    if (g.log_bitmask != 0) {
+    if (mincopter.g.log_bitmask != 0) {
         struct log_Data_UInt16t pkt = {
             LOG_PACKET_HEADER_INIT(LOG_DATA_UINT16_MSG),
             id          : id,
             data_value  : value
         };
-        DataFlash.WriteBlock(&pkt, sizeof(pkt));
+        mincopter.DataFlash.WriteBlock(&pkt, sizeof(pkt));
     }
 }
 
@@ -522,13 +536,13 @@ struct PACKED log_Data_Int32t {
 // Write an int32_t data packet
 void Log_Write_Data(uint8_t id, int32_t value)
 {
-    if (g.log_bitmask != 0) {
+    if (mincopter.g.log_bitmask != 0) {
         struct log_Data_Int32t pkt = {
             LOG_PACKET_HEADER_INIT(LOG_DATA_INT32_MSG),
             id          : id,
             data_value  : value
         };
-        DataFlash.WriteBlock(&pkt, sizeof(pkt));
+        mincopter.DataFlash.WriteBlock(&pkt, sizeof(pkt));
     }
 }
 
@@ -541,13 +555,13 @@ struct PACKED log_Data_UInt32t {
 // Write a uint32_t data packet
 void Log_Write_Data(uint8_t id, uint32_t value)
 {
-    if (g.log_bitmask != 0) {
+    if (mincopter.g.log_bitmask != 0) {
         struct log_Data_UInt32t pkt = {
             LOG_PACKET_HEADER_INIT(LOG_DATA_UINT32_MSG),
             id          : id,
             data_value  : value
         };
-        DataFlash.WriteBlock(&pkt, sizeof(pkt));
+        mincopter.DataFlash.WriteBlock(&pkt, sizeof(pkt));
     }
 }
 
@@ -560,46 +574,17 @@ struct PACKED log_Data_Float {
 // Write a float data packet
 void Log_Write_Data(uint8_t id, float value)
 {
-    if (g.log_bitmask != 0) {
+    if (mincopter.g.log_bitmask != 0) {
         struct log_Data_Float pkt = {
             LOG_PACKET_HEADER_INIT(LOG_DATA_FLOAT_MSG),
             id          : id,
             data_value  : value
         };
-        DataFlash.WriteBlock(&pkt, sizeof(pkt));
+        mincopter.DataFlash.WriteBlock(&pkt, sizeof(pkt));
     }
 }
 
-struct PACKED log_Camera {
-    LOG_PACKET_HEADER;
-    uint32_t gps_time;
-    uint16_t gps_week;
-    int32_t  latitude;
-    int32_t  longitude;
-    int32_t  altitude;
-    int16_t  roll;
-    int16_t  pitch;
-    uint16_t yaw;
-};
-
-// Write a Camera packet
-void Log_Write_Camera()
-{
-#if CAMERA == ENABLED
-    struct log_Camera pkt = {
-        LOG_PACKET_HEADER_INIT(LOG_CAMERA_MSG),
-        gps_time    : g_gps->time_week_ms,
-        gps_week    : g_gps->time_week,
-        latitude    : current_loc.lat,
-        longitude   : current_loc.lng,
-        altitude    : current_loc.alt,
-        roll        : (int16_t)ahrs.roll_sensor,
-        pitch       : (int16_t)ahrs.pitch_sensor,
-        yaw         : (uint16_t)ahrs.yaw_sensor
-    };
-    DataFlash.WriteBlock(&pkt, sizeof(pkt));
-#endif
-}
+// REMOVED CAMERA LOGGING
 
 struct PACKED log_Error {
     LOG_PACKET_HEADER;
@@ -615,7 +600,7 @@ void Log_Write_Error(uint8_t sub_system, uint8_t error_code)
         sub_system    : sub_system,
         error_code    : error_code,
     };
-    DataFlash.WriteBlock(&pkt, sizeof(pkt));
+    mincopter.DataFlash.WriteBlock(&pkt, sizeof(pkt));
 }
 
 const struct LogStructure log_structure[] PROGMEM = {
@@ -660,8 +645,6 @@ const struct LogStructure log_structure[] PROGMEM = {
       "DU32",  "BI",         "Id,Value" },
     { LOG_DATA_FLOAT_MSG, sizeof(log_Data_Float),         
       "DFLT",  "Bf",         "Id,Value" },
-    { LOG_CAMERA_MSG, sizeof(log_Camera),                 
-      "CAM",   "IHLLeccC",   "GPSTime,GPSWeek,Lat,Lng,Alt,Roll,Pitch,Yaw" },
     { LOG_ERROR_MSG, sizeof(log_Error),         
       "ERR",   "BB",         "Subsys,ECode" },
 };
@@ -669,37 +652,37 @@ const struct LogStructure log_structure[] PROGMEM = {
 // Read the DataFlash log memory
 void Log_Read(uint16_t log_num, uint16_t start_page, uint16_t end_page)
 {
-	DataFlash.LogReadProcess(log_num, start_page, end_page, 
+	mincopter.DataFlash.LogReadProcess(log_num, start_page, end_page, 
                              NULL,
-                             cliSerial);
+                             mincopter.cliSerial);
 }
 
 // start a new log
 void start_logging() 
 {
-    if (g.log_bitmask != 0) {
-        if (!ap.logging_started) {
-            ap.logging_started = true;
+    if (mincopter.g.log_bitmask != 0) {
+        if (!mincopter.ap.logging_started) {
+            mincopter.ap.logging_started = true;
             //in_mavlink_delay = true;
-            DataFlash.StartNewLog();
+            mincopter.DataFlash.StartNewLog();
             //in_mavlink_delay = false;
-            DataFlash.Log_Write_Message_P(PSTR(FIRMWARE_STRING));
+            mincopter.DataFlash.Log_Write_Message_P(PSTR(FIRMWARE_STRING));
 
 #if defined(PX4_GIT_VERSION) && defined(NUTTX_GIT_VERSION)
-            DataFlash.Log_Write_Message_P(PSTR("PX4: " PX4_GIT_VERSION " NuttX: " NUTTX_GIT_VERSION));
+            mincopter.DataFlash.Log_Write_Message_P(PSTR("PX4: " PX4_GIT_VERSION " NuttX: " NUTTX_GIT_VERSION));
 #endif
 
             // write system identifier as well if available
             char sysid[40];
-            if (hal.util->get_system_id(sysid)) {
-                DataFlash.Log_Write_Message(sysid);
+            if (mincopter.hal.util->get_system_id(sysid)) {
+                mincopter.DataFlash.Log_Write_Message(sysid);
             }
 
             // log the flight mode
-            Log_Write_Mode(control_mode);
+            Log_Write_Mode(mincopter.control_mode);
         }
         // enable writes
-        DataFlash.EnableWrites(true);
+        mincopter.DataFlash.EnableWrites(true);
     }
 }
 
@@ -723,14 +706,13 @@ void Log_Write_Data(uint8_t id, int32_t value){}
 void Log_Write_Data(uint8_t id, uint32_t value){}
 void Log_Write_Data(uint8_t id, float value){}
 void Log_Write_Event(uint8_t id){}
-void Log_Write_Optflow() {}
 void Log_Write_Nav_Tuning() {}
 void Log_Write_Control_Tuning() {}
 void Log_Write_Performance() {}
-void Log_Write_Camera() {}
 void Log_Write_Error(uint8_t sub_system, uint8_t error_code) {}
 int8_t process_logs(uint8_t argc, const Menu::arg *argv) {
     return 0;
 }
 
 #endif // LOGGING_DISABLED
+

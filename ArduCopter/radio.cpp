@@ -7,10 +7,12 @@
 
 #include "mcinstance.h"
 #include "mcstate.h"
-#include "motors.h"
 
 extern MCInstance mincopter;
 extern MCState mcstate;
+
+#include "motors.h"
+#include "util.h"
 
 void default_dead_zones()
 {
@@ -32,22 +34,26 @@ void init_esc()
 	mincopter.motors.set_update_rate(50);
 	mincopter.motors.enable();
 	mincopter.motors.armed(true);
+
+	// TODO What was this doing?
+	/*
 	while(0) {
 		read_radio();
 		delay(100);
 		AP_Notify::flags.esc_calibration = true;
 		mincopter.motors.throttle_pass_through();
 	}
+	*/
 
 }
 
  // init_rc_out -- initialise motors and check if pilot wants to perform ESC calibration
 void init_rc_out()
 {
-    mincopter.motors.set_update_rate(g.rc_speed);
-    mincopter.motors.set_frame_orientation(g.frame_orientation);
+    mincopter.motors.set_update_rate(mincopter.g.rc_speed);
+    mincopter.motors.set_frame_orientation(mincopter.g.frame_orientation);
     mincopter.motors.Init();                                              // motor initialisation
-    mincopter.motors.set_min_throttle(g.throttle_min);
+    mincopter.motors.set_min_throttle(mincopter.g.throttle_min);
 
 		/*
     for(uint8_t i = 0; i < 5; i++) {

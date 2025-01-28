@@ -4,66 +4,29 @@
 
 #include <stdint.h>
 
-#include "parameters.h"
-#include <AP_Math.h>
-#include <AP_AHRS.h>
-#include <AP_Motors.h>
-#include <AP_InertialNav.h>
-#include <AP_InertialSensor.h>
-#include <GPS.h>
-#include <AP_GPS_Glitch.h>
-#include <AP_Compass.h>
-#include <AC_Fence.h>
-#include <AC_WPNav.h>
-#include <AP_Baro.h>
-#include <DataFlash.h>
-
-#include "navigation.h"
-#include "util.h"
-#include "motors.h"
-#include "failsafe.h"
-#include "log.h"
-#include "navigation.h"
-
-#include "system.h"
-#include "radio.h"
-
-
-// system.cpp
-bool set_mode(uint8_t mode);
-
-extern AP_Baro_MS5611 barometer;
-
-
-void read_radio(void);
-void start_logging(void);
-void init_simple_bearing(void);
-
-extern int32_t initial_armed_bearing;
-
-void reset_I_all(void);
-
-// util.h
-void init_home();
-
-uint16_t board_voltage(void);
-
-extern uint8_t auto_trim_counter;
-
-extern DataFlash_APM2 DataFlash;
-extern AP_InertialSensor_MPU6000 ins;
-
-extern Parameters g;
-extern Vector3f omega;
-extern AP_AHRS_DCM ahrs;
-extern float G_Dt;
-extern AP_MotorsQuad motors;
-extern AP_InertialNav inertial_nav;
-extern GPS         *g_gps;
-extern GPS_Glitch   gps_glitch;
-extern AP_Compass_HMC5843 compass;
-extern AC_WPNav wp_nav;
-
+/*
+HASH include "parameters.h"
+HASH include <AP_Math.h>
+HASH include <AP_AHRS.h>
+HASH include <AP_Motors.h>
+HASH include <AP_InertialNav.h>
+HASH include <AP_InertialSensor.h>
+HASH include <GPS.h>
+HASH include <AP_GPS_Glitch.h>
+HASH include <AP_Compass.h>
+HASH include <AC_Fence.h>
+HASH include <AC_WPNav.h>
+HASH include <AP_Baro.h>
+HASH include <DataFlash.h>
+HASH include "navigation.h"
+HASH include "util.h"
+HASH include "motors.h"
+HASH include "failsafe.h"
+HASH include "log.h"
+HASH include "navigation.h"
+HASH include "system.h"
+HASH include "radio.h"
+*/
 
 /* @brief Checks for sustained pilot input required to arm/disarm motor (throttle down and stick to right). Function call is
 * scheduled at 10hz via scheduler

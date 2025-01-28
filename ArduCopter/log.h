@@ -1,44 +1,27 @@
 #pragma once
 
+
 #include <AP_Menu.h>
+/*
+HASH include "parameters.h"
+HASH include <AP_Math.h>
+HASH include <AP_AHRS.h>
+HASH include <AP_Motors.h>
+HASH include <AP_InertialNav.h>
+HASH include <GPS.h>
+HASH include <AP_GPS_Glitch.h>
+HASH include <AP_Compass.h>
+HASH include <AC_Fence.h>
+HASH include <AC_WPNav.h>
+HASH include "navigation.h"
+HASH include "util.h"
+HASH include "motors.h"
+HASH include "failsafe.h"
+HASH include "config.h"
+*/
 
-#include "parameters.h"
-#include <AP_Math.h>
-#include <AP_AHRS.h>
-#include <AP_Motors.h>
-#include <AP_InertialNav.h>
-#include <GPS.h>
-#include <AP_GPS_Glitch.h>
-#include <AP_Compass.h>
-#include <AC_Fence.h>
-#include <AC_WPNav.h>
-
-#include "navigation.h"
-#include "util.h"
-#include "motors.h"
-#include "failsafe.h"
-
-// system.cpp
-bool set_mode(uint8_t mode);
-
-extern int16_t control_roll;
-extern int16_t control_pitch;
-//extern uint32_t throttle_integrator;
-float get_target_alt_for_reporting();
-extern int16_t pmTest1;
-
-extern Parameters g;
-extern Vector3f omega;
-extern AP_AHRS_DCM ahrs;
-extern float G_Dt;
-extern AP_MotorsQuad motors;
-extern AP_InertialNav inertial_nav;
-extern GPS         *g_gps;
-extern GPS_Glitch   gps_glitch;
-extern AP_Compass_HMC5843 compass;
-extern AC_WPNav wp_nav;
-
-#include "config.h"
+// TODO Is this the correct way to declare this?
+extern const struct LogStructure log_structure[];
 
 /* @brief Various logging functions
 */

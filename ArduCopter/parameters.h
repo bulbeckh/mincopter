@@ -4,13 +4,21 @@
 
 #include <stdint.h>
 
-#include <AP_Common.h>
-#include <AP_Param.h>
 #include <RC_Channel.h>
 #include <AC_PID.h>
 #include <APM_PI.h>
+#include <AP_RCMapper.h>
 
 #include "config.h"
+
+/*
+HASH include <AP_Common.h>
+HASH include <AP_Param.h>
+HASH include <RC_Channel.h>
+HASH include <AC_PID.h>
+HASH include <APM_PI.h>
+HASH include "config.h"
+*/
 
 // Global parameter class.
 //
@@ -233,7 +241,9 @@ public:
         k_param_rc_9,
         k_param_rc_12,
         k_param_failsafe_gcs,           // 198
+				/* REMOVED
         k_param_rcmap,
+				*/
 
         //
         // 200: flight modes
@@ -499,4 +509,5 @@ public:
 
 extern const AP_Param::Info        var_info[];
 
+void load_parameters();
 

@@ -1,27 +1,33 @@
 
+// TODO This should really be renamed to something like sensor_updates.cpp
+
 #include "mcinstance.h"
 #include "mcstate.h"
 
-#include "defines.h"
-#include "failsafe.h"
+extern MCInstance mincopter;
+extern MCState mcstate;
 
-extern MCInstance* mincopter;
-extern MCState* state;
+
+#include "defines.h"
+#include "util.h"
+#include "motors.h"
+#include "log.h"
+#include "system.h"
 
 void read_compass(void) {
-	if (mincopter->g.compass_enabled) mincopter->compass.accumulate();
+	if (mincopter.g.compass_enabled) mincopter.compass.accumulate();
 }
 
 // NOTE What is the difference between read_baro and barometer.accumulate?
 void read_baro(void) {
-	mincopter->barometer.accumulate();
+	mincopter.barometer.accumulate();
 }
 
 void update_altitude()
 {
 		// read in baro altitude
-		mincopter->barometer.read();
-		mincopter->baro_alt = barometer.get_altitude() * 100.f;
+		mincopter.barometer.read();
+		mincopter.baro_alt = mincopter.barometer.get_altitude() * 100.f;
 }
 
 // called at 50hz
@@ -31,15 +37,15 @@ void update_GPS(void)
 		static uint8_t ground_start_count = 10;     // counter used to grab at least 10 reads before commiting the Home location
 		bool report_gps_glitch;
 
-		mincopter->g_gps->update();
+		mincopter.g_gps->update();
 
 		// logging and glitch protection run after every gps message
-		if (mincopter->g_gps->last_message_time_ms() != last_gps_reading) {
-				last_gps_reading = mincopter->g_gps->last_message_time_ms();
+		if (mincopter.g_gps->last_message_time_ms() != last_gps_reading) {
+				last_gps_reading = mincopter.g_gps->last_message_time_ms();
 
 				// log GPS message
-				if (mincopter->g.log_bitmask & MASK_LOG_GPS) {
-						mincopter->DataFlash.Log_Write_GPS(mincopter->g_gps, state->current_loc.alt);
+				if (mincopter.g.log_bitmask & MASK_LOG_GPS) {
+						mincopter.DataFlash.Log_Write_GPS(mincopter.g_gps, mcstate.current_loc.alt);
 				}
 
 				// run glitch protection and update AP_Notify if home has been initialised
@@ -144,10 +150,10 @@ void one_hz_loop()
 
 		// TODO Move these to btree
 		// pass latest alt hold kP value to navigation controller
-		wp_nav.set_althold_kP(g.pi_alt_hold.kP());
+		mcstate.wp_nav.set_althold_kP(g.pi_alt_hold.kP());
 
 		// update latest lean angle to navigation controller
-		wp_nav.set_lean_angle_max(g.angle_max);
+		mcstate.wp_nav.set_lean_angle_max(g.angle_max);
 
 		// TODO Move arming to btree
 		// perform pre-arm checks & display failures every 30 seconds
@@ -163,12 +169,12 @@ void one_hz_loop()
 		// auto disarm checks
 		auto_disarm_check();
 
-		if (!motors.armed()) {
+		if (!mincopter.motors.armed()) {
 				// make it possible to change ahrs orientation at runtime during initial config
-				ahrs.set_orientation();
+				mcstate.ahrs.set_orientation();
 
 				// check the user hasn't updated the frame orientation
-				motors.set_frame_orientation(g.frame_orientation);
+				mincopter.motors.set_frame_orientation(g.frame_orientation);
 		}
 
 		check_usb_mux();

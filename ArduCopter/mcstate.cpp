@@ -5,13 +5,13 @@
 #include "mcstate.h"
 #include "mcinstance.h"
 
-extern MCInstance* mincopter;
-extern MCState* state;
+extern MCInstance mincopter;
 
 MCState::MCState() : 
-		ahrs(mincopter->ins, mincopter->g_gps),
+		ahrs(mincopter.ins, mincopter.g_gps),
 		fence(&this->inertial_nav),
-		inertial_nav(&this->ahrs, &mincopter->barometer, mincopter->g_gps, mincopter->gps_glitch)
+		inertial_nav(&this->ahrs, &mincopter.barometer, mincopter.g_gps, mincopter.gps_glitch),
+		wp_nav(&this->inertial_nav, &this->ahrs, &mincopter.g.pi_loiter_lat, &mincopter.g.pi_loiter_lon, &mincopter.g.pid_loiter_rate_lat, &mincopter.g.pid_loiter_rate_lon);
 {
 
 }

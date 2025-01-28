@@ -1,43 +1,40 @@
 #pragma once
 
 #include <stdint.h>
-#include <AP_Menu.h>
+
 #include <AP_HAL.h>
 
-#include "parameters.h"
-#include <AP_Math.h>
-#include <AP_AHRS.h>
-#include <AP_Motors.h>
-#include <AP_InertialNav.h>
-#include <GPS.h>
-#include <AP_GPS_Glitch.h>
-#include <AP_Compass.h>
-#include <AC_Fence.h>
-#include <AC_WPNav.h>
-#include <AP_BattMonitor.h>
-#include <AP_HAL.h>
-#include <DataFlash.h>
-#include <AP_GPS.h>
-#include <AP_Progmem.h>
-
-// TODO Remove all of these libs
-#include "navigation.h"
-#include "util.h"
-#include "motors.h"
-#include "log.h"
-#include "config.h"
-#include "control_modes.h"
-#include "failsafe.h"
-
+/*
+HASH include <AP_Menu.h>
+HASH include "parameters.h"
+HASH include <AP_Math.h>
+HASH include <AP_AHRS.h>
+HASH include <AP_Motors.h>
+HASH include <AP_InertialNav.h>
+HASH include <GPS.h>
+HASH include <AP_GPS_Glitch.h>
+HASH include <AP_Compass.h>
+HASH include <AC_Fence.h>
+HASH include <AC_WPNav.h>
+HASH include <AP_BattMonitor.h>
+HASH include <AP_HAL.h>
+HASH include <DataFlash.h>
+HASH include <AP_GPS.h>
+HASH include <AP_Progmem.h>
+HASH include "navigation.h"
+HASH include "util.h"
+HASH include "motors.h"
+HASH include "log.h"
+HASH include "config.h"
+HASH include "control_modes.h"
+HASH include "failsafe.h"
+*/
 
 // 
 //void load_parameters(void);
 
 // system.cpp
 bool set_mode(uint8_t mode);
-
-// TODO what is this?
-extern const AP_InertialSensor::Sample_rate ins_sample_rate;
 
 /* @brief Gets board voltage
 * @returns Board voltage
