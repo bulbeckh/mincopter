@@ -14,6 +14,10 @@ extern MCState mcstate;
 #include "radio.h"
 #include "parameters.h"
 
+
+// Forward Declaration - TODO move menu.cpp code to a class and include
+void run_cli(AP_HAL::UARTDriver* port);
+
 void init_ardupilot()
 {
     if (!mincopter.hal.gpio->usb_connected()) {
@@ -250,6 +254,7 @@ void init_ardupilot()
 		// 2700 for 32 byte
 
 
+		/*
 		uint32_t sum=0;
 		for (int i=0;i<100;i++) { 
 			uint32_t pre = micros();
@@ -259,12 +264,17 @@ void init_ardupilot()
 		}
 		float res = sum/100.0;
 		mincopter.cliSerial->printf_P(PSTR("Final stat - %f"),res);
-		
-		// Init telemetry uartC
-		/* NOTE - See article in README.md for guide on how to move telem to UART2 (uartC) */
-    mincopter.hal.uartC->begin(SERIAL1_BAUD, 128, 128);
-		mincopter.hal.uartC->printf_P(PSTR("TEST-send"));
+		*/
 
+		// Init telemetry uartC
+
+		/* NOTE - See article in README.md for guide on how to move telem to UART2 (uartC) */
+    //mincopter.hal.uartC->begin(SERIAL1_BAUD, 128, 128);
+		//mincopter.hal.uartC->printf_P(PSTR("TEST-send"));
+
+		// Start Menu
+		// NOTE cliSerial is an alias for hal.uartA I think
+		run_cli(mincopter.hal.uartA);
 }
 
 

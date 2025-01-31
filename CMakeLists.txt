@@ -148,6 +148,7 @@ add_executable(ArduCopter
 	ArduCopter/mcinstance.cpp
 	ArduCopter/mcstate.cpp
 	ArduCopter/btree.cpp
+	ArduCopter/menu.cpp
 )
 
 target_include_directories(ArduCopter PUBLIC
