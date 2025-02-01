@@ -3,7 +3,8 @@
 Simple 2-level state-machine that sends and receives commands between ArduCopter
 
 Currently, this will be used to retrieve and get information about the onboard logs but in future should
-be able to abstract all commands and act as a comprehensive interface to access onboard state and sensor readings
+be able to abstract all commands and act as a comprehensive interface to access onboard state and sensor
+readings.
 
 Each line in the 2nd level is associated with a command that is sent to the mincopter.
 
@@ -11,6 +12,9 @@ After a command is sent, the menu blocks and waits for a sequence of responses t
 
 Logging
 	- Show logs : Moves to a 3rd level which shows each log and its associated size
+
+The State of the console can either be in the navigation (navigating between screens) or it can be on a 
+particular screen (i.e. the screen used for showing and retrieving log messages.
 
 '''
 
@@ -21,28 +25,95 @@ import curses
 import time
 import random
 
-states = {
-	'Logging': [
-			'Get log count',
-			'Get log'
-		],
-	'None': [],
-	'AlsoNone': []
+class StateManager:
+	'''Responsible for managing navigation between screens and routing data between the different
+		handler classes'''
+
+	def __init__(self, navtree : dict):
+		self.tree = navtree
+		self.path = []
+		## current level can be obtain through len(self.path)
+		self.line = 0
+
+	def draw(self):
+		'''Navigate through the tree and call the correct drawing method. If we are still at the navigation
+		level then just call the draw nav method
+		'''
+			
+		if len(self.path==0):
+			ctx = {'line': self.line,
+				'rows' = [
+			## At root level
+			draw_navigation()
+		else:
+			## Navigate through the tree
+		
+	
+states = StateManager(
+	{'logs': LogHandler(), 
+	'None': NoneHandler(),
+	'AlsoNone': NoneHandler()
 }
 
 ctx = {
-	'top': None,
 	'line': 0,
-	'rows': None
+	'rows' = []
 }
 
-def draw_table(stdscr):
+''' Handlers (Log, Navigation)
+
+Each handler class should have a `run` method which is responsible for handling communication
+'''
+
+class NoneHandler:
+	'''The most basic handler class. Does not do anything'''
+	def __init__(self):
+		return
+
+	def run(self):
+		return
+
+class Log:
+	'''Represents a single log entry in the LogHandler'''
+	def __init__(self, lognum : int, logsize : int, content : bytes):
+		self.lognum = lognum
+		self.logsize = logsize
+		self.content = content
+
+class LogHandler:
+	'''Responsible for parsing and storing log messages'''
+	def __init__(self):
+		self.n_message=0
+		self.logs = []
+
+	def parse_entry(self, msg):
+		'''msg is the string sent from the mincopter
+
+		For logs, this is of the format "SL00-%d-%d"
+		'''
+		temp = msg.split('-')
+		log_num = temp[1]
+		log_size = temp[2]
+		
+		## Add a new entry into the list
+		self.logs.append(Log(log_num, log_size, None))
+
+	def run(self):
+		'''Commence communication between console and mincopter to request logs and
+		parse responses'''
+		pass
+
+''' Drawing
+Functions for updating the screen with the content from a manager
+'''
+def draw_navigation(stdscr, ctx):
+	'''Draw a navigation screen, given a navigation context (ctx) that contains elements'''
 	stdscr.clear()
 
 	height, width = stdscr.getmaxyx()
 
-	stdscr.addstr(0, 0, "TYPE", curses.A_BOLD)
-	stdscr.addstr(0, 20, "VAL", curses.A_BOLD)
+	## Add heading
+	stdscr.addstr(0, 0, "Item", curses.A_BOLD)
 
 	## Handle location within the hierarchy
 	if ctx['top']==None:
@@ -65,37 +136,49 @@ def draw_table(stdscr):
 
 	stdscr.refresh()
 
+def draw_log_screen(stdscr, lh : LogHandler):
+	'''Draw a list of logs on the screen'''
+	stdscr.clear()
+
+	height, width = stdscr.getmaxyx()
+	
+	## Add header
+	stdscr.addstr(0, 0, "Log Number", curses.A_BOLD)
+	stdscr.addstr(0, 20, "Log Size (bytes)", curses.A_BOLD)
+
+	## Add each log
+	for i, e in enumerate(lh.logs):
+		## TODO pad the string two align with heading widths
+		stdscr.addstr(i+1, 0, f'{e.lognum} {e.logsize}')
+
+	stdscr.refresh()
 
 def read_response():
-	'''Read a string of data until the 'END' message is received'''
+	'''Read a stream of serial messages until the 'END' message is received'''
+
 	while(True):
-		resp = ser.readline()
-		content = resp.decode('utf-8')
-		
+		resp = ser.readline().decode('utf-8')
+
 		if content=="END0":
 			return
 		else:
-			print(content)
+			lghandler.add(resp)
 
-class MCCommand:
-	def __init__(self, cmd, args):
-		pass
-
-	def parse_response():
-		pass
-	
 def send_command():
 	'''Call a command and wait for response from mincopter'''
 	ser.write('showlogs\n'.encode('utf-8'))
 	
 	read_response()
 
-
 def curses_main(stdscr):
 	curses.curs_set(0)
 	curses.noecho()
 	key = None
 	
+	'''
+	Part 1. Use the StateManager to get the current screen drawing method and then call it
+	Part 2. Wait for keypresses to trigger state changes and then pass the pressed key onto the handler
+	'''
 	while(True):
 		## Trigger redraw
 		draw_table(stdscr)
@@ -124,6 +207,8 @@ def curses_main(stdscr):
 				send_command()
 
 if __name__=="__main__":
+
+	## Establish connection over serial port
 	while(True):
 		try:
 			ser = serial.Serial('/dev/ttyACM0', 115200)
@@ -133,5 +218,6 @@ if __name__=="__main__":
 			print("Waiting....")
 			time.sleep(0.5)
 	
+	## Run the top-level curses loop
 	curses.wrapper(curses_main)
 

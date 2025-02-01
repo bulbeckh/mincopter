@@ -7,6 +7,11 @@
 - Removed manual flight modes and functionality
 - Removed GCS communication and Mavlink protocol support
 
+### `TODO`
+- Move to a single PID controller class
+- Implement NavEKF3 in mincopter
+- Implement MPC
+- Menu interface for log retrieval
 
 ### Performance Testing
 TODO

@@ -22,7 +22,7 @@ static int8_t run_show_logs(uint8_t argc, const Menu::arg* argv) {
 		uint16_t log_start, log_end;
 		mincopter.DataFlash.get_log_boundaries(i, log_start, log_end);	
 		
-		mincopter.cliSerial->printf_P(PSTR("SL00%d%d\n"), i, log_end-log_start);
+		mincopter.cliSerial->printf_P(PSTR("SL00-%d-%d\n"), i, log_end-log_start);
 	}
 	/*
 		DataFlash.ListAvailableLogs(cliSerial);
@@ -41,7 +41,7 @@ static int8_t run_show_logs(uint8_t argc, const Menu::arg* argv) {
 	*/
 	
 	// Terminate with an "END0" string
-	mincopter.cliSerial->printf_P(PSTR("END0"));
+	mincopter.cliSerial->printf_P(PSTR("END0\n"));
 	return 0;
 }
 
