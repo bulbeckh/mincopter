@@ -11,8 +11,7 @@
 
 #include "mcinstance.h"
 
-extern MCInstance* mci;
-
+extern MCInstance mincopter;
 
 // Create tree
 

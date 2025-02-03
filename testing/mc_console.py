@@ -29,36 +29,31 @@ class StateManager:
 	'''Responsible for managing navigation between screens and routing data between the different
 		handler classes'''
 
-	def __init__(self, navtree : dict):
+	def __init__(self, navtree):
 		self.tree = navtree
 		self.path = []
-		## current level can be obtain through len(self.path)
-		self.line = 0
-
-	def draw(self):
-		'''Navigate through the tree and call the correct drawing method. If we are still at the navigation
-		level then just call the draw nav method
-		'''
-			
-		if len(self.path==0):
-			ctx = {'line': self.line,
-				'rows' = [
-			## At root level
-			draw_navigation()
-		else:
-			## Navigate through the tree
 		
-	
-states = StateManager(
-	{'logs': LogHandler(), 
-	'None': NoneHandler(),
-	'AlsoNone': NoneHandler()
-}
+		# This is the variable that is updated in response to keypresses
+		# Starts out at the root of the tree
+		self.current_state = self.tree
 
-ctx = {
-	'line': 0,
-	'rows' = []
-}
+	def respond_keypress(self, keypress):
+		'''Updates state according to keypresses'''
+		## NOTE I actually think this should just forward the keypress to the screen if it is NOT a navigation screen
+
+		response = self.current_state.keypress(keypress)
+		
+		if (response==None):
+			continue
+		elif (response=='back'):
+			## handle back up hierarchy
+			## TODO
+			pass
+		elif (response=='enter'):
+			## descend hierarchy
+			## TODO
+			pass
+		
 
 ''' Handlers (Log, Navigation)
 
@@ -103,6 +98,48 @@ class LogHandler:
 		parse responses'''
 		pass
 
+class NavHandler:
+	'''Responsible for navigation to a different screen'''
+	def __init__(self, navtree):
+		self.tree = navtree
+		self.line = 0
+	
+		## These are the rows of the navigation
+		self.rows = list(navtree.keys())
+
+	def keypress(key):
+		if key==curses.KEY_UP:
+			self.line = max(self.line-1, 0)
+			return None
+		elif key==curses.KEY_DOWN:
+			self.line = min(self.line+1, len(self.rows)-1)
+			return None
+		elif key==curses.KEY_BACKSPACE:
+			if ctx['top'] == None:
+				## Already at top level
+				continue
+			else:
+				## Traverse back to top level
+				ctx['top'] = None
+		elif key==curses.KEY_ENTER or key==10 or key==13:
+			## Enter, \r, and \n
+			if ctx['top'] == None:
+				## Descend to 2nd layer by navigating to level of current line
+				ctx['top'] = list(states.keys())[ctx['line']]
+			else:
+				## Run command associated w this level
+				print("Executing command")
+				send_command()
+
+
+	def draw(self, stdscr):
+		ctx = {
+			'line': self.line,
+			'rows': self.rows
+		}
+		draw_navigation(stdscr, ctx)
+		
+
 ''' Drawing
 Functions for updating the screen with the content from a manager
 '''
@@ -115,24 +152,12 @@ def draw_navigation(stdscr, ctx):
 	## Add heading
 	stdscr.addstr(0, 0, "Item", curses.A_BOLD)
 
-	## Handle location within the hierarchy
-	if ctx['top']==None:
-		## In root location
-		keys = list(states.keys())
-	else:
-		keys = states[ctx['top']]
-	
-	ctx['rows'] = len(keys)
-
 	## Add elements to screen
-	for i in range(0,ctx['rows']):
+	for i in range(0,len(ctx['rows'])):
 		if i == ctx['line']:
-			stdscr.addstr(i+1,0, keys[i].ljust(width), curses.A_REVERSE)
+			stdscr.addstr(i+1,0, ctx['rows'][i].ljust(width), curses.A_REVERSE)
 		else:
-			stdscr.addstr(i+1,0, keys[i])
-
-	## debug
-	## stdscr.addstr(10, 0, f'{ctx["top"]} {ctx["line"]} {ctx["rows"]}')
+			stdscr.addstr(i+1,0, ctx['rows'][i])
 
 	stdscr.refresh()
 
@@ -173,42 +198,35 @@ def send_command():
 def curses_main(stdscr):
 	curses.curs_set(0)
 	curses.noecho()
-	key = None
+	#key = None
 	
 	'''
 	Part 1. Use the StateManager to get the current screen drawing method and then call it
 	Part 2. Wait for keypresses to trigger state changes and then pass the pressed key onto the handler
 	'''
-	while(True):
-		## Trigger redraw
-		draw_table(stdscr)
+	
+	sm = StateManager(
+		NavHandler({
+			'logs': LogHandler(), 
+			'None': NoneHandler(),
+			'AlsoNone': NoneHandler()
+			}
+		)
+	)
 
+	while(True):
+		## Trigger drawing of current state
+		sm.current_state.draw(stdscr)
+		
 		## Handle keypresses
 		key = stdscr.getch()
-		if key==curses.KEY_UP:
-			ctx['line'] = max(ctx['line']-1, 0)
-		elif key==curses.KEY_DOWN:
-			ctx['line'] = min(ctx['line']+1, ctx['rows']-1)
-		elif key==curses.KEY_BACKSPACE:
-			if ctx['top'] == None:
-				## Already at top level
-				continue
-			else:
-				## Traverse back to top level
-				ctx['top'] = None
-		elif key==curses.KEY_ENTER or key==10 or key==13:
-			## Enter, \r, and \n
-			if ctx['top'] == None:
-				## Descend to 2nd layer by navigating to level of current line
-				ctx['top'] = list(states.keys())[ctx['line']]
-			else:
-				## Run command associated w this level
-				print("Executing command")
-				send_command()
+		sm.respond_keypress(key)
+
 
 if __name__=="__main__":
 
 	## Establish connection over serial port
+	'''
 	while(True):
 		try:
 			ser = serial.Serial('/dev/ttyACM0', 115200)
@@ -217,6 +235,7 @@ if __name__=="__main__":
 		except serial.SerialException:
 			print("Waiting....")
 			time.sleep(0.5)
+	'''
 	
 	## Run the top-level curses loop
 	curses.wrapper(curses_main)
