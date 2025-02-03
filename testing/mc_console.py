@@ -44,12 +44,12 @@ class StateManager:
 		response = self.current_state.keypress(keypress)
 		
 		if (response==None):
-			continue
+			return
 		elif (response=='back'):
 			## handle back up hierarchy
 			## TODO
 			pass
-		elif (response=='enter'):
+		elif (response=='forward'):
 			## descend hierarchy
 			## TODO
 			pass
@@ -57,7 +57,17 @@ class StateManager:
 
 ''' Handlers (Log, Navigation)
 
-Each handler class should have a `run` method which is responsible for handling communication
+Each handler class must implement the following methods:
+
+	def run(self):
+		pass
+
+	def draw(self, stdscr):
+		pass
+
+	def keypress(self, key):
+		pass
+
 '''
 
 class NoneHandler:
@@ -66,6 +76,12 @@ class NoneHandler:
 		return
 
 	def run(self):
+		return
+
+	def draw(self, stdscr):
+		return
+
+	def keypress(self, key):
 		return
 
 class Log:
@@ -98,6 +114,12 @@ class LogHandler:
 		parse responses'''
 		pass
 
+	def keypress(self, key):
+		pass
+
+	def draw(self, stdscr):
+		pass
+
 class NavHandler:
 	'''Responsible for navigation to a different screen'''
 	def __init__(self, navtree):
@@ -107,7 +129,7 @@ class NavHandler:
 		## These are the rows of the navigation
 		self.rows = list(navtree.keys())
 
-	def keypress(key):
+	def keypress(self, key):
 		if key==curses.KEY_UP:
 			self.line = max(self.line-1, 0)
 			return None
@@ -115,22 +137,9 @@ class NavHandler:
 			self.line = min(self.line+1, len(self.rows)-1)
 			return None
 		elif key==curses.KEY_BACKSPACE:
-			if ctx['top'] == None:
-				## Already at top level
-				continue
-			else:
-				## Traverse back to top level
-				ctx['top'] = None
+			return 'back'
 		elif key==curses.KEY_ENTER or key==10 or key==13:
-			## Enter, \r, and \n
-			if ctx['top'] == None:
-				## Descend to 2nd layer by navigating to level of current line
-				ctx['top'] = list(states.keys())[ctx['line']]
-			else:
-				## Run command associated w this level
-				print("Executing command")
-				send_command()
-
+			return 'forward'
 
 	def draw(self, stdscr):
 		ctx = {
@@ -207,11 +216,14 @@ def curses_main(stdscr):
 	
 	sm = StateManager(
 		NavHandler({
-			'logs': LogHandler(), 
-			'None': NoneHandler(),
-			'AlsoNone': NoneHandler()
-			}
-		)
+			'l1': NavHandler({
+				'logs': LogHandler(), 
+				'None': NoneHandler(),
+				'AlsoNone': NoneHandler()
+				}),
+			'l2': NoneHandler(),
+			'l3': NoneHandler()
+		})
 	)
 
 	while(True):

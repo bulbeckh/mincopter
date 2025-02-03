@@ -1,6 +1,5 @@
 
 
-
 /* Behaviour tree implementation of ArduCopter navigation and control algorithm
 *
 *
