@@ -184,10 +184,4 @@ void reset_nav_params(void)
     mincopter.lat_error                       = 0;
 }
 
-// get_yaw_slew - reduces rate of change of yaw to a maximum
-// assumes it is called at 100hz so centi-degrees and update rate cancel each other out
-int32_t get_yaw_slew(int32_t current_yaw, int32_t desired_yaw, int16_t deg_per_sec)
-{
-    return wrap_360_cd(current_yaw + constrain_int16(wrap_180_cd(desired_yaw - current_yaw), -deg_per_sec, deg_per_sec));
-}
 

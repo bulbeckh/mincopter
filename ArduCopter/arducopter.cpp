@@ -32,16 +32,40 @@
 * 		- set_pitch_rate_target
 * - update_yaw_mode
 * 	- get_stabilize_yaw
-* - update_throttle_mode ??
+*			- set_yaw_rate_target
+* - update_throttle_mode
+* 	- get_throttle_althold_with_slew
+*			- get_throttle_althold
+* 			- get_throttle_rate
+* 				- set_throttle_accel_target
 * - run_rate_controllers
 * 	- get_rate_roll
 * 	- get_rate_pitch
+* 	- get_rate_yaw
+* 	- get_throttle_accel
+*		- set_throttle_out
+*			- (optional) get_angle_boost
 *
 *
+* The throttle land controller has the following path
+*	 - update_throttle_mode
+* 	  - get_throttle_land
+*		 		- get_throttle_rate_stabilized
+*					- get_throttle_althold
+*						- get_throttle_rate
 *
+* Additionally, the YAW_MODE parameter will route a number of different calls
+*	YAW_LOOK_AT_NEXT_WP
+* 	- get_yaw_slew
+* 	- get_stabilize_yaw
 *
+* YAW_LOOK_AT_LOCATION
+* 	- get_look_at_yaw
 *
+* YAW_LOOK_AHEAD
+* 	- get_look_ahead_yaw
 *
+* The final AUTO mode likely won't even need yaw control
 *
 */
 
@@ -245,7 +269,6 @@ void throttle_loop()
 The only thing that should be scheduled like this is sensor updates
 
 // TODO Move the ins update from the AHRS into the below scheduled function
-
 */
 
 const AP_Scheduler::Task scheduler_tasks[] PROGMEM = {
@@ -264,7 +287,6 @@ const AP_Scheduler::Task scheduler_tasks[] PROGMEM = {
     //{ crash_check,          10,      20 },
     //{ read_receiver_rssi,   10,      50 }
 };
-
 
 
 /* The scheduler should schedule functions that execute sensor and state updates.

@@ -17,54 +17,6 @@ void reset_roll_pitch_in_filters(int16_t roll_in, int16_t pitch_in)
     mincopter.pitch_in_filtered = constrain_int16(pitch_in, -ROLL_PITCH_INPUT_MAX, ROLL_PITCH_INPUT_MAX);
 }
 
-void get_pilot_desired_lean_angles(int16_t roll_in, int16_t pitch_in, int16_t &roll_out, int16_t &pitch_out)
-{
-    static float _scaler = 1.0;
-    static int16_t _angle_max = 0;
-
-    // range check the input
-    roll_in = constrain_int16(roll_in, -ROLL_PITCH_INPUT_MAX, ROLL_PITCH_INPUT_MAX);
-    pitch_in = constrain_int16(pitch_in, -ROLL_PITCH_INPUT_MAX, ROLL_PITCH_INPUT_MAX);
-
-    // filter input for feel
-    if (mincopter.g.rc_feel_rp >= RC_FEEL_RP_VERY_CRISP) {
-        // no filtering required
-        mincopter.roll_in_filtered = roll_in;
-        mincopter.pitch_in_filtered = pitch_in;
-    }else{
-        float filter_gain;
-        if (mincopter.g.rc_feel_rp >= RC_FEEL_RP_CRISP) {
-            filter_gain = 0.5;
-        } else if(mincopter.g.rc_feel_rp >= RC_FEEL_RP_MEDIUM) {
-            filter_gain = 0.3;
-        } else if(mincopter.g.rc_feel_rp >= RC_FEEL_RP_SOFT) {
-            filter_gain = 0.05;
-        } else {
-            // must be RC_FEEL_RP_VERY_SOFT
-            filter_gain = 0.02;
-        }
-        mincopter.roll_in_filtered = mincopter.roll_in_filtered * (1.0 - filter_gain) + (float)roll_in * filter_gain;
-        mincopter.pitch_in_filtered = mincopter.pitch_in_filtered * (1.0 - filter_gain) + (float)pitch_in * filter_gain;
-    }
-
-    // return filtered roll if no scaling required
-    if (mincopter.g.angle_max == ROLL_PITCH_INPUT_MAX) {
-        roll_out = (int16_t)mincopter.roll_in_filtered;
-        pitch_out = (int16_t)mincopter.pitch_in_filtered;
-        return;
-    }
-
-    // check if angle_max has been updated and redo scaler
-    if (mincopter.g.angle_max != _angle_max) {
-        _angle_max = mincopter.g.angle_max;
-        _scaler = (float)mincopter.g.angle_max/(float)ROLL_PITCH_INPUT_MAX;
-    }
-
-    // convert pilot input to lean angle
-    roll_out = (int16_t)(mincopter.roll_in_filtered * _scaler);
-    pitch_out = (int16_t)(mincopter.pitch_in_filtered * _scaler);
-}
-
 void
 get_stabilize_roll(int32_t target_angle)
 {
@@ -428,38 +380,6 @@ get_throttle_accel(int16_t z_target_accel)
     return output;
 }
 
-// get_pilot_desired_throttle - transform pilot's throttle input to make cruise throttle mid stick
-// used only for manual throttle modes
-// returns throttle output 0 to 1000
-#define THROTTLE_IN_MIDDLE 500          // the throttle mid point
-int16_t get_pilot_desired_throttle(int16_t throttle_control)
-{
-    int16_t throttle_out;
-
-    // exit immediately in the simple cases
-    if( throttle_control == 0 || mincopter.g.throttle_mid == 500) {
-        return throttle_control;
-    }
-
-    // ensure reasonable throttle values
-    throttle_control = constrain_int16(throttle_control,0,1000);
-    mincopter.g.throttle_mid = constrain_int16(mincopter.g.throttle_mid,300,700);
-
-    // check throttle is above, below or in the deadband
-    if (throttle_control < THROTTLE_IN_MIDDLE) {
-        // below the deadband
-        throttle_out = mincopter.g.throttle_min + ((float)(throttle_control-mincopter.g.throttle_min))*((float)(mincopter.g.throttle_mid - mincopter.g.throttle_min))/((float)(500-mincopter.g.throttle_min));
-    }else if(throttle_control > THROTTLE_IN_MIDDLE) {
-        // above the deadband
-        throttle_out = mincopter.g.throttle_mid + ((float)(throttle_control-500))*(float)(1000-mincopter.g.throttle_mid)/500.0f;
-    }else{
-        // must be in the deadband
-        throttle_out = mincopter.g.throttle_mid;
-    }
-
-    return throttle_out;
-}
-
 // get_initial_alt_hold - get new target altitude based on current altitude and climb rate
 int32_t
 get_initial_alt_hold( int32_t alt_cm, int16_t climb_rate_cms)
@@ -694,10 +614,10 @@ void reset_throttle_I(void)
     mincopter.g.pid_throttle_accel.reset_I();
 }
 
-void set_accel_throttle_I_from_pilot_throttle(int16_t pilot_throttle)
+// get_yaw_slew - reduces rate of change of yaw to a maximum
+// assumes it is called at 100hz so centi-degrees and update rate cancel each other out
+int32_t get_yaw_slew(int32_t current_yaw, int32_t desired_yaw, int16_t deg_per_sec)
 {
-    // shift difference between pilot's throttle and hover throttle into accelerometer I
-    mincopter.g.pid_throttle_accel.set_integrator(pilot_throttle-mincopter.g.throttle_cruise);
+    return wrap_360_cd(current_yaw + constrain_int16(wrap_180_cd(desired_yaw - current_yaw), -deg_per_sec, deg_per_sec));
 }
-
 

@@ -60,11 +60,3 @@ void update_nav_mode();
 */
 void reset_nav_params(void);
 
-// NOTE why are these here
-/* @brief Reduces rate-of-change of yaw to a maximum value
-* @param current_yaw The current yaw value. Usually control_yaw
-* @param desired_yaw The target yaw value.
-* @param deg_per_sec The maximum rate-of-change of yaw value. For example AUTO_YAW_SLEW_RATE
-*/
-int32_t get_yaw_slew(int32_t current_yaw, int32_t desired_yaw, int16_t deg_per_sec);
-

@@ -40,22 +40,13 @@ set_throttle_mode(RTL_THR);
 set_yaw_mode(YAW_HOLD);
 
 
-
 *********************************/
 
-/* @brief Transform pilot's roll or pitch input into a desired lean angle
-* @param roll_in input roll fed in from xx
-* @param pitch_in input pitch fed in from xx
-* @param roll_out roll angle in centi-degrees
-* @param pitch_out pitch angle in centi-degrees
+/* @brief Converts earth frame targets to body frame targets using DCM matrix. Called during fast loop
 */
-void get_pilot_desired_lean_angles(int16_t roll_in, int16_t pitch_in, int16_t &roll_out, int16_t &pitch_out);
+void update_rate_controller_targets();
 
-/* @brief Convert input throttle stick value into a throttle_control_signal to be fed into throttle controller
-* @param throttle_control The throttle stick value from RC
-* @returns The control signal to be fed into throttle controller
-*/
-int16_t get_pilot_desired_throttle(int16_t throttle_control);
+/* Part 1. Setting targets */
 
 /* @brief Mode-specific functions which convert the error between current and desired lean angle into a rate target and pass to set_<roll/pitch/yaw>_rate_target. Uses g.pi_stabilize_roll PID controller.
 * @param target_angle The target angles obtained from get_pilot_desired_lean_angles
@@ -64,6 +55,31 @@ void get_stabilize_roll(int32_t target_angle);
 void get_stabilize_pitch(int32_t target_angle);
 void get_stabilize_yaw(int32_t target_angle);
 
+// NOTE These can almost definitely be removed
+/* @brief Set Roll/Pitch/Yaw rate targets in the desired frame
+*/
+void set_roll_rate_target( int32_t desired_rate, uint8_t earth_or_body_frame );
+void set_pitch_rate_target( int32_t desired_rate, uint8_t earth_or_body_frame );
+void set_yaw_rate_target( int32_t desired_rate, uint8_t earth_or_body_frame );
+
+
+void get_throttle_rate(float z_target_speed);
+
+
+void get_throttle_althold(int32_t target_alt, int16_t min_climb_rate, int16_t max_climb_rate);
+void get_throttle_althold_with_slew(int32_t target_alt, int16_t min_climb_rate, int16_t max_climb_rate);
+
+// NOTE This should be removed
+void set_throttle_accel_target( int16_t desired_acceleration );
+
+
+/* Part 2. Running rate/accel controller */
+
+
+/* @brief Runs the roll/pitch/yaw/throttle controllers. Called during fast loop
+*/
+void run_rate_controllers();
+
 /* @brief Run PID controllers during run_rate_controllers
 * @param a target rate for the controller
 * @param a control signal which is send directly to g.rc_<1,2,4>.servo_out. This is then used by motors
@@ -71,9 +87,6 @@ void get_stabilize_yaw(int32_t target_angle);
 int16_t get_rate_roll(int32_t target_rate);
 int16_t get_rate_pitch(int32_t target_rate);
 int16_t get_rate_yaw(int32_t target_rate);
-
-
-void get_throttle_rate(float z_target_speed);
 
 /* @brief Sets the g.rc_3 (throttle channel) output based on the (angle boosted) throttle control signal during run_rate_controllers
 * @param throttle_out The output of the throttle controller from get_throttle_accel
@@ -87,40 +100,45 @@ void set_throttle_out(int16_t throttle_out, bool apply_angle_boost);
 */
 int16_t get_throttle_accel(int16_t z_target_accel);
 
-
-
-void get_look_at_yaw();
-void get_look_ahead_yaw(int16_t pilot_yaw);
-
-void update_throttle_cruise(int16_t throttle);
-
-
 /* @brief Used to compensate throttle value for roll/pitch
 * @param throttle a throttle control signal from throttle controller
 * @returns the compensated throttle control signal
 */
 int16_t get_angle_boost(int16_t throttle);
 
+/* NOTE not part of primary rate controllers but used during throttle-land mode */
+void get_throttle_rate_stabilized(int16_t target_rate);
+void get_throttle_land();
 
 
-// NOTE This should be removed
-void set_throttle_accel_target( int16_t desired_acceleration );
+/* OTHER FUNCTIONS
+*  The yaw functions can likely be removed
+*/
+
+
+/* @brief Reduces rate-of-change of yaw to a maximum value
+* @param current_yaw The current yaw value. Usually control_yaw
+* @param desired_yaw The target yaw value.
+* @param deg_per_sec The maximum rate-of-change of yaw value. For example AUTO_YAW_SLEW_RATE
+*/
+int32_t get_yaw_slew(int32_t current_yaw, int32_t desired_yaw, int16_t deg_per_sec);
+void get_look_at_yaw();
+void get_look_ahead_yaw(int16_t pilot_yaw);
+
+
+/* @brief Updates the throttle cruise parameter during the call to get_throttle_rate
+* @param throttle The throttle value to update to
+*/
+void update_throttle_cruise(int16_t throttle);
 
 // NOTE Probably remove this or inline it
-/* @brief Turns off acceleration-based throttle control
+/* @brief Turns off acceleration-based throttle control. Used if motors are not armed.
 */
 void throttle_accel_deactivate();
 
-
-
-// used by AUTO mode
+/* This is called during set_throttle_mode to get the initial alt hold desired altitude */
 int32_t get_initial_alt_hold( int32_t alt_cm, int16_t climb_rate_cms);
-void get_throttle_althold(int32_t target_alt, int16_t min_climb_rate, int16_t max_climb_rate);
-void get_throttle_althold_with_slew(int32_t target_alt, int16_t min_climb_rate, int16_t max_climb_rate);
 
-// used during LAND/AUTO modes
-void get_throttle_rate_stabilized(int16_t target_rate);
-void get_throttle_land();
 
 // NOTE why does this return bool? Return val not used during throttle loop
 /* @brief Runs land detection during throttle loop
@@ -129,30 +147,27 @@ void get_throttle_land();
 bool update_land_detector();
 
 
-/* @brief Resets parameters
+/* @brief Unsets the land detector variable
 */
 void reset_land_detector();
+
+/* @brief Calls both `reset_rate_I` and `reset_throttle_I`
+*/
 void reset_I_all(void);
-void reset_rate_I();
+
+/* @brief Resets The I term of the three PID rate controllers
+*/
+void reset_rate_I(void);
+
+/* @brief Resets the I term of both the throttle alt hold controller and throttle accel controllers
+*/
 void reset_throttle_I(void);
+
+// TODO Change the name of this?
+/* @brief Constrains the roll and pitch between +-ROLL_PITCH_INPUT_MAX
+*/
 void reset_roll_pitch_in_filters(int16_t roll_in, int16_t pitch_in);
 
-/* @brief Converts earth frame targets to body frame targets using DCM matrix. Called during fast loop
-*/
-void update_rate_controller_targets();
 
-/* @brief Runs the roll/pitch/yaw/throttle controllers. Called during fast loop
-*/
-void run_rate_controllers();
-
-// NOTE used during auto mode
-void set_accel_throttle_I_from_pilot_throttle(int16_t pilot_throttle);
-
-// NOTE These can almost definitely be removed
-/* @brief Set Roll/Pitch/Yaw rate targets in the desired frame
-*/
-void set_roll_rate_target( int32_t desired_rate, uint8_t earth_or_body_frame );
-void set_pitch_rate_target( int32_t desired_rate, uint8_t earth_or_body_frame );
-void set_yaw_rate_target( int32_t desired_rate, uint8_t earth_or_body_frame );
 
 

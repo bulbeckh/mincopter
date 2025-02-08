@@ -2,9 +2,6 @@
 
 #include <stdint.h>
 
-
-bool set_roll_pitch_mode(uint8_t new_roll_pitch_mode);
-
 /* --- CONTROL MODES ------------------------------------------------------------------
 * The `set<throttle,roll_pitch,yaw>_mode functions are called by the `set_mode`
 * function in `arducopter.cpp`.

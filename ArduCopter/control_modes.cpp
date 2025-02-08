@@ -31,12 +31,6 @@ bool set_throttle_mode( uint8_t new_throttle_mode )
         case THROTTLE_AUTO:
             mincopter.controller_desired_alt = get_initial_alt_hold(mcstate.current_loc.alt, mincopter.climb_rate);     // reset controller desired altitude to current altitude
             mcstate.wp_nav.set_desired_alt(mincopter.controller_desired_alt);                                 // same as above but for loiter controller
-						/* REMOVED 
-            if (throttle_mode_manual(throttle_mode)) {  // reset the alt hold I terms if previous throttle mode was manual
-                reset_throttle_I();
-                set_accel_throttle_I_from_pilot_throttle(get_pilot_desired_throttle(g.rc_3.control_in));
-            }
-						*/
             throttle_initialised = true;
             break;
 
