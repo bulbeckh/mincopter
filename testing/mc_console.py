@@ -24,6 +24,10 @@ import re
 import curses
 import time
 import random
+import sys
+
+def eprint(*args, **kwargs):
+	print(*args, file=sys.stderr, **kwargs)
 
 class StateManager:
 	'''Responsible for managing navigation between screens and routing data between the different
@@ -41,18 +45,23 @@ class StateManager:
 		'''Updates state according to keypresses'''
 		## NOTE I actually think this should just forward the keypress to the screen if it is NOT a navigation screen
 
-		response = self.current_state.keypress(keypress)
+		response, node = self.current_state.keypress(keypress)
 		
 		if (response==None):
 			return
 		elif (response=='back'):
 			## handle back up hierarchy
-			## TODO
-			pass
+			if (len(self.path)==0):
+				## At root node
+				return 
+			else:
+				self.current_state = self.path.pop()
+
 		elif (response=='forward'):
 			## descend hierarchy
-			## TODO
-			pass
+			self.path.append(self.current_state)
+			self.current_state = node
+			return
 		
 
 ''' Handlers (Log, Navigation)
@@ -68,6 +77,9 @@ Each handler class must implement the following methods:
 	def keypress(self, key):
 		pass
 
+	def parse(self, msg)
+		pass
+
 '''
 
 class NoneHandler:
@@ -79,9 +91,16 @@ class NoneHandler:
 		return
 
 	def draw(self, stdscr):
+		draw_none(stdscr, None)
 		return
 
 	def keypress(self, key):
+		if key==curses.KEY_BACKSPACE:
+			return ('back', None)
+		else:
+			return (None, None)
+
+	def parse(self, msg):
 		return
 
 class Log:
@@ -97,11 +116,19 @@ class LogHandler:
 		self.n_message=0
 		self.logs = []
 
-	def parse_entry(self, msg):
+		self.running = False
+
+	def parse(self, msg):
 		'''msg is the string sent from the mincopter
 
 		For logs, this is of the format "SL00-%d-%d"
 		'''
+		eprint('parse method called from loghandler')
+	
+		if (msg[0:4] != 'SL00'):
+			eprint(f'non-std message found: {msg}')
+			return
+
 		temp = msg.split('-')
 		log_num = temp[1]
 		log_size = temp[2]
@@ -112,13 +139,35 @@ class LogHandler:
 	def run(self):
 		'''Commence communication between console and mincopter to request logs and
 		parse responses'''
-		pass
+
+		eprint("Sending showlogs commands")
+		send_command('showlogs')
+		
+		while(True):
+			resp = ser.readline().decode('utf-8')
+			if resp=="END0":
+				return
+			else:
+				self.parse(resp)
+
+		return
 
 	def keypress(self, key):
-		pass
+		if key==curses.KEY_BACKSPACE:
+			return ('back', None)
+		else:
+			return (None, None)
 
 	def draw(self, stdscr):
-		pass
+		'''On first call to draw, start the communication process'''
+		if (self.running==False):
+			self.runnning = True
+			self.run()
+	
+		ctx = {
+			'numlogs': len(self.logs)
+		}
+		draw_logs(stdscr, ctx)
 
 class NavHandler:
 	'''Responsible for navigation to a different screen'''
@@ -132,14 +181,15 @@ class NavHandler:
 	def keypress(self, key):
 		if key==curses.KEY_UP:
 			self.line = max(self.line-1, 0)
-			return None
+			return (None, None)
 		elif key==curses.KEY_DOWN:
 			self.line = min(self.line+1, len(self.rows)-1)
-			return None
+			return (None, None)
 		elif key==curses.KEY_BACKSPACE:
-			return 'back'
+			return ('back', None)
 		elif key==curses.KEY_ENTER or key==10 or key==13:
-			return 'forward'
+			## TODO Fix this - horrible
+			return ('forward', self.tree[list(self.tree.keys())[self.line]])
 
 	def draw(self, stdscr):
 		ctx = {
@@ -147,11 +197,22 @@ class NavHandler:
 			'rows': self.rows
 		}
 		draw_navigation(stdscr, ctx)
+
+	def parse(self, msg):
+		return
 		
 
 ''' Drawing
 Functions for updating the screen with the content from a manager
 '''
+
+def draw_none(stdscr, ctx):
+	stdscr.clear()
+	stdscr.addstr(0,100, 'THIS IS A NONE SCREEN', curses.A_REVERSE)
+	stdscr.addstr(0,100, 'THIS IS A NONE SCREEN')
+	stdscr.refresh()
+	return
+
 def draw_navigation(stdscr, ctx):
 	'''Draw a navigation screen, given a navigation context (ctx) that contains elements'''
 	stdscr.clear()
@@ -170,40 +231,24 @@ def draw_navigation(stdscr, ctx):
 
 	stdscr.refresh()
 
-def draw_log_screen(stdscr, lh : LogHandler):
+def draw_logs(stdscr, ctx):
 	'''Draw a list of logs on the screen'''
 	stdscr.clear()
 
 	height, width = stdscr.getmaxyx()
 	
-	## Add header
-	stdscr.addstr(0, 0, "Log Number", curses.A_BOLD)
-	stdscr.addstr(0, 20, "Log Size (bytes)", curses.A_BOLD)
-
-	## Add each log
-	for i, e in enumerate(lh.logs):
-		## TODO pad the string two align with heading widths
-		stdscr.addstr(i+1, 0, f'{e.lognum} {e.logsize}')
+	stdscr.addstr(0, 0, f'Number of logs: {ctx["numlogs"]}', curses.A_BOLD)
 
 	stdscr.refresh()
 
-def read_response():
-	'''Read a stream of serial messages until the 'END' message is received'''
-
-	while(True):
-		resp = ser.readline().decode('utf-8')
-
-		if content=="END0":
-			return
-		else:
-			lghandler.add(resp)
-
-def send_command():
+def send_command(command_name):
 	'''Call a command and wait for response from mincopter'''
-	ser.write('showlogs\n'.encode('utf-8'))
+	if (command_name not in ['showlogs']):
+		## TODO Log error
+		pass
+	else:
+		ser.write(f'{command_name}\n'.encode('utf-8'))
 	
-	read_response()
-
 def curses_main(stdscr):
 	curses.curs_set(0)
 	curses.noecho()
@@ -234,20 +279,22 @@ def curses_main(stdscr):
 		key = stdscr.getch()
 		sm.respond_keypress(key)
 
+		eprint(ser.inWaiting())
+
+		#resp = ser.readline().decode('utf-8')
+		#eprint(f'msg: {resp}')
 
 if __name__=="__main__":
 
 	## Establish connection over serial port
-	'''
 	while(True):
 		try:
-			ser = serial.Serial('/dev/ttyACM0', 115200)
-			print("Connection found")
+			ser = serial.Serial('/dev/ttyACM0', baudrate=115200, timeout=1)
+			eprint("Connection found")
 			break
 		except serial.SerialException:
-			print("Waiting....")
+			eprint("Waiting....")
 			time.sleep(0.5)
-	'''
 	
 	## Run the top-level curses loop
 	curses.wrapper(curses_main)
