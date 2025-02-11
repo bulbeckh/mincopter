@@ -27,15 +27,9 @@ async def ui_task(stdscr, serial_queue, cmd_queue):
 		}, queues=(serial_queue, cmd_queue))
 	)
 
-	i=0
 	while True:
-		#i+=1 
-		#if (i%1000==0):
-		eprint(i)
-
 		## Trigger drawing of current state
 		sm.current_state.draw(stdscr)
-		#stdscr.refresh()
 
 		## Respond to keypress
 		key = stdscr.getch()
@@ -44,6 +38,5 @@ async def ui_task(stdscr, serial_queue, cmd_queue):
 
 		while not serial_queue.empty():
 			message = serial_queue.get()
-			eprint(f'Message: {message}')
 
 		await asyncio.sleep(0.1)

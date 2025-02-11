@@ -14,7 +14,6 @@ class SerialClient(asyncio.Protocol):
         print("Serial connection established")
 
     def data_received(self, data):
-        eprint(f'receiving data {len(data)}')
         self.buffer.extend(data)
 
         '''Wait until a newline characters if found, otherwise keep appending bytes'''
@@ -22,6 +21,7 @@ class SerialClient(asyncio.Protocol):
             line, _, self.buffer = self.buffer.partition(b'\n')  # Extract line
             message = line.decode('utf-8')
             self.queue.put(message)  # Send to UI task
+            eprint(f'message: {message}')
 
     def send_command(self, command):
         if self.transport:

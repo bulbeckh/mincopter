@@ -83,7 +83,8 @@ class LogHandler:
 			return ('back', None)
 		elif key==curses.KEY_ENTER or key==10 or key==13:
 			## Run node
-			self.cmdq.put_nowait('showlogs')
+			#self.cmdq.put_nowait('returnargs arg1 arg2')
+			self.cmdq.put_nowait('getlog 10')
 			return (None, None)
 		else:
 			return (None, None)
