@@ -50,9 +50,8 @@ void init_ardupilot()
     mincopter.hal.uartB->begin(38400, 256, 16);
 #endif
 
-    mincopter.cliSerial->printf_P(PSTR("\n\nInit " FIRMWARE_STRING
-                         "\n\nFree RAM: %u\n"),
-                        mincopter.hal.util->available_memory());
+		// Send initialisation string
+    mincopter.cliSerial->printf_P(PSTR("PS00-Init, Free RAM: %u\n"), mincopter.hal.util->available_memory());
 
 #if CONFIG_HAL_BOARD == HAL_BOARD_APM2
     /*
@@ -138,7 +137,7 @@ void init_ardupilot()
         //gcs[0].reset_cli_timeout();
     }
 
-		mincopter.cliSerial->println_P(PSTR("Dataflash initialised\n"));
+		//mincopter.cliSerial->println_P(PSTR("Dataflash initialised\n"));
 #endif
 
 		/* NOTE no RC input in auto modes */
@@ -244,7 +243,8 @@ void init_ardupilot()
 		Log_Read((uint16_t)lognum,dl_start, dl_end);
 		*/
 
-		mincopter.cliSerial->println_P(PSTR("Initialisation complete - commencing serial transmission statistics test"));
+		// Send initialisation synchronisation string. Now ready for CLI
+		mincopter.cliSerial->println_P(PSTR("PS00-Initialisation Complete"));
 
 		/* -- Transmission statistics --
 			- Send 100 packets of the same string and measure tranmission time

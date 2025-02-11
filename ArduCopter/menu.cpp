@@ -17,7 +17,10 @@ static int8_t run_show_logs(uint8_t argc, const Menu::arg* argv) {
 	//mincopter.DataFlash.ListAvailableLogs(cliSerial);
 	
 	uint16_t number_logs = mincopter.DataFlash.get_num_logs();
-	for (uint16_t i=0;i<number_logs;i++) {
+	mincopter.cliSerial->printf_P(PSTR("SL00-logs-%d\n"), number_logs);
+
+	// NOTE Are logs really 0 indexed in DataFlash?
+	for (uint16_t i=1;i<number_logs;i++) {
 		// For each log, get the start and end address and calculate size and send to serial
 		uint16_t log_start, log_end;
 		mincopter.DataFlash.get_log_boundaries(i, log_start, log_end);	
