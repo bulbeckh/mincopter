@@ -1220,6 +1220,6 @@ void load_parameters(void)
         // Load all auto-loaded EEPROM variables
         AP_Param::load_all();
         AP_Param::convert_old_parameters(&conversion_table[0], sizeof(conversion_table)/sizeof(conversion_table[0]));
-        mincopter.cliSerial->printf_P(PSTR("load_all took %luus\n"), micros() - before);
+        mincopter.cliSerial->printf_P(PSTR("PM00-load_all took %luus\n"), micros() - before);
     }
 }

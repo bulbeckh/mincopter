@@ -1,4 +1,3 @@
-functions
 
 ## attitude.h
 - `void get_pilot_desired_lean_angles(int16_t roll_in, int16_t pitch_in, int16_t &roll_out, int16_t &pitch_out)`

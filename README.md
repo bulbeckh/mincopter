@@ -40,3 +40,13 @@ In an Admin PowerShell:
 2. `usbipd bind --busid <bus>`
 3. `usbipd attach --wsl --busid <bus>`
 
+
+## Serial and Log Communications
+What do we actually want to dump to serial and log at runtime?
+
+- Flight State Values (orientation, translational/angular velocities, accelerations)
+- Raw Sensor Readings
+- Control Outputs (Motor Voltages)
+- PID Errors
+
+

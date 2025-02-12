@@ -212,12 +212,14 @@ void sensor_update_loop()
 		n_measure+=1;
 		// Performance profiling
 		if (n_measure>100) {
+			/*
 			mincopter.cliSerial->printf_P(PSTR("T_UMOD: %fus\n"), (float)updatemodes.t_sum/(1.0f* updatemodes.n_measure));
 			mincopter.cliSerial->printf_P(PSTR("T_RR: %fus\n"), (float)rrcontrollers.t_sum/(1.0f* rrcontrollers.n_measure));
 			mincopter.cliSerial->printf_P(PSTR("T_RA: %fus\n"), (float)readahrs.t_sum/(1.0f* readahrs.n_measure));
 			mincopter.cliSerial->printf_P(PSTR("T_UT: %fus\n"), (float)updatetrig.t_sum/(1.0f* updatetrig.n_measure));
 			mincopter.cliSerial->printf_P(PSTR("T_UMOT: %fus\n"), (float)updatemotors.t_sum/(1.0f* updatemotors.n_measure));
 			mincopter.cliSerial->printf_P(PSTR("T_RI: %fus\n"), (float)readinertia.t_sum/(1.0f* readinertia.n_measure));
+			*/
 
 			// Rest global measure variable
 			n_measure=0;
@@ -283,9 +285,10 @@ const AP_Scheduler::Task scheduler_tasks[] PROGMEM = {
     { read_compass	    ,    2,     420 },
     { read_baro      ,  2,     250 },
     //{ update_notify,         2,     100 },
-    { one_hz_loop,         100,     420 }
+    { one_hz_loop,         100,     420 },
     //{ crash_check,          10,      20 },
     //{ read_receiver_rssi,   10,      50 }
+		{ dump_serial, 20, 500 }
 };
 
 

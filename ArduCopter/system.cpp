@@ -274,7 +274,7 @@ void init_ardupilot()
 
 		// Start Menu
 		// NOTE cliSerial is an alias for hal.uartA I think
-		run_cli(mincopter.hal.uartA);
+		//run_cli(mincopter.hal.uartA);
 }
 
 

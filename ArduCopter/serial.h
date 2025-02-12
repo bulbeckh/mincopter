@@ -7,6 +7,10 @@
 * For logging to DataFlash, use the interface in log.h
 */
 
+/* @brief Runs at 1Hz. Dumps information to the serial
+* output depending on which flags are on
+*/
+void dump_serial();
 
 /* @brief Prints information about current location
 */
@@ -75,17 +79,35 @@ State Variables
 6. RC Out
 
 *** State Variables ************************************************
+Most of these are stored in the MCState mcstate instance.
 
 1. Location and attitude
 	Location where copter was armed : Location : home
 	Current location								: Location : current_loc
 
+2. Orientation
+	DCM Values : float : mcstate.cos_roll_x
+	DCM Valeus : float : mcstate.cos_pitch_x
+	DCM Values : float : mcstate.cos_yaw
+	DCM Values : float : mcstate.sin_yaw
+	DCM Values : float : mcstate.sin_roll
+	DCM Values : float : mcstate.sin_pitch
 
+3. PID Values
 
+    AC_PID                  pid_rate_roll;
+    AC_PID                  pid_rate_pitch;
+    AC_PID                  pid_rate_yaw;
 
+    AC_PID                  pid_throttle_rate;
+    AC_PID                  pid_throttle_accel;
 
+    APM_PI                  pi_stabilize_roll;
+    APM_PI                  pi_stabilize_pitch;
+    APM_PI                  pi_stabilize_yaw;
 
-
+4. Other Copter State Variables
+	e.g. landing indicator
 
 */
 

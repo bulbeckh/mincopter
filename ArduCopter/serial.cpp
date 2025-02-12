@@ -9,6 +9,24 @@ extern MCState mcstate;
 
 #include "system.h"
 
+void dump_serial()
+{
+	// Read the mincopter serial flags variable to determine what to print.
+
+	// This variable is modified over the serial port (i.e. via the console interface)
+
+	//Something like the following
+	if (1 /* mincopter.serialflags.orientation */ ) {
+		print_RPY();
+	}
+	if (1 /* mincopter.serialflags.gyro */ ) {
+		print_roll_rates_and_accel();
+	}
+
+	return;
+}
+
+
 void print_RPY()
 {
 	mincopter.cliSerial->printf_P(PSTR("RPY: %f %f %f\n"), mcstate.cos_roll_x, mcstate.cos_pitch_x, mcstate.cos_yaw);
@@ -40,4 +58,6 @@ void print_GPS()
 
 	return;
 }
+
+
 
