@@ -21,9 +21,20 @@ static int8_t run_get_log(uint8_t argc, const Menu::arg* argv) {
 	uint16_t dl_start, dl_end;
 	mincopter.DataFlash.get_log_boundaries(lognum, dl_start, dl_end);
 
+	mincopter.cliSerial->printf_P(PSTR("GL00-Retrieving log %d start:%u end:%u\n"),lognum, dl_start, dl_end);
+
 	Log_Read((uint16_t)lognum,dl_start, dl_end);
 
 	mincopter.cliSerial->printf_P(PSTR("END0\n"));
+	
+	return 0;
+}
+
+/* @brief Dumps page info for the dataflash logs
+*/
+static int8_t list_logs(uint8_t argc, const Menu::arg* argv) {
+
+	mincopter.DataFlash.ListAvailableLogs(mincopter.cliSerial);
 	
 	return 0;
 }
@@ -89,7 +100,8 @@ const struct Menu::command main_menu_commands[] PROGMEM = {
 	{"non2", do_none},
 	{"showlogs", run_show_logs},
 	{"returnargs", return_args},
-	{"getlog", run_get_log}
+	{"getlog", run_get_log},
+	{"listlogs", list_logs}
 };
 
 MENU(main_menu, "FIRMWARE", main_menu_commands);
