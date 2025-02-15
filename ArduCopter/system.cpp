@@ -16,7 +16,8 @@ extern MCState mcstate;
 
 
 // Forward Declaration - TODO move menu.cpp code to a class and include
-void run_cli(AP_HAL::UARTDriver* port);
+void init_cli(AP_HAL::UARTDriver* port);
+void run_cli(void);
 
 void init_ardupilot()
 {
@@ -274,7 +275,7 @@ void init_ardupilot()
 
 		// Start Menu
 		// NOTE cliSerial is an alias for hal.uartA I think
-		run_cli(mincopter.hal.uartA);
+		init_cli(mincopter.hal.uartA);
 }
 
 

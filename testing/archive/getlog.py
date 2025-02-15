@@ -29,7 +29,7 @@ if __name__=="__main__":
 			break
 
 	## Send command
-	for lg in range(28, 60):
+	for lg in range(19,20):
 		cmd = f'getlog {lg}'.encode('utf-8') + b'\n'
 		#cmd = 'showlogs'.encode('utf-8') + b'\n'
 		#cmd = 'listlogs'.encode('utf-8') + b'\n'
@@ -41,7 +41,8 @@ if __name__=="__main__":
 			resp = raw_resp.decode('utf-8')
 			print(f'{lg} ' + resp[:-1])
 			if 'END0' in resp:
-				break
+				pass
+				##break
 		
 		
 

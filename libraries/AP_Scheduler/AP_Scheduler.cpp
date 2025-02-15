@@ -106,7 +106,9 @@ void AP_Scheduler::run(uint16_t time_available)
                     goto update_spare_ticks;
                 }
                 time_available -= time_taken;
-            }
+            } else {
+							// TODO Log to DataFlash or serial that a task was missed due to time constraint
+						}
         }
     }
 

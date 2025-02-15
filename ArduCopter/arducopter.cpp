@@ -117,6 +117,7 @@ uint16_t mainLoop_count;
 // Forward Declaration
 void sensor_update_loop();
 
+/* Core Loop - Meant to run every 10ms (10,000 microseconds) */
 void loop()
 {
     // wait for an INS sample
@@ -273,22 +274,34 @@ The only thing that should be scheduled like this is sensor updates
 // TODO Move the ins update from the AHRS into the below scheduled function
 */
 
+// TODO Add a new (scheduled) function that checks for input (commands) from the console and asynchronously runs them
+// ensuring that enough time is provided to run them.
+
+/* `scheduler_tasks` has the following structure
+ * { function_name, interval_ticks (multiples of 10ms), max time in us }
+ *
+ * I believe these are executed in the order they are specified below.
+ * There is no mechanism to stop a function overrunning - AP_Scheduler will only report that
+ * it overran.
+ */
 const AP_Scheduler::Task scheduler_tasks[] PROGMEM = {
+/*												 TOTAL 4210 */
+    { update_GPS, 				 2,     900 },
+    { read_batt_compass,  10,     720 },
+    { update_altitude,    10,    1000 },
+    { read_compass,        2,     420 },
+    { read_baro,  				 2,     250 },
+    { one_hz_loop,       100,     420 },
+		{ dump_serial, 				20,     500 },
+		{ run_cli,            10,     500 }
     //{ throttle_loop,         2,     450 },
-    { update_GPS, 2,     900 },
-    //{ update_nav_mode,       1,     400 },
-    { read_batt_compass  ,  10,     720 },
-    //{ arm_motors_check,     10,      10 },
-    { update_altitude,      10,    1000 },
-    //{ run_nav_updates,      10,     800 },
-    //{ fence_check	 ,        33,      90 },
-    { read_compass	    ,    2,     420 },
-    { read_baro      ,  2,     250 },
-    //{ update_notify,         2,     100 },
-    { one_hz_loop,         100,     420 },
     //{ crash_check,          10,      20 },
     //{ read_receiver_rssi,   10,      50 }
-		{ dump_serial, 20, 500 }
+    //{ update_notify,         2,     100 },
+    //{ run_nav_updates,      10,     800 },
+    //{ fence_check	 ,        33,      90 },
+    //{ arm_motors_check,     10,      10 },
+    //{ update_nav_mode,       1,     400 },
 };
 
 
@@ -309,6 +322,7 @@ void setup()
 
     // initialise the main loop scheduler
     scheduler.init(&scheduler_tasks[0], sizeof(scheduler_tasks)/sizeof(scheduler_tasks[0]));
+
 }
 
 // NOTE Replaced the macro expansion with the main entrypoint to avoid modifying AP_HAL_AVR library

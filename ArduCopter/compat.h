@@ -11,7 +11,8 @@
 #include <AP_HAL.h>
 
 /* Forward declarations to avoid broken auto-prototyper (coughs on '::'?) */
-void run_cli(AP_HAL::UARTDriver *port);
+void init_cli(AP_HAL::UARTDriver *port);
+void run_cli(void);
 
 #endif // __COMPAT_H__
 

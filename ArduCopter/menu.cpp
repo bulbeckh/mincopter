@@ -2,15 +2,25 @@
 #include <AP_Menu.h>
 
 #include "log.h"
+#include "util.h"
 
 #include "mcinstance.h"
+
+/* Menu interface
+ *
+ *
+ *
+ *
+ *
+ * If any function returns -2 then the menu exits
+ */
 
 extern MCInstance mincopter;
 
 // TODO remove this
 static int8_t do_none(uint8_t argc, const Menu::arg* argv) {
 	mincopter.cliSerial->println_P(PSTR("in none function - messaged received"));
-	return 0;
+	return -2;
 }
 
 /* @brief Retrieves and dumps a log message to the console
@@ -27,7 +37,7 @@ static int8_t run_get_log(uint8_t argc, const Menu::arg* argv) {
 
 	mincopter.cliSerial->printf_P(PSTR("END0\n"));
 	
-	return 0;
+	return -2;
 }
 
 /* @brief Dumps page info for the dataflash logs
@@ -36,7 +46,7 @@ static int8_t list_logs(uint8_t argc, const Menu::arg* argv) {
 
 	mincopter.DataFlash.ListAvailableLogs(mincopter.cliSerial);
 	
-	return 0;
+	return -2;
 }
 
 /* @brief Prints the number of available logs to the serial
@@ -73,7 +83,7 @@ static int8_t run_show_logs(uint8_t argc, const Menu::arg* argv) {
 	
 	// Terminate with an "END0" string
 	mincopter.cliSerial->printf_P(PSTR("END0\n"));
-	return 0;
+	return -2;
 }
 
 /* @brief Returns the number and count of arguments given
@@ -91,7 +101,7 @@ static int8_t return_args(uint8_t argc, const Menu::arg* argv) {
 	for (int i=0;i<argc;i++) {
 		mincopter.cliSerial->printf_P(PSTR("RA01-%s\n"),argv[i].str);
 	}
-	return 0;
+	return -2;
 }
 
 // NOTE This interfaces here needs to match the Python console interface
@@ -106,15 +116,41 @@ const struct Menu::command main_menu_commands[] PROGMEM = {
 
 MENU(main_menu, "FIRMWARE", main_menu_commands);
 
-void run_cli(AP_HAL::UARTDriver* port)
+/* @brief Initialises the CLI for communication
+ */
+void init_cli(AP_HAL::UARTDriver* port)
 {
 	Menu::set_port(port);
 	port->set_blocking_writes(true);
 
 	mincopter.hal.scheduler->register_delay_callback(NULL,5);
 
-	while (1) {
-		main_menu.run();
-	} 
+	return;
+}
 
+
+/* @brief Run the command line interface
+ *
+ * In order to make it asynchronous, we should put estimates of the max execution
+ * time of each function and periodically call the run_cli function
+ */
+#define CLI_MAX_TIME_US 500
+void run_cli(void)
+{
+	int32_t cli_remaining = CLI_MAX_TIME_US;
+
+	while (cli_remaining>0) {
+		uint32_t cli_run_start;
+
+		cli_run_start = micros();
+		main_menu.run();
+
+		uint32_t cli_et = micros() - cli_run_start;
+		cli_remaining -= cli_et;
+		
+		// Dump menu execution time to console
+		mincopter.cliSerial->printf_P(PSTR("ET00-Function took %ds\n"), cli_et);
+	}
+
+	return;
 }
