@@ -134,10 +134,22 @@ void init_cli(AP_HAL::UARTDriver* port)
  * In order to make it asynchronous, we should put estimates of the max execution
  * time of each function and periodically call the run_cli function
  */
+
+// Macro to log an output string every n iterations
+#define LOG_N_ITER(unique_pref, n, outstr) static int unique_pref_##i=0;\
+																						if (unique_pref_##i>=n) { \
+																							mincopter.cliSerial->printf_P(PSTR(outstr));\
+																							unique_pref_##i=0;\
+																						} else { \
+																							unique_pref_##i++;\
+																						}
+
 #define CLI_MAX_TIME_US 500
 void run_cli(void)
 {
 	int32_t cli_remaining = CLI_MAX_TIME_US;
+
+	LOG_N_ITER(cli_counter, 10, "ET01-In run_cli\n")
 
 	while (cli_remaining>0) {
 		uint32_t cli_run_start;
@@ -149,7 +161,7 @@ void run_cli(void)
 		cli_remaining -= cli_et;
 		
 		// Dump menu execution time to console
-		mincopter.cliSerial->printf_P(PSTR("ET00-Function took %ds\n"), cli_et);
+		//mincopter.cliSerial->printf_P(PSTR("ET00-Function took %dus\n"), cli_et);
 	}
 
 	return;

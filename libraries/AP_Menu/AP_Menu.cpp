@@ -173,9 +173,12 @@ Menu::run(void)
 		_port = hal.console;
 	}
 
-    _allocate_buffers();
+	// Return if no characters are available
+	if (_port->available()<=0) return;
 
-    _display_prompt();
+  _allocate_buffers();
+
+  _display_prompt();
 
     // loop performing commands
     for (;;) {
@@ -190,6 +193,8 @@ Menu::run(void)
         // loop reading characters from the input
         _input_len = 0;
 
+
+				// NOTE This is blocking when no characters are available
         for (;; ) {
             if (_check_for_input()) {
                 break;
