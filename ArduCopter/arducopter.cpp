@@ -155,7 +155,8 @@ void loop()
 
 
 /* sensor_update Performance Monitoring */
-#define MC_PROFILE(name, fcall) uint32_t name##_pre = micros();\
+#define MC_PROFILE(name, fcall) static FLFunctionProfile name;\
+							uint32_t name##_pre = micros();\
 							{ fcall }\
 							uint32_t name##_diff = micros() - name##_pre;\
 							(name).t_sum += name##_diff;\
@@ -169,12 +170,14 @@ typedef struct {
 } FLFunctionProfile;
 
 /* List of functions to profile */
+/*
 FLFunctionProfile updatemodes;
 FLFunctionProfile rrcontrollers;
 FLFunctionProfile readahrs;
 FLFunctionProfile updatetrig;
 FLFunctionProfile updatemotors;
 FLFunctionProfile readinertia;
+*/
 
 // Main loop - 100hz
 void sensor_update_loop()
@@ -224,11 +227,11 @@ void sensor_update_loop()
 
 			// Rest global measure variable
 			n_measure=0;
-			MC_RESET(updatemodes)
-			MC_RESET(rrcontrollers)
+			//MC_RESET(updatemodes)
+			//MC_RESET(rrcontrollers)
 			MC_RESET(readahrs)
 			MC_RESET(updatetrig)
-			MC_RESET(updatemotors)
+			//MC_RESET(updatemotors)
 			MC_RESET(readinertia)
 		}
 }

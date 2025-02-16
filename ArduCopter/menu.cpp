@@ -132,7 +132,17 @@ void init_cli(AP_HAL::UARTDriver* port)
 /* @brief Run the command line interface
  *
  * In order to make it asynchronous, we should put estimates of the max execution
- * time of each function and periodically call the run_cli function
+ * time of each function and periodically call the run_cli function. This function
+ * is non-blocking meaning that it will only execute one command and then return.
+ * There is no guarantee that the command will run within its alotted time, only
+ * that the scheduler with notify that it overrun.
+ *
+ * In order to ensure the a function called through the CLI does not exceed the
+ * allotted time, a time could be used. However, an alternative is to abstract function
+ * execution down into roughly equal time sub-parts.
+ *
+ * For example, a function that writes logs to the screen knows that it can log 2KBytes
+ * in 1000us and so it will do that in these chunks.
  */
 
 // Macro to log an output string every n iterations

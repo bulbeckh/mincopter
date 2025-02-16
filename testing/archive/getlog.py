@@ -47,7 +47,9 @@ if __name__=="__main__":
             
             ##Check the correct return status
             if cmds[lg][1] in resp:
+                time.sleep(3)
                 break
+            
         
 
 
