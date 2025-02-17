@@ -16,10 +16,10 @@ void dump_serial()
 	// This variable is modified over the serial port (i.e. via the console interface)
 
 	//Something like the following
-	if (1 /* mincopter.serialflags.orientation */ ) {
+	if (false /* mincopter.serialflags.orientation */ ) {
 		print_RPY();
 	}
-	if (1 /* mincopter.serialflags.gyro */ ) {
+	if ( false /* mincopter.serialflags.gyro */ ) {
 		print_roll_rates_and_accel();
 	}
 

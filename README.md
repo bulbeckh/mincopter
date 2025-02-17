@@ -25,7 +25,11 @@
 - [ ] Merge serial.h and menu.h into a single serial interface unit
 
 ### Performance Testing
-TODO
+
+#### Serial Printing
+From initial testing
+- ~84us for printf\_P overhead and ~85us per bit transmitted
+
 
 ### Mincopter Binary Analysis
 TODO

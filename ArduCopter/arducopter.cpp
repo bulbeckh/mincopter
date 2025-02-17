@@ -90,6 +90,7 @@
 #include "system.h"
 #include "util.h"
 #include "serial.h"
+#include "profiler.h"
 
 #include "mcinstance.h"
 #include "mcstate.h"
@@ -154,30 +155,6 @@ void loop()
 
 
 
-/* sensor_update Performance Monitoring */
-#define MC_PROFILE(name, fcall) static FLFunctionProfile name;\
-							uint32_t name##_pre = micros();\
-							{ fcall }\
-							uint32_t name##_diff = micros() - name##_pre;\
-							(name).t_sum += name##_diff;\
-							(name).n_measure +=1;
-
-#define MC_RESET(name) (name).n_measure=0; (name).t_sum=0;
-
-typedef struct {
-	uint32_t n_measure=0;
-	uint32_t t_sum=0;
-} FLFunctionProfile;
-
-/* List of functions to profile */
-/*
-FLFunctionProfile updatemodes;
-FLFunctionProfile rrcontrollers;
-FLFunctionProfile readahrs;
-FLFunctionProfile updatetrig;
-FLFunctionProfile updatemotors;
-FLFunctionProfile readinertia;
-*/
 
 // Main loop - 100hz
 void sensor_update_loop()

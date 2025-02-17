@@ -61,6 +61,8 @@ void AP_Scheduler::run(uint16_t time_available)
     uint32_t run_started_usec = hal.scheduler->micros();
     uint32_t now = run_started_usec;
 
+		static int log_counter=0;
+
     for (uint8_t i=0; i<_num_tasks; i++) {
         uint16_t dt = _tick_counter - _last_run[i];
         uint16_t interval_ticks = pgm_read_word(&_tasks[i].interval_ticks);
@@ -92,6 +94,8 @@ void AP_Scheduler::run(uint16_t time_available)
                 // work out how long the event actually took
                 now = hal.scheduler->micros();
                 uint32_t time_taken = now - _task_time_started;
+
+								if (log_counter==100) hal.console->printf_P(PSTR("FUNC-task%u-%uus\n"),i, now);
                 
                 if (time_taken > _task_time_allowed) {
                     // the event overran!
@@ -121,6 +125,10 @@ update_spare_ticks:
         _spare_ticks /= 2;
         _spare_micros /= 2;
     }
+
+		log_counter += 1;
+		if (log_counter>100) log_counter=0;
+
 }
 
 /*
