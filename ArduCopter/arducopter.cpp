@@ -171,12 +171,12 @@ void sensor_update_loop()
 
 		// #TODO Move this to the behaviour tree
 		// Run controllers that take body frame rate targets and convert to motor values using PID rate controllers (get_rate_{roll,pitch,yaw})
-		//MC_PROFILE(rrcontrollers,{run_rate_controllers();})
+		MC_PROFILE(rrcontrollers,{run_rate_controllers();})
 
 		// #TODO Move to behaviour tree ?? Should updating  motors should be responsbility of control algorithm?
     // write out the servo PWM values to motors
     // ------------------------------
-    //MC_PROFILE(updatemotors,{motors.output();})
+    MC_PROFILE(updatemotors,{mincopter.motors.output();})
 
     // Inertial Nav
     // --------------------
@@ -184,31 +184,30 @@ void sensor_update_loop()
 
 		// #TODO Move to behaviour tree
 		// Calls flight P controller to convert desired angle into desired rate
-		//MC_PROFILE(updatemodes,{update_yaw_mode(); update_roll_pitch_mode();})
+		MC_PROFILE(updatemodes,{update_yaw_mode(); update_roll_pitch_mode();})
 
 		// #TODO Remove or replace. I think all calcs are now done using body frame anyway after removing other modes
 		// convert rate targets to body frame using DCM values (stored in variables like cos_roll_x and cos_pitch_x)
-    //update_rate_controller_targets();
+    update_rate_controller_targets();
 
 		n_measure+=1;
-		// Performance profiling
+		// Performance profiling - dump every 100ms
 		if (n_measure>100) {
-			/*
 			mincopter.cliSerial->printf_P(PSTR("T_UMOD: %fus\n"), (float)updatemodes.t_sum/(1.0f* updatemodes.n_measure));
 			mincopter.cliSerial->printf_P(PSTR("T_RR: %fus\n"), (float)rrcontrollers.t_sum/(1.0f* rrcontrollers.n_measure));
 			mincopter.cliSerial->printf_P(PSTR("T_RA: %fus\n"), (float)readahrs.t_sum/(1.0f* readahrs.n_measure));
 			mincopter.cliSerial->printf_P(PSTR("T_UT: %fus\n"), (float)updatetrig.t_sum/(1.0f* updatetrig.n_measure));
 			mincopter.cliSerial->printf_P(PSTR("T_UMOT: %fus\n"), (float)updatemotors.t_sum/(1.0f* updatemotors.n_measure));
 			mincopter.cliSerial->printf_P(PSTR("T_RI: %fus\n"), (float)readinertia.t_sum/(1.0f* readinertia.n_measure));
-			*/
 
 			// Rest global measure variable
 			n_measure=0;
-			//MC_RESET(updatemodes)
-			//MC_RESET(rrcontrollers)
+
+			MC_RESET(updatemodes)
+			MC_RESET(rrcontrollers)
 			MC_RESET(readahrs)
 			MC_RESET(updatetrig)
-			//MC_RESET(updatemotors)
+			MC_RESET(updatemotors)
 			MC_RESET(readinertia)
 		}
 }
@@ -273,15 +272,15 @@ const AP_Scheduler::Task scheduler_tasks[] PROGMEM = {
     { read_baro,  				 2,     250 },
     { one_hz_loop,       100,     420 },
 		{ dump_serial, 				20,     500 },
-		{ run_cli,            10,     500 }
-    //{ throttle_loop,         2,     450 },
+		{ run_cli,            10,     500 },
+    { throttle_loop,         2,     450 },
     //{ crash_check,          10,      20 },
     //{ read_receiver_rssi,   10,      50 }
     //{ update_notify,         2,     100 },
-    //{ run_nav_updates,      10,     800 },
+    { run_nav_updates,      10,     800 },
     //{ fence_check	 ,        33,      90 },
     //{ arm_motors_check,     10,      10 },
-    //{ update_nav_mode,       1,     400 },
+    { update_nav_mode,       1,     400 }
 };
 
 

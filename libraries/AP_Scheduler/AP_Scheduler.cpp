@@ -61,8 +61,6 @@ void AP_Scheduler::run(uint16_t time_available)
     uint32_t run_started_usec = hal.scheduler->micros();
     uint32_t now = run_started_usec;
 
-		static int log_counter=0;
-
     for (uint8_t i=0; i<_num_tasks; i++) {
         uint16_t dt = _tick_counter - _last_run[i];
         uint16_t interval_ticks = pgm_read_word(&_tasks[i].interval_ticks);
@@ -83,7 +81,8 @@ void AP_Scheduler::run(uint16_t time_available)
             
             if (_task_time_allowed <= time_available) {
                 // run it
-                _task_time_started = now;
+                _task_time_started = hal.scheduler->micros();
+
                 task_fn_t func = (task_fn_t)pgm_read_pointer(&_tasks[i].function);
                 func();
                 
@@ -95,7 +94,8 @@ void AP_Scheduler::run(uint16_t time_available)
                 now = hal.scheduler->micros();
                 uint32_t time_taken = now - _task_time_started;
 
-								if (log_counter==100) hal.console->printf_P(PSTR("FUNC-task%u-%uus\n"),i, now);
+								// If this is 100ms since 
+								if (_tick_counter%100==0) hal.console->printf_P(PSTR("FUNC-task%u-%uus\n"),i, time_taken);
                 
                 if (time_taken > _task_time_allowed) {
                     // the event overran!
@@ -125,9 +125,6 @@ update_spare_ticks:
         _spare_ticks /= 2;
         _spare_micros /= 2;
     }
-
-		log_counter += 1;
-		if (log_counter>100) log_counter=0;
 
 }
 
