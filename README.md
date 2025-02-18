@@ -18,11 +18,19 @@
 - [ ] Implement NavEKF3 in mincopter
 - [ ] Implement MPC
 - [ ] Design console functionality (log retrieval, live sensor readings)
-- [ ] Build console client (in Python)
-- [ ] Build console functionality (via AP\_Menu)
-- [ ] Move code to btree and implement btree call in `fast\_loop`
-- [ ] Write code to measure function runtime
+- [x] Build console client (in Python)
+- [x] Build console functionality (via AP\_Menu)
+- [ ] Implement truly asynchronous console interface
+- [x] Build console `echo` script to echo console messages to stdout
+- [ ] Move code to btree and implement btree call in `fast_loop`
+- [x] Write code to profile function runtime
 - [ ] Merge serial.h and menu.h into a single serial interface unit
+- [ ] Implement custom logging messages
+- [ ] Write script for easy log retrieval, parsing, and storage in python
+- [ ] Add SITL via AP\_HAL\_Linux
+- [ ] Test Rust implementations of some functions
+- [ ] Add Rust HAL using Embedded-HAL
+- [ ] Add dockerfile for unified development environment
 
 ### Performance Testing
 
