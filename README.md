@@ -7,30 +7,45 @@
 - Removed manual flight modes and functionality
 - Removed GCS communication and Mavlink protocol support
 
+### What is the aim?
+To have a minimal, modular, and optimised UAV QuadCopter runtime that can support multiple architectures (AVR, ARM, x86-64). It should be modular enough to support multiple different state estimation/representation (DCM, Quaternion) and sensor fusion libraries (NavEKF, InertialNav) and control algorithms (PID, MPC, RL).
+
 ### What is target state for completion?
-- HAL (written in Rust using embedded HAL)
-- Multiple different flight controllers with modular code allowing easy switching
-- Console interface (client application written in Python) for things like retrieving logs, obtaining live raw sensor and value readings
+- HAL (Hardware Abstraction Layer) with backends for Linux and AVR. (Support for ARM in later release)
+- Flight controller libraries for PID control and MPC control. (Support for RL in later release)
+- Asynchronous console interface (client application written in Python) for retrieving logs and streaming live sensor and variable readings
 - Actual hardware re-implementation of drone board with different sensors to showcase HAL benefit
 
 ### `TODO`
+
+Control
 - [ ] Move to a single PID controller class
 - [ ] Implement NavEKF3 in mincopter
 - [ ] Implement MPC
+- [ ] Move code to btree and implement btree call in `fast_loop`
+
+HAL
+- [ ] Test Rust implementations of some functions
+- [ ] Add Rust HAL using Embedded-HAL
+
+Communications
 - [ ] Design console functionality (log retrieval, live sensor readings)
 - [x] Build console client (in Python)
 - [x] Build console functionality (via AP\_Menu)
 - [ ] Implement truly asynchronous console interface
 - [x] Build console `echo` script to echo console messages to stdout
-- [ ] Move code to btree and implement btree call in `fast_loop`
-- [x] Write code to profile function runtime
 - [ ] Merge serial.h and menu.h into a single serial interface unit
 - [ ] Implement custom logging messages
 - [ ] Write script for easy log retrieval, parsing, and storage in python
+
+Performance
+- [x] Write code to profile function runtime
+- [ ] Compare executable size and storage regions (text, data, bss) with original ac-3.2.1
+
+Testing & Development
 - [ ] Add SITL via AP\_HAL\_Linux
-- [ ] Test Rust implementations of some functions
-- [ ] Add Rust HAL using Embedded-HAL
 - [ ] Add dockerfile for unified development environment
+
 
 ### Performance Testing
 
