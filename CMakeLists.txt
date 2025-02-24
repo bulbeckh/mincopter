@@ -1,40 +1,36 @@
 cmake_minimum_required(VERSION 3.22)
 
+#[[
+
+MinCopter CMakeLists
+- Need to implement cross-compilation for multiple targets
+
+]]
+
 project(mincopter)
 
-message(STATUS Using ${CMAKE_C_COMPILER})
-message(STATUS Using ${CMAKE_CXX_COMPILER})
+function (set_toolchain TARGET_ARCH)
+	message(STATUS "Using target architecture ${TARGET_ARCH}")
 
-add_compile_definitions(
-	BOARD=atmega2560
-	CONFIG_HAL_BOARD=HAL_BOARD_APM2
-	PORT=/dev/ttyACM0
-	F_CPU=16000000L
-	_GNU_SOURCE
-)
+	if(TARGET_ARCH STREQUAL "avr")
+		set(TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/toolchains/avr.cmake" PARENT_SCOPE)
+  elseif(TARGET_ARCH STREQUAL "x86_64")
+		set(TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/toolchains/x86_64.cmake" PARENT_SCOPE)
+			message("Set TOOLCHAIN_FILE to: ${TOOLCHAIN_FILE}")
+  else()
+      message(FATAL_ERROR "Unsupported target architecture: ${TARGET_ARCH}")
+  endif()
+endfunction()
 
-set(MCU atmega2560)
-set(ARCHITECTURE avr6)
+if (DEFINED TARGET_ARCH)
+	set_toolchain(${TARGET_ARCH})
+else()
+	message("Target Architecture not supplied, use -DTARGET_ARCH=<arch>")
+	set_toolchain("avr")
+endif()
 
-# Set common compiler and linker flags
-set(COMMON_FLAGS
-	-mmcu=${MCU}
-	-mcall-prologues
-	-Os
-	-Wall -Wshadow -Wpointer-arith -Wcast-align -Wwrite-strings -Wformat=2
-	-ffunction-sections
-	-fdata-sections
-	-fsigned-char
-)
-
-set(LINKER_FLAGS
-	#-v
-	-Wl,--gc-sections
-	#-Wl,-Map
-	#-Wl,${CMAKE_BINARY_DIR}/${PROJECT_NAME}.map
-	-Wl,-m,${ARCHITECTURE}
-	-Wl,--relax
-)
+message("TOOLCHAIN FILE: ${TOOLCHAIN_FILE}")
+include(${TOOLCHAIN_FILE})
 
 # Apply the common flags to both C and C++ files
 add_compile_options(${COMMON_FLAGS})
@@ -44,18 +40,14 @@ add_link_options(${LINKER_FLAGS} ${COMMON_FLAGS})
 list(APPEND MC_INCLUDE_DIRS
 	AC_Fence
 	AC_PID
-	#AC_Sprayer
 	AC_WPNav
 	AP_ADC
 	AP_ADC_AnalogSource
 	AP_AHRS
 	AP_Airspeed
-	#AP_Arming
 	AP_Baro
 	AP_BattMonitor
-	#AP_BoardConfig
 	AP_Buffer
-	#AP_Camera
 	AP_Common
 	AP_Compass
 	AP_Curve
@@ -65,39 +57,26 @@ list(APPEND MC_INCLUDE_DIRS
 	AP_HAL/utility
 	AP_HAL_AVR
 	AP_HAL_AVR/utility
+	#AP_HAL_Linux
 	AP_InertialNav
 	AP_InertialSensor
-	#AP_L1_Control
-	#AP_Limits
 	AP_Math
-	#APM_Control
 	AP_Menu
-	#APM_OBC
 	AP_Motors
-	#AP_Mount
 	APM_PI
-	#AP_Navigation
 	AP_Notify
-	#AP_OpticalFlow
 	AP_Param
 	AP_PerfMon
 	AP_Progmem
-	#AP_RangeFinder
 	AP_RCMapper
-	#AP_Relay
 	AP_Scheduler
-	#AP_ServoRelayEvents
-	#AP_SpdHgtControl
-	#AP_TECS
 	AP_Vehicle
 	DataFlash
 	Filter
-	#GCS_Console
 	GCS_MAVLink
 	## NOTE Mavlink only included due to having a dependency with other libs - remove this dependency
 	PID
 	RC_Channel
-	#SITL
 )
 
 list(TRANSFORM MC_INCLUDE_DIRS PREPEND "libraries/")
@@ -147,7 +126,8 @@ add_executable(ArduCopter
 	ArduCopter/serial.cpp
 	ArduCopter/mcinstance.cpp
 	ArduCopter/mcstate.cpp
-	ArduCopter/btree.cpp
+	## NOTE Temporarily removing btree
+	##ArduCopter/btree.cpp
 	ArduCopter/menu.cpp
 )
 
@@ -181,8 +161,9 @@ target_link_libraries(ArduCopter /usr/lib/gcc/avr/7.3.0/avr6/libgcc.a)
 ## DEPENDENCIES
 
 # BTree
-add_subdirectory(./btree)
-target_link_libraries(ArduCopter btree)
-target_include_directories(ArduCopter PUBLIC ./btree/src)
+## NOTE Temporarily removing btree
+#add_subdirectory(./btree)
+#target_link_libraries(ArduCopter btree)
+#target_include_directories(ArduCopter PUBLIC ./btree/src)
 
 
