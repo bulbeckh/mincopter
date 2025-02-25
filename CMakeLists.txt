@@ -30,83 +30,124 @@ else()
 endif()
 
 message("TOOLCHAIN FILE: ${TOOLCHAIN_FILE}")
+message(STATUS "C Compiler: ${CMAKE_C_COMPILER}")
+message(STATUS "CXX Compiler: ${CMAKE_CXX_COMPILER}")
 include(${TOOLCHAIN_FILE})
 
-# Apply the common flags to both C and C++ files
-add_compile_options(${COMMON_FLAGS})
-add_link_options(${LINKER_FLAGS} ${COMMON_FLAGS})
+## Get list of libraries to include headers
+file(GLOB MC_INCLUDE_DIRS LIST_DIRECTORIES true RELATIVE ${CMAKE_SOURCE_DIR} "${CMAKE_SOURCE_DIR}/libraries/*")
+message(STATUS "Found the following for MC_INCLUDE_DIRS: ${MC_INCLUDE_DIRS}")
 
-## Rewrite
-list(APPEND MC_INCLUDE_DIRS
-	AC_Fence
-	AC_PID
-	AC_WPNav
-	AP_ADC
-	AP_ADC_AnalogSource
-	AP_AHRS
-	AP_Airspeed
-	AP_Baro
-	AP_BattMonitor
-	AP_Buffer
-	AP_Common
-	AP_Compass
-	AP_Curve
-	AP_Declination
-	AP_GPS
-	AP_HAL
-	AP_HAL/utility
-	AP_HAL_AVR
-	AP_HAL_AVR/utility
-	#AP_HAL_Linux
-	AP_InertialNav
-	AP_InertialSensor
-	AP_Math
-	AP_Menu
-	AP_Motors
-	APM_PI
-	AP_Notify
-	AP_Param
-	AP_PerfMon
-	AP_Progmem
-	AP_RCMapper
-	AP_Scheduler
-	AP_Vehicle
-	DataFlash
-	Filter
-	GCS_MAVLink
-	## NOTE Mavlink only included due to having a dependency with other libs - remove this dependency
-	PID
-	RC_Channel
+## TODO Remove the AP_Buffer and AP_Vehicle from this list of core libraries. Find a better way to get list
+## Architecture-independent libs
+list(APPEND MC_LIBS_CORE
+		AC_Fence
+		AC_PID
+		AC_WPNav
+		APM_PI
+		AP_ADC
+		AP_ADC_AnalogSource
+		AP_AHRS
+		AP_Airspeed
+		AP_Baro
+		AP_BattMonitor
+		#AP_Buffer
+		AP_Common
+		AP_Compass
+		AP_Curve
+		AP_Declination
+		AP_GPS
+		AP_HAL
+		AP_HAL/utility
+		AP_InertialNav
+		AP_InertialSensor
+		AP_Math
+		AP_Menu
+		AP_Motors
+		AP_Notify
+		AP_Param
+		AP_PerfMon
+		AP_RCMapper
+		AP_Scheduler
+		#AP_Vehicle
+		DataFlash
+		Filter
+		#GCS_Console
+		#GCS_MAVLink
+		PID
+		RC_Channel
 )
+## TODO Remove this way of doing it - there should be a better way
+list(TRANSFORM MC_LIBS_CORE PREPEND "libraries/")
 
-list(TRANSFORM MC_INCLUDE_DIRS PREPEND "libraries/")
+## TODO Remove AP_HAL_AVR_SITL from this list
+
+## Architecture-specific libs
+if (${TARGET_ARCH} STREQUAL "avr")
+	list(APPEND MC_LIBS_AVR
+		AP_Progmem
+		AP_HAL_AVR
+		AP_HAL_AVR/utility
+	)
+	list(TRANSFORM MC_LIBS_AVR PREPEND "libraries/")
+	message(STATUS "Found the following for MC_LIBS_AVR: ${MC_LIBS_AVR}")
+elseif(${TARGET_ARCH} STREQUAL "x86_64")
+	list(APPEND MC_LIBS_X86_64
+		AP_HAL_Linux
+	)
+	list(TRANSFORM MC_LIBS_X86_64 PREPEND "libraries/")
+	message(STATUS "Found the following for MC_LIBS_X86_64: ${MC_LIBS_X86_64}")
+endif()
 
 
-## Build Libraries
-foreach(lib IN LISTS MC_INCLUDE_DIRS)
-	file(GLOB ${lib}_SRCS ${lib}/*.cpp ${lib}/*.c)
-	list(LENGTH ${lib}_SRCS ${lib}_SRCS_LEN)
-	if(NOT (${lib}_SRCS_LEN EQUAL 0))
-		## Generate library
-		string(REPLACE "/" "_" libname ${lib})
-		message(STATUS "Generating library ${libname}")
-		add_library(${libname} STATIC
-			${${lib}_SRCS}
-		)
-		target_include_directories(${libname} PUBLIC
-			${MC_INCLUDE_DIRS}
-			/usr/lib/avr/include
-		)
-	else()
-		message(STATUS "Skipped ${lib} due to no *.cpp src files")
-	endif()
-endforeach()
+## TODO The MC_INCLUDE_DIRS needs to be different fromt he below list. There needs
+## to be a different way of generating libraries as non-avr targets may still include 
+## headers like "AP_Progmem" but there is a compiler guard in this header checking that
+## the target is actually an avr-target.
+
+function (mc_add_lib)
+	## Build libraries
+	foreach(lib IN LISTS ARGN)
+		file(GLOB ${lib}_SRCS ${lib}/*.cpp ${lib}/*.c)
+		list(LENGTH ${lib}_SRCS ${lib}_SRCS_LEN)
+		if(NOT (${lib}_SRCS_LEN EQUAL 0))
+			## Generate library
+			string(REPLACE "/" "_" libname ${lib})
+			message(STATUS "Generating library ${libname}")
+			add_library(${libname} STATIC
+				${${lib}_SRCS}
+			)
+			## Include all MC_INCLUDE_DIRS by default
+			target_include_directories(${libname} PUBLIC
+				${MC_INCLUDE_DIRS}
+				/usr/lib/avr/include
+			)
+		else()
+			message(STATUS "Skipped ${lib} due to no *.cpp src files")
+		endif()
+	endforeach()
+endfunction()
+
+## Build all architecture independent libraries
+mc_add_lib(${MC_LIBS_CORE})
+
+## TODO Add check for avr/x86-64 to add libraries to
+if (${TARGET_ARCH} STREQUAL "avr")
+	message("MC_LIBS_AVR: ${MC_LIBS_AVR}")
+	mc_add_lib(${MC_LIBS_AVR})
+elseif(${TARGET_ARCH} STREQUAL "x86_64")
+	message("MC_LIBS_X86_64 ${MC_LIBS_X86_64}")
+	mc_add_lib(${MC_LIBS_X86_64})
+endif()
 
 ## Add manual links
 target_link_libraries(libraries_AP_Motors PRIVATE libraries_AP_Curve)
-target_link_libraries(libraries_AP_HAL_AVR PRIVATE libraries_AP_HAL)
 target_link_libraries(libraries_AP_HAL PRIVATE libraries_AP_HAL_utility)
-target_link_libraries(libraries_AP_HAL_AVR PRIVATE libraries_AP_HAL_AVR_utility)
+
+if (${TARGET_ARCH} STREQUAL "avr")
+	target_link_libraries(libraries_AP_HAL_AVR PRIVATE libraries_AP_HAL_AVR_utility)
+	target_link_libraries(libraries_AP_HAL_AVR PRIVATE libraries_AP_HAL)
+endif()
 
 ## Build executable
 add_executable(ArduCopter
@@ -136,24 +177,25 @@ target_include_directories(ArduCopter PUBLIC
 	ArduCopter
 )
 
-foreach(lib IN LISTS MC_INCLUDE_DIRS)
+foreach(lib IN LISTS MC_LIBS_CORE)
 	string(REPLACE "/" "_" libname ${lib})
-	message(STATUS ${libname})
-	if(${libname} STREQUAL "libraries_GCS_Console")
-		message(STATUS "Skipping link of GCS Console")
-	elseif(${libname} STREQUAL "libraries_AP_Buffer")
-		message(STATUS "Skipping link of AP_Buffer")
-	elseif(${libname} STREQUAL "libraries_AP_SpdHgtControl")
-		message(STATUS "Skipping link of AP_SpdHgtControl")
-	elseif(${libname} STREQUAL "libraries_AP_Navigation")
-		message(STATUS "Skipping link of AP_Navigation")
-	elseif(${libname} STREQUAL "libraries_AP_Vehicle")
-		message(STATUS "Skipping link of AP_Vehicle")
-	else()
-		message(STATUS "linking ${libname}")
-		target_link_libraries(ArduCopter ${libname})
-	endif()
+	message(STATUS "LIBNAME: ${libname}")
+	target_link_libraries(ArduCopter ${libname})
 endforeach()
+
+if(TARGET_ARCH STREQUAL "avr")
+	foreach(lib IN LISTS MC_LIBS_AVR)
+		string(REPLACE "/" "_" libname ${lib})
+		message(STATUS "LIBNAME: ${libname}")
+		target_link_libraries(ArduCopter ${libname})
+	endforeach()
+elseif(TARGET_ARCH STREQUAL "x86_64")
+	foreach(lib IN LISTS MC_LIBS_X86_64)
+		string(REPLACE "/" "_" libname ${lib})
+		message(STATUS "LIBNAME: ${libname}")
+		target_link_libraries(ArduCopter ${libname})
+	endforeach()
+endif()
 
 ## manuall add libgcc
 target_link_libraries(ArduCopter /usr/lib/gcc/avr/7.3.0/avr6/libgcc.a)
