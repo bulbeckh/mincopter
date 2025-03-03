@@ -4,6 +4,7 @@
 
 extern const AP_HAL::HAL& hal;
 
+/*
 const AP_Param::GroupInfo AC_WPNav::var_info[] PROGMEM = {
     // index 0 was used for the old orientation matrix
 
@@ -63,6 +64,7 @@ const AP_Param::GroupInfo AC_WPNav::var_info[] PROGMEM = {
 
     AP_GROUPEND
 };
+*/
 
 // Default constructor.
 // Note that the Vector/Matrix constructors already implicitly zero
@@ -100,7 +102,7 @@ AC_WPNav::AC_WPNav(const AP_InertialNav* inav, const AP_AHRS* ahrs, APM_PI* pid_
     desired_vel(0,0),
     desired_accel(0,0)
 {
-    AP_Param::setup_object_defaults(this, var_info);
+    //AP_Param::setup_object_defaults(this, var_info);
 
     // initialise leash lengths
     calculate_wp_leash_length(true);

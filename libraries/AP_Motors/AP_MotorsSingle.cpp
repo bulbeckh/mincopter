@@ -26,7 +26,7 @@
 
 extern const AP_HAL::HAL& hal;
 
-
+/*
 const AP_Param::GroupInfo AP_MotorsSingle::var_info[] PROGMEM = {
     // 0 was used by TB_RATIO
 
@@ -86,6 +86,8 @@ const AP_Param::GroupInfo AP_MotorsSingle::var_info[] PROGMEM = {
 
     AP_GROUPEND
 };
+*/
+
 // init
 void AP_MotorsSingle::Init()
 {

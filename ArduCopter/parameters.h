@@ -507,7 +507,6 @@ public:
     }
 };
 
-extern const AP_Param::Info        var_info[];
-
-void load_parameters();
+//extern const AP_Param::Info        var_info[];
+//void load_parameters();
 

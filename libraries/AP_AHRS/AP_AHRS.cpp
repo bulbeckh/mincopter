@@ -19,6 +19,7 @@
 extern const AP_HAL::HAL& hal;
 
 // table of user settable parameters
+/*
 const AP_Param::GroupInfo AP_AHRS::var_info[] PROGMEM = {
 	// index 0 and 1 are for old parameters that are no longer not used
 
@@ -118,6 +119,7 @@ const AP_Param::GroupInfo AP_AHRS::var_info[] PROGMEM = {
 
     AP_GROUPEND
 };
+*/
 
 // return airspeed estimate if available
 bool AP_AHRS::airspeed_estimate(float *airspeed_ret) const

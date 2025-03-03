@@ -15,6 +15,7 @@ add_compile_definitions(
 	#PORT=/dev/ttyACM0
 	F_CPU=16000000L
 	#_GNU_SOURCE
+	TARGET_ARCH_LINUX
 )
 
 set(ARCHITECTURE x86-64)

@@ -26,6 +26,7 @@
 
 extern const AP_HAL::HAL& hal;
 
+/*
 const AP_Param::GroupInfo AP_Scheduler::var_info[] PROGMEM = {
     // @Param: DEBUG
     // @DisplayName: Scheduler debug level
@@ -35,6 +36,7 @@ const AP_Param::GroupInfo AP_Scheduler::var_info[] PROGMEM = {
     AP_GROUPINFO("DEBUG",    0, AP_Scheduler, _debug, 0),
     AP_GROUPEND
 };
+*/
 
 // initialise the scheduler
 void AP_Scheduler::init(const AP_Scheduler::Task *tasks, uint8_t num_tasks) 

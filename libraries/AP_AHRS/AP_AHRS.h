@@ -43,7 +43,7 @@ public:
         _gps(gps)
     {
         // load default values from var_info table
-        AP_Param::setup_object_defaults(this, var_info);
+        //AP_Param::setup_object_defaults(this, var_info);
 
         // base the ki values by the sensors maximum drift
         // rate. The APM2 has gyros which are much less drift
@@ -239,7 +239,7 @@ public:
     virtual void            add_trim(float roll_in_radians, float pitch_in_radians, bool save_to_eeprom = true);
 
     // for holding parameters
-    static const struct AP_Param::GroupInfo var_info[];
+    //static const struct AP_Param::GroupInfo var_info[];
 
     // these are public for ArduCopter
 	AP_Float _kp_yaw;

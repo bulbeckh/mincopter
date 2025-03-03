@@ -3,15 +3,12 @@
 #define __AP_PROGMEM_H__
 
 #include <AP_HAL_Boards.h>
-/*
-#if defined(__AVR__) 
-*/
-#include "AP_Progmem_AVR.h"
-/*
-#else
-#include "AP_Progmem_Identity.h"
+
+#if defined(TARGET_ARCH_AVR)
+	#include "AP_Progmem_AVR.h"
+#elif defined(TARGET_ARCH_LINUX)
+	#include "AP_Progmem_Identity.h"
 #endif
-*/
 
 #define PROGMEM_STRING(_v, _s)  static const char _v[] PROGMEM = _s
 

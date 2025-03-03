@@ -11,6 +11,7 @@
 
 extern const AP_HAL::HAL& hal;
 
+/*
 const AP_Param::GroupInfo PID::var_info[] PROGMEM = {
     AP_GROUPINFO("P",    0, PID, _kp, 0),
     AP_GROUPINFO("I",    1, PID, _ki, 0),
@@ -18,6 +19,7 @@ const AP_Param::GroupInfo PID::var_info[] PROGMEM = {
     AP_GROUPINFO("IMAX", 3, PID, _imax, 0),
     AP_GROUPEND
 };
+*/
 
 float PID::get_pid(float error, float scaler)
 {

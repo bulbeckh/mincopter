@@ -9,14 +9,16 @@ MinCopter CMakeLists
 
 project(mincopter)
 
+### Sets the correct toolchain based on the target architecture
 function (set_toolchain TARGET_ARCH)
 	message(STATUS "Using target architecture ${TARGET_ARCH}")
 
 	if(TARGET_ARCH STREQUAL "avr")
 		set(TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/toolchains/avr.cmake" PARENT_SCOPE)
+		message("Set TOOLCHAIN_FILE to: ${TOOLCHAIN_FILE}")
   elseif(TARGET_ARCH STREQUAL "x86_64")
 		set(TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/toolchains/x86_64.cmake" PARENT_SCOPE)
-			message("Set TOOLCHAIN_FILE to: ${TOOLCHAIN_FILE}")
+		message("Set TOOLCHAIN_FILE to: ${TOOLCHAIN_FILE}")
   else()
       message(FATAL_ERROR "Unsupported target architecture: ${TARGET_ARCH}")
   endif()
@@ -29,10 +31,11 @@ else()
 	set_toolchain("avr")
 endif()
 
+include(${TOOLCHAIN_FILE})
+
 message("TOOLCHAIN FILE: ${TOOLCHAIN_FILE}")
 message(STATUS "C Compiler: ${CMAKE_C_COMPILER}")
 message(STATUS "CXX Compiler: ${CMAKE_CXX_COMPILER}")
-include(${TOOLCHAIN_FILE})
 
 ## Get list of libraries to include headers
 file(GLOB MC_INCLUDE_DIRS LIST_DIRECTORIES true RELATIVE ${CMAKE_SOURCE_DIR} "${CMAKE_SOURCE_DIR}/libraries/*")
@@ -120,7 +123,8 @@ function (mc_add_lib)
 			## Include all MC_INCLUDE_DIRS by default
 			target_include_directories(${libname} PUBLIC
 				${MC_INCLUDE_DIRS}
-				/usr/lib/avr/include
+				## NOTE REMOVED THE AVR HARDCODED LIB
+				##/usr/lib/avr/include
 			)
 		else()
 			message(STATUS "Skipped ${lib} due to no *.cpp src files")
@@ -162,7 +166,7 @@ add_executable(ArduCopter
 	ArduCopter/radio.cpp
 	ArduCopter/system.cpp
 	ArduCopter/log.cpp
-	ArduCopter/parameters.cpp
+	## NOTE Removing this in remove-params branch : ArduCopter/parameters.cpp
 	## Additional
 	ArduCopter/serial.cpp
 	ArduCopter/mcinstance.cpp

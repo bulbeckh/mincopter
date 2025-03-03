@@ -13,7 +13,7 @@ public:
     bool                    healthy;
 
     AP_Baro() {
-		AP_Param::setup_object_defaults(this, var_info);
+		//AP_Param::setup_object_defaults(this, var_info);
     }
 
     virtual bool            init()=0;
@@ -69,7 +69,7 @@ public:
     // get last time sample was taken (in ms)
     uint32_t        get_last_update() { return _last_update; };
 
-    static const struct AP_Param::GroupInfo        var_info[];
+    //static const struct AP_Param::GroupInfo        var_info[];
 
 protected:
     uint32_t                            _last_update; // in ms

@@ -11,6 +11,7 @@
 extern const AP_HAL::HAL& hal;
 
 // table of user settable parameters
+/*
 const AP_Param::GroupInfo GPS_Glitch::var_info[] PROGMEM = {
     // @Param: ENABLE
     // @DisplayName: GPS Glitch protection enable/disable
@@ -39,12 +40,13 @@ const AP_Param::GroupInfo GPS_Glitch::var_info[] PROGMEM = {
 
     AP_GROUPEND
 };
+*/
 
 // constuctor
 GPS_Glitch::GPS_Glitch(GPS*& gps) :
     _gps(gps)
 {
-    AP_Param::setup_object_defaults(this, var_info);
+    //AP_Param::setup_object_defaults(this, var_info);
 }
 
 // check_position - returns true if gps position is acceptable, false if not

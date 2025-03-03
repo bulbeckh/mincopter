@@ -2,6 +2,7 @@
 #include <AP_Progmem.h>
 #include "Compass.h"
 
+/*
 const AP_Param::GroupInfo Compass::var_info[] PROGMEM = {
     // index 0 was used for the old orientation matrix
 
@@ -105,6 +106,7 @@ const AP_Param::GroupInfo Compass::var_info[] PROGMEM = {
 
     AP_GROUPEND
 };
+*/
 
 // Default constructor.
 // Note that the Vector/Matrix constructors already implicitly zero
@@ -114,7 +116,7 @@ Compass::Compass(void) :
     product_id(AP_COMPASS_TYPE_UNKNOWN),
     _null_init_done(false)
 {
-    AP_Param::setup_object_defaults(this, var_info);
+    //AP_Param::setup_object_defaults(this, var_info);
 }
 
 // Default init method, just returns success.

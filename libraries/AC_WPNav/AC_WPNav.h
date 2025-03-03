@@ -149,7 +149,7 @@ public:
     /// set_lean_angle_max - limits maximum lean angle
     void set_lean_angle_max(int16_t angle_cd) { if (angle_cd >= 1000 && angle_cd <= 8000) {_lean_angle_max_cd = angle_cd;} }
 
-    static const struct AP_Param::GroupInfo var_info[];
+    //static const struct AP_Param::GroupInfo var_info[];
 
 protected:
     // flags structure

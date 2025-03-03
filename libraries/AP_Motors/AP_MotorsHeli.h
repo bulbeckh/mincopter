@@ -121,7 +121,7 @@ public:
         _rotor_speed_estimate(0.0f),
         _tail_direct_drive_out(0)
     {
-		AP_Param::setup_object_defaults(this, var_info);
+		//AP_Param::setup_object_defaults(this, var_info);
 
         // initialise flags
         _heliflags.swash_initialised = 0;
@@ -190,7 +190,7 @@ public:
     int16_t get_phase_angle() { return _phase_angle; }
 
     // var_info for holding Parameter information
-    static const struct AP_Param::GroupInfo var_info[];
+    //static const struct AP_Param::GroupInfo var_info[];
 
 protected:
 

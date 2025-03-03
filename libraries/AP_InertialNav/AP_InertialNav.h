@@ -46,7 +46,7 @@ public:
         _glitch_detector(gps_glitch),
         _error_count(0)
         {
-            AP_Param::setup_object_defaults(this, var_info);
+            //AP_Param::setup_object_defaults(this, var_info);
         }
 
     /**
@@ -247,7 +247,7 @@ public:
     void        ignore_next_error() { _flags.ignore_error = 7; }
 
     // class level parameters
-    static const struct AP_Param::GroupInfo var_info[];
+    //static const struct AP_Param::GroupInfo var_info[];
 
     // public variables
     Vector3f                accel_correction_ef;        // earth frame accelerometer corrections. here for logging purposes only

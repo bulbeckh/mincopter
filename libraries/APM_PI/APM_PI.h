@@ -27,10 +27,12 @@ public:
            const float &    initial_i = 0.0,
            const int16_t &  initial_imax = 0.0)
     {
+				/*
 		AP_Param::setup_object_defaults(this, var_info);
         _kp = initial_p;
         _ki = initial_i;
         _imax = initial_imax;
+				*/
     }
 
     /// Iterate the PI, return the new control value
@@ -101,7 +103,7 @@ public:
         _integrator = i;
     }
 
-    static const struct AP_Param::GroupInfo        var_info[];
+    //static const struct AP_Param::GroupInfo        var_info[];
 
 private:
     AP_Float        _kp;

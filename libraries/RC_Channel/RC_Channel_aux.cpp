@@ -6,6 +6,7 @@
 #include <AP_HAL.h>
 extern const AP_HAL::HAL& hal;
 
+/*
 const AP_Param::GroupInfo RC_Channel_aux::var_info[] PROGMEM = {
     AP_NESTEDGROUPINFO(RC_Channel, 0),
 
@@ -18,6 +19,7 @@ const AP_Param::GroupInfo RC_Channel_aux::var_info[] PROGMEM = {
 
     AP_GROUPEND
 };
+*/
 
 static RC_Channel_aux *_aux_channels[8];
 

@@ -3,6 +3,7 @@
 
 extern const AP_HAL::HAL& hal;
 
+/*
 const AP_Param::GroupInfo AP_BattMonitor::var_info[] PROGMEM = {
     // @Param: MONITOR
     // @DisplayName: Battery monitoring
@@ -55,6 +56,7 @@ const AP_Param::GroupInfo AP_BattMonitor::var_info[] PROGMEM = {
 
     AP_GROUPEND
 };
+*/
 
 // Default constructor.
 // Note that the Vector/Matrix constructors already implicitly zero
@@ -66,7 +68,7 @@ AP_BattMonitor::AP_BattMonitor(void) :
     _current_total_mah(0),
     _last_time_micros(0)
 {
-    AP_Param::setup_object_defaults(this, var_info);
+    //AP_Param::setup_object_defaults(this, var_info);
 }
 
 // init - setup the battery and voltage pins

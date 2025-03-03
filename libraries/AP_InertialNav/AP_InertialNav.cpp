@@ -5,6 +5,7 @@
 extern const AP_HAL::HAL& hal;
 
 // table of user settable parameters
+/*
 const AP_Param::GroupInfo AP_InertialNav::var_info[] PROGMEM = {
     // start numbering at 1 because 0 was previous used for body frame accel offsets
     // @Param: TC_XY
@@ -23,6 +24,7 @@ const AP_Param::GroupInfo AP_InertialNav::var_info[] PROGMEM = {
 
     AP_GROUPEND
 };
+*/
 
 // init - initialise library
 void AP_InertialNav::init()

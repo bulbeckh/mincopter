@@ -40,7 +40,7 @@ public:
     uint32_t last_good_update() const { return _last_good_update; }
 
     // class level parameters
-    static const struct AP_Param::GroupInfo var_info[];
+    //static const struct AP_Param::GroupInfo var_info[];
 
 private:
 

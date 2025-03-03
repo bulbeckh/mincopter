@@ -14,6 +14,7 @@
 // f_cut = 30 Hz -> _filter =  5.3052e-3
 const float  AC_PID::_filter = 7.9577e-3; // Set to  "1 / ( 2 * PI * f_cut )";
 
+/*
 const AP_Param::GroupInfo AC_PID::var_info[] PROGMEM = {
     // @Param: P
     // @DisplayName: PID Proportional Gain
@@ -33,6 +34,7 @@ const AP_Param::GroupInfo AC_PID::var_info[] PROGMEM = {
     AP_GROUPINFO("IMAX", 3, AC_PID, _imax, 0),
     AP_GROUPEND
 };
+*/
 
 int32_t AC_PID::get_p(int32_t error)
 {

@@ -101,7 +101,7 @@ public:
     /// exhausted - returns true if the voltage remains below the low_voltage for 10 seconds or remaining capacity falls below min_capacity
     bool exhausted(float low_voltage, float min_capacity_mah);
 
-    static const struct AP_Param::GroupInfo var_info[];
+    //static const struct AP_Param::GroupInfo var_info[];
 
 protected:
 

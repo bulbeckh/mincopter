@@ -46,7 +46,7 @@ public:
         _calibration(parms),
         analog(_pin)
     {
-		AP_Param::setup_object_defaults(this, var_info);
+		//AP_Param::setup_object_defaults(this, var_info);
     };
 
     void init(void);
@@ -131,7 +131,7 @@ public:
     // return health status of sensor
     bool healthy(void) const { return _healthy; }
 
-    static const struct AP_Param::GroupInfo var_info[];
+    //static const struct AP_Param::GroupInfo var_info[];
 
 
 private:

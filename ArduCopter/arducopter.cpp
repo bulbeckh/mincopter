@@ -297,7 +297,7 @@ void setup()
     mincopter.cliSerial = mincopter.hal.console;
 
     // Load the default values of variables listed in var_info[]s
-    AP_Param::setup_sketch_defaults();
+    //AP_Param::setup_sketch_defaults();
 
     init_ardupilot();
 

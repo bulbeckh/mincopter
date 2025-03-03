@@ -13,6 +13,7 @@ extern const AP_HAL::HAL& hal;
 #define SAMPLE_UNIT 1
 
 // Class level parameters
+/*
 const AP_Param::GroupInfo AP_InertialSensor::var_info[] PROGMEM = {
     // @Param: PRODUCT_ID
     // @DisplayName: IMU Product ID
@@ -97,12 +98,13 @@ const AP_Param::GroupInfo AP_InertialSensor::var_info[] PROGMEM = {
 
     AP_GROUPEND
 };
+*/
 
 AP_InertialSensor::AP_InertialSensor() :
     _accel(),
     _gyro()
 {
-    AP_Param::setup_object_defaults(this, var_info);        
+    //AP_Param::setup_object_defaults(this, var_info);        
 }
 
 void

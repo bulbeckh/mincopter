@@ -34,7 +34,7 @@ class MCInstance {
 			gps_glitch(g_gps),
 			g_gps_driver(&g_gps),
 			motors(&g.rc_1, &g.rc_2, &g.rc_3, &g.rc_4),
-			param_loader(var_info, WP_START_BYTE)
+			//param_loader(var_info, WP_START_BYTE)
 		{
 		}
 
@@ -143,7 +143,7 @@ class MCInstance {
 
 		// TODO Remove
 		// setup the var_info table
-		AP_Param param_loader;
+		//AP_Param param_loader;
 
 		// TODO Move to BTree
 		// Rate Frame

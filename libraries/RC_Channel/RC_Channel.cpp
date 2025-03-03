@@ -35,6 +35,7 @@ extern const AP_HAL::HAL& hal;
 /// only have 8 input channels.
 RC_Channel *RC_Channel::rc_ch[RC_MAX_CHANNELS];
 
+/*
 const AP_Param::GroupInfo RC_Channel::var_info[] PROGMEM = {
     // @Param: MIN
     // @DisplayName: RC min PWM
@@ -85,6 +86,7 @@ const AP_Param::GroupInfo RC_Channel::var_info[] PROGMEM = {
 
     AP_GROUPEND
 };
+*/
 
 // setup the control preferences
 void

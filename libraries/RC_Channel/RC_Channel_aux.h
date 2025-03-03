@@ -21,7 +21,7 @@ public:
     RC_Channel_aux(uint8_t ch_out) :
         RC_Channel(ch_out)
     {
-		AP_Param::setup_object_defaults(this, var_info);
+		//AP_Param::setup_object_defaults(this, var_info);
     }
 
     typedef enum
@@ -85,7 +85,7 @@ public:
 	static void move_servo(Aux_servo_function_t function,
 						   int16_t value, int16_t angle_min, int16_t angle_max);
 
-    static const struct AP_Param::GroupInfo        var_info[];
+    //static const struct AP_Param::GroupInfo        var_info[];
 };
 
 void update_aux_servo_function(RC_Channel_aux* rc_a = NULL, RC_Channel_aux* rc_b = NULL, 

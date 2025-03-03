@@ -68,7 +68,7 @@ public:
     // end of a run()
     float load_average(uint32_t tick_time_usec) const;
 
-	static const struct AP_Param::GroupInfo var_info[];
+	//static const struct AP_Param::GroupInfo var_info[];
 
 private:
 	// used to enable scheduler debugging

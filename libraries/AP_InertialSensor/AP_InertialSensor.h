@@ -144,7 +144,7 @@ public:
     virtual bool wait_for_sample(uint16_t timeout_ms) = 0;
 
     // class level parameters
-    static const struct AP_Param::GroupInfo var_info[];
+    //static const struct AP_Param::GroupInfo var_info[];
 
     // set overall board orientation
     void set_board_orientation(enum Rotation orientation) {

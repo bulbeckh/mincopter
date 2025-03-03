@@ -31,10 +31,12 @@ public:
     RC_Channel(uint8_t ch_out) :
         _high(1),
         _ch_out(ch_out) {
+						/*
 		AP_Param::setup_object_defaults(this, var_info);
         if (ch_out < RC_MAX_CHANNELS) {
             rc_ch[ch_out] = this;
         }
+						*/
     }
 
     // setup min and max radio values in CLI
@@ -106,7 +108,7 @@ public:
     void                                            enable_out();
     void                                            disable_out();
 
-    static const struct AP_Param::GroupInfo         var_info[];
+    //static const struct AP_Param::GroupInfo         var_info[];
 
     static RC_Channel *rc_channel(uint8_t i);
 

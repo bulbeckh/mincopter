@@ -30,7 +30,7 @@ public:
         _servo3(servo3),
         _servo4(servo4)
     {
-        AP_Param::setup_object_defaults(this, var_info);
+        //AP_Param::setup_object_defaults(this, var_info);
     };
 
     // init
@@ -49,7 +49,7 @@ public:
     virtual void        output_min();
 
     // var_info for holding Parameter information
-    static const struct AP_Param::GroupInfo var_info[];
+    //static const struct AP_Param::GroupInfo var_info[];
 
 protected:
     // output - sends commands to the motors

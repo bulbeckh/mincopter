@@ -4,6 +4,7 @@
 
 extern const AP_HAL::HAL& hal;
 
+/*
 const AP_Param::GroupInfo AC_Fence::var_info[] PROGMEM = {
     // @Param: ENABLE
     // @DisplayName: Fence enable/disable
@@ -53,6 +54,7 @@ const AP_Param::GroupInfo AC_Fence::var_info[] PROGMEM = {
     
     AP_GROUPEND
 };
+*/
 
 /// Default constructor.
 AC_Fence::AC_Fence(const AP_InertialNav* inav) :
@@ -66,7 +68,7 @@ AC_Fence::AC_Fence(const AP_InertialNav* inav) :
     _breach_time(0),
     _breach_count(0)
 {
-    AP_Param::setup_object_defaults(this, var_info);
+    //AP_Param::setup_object_defaults(this, var_info);
 
     // check for silly fence values
     if (_alt_max < 0) {

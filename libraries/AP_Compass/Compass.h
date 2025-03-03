@@ -211,7 +211,7 @@ public:
         }
     }
 
-    static const struct AP_Param::GroupInfo var_info[];
+    //static const struct AP_Param::GroupInfo var_info[];
 
     // settable parameters
     AP_Int8 _learn;                             ///<enable calibration learning

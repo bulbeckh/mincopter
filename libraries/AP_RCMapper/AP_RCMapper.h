@@ -25,7 +25,7 @@ public:
     /// yaw - return input channel number for yaw / rudder input
     uint8_t yaw() const { return _ch_yaw; }
 
-    static const struct AP_Param::GroupInfo var_info[];
+    //static const struct AP_Param::GroupInfo var_info[];
 
 private:
     // channel mappings

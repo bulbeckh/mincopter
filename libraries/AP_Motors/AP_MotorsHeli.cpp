@@ -25,6 +25,7 @@
 
 extern const AP_HAL::HAL& hal;
 
+/*
 const AP_Param::GroupInfo AP_MotorsHeli::var_info[] PROGMEM = {
 
 
@@ -208,6 +209,7 @@ const AP_Param::GroupInfo AP_MotorsHeli::var_info[] PROGMEM = {
 
     AP_GROUPEND
 };
+*/
 
 //
 // public methods

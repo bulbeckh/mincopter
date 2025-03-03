@@ -78,7 +78,7 @@ public:
     /// set_home_distance - update vehicle's distance from home in meters - required for circular horizontal fence monitoring
     void set_home_distance(float distance) { _home_distance = distance; }
 
-    static const struct AP_Param::GroupInfo var_info[];
+    //static const struct AP_Param::GroupInfo var_info[];
 
 private:
 

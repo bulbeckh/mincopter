@@ -3,6 +3,7 @@
 #include <AP_HAL.h>
 #include <AP_RCMapper.h>
 
+/*
 const AP_Param::GroupInfo RCMapper::var_info[] PROGMEM = {
     // @Param: ROLL
     // @DisplayName: Roll channel
@@ -38,9 +39,10 @@ const AP_Param::GroupInfo RCMapper::var_info[] PROGMEM = {
 
     AP_GROUPEND
 };
+*/
 
 // object constructor.
 RCMapper::RCMapper(void)
 {
-    AP_Param::setup_object_defaults(this, var_info);
+    //AP_Param::setup_object_defaults(this, var_info);
 }

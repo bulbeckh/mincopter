@@ -25,6 +25,7 @@
 extern const AP_HAL::HAL& hal;
 
 // parameters for the motor class
+/*
 const AP_Param::GroupInfo AP_Motors::var_info[] PROGMEM = {
     // 0 was used by TB_RATIO
 
@@ -60,6 +61,7 @@ const AP_Param::GroupInfo AP_Motors::var_info[] PROGMEM = {
 
     AP_GROUPEND
 };
+*/
 
 // Constructor
 AP_Motors::AP_Motors( RC_Channel* rc_roll, RC_Channel* rc_pitch, RC_Channel* rc_throttle, RC_Channel* rc_yaw, uint16_t speed_hz ) :
@@ -75,7 +77,7 @@ AP_Motors::AP_Motors( RC_Channel* rc_roll, RC_Channel* rc_pitch, RC_Channel* rc_
 {
     uint8_t i;
 
-    AP_Param::setup_object_defaults(this, var_info);
+    //AP_Param::setup_object_defaults(this, var_info);
 
     // initialise motor map
 #if CONFIG_HAL_BOARD == HAL_BOARD_APM1
