@@ -87,10 +87,6 @@ void LinuxScheduler::_microsleep(uint32_t usec)
 
 void LinuxScheduler::delay(uint16_t ms)
 {
-    if (stopped_clock_usec) {
-        stopped_clock_usec += 1000UL*ms;
-        return;
-    }
     uint32_t start = millis();
     
     while ((millis() - start) < ms) {
@@ -106,9 +102,6 @@ void LinuxScheduler::delay(uint16_t ms)
 
 uint32_t LinuxScheduler::millis() 
 {
-    if (stopped_clock_usec) {
-        return stopped_clock_usec/1000;
-    }
     struct timespec ts;
     clock_gettime(CLOCK_MONOTONIC, &ts);
     return 1.0e3*((ts.tv_sec + (ts.tv_nsec*1.0e-9)) - 
@@ -118,9 +111,6 @@ uint32_t LinuxScheduler::millis()
 
 uint32_t LinuxScheduler::micros() 
 {
-    if (stopped_clock_usec) {
-        return stopped_clock_usec;
-    }
     struct timespec ts;
     clock_gettime(CLOCK_MONOTONIC, &ts);
     return 1.0e6*((ts.tv_sec + (ts.tv_nsec*1.0e-9)) - 
@@ -227,7 +217,7 @@ void *LinuxScheduler::_timer_thread(void)
         poll(NULL, 0, 1);        
     }
     while (true) {
-        _microsleep(1000);
+        _microsleep(5000);
 
         // run registered timers
         _run_timers(true);
@@ -326,9 +316,22 @@ void LinuxScheduler::reboot(bool hold_in_bootloader)
     for(;;);
 }
 
-void LinuxScheduler::stop_clock(uint64_t time_usec)
+void LinuxScheduler::time_shift(uint32_t shift_ms)
 {
-    stopped_clock_usec = time_usec;
+    if (shift_ms == 0) {
+        return;
+    }
+
+    // produce a minimal delay so other threads get a chance to run
+    _microsleep(100);
+
+    // shift the sketch start time so that time advances
+    int64_t new_ns = _sketch_start_time.tv_nsec - (shift_ms * 1.0e6);
+    while (new_ns < 0) {
+        new_ns += 1.0e9;
+        _sketch_start_time.tv_sec -= 1;
+    }
+    _sketch_start_time.tv_nsec = new_ns;
 }
 
 #endif // CONFIG_HAL_BOARD

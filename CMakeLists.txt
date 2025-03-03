@@ -153,6 +153,10 @@ if (${TARGET_ARCH} STREQUAL "avr")
 	target_link_libraries(libraries_AP_HAL_AVR PRIVATE libraries_AP_HAL)
 endif()
 
+if (${TARGET_ARCH} STREQUAL "x86_64")
+	target_link_libraries(libraries_AP_HAL_Linux PRIVATE libraries_AP_HAL)
+endif()
+
 ## Build executable
 add_executable(ArduCopter
 	## sources

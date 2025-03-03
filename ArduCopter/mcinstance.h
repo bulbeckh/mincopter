@@ -12,7 +12,14 @@
 #include <AP_ADC_AnalogSource.h>
 #include <AP_BattMonitor.h>
 #include <AP_HAL.h>
-#include <AP_HAL_AVR.h>
+
+#ifdef TARGET_ARCH_AVR
+	#include <AP_HAL_AVR.h>
+#elif TARGET_ARCH_LINUX
+	#include <AP_HAL_Linux.h>
+#else
+	#error "wrong target from within mcinstance.h"
+#endif
 
 #include "parameters.h"
 #include "failsafe.h"
@@ -33,7 +40,7 @@ class MCInstance {
 			barometer(&AP_Baro_MS5611::spi),
 			gps_glitch(g_gps),
 			g_gps_driver(&g_gps),
-			motors(&g.rc_1, &g.rc_2, &g.rc_3, &g.rc_4),
+			motors(&g.rc_1, &g.rc_2, &g.rc_3, &g.rc_4)
 			//param_loader(var_info, WP_START_BYTE)
 		{
 		}

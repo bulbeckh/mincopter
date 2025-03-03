@@ -64,7 +64,7 @@ void init_ardupilot()
 
 
     // load parameters from EEPROM
-    load_parameters();
+    //load_parameters();
 
     // FIX: this needs to be the inverse motors mask
     //ServoRelayEvents.set_channel_mask(0xFFF0);

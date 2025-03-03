@@ -19,8 +19,8 @@ using namespace Linux;
 
 // name the storage file after the sketch so you can use the same board
 // card for ArduCopter and ArduPlane
-#define STORAGE_DIR "/var/APM"
-#define STORAGE_FILE STORAGE_DIR "/" SKETCHNAME ".stg"
+#define STORAGE_DIR "/var/run/APM"
+#define STORAGE_FILE STORAGE_DIR "/outfile.stg"
 
 extern const AP_HAL::HAL& hal;
 
@@ -89,6 +89,37 @@ void LinuxStorage::_mark_dirty(uint16_t loc, uint16_t length)
 	}
 }
 
+uint8_t LinuxStorage::read_byte(uint16_t loc) 
+{
+	if (loc >= sizeof(_buffer)) {
+		return 0;
+	}
+	_storage_open();
+	return _buffer[loc];
+}
+
+uint16_t LinuxStorage::read_word(uint16_t loc) 
+{
+	uint16_t value;
+	if (loc >= sizeof(_buffer)-(sizeof(value)-1)) {
+		return 0;
+	}
+	_storage_open();
+	memcpy(&value, &_buffer[loc], sizeof(value));
+	return value;
+}
+
+uint32_t LinuxStorage::read_dword(uint16_t loc) 
+{
+	uint32_t value;
+	if (loc >= sizeof(_buffer)-(sizeof(value)-1)) {
+		return 0;
+	}
+	_storage_open();
+	memcpy(&value, &_buffer[loc], sizeof(value));
+	return value;
+}
+
 void LinuxStorage::read_block(void *dst, uint16_t loc, size_t n) 
 {
 	if (loc >= sizeof(_buffer)-(n-1)) {
@@ -96,6 +127,42 @@ void LinuxStorage::read_block(void *dst, uint16_t loc, size_t n)
 	}
 	_storage_open();
 	memcpy(dst, &_buffer[loc], n);
+}
+
+void LinuxStorage::write_byte(uint16_t loc, uint8_t value) 
+{
+	if (loc >= sizeof(_buffer)) {
+		return;
+	}
+	if (_buffer[loc] != value) {
+		_storage_open();
+		_buffer[loc] = value;
+		_mark_dirty(loc, sizeof(value));
+	}
+}
+
+void LinuxStorage::write_word(uint16_t loc, uint16_t value) 
+{
+	if (loc >= sizeof(_buffer)-(sizeof(value)-1)) {
+		return;
+	}
+	if (memcmp(&value, &_buffer[loc], sizeof(value)) != 0) {
+		_storage_open();
+		memcpy(&_buffer[loc], &value, sizeof(value));
+		_mark_dirty(loc, sizeof(value));
+	}
+}
+
+void LinuxStorage::write_dword(uint16_t loc, uint32_t value) 
+{
+	if (loc >= sizeof(_buffer)-(sizeof(value)-1)) {
+		return;
+	}
+	if (memcmp(&value, &_buffer[loc], sizeof(value)) != 0) {
+		_storage_open();
+		memcpy(&_buffer[loc], &value, sizeof(value));
+		_mark_dirty(loc, sizeof(value));
+	}
 }
 
 void LinuxStorage::write_block(uint16_t loc, const void *src, size_t n) 
