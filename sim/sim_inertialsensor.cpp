@@ -1,17 +1,24 @@
 /// -*- tab-width: 4; Mode: C++; c-basic-offset: 4; indent-tabs-mode: nil -*-
 
 #include <AP_HAL.h>
-#include "AP_InertialSensor_Sim.h"
+
+#include "sim_inertialsensor.h"
 
 extern const AP_HAL::HAL& hal;
 
+// Needed because _gyro_scale is defined static in class method
+const float AP_InertialSensor_Sim::_gyro_scale=1.0;
 
 AP_InertialSensor_Sim::AP_InertialSensor_Sim() : 
 	AP_InertialSensor(),
     _drdy_pin(NULL),
-    _initialised(false),
-    _mpu6000_product_id(AP_PRODUCT_ID_NONE)
+    _initialised(false)
 {
+}
+
+float AP_InertialSensor_Sim::get_delta_time()
+{
+		return 0.0;
 }
 
 uint16_t AP_InertialSensor_Sim::_init_sensor( Sample_rate sample_rate )
@@ -27,6 +34,11 @@ uint16_t AP_InertialSensor_Sim::_init_sensor( Sample_rate sample_rate )
 bool AP_InertialSensor_Sim::wait_for_sample(uint16_t timeout_ms)
 {
     return true;
+}
+
+float AP_InertialSensor_Sim::get_gyro_drift_rate()
+{
+		return 0.0;
 }
 
 bool AP_InertialSensor_Sim::update( void )
@@ -47,7 +59,7 @@ bool AP_InertialSensor_Sim::update( void )
     _gyro[0] -= _gyro_offset[0];
 
     _accel[0].rotate(_board_orientation);
-    _accel[0] *= MPU6000_ACCEL_SCALE_1G / _num_samples;
+    _accel[0] *= 1 / _num_samples;
 
     Vector3f accel_scale = _accel_scale[0].get();
     _accel[0].x *= accel_scale.x;

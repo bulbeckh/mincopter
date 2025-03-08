@@ -6,7 +6,6 @@
 #include <AP_Common.h>
 #include "GPS.h"
 
-
 class AP_GPS_Sim: public GPS
 {
 public:

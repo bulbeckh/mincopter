@@ -17,6 +17,11 @@
 	#include <AP_HAL_AVR.h>
 #elif TARGET_ARCH_LINUX
 	#include <AP_HAL_Linux.h>
+	#include "sim_compass.h"
+	#include "sim_adc.h"
+	#include "sim_inertialsensor.h"
+	#include "sim_gps.h"
+	#include "sim_barometer.h"
 #else
 	#error "wrong target from within mcinstance.h"
 #endif
@@ -37,9 +42,15 @@ class MCInstance {
 
 	public:
 		MCInstance() :
-			barometer(&AP_Baro_MS5611::spi),
+			DataFlash("/home/henry/Documents/mc-dev/logs"),
+			barometer(),
 			gps_glitch(g_gps),
+#ifdef TARGET_ARCH_AVR
 			g_gps_driver(&g_gps),
+#elif TARGET_ARCH_LINUX
+			g_gps_driver(),
+#endif
+			compass(),
 			motors(&g.rc_1, &g.rc_2, &g.rc_3, &g.rc_4)
 			//param_loader(var_info, WP_START_BYTE)
 		{
@@ -55,16 +66,30 @@ class MCInstance {
 		AP_BattMonitor battery;
 
 		/* @brief ATMEL DataFlash interface for flash storage */
+#ifdef TARGET_ARCH_AVR
 		DataFlash_APM2 DataFlash;
+#elif TARGET_ARCH_LINUX
+		DataFlash_File DataFlash;
+#endif
 
 		/* @brief ADC Instance used to obtain battery voltage levels */
+#ifdef TARGET_ARCH_AVR
 		AP_ADC_ADS7844 adc;
+#elif TARGET_ARCH_LINUX
+		AP_ADC_Sim adc;
+#endif
 
 		/* @brief Inertial Measurement Unit interface */
+#ifdef TARGET_ARCH_AVR
 		AP_InertialSensor_MPU6000 ins;
+#elif TARGET_ARCH_LINUX
+		AP_InertialSensor_Sim ins;
+#endif
+
 		const AP_InertialSensor::Sample_rate ins_sample_rate = AP_InertialSensor::RATE_100HZ;
 
 		/* @brief Barometer instance */
+#ifdef TARGET_ARCH_AVR
 		#if CONFIG_MS5611_SERIAL == AP_BARO_MS5611_SPI
 		AP_Baro_MS5611 barometer;
 		#elif CONFIG_MS5611_SERIAL == AP_BARO_MS5611_I2C
@@ -72,40 +97,48 @@ class MCInstance {
 		// Confirmed this is the baro (the I2C version)
 		AP_Baro_MS5611 barometer(&AP_Baro_MS5611::i2c);
 		#endif
+#elif TARGET_ARCH_LINUX
+		AP_Baro_Sim barometer;
+#endif
 
 		/* @brief Compass instance */
+#ifdef TARGET_ARCH_AVR
 		AP_Compass_HMC5843 compass;
+#elif TARGET_ARCH_LINUX
+		AP_Compass_Sim compass;
+#endif
 
 		/* @brief GPS Interface */
 		GPS         *g_gps;
 		GPS_Glitch   gps_glitch;
 
+#ifdef TARGET_ARCH_AVR
 		// NOTE Almost certain ours is ublox
+		// TODO I'm pretty sure AP_GPS_Auto will include code for
+		// all GPS backends into final executable and determine at
+		// runtime. This clogs executable. Change this to a specific
+		// GPS backend. I think ublox is correct for APM2.5
 		 #if   GPS_PROTOCOL == GPS_PROTOCOL_AUTO
 		AP_GPS_Auto     g_gps_driver;
-
 		// TODO Remove the remaining GPS objects
 		 #elif GPS_PROTOCOL == GPS_PROTOCOL_NMEA
 		AP_GPS_NMEA     g_gps_driver;
-
 		 #elif GPS_PROTOCOL == GPS_PROTOCOL_SIRF
 		AP_GPS_SIRF     g_gps_driver;
-
 		 #elif GPS_PROTOCOL == GPS_PROTOCOL_UBLOX
 		AP_GPS_UBLOX    g_gps_driver;
-
 		 #elif GPS_PROTOCOL == GPS_PROTOCOL_MTK
 		AP_GPS_MTK      g_gps_driver;
-
 		 #elif GPS_PROTOCOL == GPS_PROTOCOL_MTK19
 		AP_GPS_MTK19    g_gps_driver;
-
 		 #elif GPS_PROTOCOL == GPS_PROTOCOL_NONE
 		AP_GPS_None     g_gps_driver;
-
 		 #else
 			#error Unrecognised GPS_PROTOCOL setting.
 		 #endif // GPS PROTOCOL
+#elif TARGET_ARCH_LINUX
+		AP_GPS_Sim g_gps_driver;
+#endif
 
 		// receiver RSSI
 		uint8_t receiver_rssi;

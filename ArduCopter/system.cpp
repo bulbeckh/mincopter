@@ -105,7 +105,7 @@ void init_ardupilot()
     // we have a 2nd serial port for telemetry on all boards except
     // APM2. We actually do have one on APM2 but it isn't necessary as
     // a MUX is used
-    mincopter.hal.uartC->begin(map_baudrate(g.serial1_baud, SERIAL1_BAUD), 128, 128);
+    mincopter.hal.uartC->begin(map_baudrate(mincopter.g.serial1_baud, SERIAL1_BAUD), 128, 128);
     //gcs[1].init(hal.uartC);
 #endif
 #if MAVLINK_COMM_NUM_BUFFERS > 2

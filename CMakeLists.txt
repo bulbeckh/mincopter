@@ -123,39 +123,12 @@ function (mc_add_lib)
 			## Include all MC_INCLUDE_DIRS by default
 			target_include_directories(${libname} PUBLIC
 				${MC_INCLUDE_DIRS}
-				## NOTE REMOVED THE AVR HARDCODED LIB
-				##/usr/lib/avr/include
 			)
 		else()
 			message(STATUS "Skipped ${lib} due to no *.cpp src files")
 		endif()
 	endforeach()
 endfunction()
-
-## Build all architecture independent libraries
-mc_add_lib(${MC_LIBS_CORE})
-
-## TODO Add check for avr/x86-64 to add libraries to
-if (${TARGET_ARCH} STREQUAL "avr")
-	message("MC_LIBS_AVR: ${MC_LIBS_AVR}")
-	mc_add_lib(${MC_LIBS_AVR})
-elseif(${TARGET_ARCH} STREQUAL "x86_64")
-	message("MC_LIBS_X86_64 ${MC_LIBS_X86_64}")
-	mc_add_lib(${MC_LIBS_X86_64})
-endif()
-
-## Add manual links
-target_link_libraries(libraries_AP_Motors PRIVATE libraries_AP_Curve)
-target_link_libraries(libraries_AP_HAL PRIVATE libraries_AP_HAL_utility)
-
-if (${TARGET_ARCH} STREQUAL "avr")
-	target_link_libraries(libraries_AP_HAL_AVR PRIVATE libraries_AP_HAL_AVR_utility)
-	target_link_libraries(libraries_AP_HAL_AVR PRIVATE libraries_AP_HAL)
-endif()
-
-if (${TARGET_ARCH} STREQUAL "x86_64")
-	target_link_libraries(libraries_AP_HAL_Linux PRIVATE libraries_AP_HAL)
-endif()
 
 ## Build executable
 add_executable(ArduCopter
@@ -180,33 +153,90 @@ add_executable(ArduCopter
 	ArduCopter/menu.cpp
 )
 
+## Build all architecture independent libraries
+mc_add_lib(${MC_LIBS_CORE})
+
+## TODO Add check for avr/x86-64 to add libraries to
+if (${TARGET_ARCH} STREQUAL "avr")
+	message("MC_LIBS_AVR: ${MC_LIBS_AVR}")
+	mc_add_lib(${MC_LIBS_AVR})
+elseif(${TARGET_ARCH} STREQUAL "x86_64")
+	message("MC_LIBS_X86_64 ${MC_LIBS_X86_64}")
+	mc_add_lib(${MC_LIBS_X86_64})
+endif()
+
+
+## Add Sim libraries if Linux backend (sim) is being used
+if(TARGET_ARCH STREQUAL "x86_64")
+	file(GLOB SIM_SRCS sim/*.cpp sim/*.c)
+	list(LENGTH SIM_SRCS SIM_SRCS_LEN)
+	if(NOT SIM_SRCS_LEN EQUAL 0)
+		add_library(libSimSensors STATIC
+			${SIM_SRCS}
+		)
+		target_include_directories(libSimSensors PUBLIC
+			${MC_INCLUDE_DIRS}
+			sim
+		)
+	endif()
+endif()
+
 target_include_directories(ArduCopter PUBLIC
 	${MC_INCLUDE_DIRS}
 	ArduCopter
+	sim
 )
 
-foreach(lib IN LISTS MC_LIBS_CORE)
-	string(REPLACE "/" "_" libname ${lib})
-	message(STATUS "LIBNAME: ${libname}")
-	target_link_libraries(ArduCopter ${libname})
-endforeach()
+## Add manual links
+target_link_libraries(libraries_AP_Motors PRIVATE libraries_AP_Curve)
+target_link_libraries(libraries_AP_HAL PRIVATE libraries_AP_HAL_utility)
+
+if (${TARGET_ARCH} STREQUAL "avr")
+	target_link_libraries(libraries_AP_HAL_AVR PRIVATE libraries_AP_HAL_AVR_utility)
+	target_link_libraries(libraries_AP_HAL_AVR PRIVATE libraries_AP_HAL)
+endif()
+
+if (${TARGET_ARCH} STREQUAL "x86_64")
+	target_link_libraries(libraries_AP_HAL_Linux PRIVATE libraries_AP_HAL)
+
+	target_link_libraries(libSimSensors PRIVATE
+		libraries_AP_Compass
+		libraries_AP_Baro
+		libraries_AP_GPS
+		libraries_AP_InertialSensor
+		libraries_AP_ADC
+	)
+endif()
 
 if(TARGET_ARCH STREQUAL "avr")
 	foreach(lib IN LISTS MC_LIBS_AVR)
 		string(REPLACE "/" "_" libname ${lib})
 		message(STATUS "LIBNAME: ${libname}")
-		target_link_libraries(ArduCopter ${libname})
+		target_link_libraries(ArduCopter PRIVATE ${libname})
 	endforeach()
 elseif(TARGET_ARCH STREQUAL "x86_64")
+	## Link sim libraries
+	target_link_libraries(ArduCopter PRIVATE libSimSensors)
+
 	foreach(lib IN LISTS MC_LIBS_X86_64)
 		string(REPLACE "/" "_" libname ${lib})
 		message(STATUS "LIBNAME: ${libname}")
-		target_link_libraries(ArduCopter ${libname})
+		target_link_libraries(ArduCopter PRIVATE ${libname})
 	endforeach()
 endif()
 
-## manuall add libgcc
-target_link_libraries(ArduCopter /usr/lib/gcc/avr/7.3.0/avr6/libgcc.a)
+foreach(lib IN LISTS MC_LIBS_CORE)
+	string(REPLACE "/" "_" libname ${lib})
+	message(STATUS "LIBNAME: ${libname}")
+	target_link_libraries(ArduCopter PRIVATE ${libname})
+endforeach()
+
+## manually add libgcc
+
+
+if(TARGET_ARCH STREQUAL "avr")
+	target_link_libraries(ArduCopter PRIVATE /usr/lib/gcc/avr/7.3.0/avr6/libgcc.a)
+endif()
 
 ## DEPENDENCIES
 

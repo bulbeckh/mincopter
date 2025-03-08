@@ -3,7 +3,7 @@
 #include <AP_Math.h>
 #include <AP_HAL.h>
 
-#include "AP_Compass_Sim"
+#include "sim_compass.h"
 
 extern const AP_HAL::HAL& hal;
 
@@ -25,7 +25,7 @@ AP_Compass_Sim::init()
 
 		read();
 
-  	return success;
+  	return true;
 }
 
 // Read Sensor data

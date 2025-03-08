@@ -375,9 +375,9 @@ void Log_Write_Performance()
         LOG_PACKET_HEADER_INIT(LOG_PERFORMANCE_MSG),
         renorm_count     : mcstate.ahrs.renorm_range_count,
         renorm_blowup    : mcstate.ahrs.renorm_blowup_count,
-        num_long_running : perf_info_get_num_long_running(),
-        num_loops        : perf_info_get_num_loops(),
-        max_time         : perf_info_get_max_time(),
+        num_long_running : 0, /* perf_info_get_num_long_running(), */
+        num_loops        : 0, /* perf_info_get_num_loops(), */
+        max_time         : 0, /* perf_info_get_max_time(), */
         pm_test          : mincopter.pmTest1,
         i2c_lockup_count : mincopter.hal.i2c->lockup_count(),
         ins_error_count  : mincopter.ins.error_count(),

@@ -39,7 +39,7 @@ bool AP_ADC_Sim::new_data_available(const uint8_t *channel_numbers)
 // then you will get very strange results
 uint32_t AP_ADC_Sim::Ch6(const uint8_t *channel_numbers, float *result)
 {
-    for (i = 0; i < 6; i++) {
+    for (int i = 0; i < 6; i++) {
 				// Update result directly here
         result[i] = 0;
     }

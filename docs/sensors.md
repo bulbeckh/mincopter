@@ -7,7 +7,10 @@
 - Use `DataFlash_APM2` for AVR
 
 [DONE] Compass
-- Requires `init`, `read`, and `accumulate` to be implemented.
+Virtual Methods
+- init
+- read (pure virtual)
+- accumulate (pure virtual)
 
 [DONE] InertialSensor (IMU)
 - xx

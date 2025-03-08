@@ -1,7 +1,7 @@
 /// -*- tab-width: 4; Mode: C++; c-basic-offset: 4; indent-tabs-mode: nil -*-
 
-#ifndef __AP_BARO_MS5611_H__
-#define __AP_BARO_MS5611_H__
+#ifndef __AP_BARO_SIM_H__
+#define __AP_BARO_SIM_H__
 
 #include <AP_HAL.h>
 #include "AP_Baro.h"

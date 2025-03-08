@@ -18,7 +18,7 @@ add_compile_definitions(
 	TARGET_ARCH_LINUX
 )
 
-set(ARCHITECTURE x86-64)
+set(ARCHITECTURE elf_x86_64)
 
 #[[ COMMON FLAGS
 mmcu  AVR specific flag for specifying target architecture
@@ -43,8 +43,10 @@ set(COMMON_FLAGS
 	-Wcast-align
 	-Wwrite-strings
 	-Wformat=2
+#[[
 	-ffunction-sections
 	-fdata-sections
+#]]
 	-fsigned-char
 	-march=x86-64
 )
