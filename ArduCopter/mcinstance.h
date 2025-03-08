@@ -42,14 +42,26 @@ class MCInstance {
 
 	public:
 		MCInstance() :
+#ifdef TARGET_ARCH_LINUX
 			DataFlash("/home/henry/Documents/mc-dev/logs"),
+#elif TARGET_ARCH_AVR
+			DataFlash(),
+#endif
+
+#ifdef TARGET_ARCH_LINUX
 			barometer(),
+#elif TARGET_ARCH_AVR
+			barometer(&AP_Baro_MS5611::spi),
+#endif
+
 			gps_glitch(g_gps),
+
 #ifdef TARGET_ARCH_AVR
 			g_gps_driver(&g_gps),
 #elif TARGET_ARCH_LINUX
 			g_gps_driver(),
 #endif
+
 			compass(),
 			motors(&g.rc_1, &g.rc_2, &g.rc_3, &g.rc_4)
 			//param_loader(var_info, WP_START_BYTE)
