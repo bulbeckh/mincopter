@@ -211,17 +211,17 @@ void AC_WPNav::translate_loiter_target_movements(float nav_dt)
     _target_vel.y += target_vel_adj.y*nav_dt;
     if(_target_vel.x > 0 ) {
         _target_vel.x -= (_loiter_accel_cms-WPNAV_LOITER_ACCEL_MIN)*nav_dt*_target_vel.x/_loiter_speed_cms;
-        _target_vel.x = max(_target_vel.x - WPNAV_LOITER_ACCEL_MIN*nav_dt, 0);
+        _target_vel.x = ap_max(_target_vel.x - WPNAV_LOITER_ACCEL_MIN*nav_dt, 0);
     }else if(_target_vel.x < 0) {
         _target_vel.x -= (_loiter_accel_cms-WPNAV_LOITER_ACCEL_MIN)*nav_dt*_target_vel.x/_loiter_speed_cms;
-        _target_vel.x = min(_target_vel.x + WPNAV_LOITER_ACCEL_MIN*nav_dt, 0);
+        _target_vel.x = ap_min(_target_vel.x + WPNAV_LOITER_ACCEL_MIN*nav_dt, 0);
     }
     if(_target_vel.y > 0 ) {
         _target_vel.y -= (_loiter_accel_cms-WPNAV_LOITER_ACCEL_MIN)*nav_dt*_target_vel.y/_loiter_speed_cms;
-        _target_vel.y = max(_target_vel.y - WPNAV_LOITER_ACCEL_MIN*nav_dt, 0);
+        _target_vel.y = ap_max(_target_vel.y - WPNAV_LOITER_ACCEL_MIN*nav_dt, 0);
     }else if(_target_vel.y < 0) {
         _target_vel.y -= (_loiter_accel_cms-WPNAV_LOITER_ACCEL_MIN)*nav_dt*_target_vel.y/_loiter_speed_cms;
-        _target_vel.y = min(_target_vel.y + WPNAV_LOITER_ACCEL_MIN*nav_dt, 0);
+        _target_vel.y = ap_min(_target_vel.y + WPNAV_LOITER_ACCEL_MIN*nav_dt, 0);
     }
 
     // constrain the velocity vector and scale if necessary
@@ -432,7 +432,7 @@ void AC_WPNav::advance_target_along_track(float dt)
     float track_error_z = fabsf(track_error.z);
 
     // calculate how far along the track we could move the intermediate target before reaching the end of the leash
-    track_extra_max = min(_track_leash_length*(_wp_leash_z-track_error_z)/_wp_leash_z, _track_leash_length*(_wp_leash_xy-track_error_xy)/_wp_leash_xy);
+    track_extra_max = ap_min(_track_leash_length*(_wp_leash_z-track_error_z)/_wp_leash_z, _track_leash_length*(_wp_leash_xy-track_error_xy)/_wp_leash_xy);
     if(track_extra_max <0) {
         track_desired_max = track_covered;
     }else{
@@ -479,7 +479,7 @@ void AC_WPNav::advance_target_along_track(float dt)
 
     // do not let desired point go past the end of the segment
     track_desired_temp = constrain_float(track_desired_temp, 0, _track_length);
-    _track_desired = max(_track_desired, track_desired_temp);
+    _track_desired = ap_max(_track_desired, track_desired_temp);
 
     // recalculate the desired position
     _target = _origin + _pos_delta_unit * _track_desired;
@@ -767,8 +767,8 @@ void AC_WPNav::calculate_wp_leash_length(bool climb)
         _track_speed = speed_vert/pos_delta_unit_z;
         _track_leash_length = _wp_leash_z/pos_delta_unit_z;
     }else{	
-        _track_accel = min(WPNAV_ALT_HOLD_ACCEL_MAX/pos_delta_unit_z, _wp_accel_cms/pos_delta_unit_xy);
-        _track_speed = min(speed_vert/pos_delta_unit_z, _wp_speed_cms/pos_delta_unit_xy);
-        _track_leash_length = min(_wp_leash_z/pos_delta_unit_z, _wp_leash_xy/pos_delta_unit_xy);
+        _track_accel = ap_min(WPNAV_ALT_HOLD_ACCEL_MAX/pos_delta_unit_z, _wp_accel_cms/pos_delta_unit_xy);
+        _track_speed = ap_min(speed_vert/pos_delta_unit_z, _wp_speed_cms/pos_delta_unit_xy);
+        _track_leash_length = ap_min(_wp_leash_z/pos_delta_unit_z, _wp_leash_xy/pos_delta_unit_xy);
     }
 }

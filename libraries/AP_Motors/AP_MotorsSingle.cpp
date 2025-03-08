@@ -201,7 +201,7 @@ void AP_MotorsSingle::output_armed()
         }
 
         // ensure motors don't drop below a minimum value and stop
-        motor_out[AP_MOTORS_MOT_7] = max(motor_out[AP_MOTORS_MOT_7],    out_min);
+        motor_out[AP_MOTORS_MOT_7] = ap_max(motor_out[AP_MOTORS_MOT_7],    out_min);
     }
 
     // send output to each motor

@@ -158,9 +158,9 @@ void AP_MotorsTri::output_armed()
         }
 
         // ensure motors don't drop below a minimum value and stop
-        motor_out[AP_MOTORS_MOT_1] = max(motor_out[AP_MOTORS_MOT_1],    out_min);
-        motor_out[AP_MOTORS_MOT_2] = max(motor_out[AP_MOTORS_MOT_2],    out_min);
-        motor_out[AP_MOTORS_MOT_4] = max(motor_out[AP_MOTORS_MOT_4],    out_min);
+        motor_out[AP_MOTORS_MOT_1] = ap_max(motor_out[AP_MOTORS_MOT_1],    out_min);
+        motor_out[AP_MOTORS_MOT_2] = ap_max(motor_out[AP_MOTORS_MOT_2],    out_min);
+        motor_out[AP_MOTORS_MOT_4] = ap_max(motor_out[AP_MOTORS_MOT_4],    out_min);
     }
 
     // send output to each motor

@@ -11,12 +11,18 @@
 
 class AP_Compass_Sim : public Compass
 {
+
+public:
+    AP_Compass_Sim() : Compass() {
+    }
+    bool        init(void);
+    bool        read(void);
+    void        accumulate(void);
+
 private:
     float               calibration[3];
     bool                _initialised;
-    virtual bool        read_raw(void);
     uint8_t             _base_config;
-    virtual bool        re_initialise(void);
 		
 		/*
     bool                read_register(uint8_t address, uint8_t *value);
@@ -41,12 +47,6 @@ private:
 
     uint32_t            _last_accum_time;
 
-public:
-    AP_Compass_Sim() : Compass() {
-    }
-    bool        init(void);
-    bool        read(void);
-    void        accumulate(void);
 
 };
 #endif

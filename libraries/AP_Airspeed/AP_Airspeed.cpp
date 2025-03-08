@@ -183,7 +183,7 @@ void AP_Airspeed::read(void)
         return;
     }
     airspeed_pressure       = get_pressure();
-    airspeed_pressure       = max(airspeed_pressure - _offset, 0);
+    airspeed_pressure       = ap_max(airspeed_pressure - _offset, 0);
     _last_pressure          = airspeed_pressure;
     _raw_airspeed           = sqrtf(airspeed_pressure * _ratio);
     _airspeed               = 0.7f * _airspeed  +  0.3f * _raw_airspeed;

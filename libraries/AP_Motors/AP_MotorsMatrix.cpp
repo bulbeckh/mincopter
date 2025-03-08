@@ -203,12 +203,12 @@ void AP_MotorsMatrix::output_armed()
         //      We will choose #1 (the best throttle for yaw control) if that means reducing throttle to the motors (i.e. we favour reducing throttle *because* it provides better yaw control)
         //      We will choose #2 (a mix of pilot and hover throttle) only when the throttle is quite low.  We favour reducing throttle instead of better yaw control because the pilot has commanded it
         int16_t motor_mid = (rpy_low+rpy_high)/2;
-        out_best_thr_pwm = min(out_mid_pwm - motor_mid, max(_rc_throttle->radio_out, (_rc_throttle->radio_out+_hover_out)/2));
+        out_best_thr_pwm = ap_min(out_mid_pwm - motor_mid, ap_max(_rc_throttle->radio_out, (_rc_throttle->radio_out+_hover_out)/2));
 
         // calculate amount of yaw we can fit into the throttle range
         // this is always equal to or less than the requested yaw from the pilot or rate controller
-        yaw_allowed = min(out_max_pwm - out_best_thr_pwm, out_best_thr_pwm - out_min_pwm) - (rpy_high-rpy_low)/2;
-        yaw_allowed = max(yaw_allowed, AP_MOTORS_MATRIX_YAW_LOWER_LIMIT_PWM);
+        yaw_allowed = ap_min(out_max_pwm - out_best_thr_pwm, out_best_thr_pwm - out_min_pwm) - (rpy_high-rpy_low)/2;
+        yaw_allowed = ap_max(yaw_allowed, AP_MOTORS_MATRIX_YAW_LOWER_LIMIT_PWM);
 
         if (_rc_yaw->pwm_out >= 0) {
             // if yawing right
@@ -250,7 +250,7 @@ void AP_MotorsMatrix::output_armed()
         thr_adj = _rc_throttle->radio_out - out_best_thr_pwm;
 
         // calc upper and lower limits of thr_adj
-        int16_t thr_adj_max = max(out_max_pwm-(out_best_thr_pwm+rpy_high),0);
+        int16_t thr_adj_max = ap_max(out_max_pwm-(out_best_thr_pwm+rpy_high),0);
 
         // if we are increasing the throttle (situation #2 above)..
         if (thr_adj > 0) {
@@ -265,7 +265,7 @@ void AP_MotorsMatrix::output_armed()
             // decrease throttle as close as possible to requested throttle
             // without going under out_min_pwm or over out_max_pwm
             // earlier code ensures we can't break both boundaries
-            int16_t thr_adj_min = min(out_min_pwm-(out_best_thr_pwm+rpy_low),0);
+            int16_t thr_adj_min = ap_min(out_min_pwm-(out_best_thr_pwm+rpy_low),0);
             if (thr_adj > thr_adj_max) {
                 thr_adj = thr_adj_max;
                 limit.throttle_upper = true;

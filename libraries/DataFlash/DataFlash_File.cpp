@@ -555,7 +555,7 @@ void DataFlash_File::_io_timer(void)
     }
     if (_writebuf_head > _tail) {
         // only write to the end of the buffer
-        nbytes = min(nbytes, _writebuf_size - _writebuf_head);
+        nbytes = ap_min(nbytes, _writebuf_size - _writebuf_head);
     }
 
     // try to align writes on a 512 byte boundary to avoid filesystem

@@ -14,6 +14,9 @@ extern MCState mcstate;
 #include "radio.h"
 #include "parameters.h"
 
+#ifdef TARGET_ARCH_LINUX
+	#include <iostream>
+#endif
 
 // Forward Declaration - TODO move menu.cpp code to a class and include
 void init_cli(AP_HAL::UARTDriver* port);
@@ -21,6 +24,11 @@ void run_cli(void);
 
 void init_ardupilot()
 {
+
+#ifdef TARGET_ARCH_LINUX
+		std::cout << "Target linux: Initialised\n";
+#endif
+
     if (!mincopter.hal.gpio->usb_connected()) {
         // USB is not connected, this means UART0 may be a Xbee, with
         // its darned bricking problem. We can't write to it for at
@@ -321,6 +329,7 @@ void init_ardupilot()
 		}
 		end = micros()-start_time;
 		mincopter.cliSerial->printf_P(PSTR("TEST5-%uus\n"), end);
+
 		
 
 }

@@ -295,7 +295,7 @@ int16_t get_angle_boost(int16_t throttle)
     temp = constrain_float(temp, 0.5f, 1.0f);
 
     // reduce throttle if we go inverted
-    temp = constrain_float(9000-max(labs(mcstate.ahrs.roll_sensor),labs(mcstate.ahrs.pitch_sensor)), 0, 3000) / (3000 * temp);
+    temp = constrain_float(9000-ap_max(labs(mcstate.ahrs.roll_sensor),labs(mcstate.ahrs.pitch_sensor)), 0, 3000) / (3000 * temp);
 
     // apply scale and constrain throttle
     throttle_out = constrain_float((float)(throttle-mincopter.g.throttle_min) * temp + mincopter.g.throttle_min, mincopter.g.throttle_min, 1000);

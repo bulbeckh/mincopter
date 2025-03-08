@@ -276,7 +276,7 @@ bool AVRUARTDriver::_allocBuffer(Buffer *buffer, uint16_t size)
 	// and then a mask to simplify wrapping operations.  Using __builtin_clz
 	// would seem to make sense, but it uses a 256(!) byte table.
 	// Note that we ignore requests for more than BUFFER_MAX space.
-	for (shift = 1; (1U << shift) < min(_max_buffer_size, size); shift++)
+	for (shift = 1; (1U << shift) < ap_min(_max_buffer_size, size); shift++)
 		;
 	mask = (1U << shift) - 1;
 
