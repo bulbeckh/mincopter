@@ -66,6 +66,8 @@ void init_rc_out()
     mincopter.g.rc_3.set_range_out(0,1000);
 
     // full throttle means to enter ESC calibration
+		// NOTE Skip in autonomous flight - need to perform ESC calibration separately
+		/*
     if(mincopter.g.rc_3.control_in >= (mincopter.g.throttle_max - 50)) {
         if(mincopter.g.esc_calibrate == 0) {
             // we will enter esc_calibrate mode on next reboot
@@ -88,6 +90,7 @@ void init_rc_out()
         if(mincopter.g.esc_calibrate == 1)
             mincopter.g.esc_calibrate.set_and_save(0);
     }
+		*/
 
     // enable output to motors
     pre_arm_rc_checks();

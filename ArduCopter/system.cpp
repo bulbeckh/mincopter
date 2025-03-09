@@ -26,9 +26,11 @@ void init_ardupilot()
 {
 
 #ifdef TARGET_ARCH_LINUX
-		std::cout << "Target linux: Initialised\n";
+		std::cout << "Target linux: Initialise started\n";
 #endif
 
+// Run for anything except simulation
+#ifndef TARGET_ARCH_LINUX
     if (!mincopter.hal.gpio->usb_connected()) {
         // USB is not connected, this means UART0 may be a Xbee, with
         // its darned bricking problem. We can't write to it for at
@@ -37,6 +39,8 @@ void init_ardupilot()
         // added later
         delay(1000);
     }
+#endif
+
 
     // Console serial port
     //
@@ -107,6 +111,7 @@ void init_ardupilot()
     // port with SERIAL0_BAUD. check_usb_mux() fixes this if need be.
     mincopter.ap.usb_connected = true;
 
+
     check_usb_mux();
 
 #if CONFIG_HAL_BOARD != HAL_BOARD_APM2
@@ -122,6 +127,7 @@ void init_ardupilot()
         //gcs[2].init(hal.uartD);
     }
 #endif
+
 
     // identify ourselves correctly with the ground station
 		/*
@@ -149,6 +155,11 @@ void init_ardupilot()
 		//mincopter.cliSerial->println_P(PSTR("Dataflash initialised\n"));
 #endif
 
+#ifdef TARGET_ARCH_LINUX
+		std::cout << "Target linux: Init2\n";
+#endif
+
+
 		/* NOTE no RC input in auto modes */
     //init_rc_in();               // sets up rc channels from radio
     init_rc_out();              // sets up motors and output to escs
@@ -157,6 +168,11 @@ void init_ardupilot()
      *  setup the 'main loop is dead' check. Note that this relies on
      *  the RC library being initialised.
      */
+
+#ifdef TARGET_ARCH_LINUX
+		std::cout << "Target linux: Init3\n";
+#endif
+
     mincopter.hal.scheduler->register_timer_failsafe(failsafe_check, 1000);
 
 #if HIL_MODE != HIL_MODE_ATTITUDE
@@ -184,6 +200,7 @@ void init_ardupilot()
 
     // initialise inertial nav
     mcstate.inertial_nav.init();
+
 
 #ifdef USERHOOK_INIT
     USERHOOK_INIT
@@ -289,6 +306,10 @@ void init_ardupilot()
 		// publish serial messages and log messages of different format
 		//
 		// We run during `init_ardupilot` because it is guaranteed to be 'single-threaded'.
+
+#ifdef TARGET_ARCH_LINUX
+		std::cout << "Initialise finish\n";
+#endif
 
 		// TEST 1 - Single 4byte message, 12 repeats, no format
 		uint32_t start_time = micros();

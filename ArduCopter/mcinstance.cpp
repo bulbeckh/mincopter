@@ -8,6 +8,10 @@ extern MCInstance mincopter;
 extern MCState mcstate;
 
 
+#ifdef TARGET_ARCH_LINUX
+	#include <iostream>
+#endif
+
 #include "defines.h"
 #include "util.h"
 #include "motors.h"
@@ -137,6 +141,11 @@ void read_batt_compass(void)
 // one_hz_loop - runs at 1Hz
 void one_hz_loop()
 {
+
+#ifdef TARGET_ARCH_LINUX
+		std::cout << "In one hz loop\n";
+#endif
+
 		// from serial.h
 		//print_GPS();
 		//print_RPY();
