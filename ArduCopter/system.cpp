@@ -155,11 +155,6 @@ void init_ardupilot()
 		//mincopter.cliSerial->println_P(PSTR("Dataflash initialised\n"));
 #endif
 
-#ifdef TARGET_ARCH_LINUX
-		std::cout << "Target linux: Init2\n";
-#endif
-
-
 		/* NOTE no RC input in auto modes */
     //init_rc_in();               // sets up rc channels from radio
     init_rc_out();              // sets up motors and output to escs
@@ -168,10 +163,6 @@ void init_ardupilot()
      *  setup the 'main loop is dead' check. Note that this relies on
      *  the RC library being initialised.
      */
-
-#ifdef TARGET_ARCH_LINUX
-		std::cout << "Target linux: Init3\n";
-#endif
 
     mincopter.hal.scheduler->register_timer_failsafe(failsafe_check, 1000);
 
@@ -311,6 +302,7 @@ void init_ardupilot()
 		std::cout << "Initialise finish\n";
 #endif
 
+		/*
 		// TEST 1 - Single 4byte message, 12 repeats, no format
 		uint32_t start_time = micros();
 		for(int i=0;i<12;i++) {
@@ -350,8 +342,7 @@ void init_ardupilot()
 		}
 		end = micros()-start_time;
 		mincopter.cliSerial->printf_P(PSTR("TEST5-%uus\n"), end);
-
-		
+		*/
 
 }
 
