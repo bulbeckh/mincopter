@@ -95,7 +95,10 @@
 #include "mcinstance.h"
 #include "mcstate.h"
 
-// Forward Declarations
+
+#ifdef TARGET_ARCH_LINUX
+	#include <iostream>
+#endif
 
 /* GLOBAL Objects */
 
@@ -149,7 +152,19 @@ void loop()
     // the first call to the scheduler they won't run on a later
     // call until scheduler.tick() is called again
     uint32_t time_available = (timer + 10000) - micros();
+
+#ifdef TARGET_ARCH_LINUX
+		//std::cout << "loop: time_available " << time_available << "\n";
+#endif
     scheduler.run(time_available - 300);
+
+		uint32_t time_remaining = micros() - timer;
+#ifdef TARGET_ARCH_LINUX
+		std::cout << "loop: time used during sensor update and scheduler call " << time_remaining << "\n";
+#endif
+		// Delay if we have time remaining (i.e. time took less than 10000us)
+		if (time_remaining<=10e4) mincopter.hal.scheduler->delay_microseconds(10e4-time_remaining);
+
 }
 
 
@@ -269,6 +284,7 @@ const AP_Scheduler::Task scheduler_tasks[] PROGMEM = {
 /*												 TOTAL 4210 */
     { update_GPS, 				 2,     900 },
     { read_batt_compass,  10,     720 },
+// control_modes.cpp
     { update_altitude,    10,    1000 },
     { read_compass,        2,     420 },
     { read_baro,  				 2,     250 },

@@ -299,6 +299,7 @@ void update_yaw_mode(void)
         break;
     }
 }
+
 // update_roll_pitch_mode - run high level roll and pitch controllers
 // 100hz update rate
 void update_roll_pitch_mode(void)
@@ -324,47 +325,6 @@ void update_roll_pitch_mode(void)
     if(mincopter.ap.new_radio_frame) {
         // clear new radio frame info
         mincopter.ap.new_radio_frame = false;
-    }
-}
-
-// save_trim - adds roll and pitch trims from the radio to ahrs
-void save_trim()
-{
-    // save roll and pitch trim
-    float roll_trim = ToRad((float)mincopter.g.rc_1.control_in/100.0f);
-    float pitch_trim = ToRad((float)mincopter.g.rc_2.control_in/100.0f);
-    mcstate.ahrs.add_trim(roll_trim, pitch_trim);
-    Log_Write_Event(DATA_SAVE_TRIM);
-}
-
-// auto_trim - slightly adjusts the ahrs.roll_trim and ahrs.pitch_trim towards the current stick positions
-// meant to be called continuously while the pilot attempts to keep the copter level
-void auto_trim()
-{
-    if(mincopter.auto_trim_counter > 0) {
-        mincopter.auto_trim_counter--;
-
-        // flash the leds
-        AP_Notify::flags.save_trim = true;
-
-        // calculate roll trim adjustment
-        float roll_trim_adjustment = ToRad((float)mincopter.g.rc_1.control_in / 4000.0f);
-
-        // calculate pitch trim adjustment
-        float pitch_trim_adjustment = ToRad((float)mincopter.g.rc_2.control_in / 4000.0f);
-
-        // make sure accelerometer values impact attitude quickly
-        mcstate.ahrs.set_fast_gains(true);
-
-        // add trim to ahrs object
-        // save to eeprom on last iteration
-        mcstate.ahrs.add_trim(roll_trim_adjustment, pitch_trim_adjustment, (mincopter.auto_trim_counter == 0));
-
-        // on last iteration restore leds and accel gains to normal
-        if(mincopter.auto_trim_counter == 0) {
-            mcstate.ahrs.set_fast_gains(false);
-            AP_Notify::flags.save_trim = false;
-        }
     }
 }
 

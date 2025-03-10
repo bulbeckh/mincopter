@@ -299,7 +299,13 @@ void init_ardupilot()
 		// We run during `init_ardupilot` because it is guaranteed to be 'single-threaded'.
 
 #ifdef TARGET_ARCH_LINUX
-		std::cout << "Initialise finish\n";
+		std::cout << "Initialise finish\nBeginning delay test\n";
+
+		uint32_t ts_now_us = mincopter.hal.scheduler->micros();
+		// Delay 1s
+		mincopter.hal.scheduler->delay(1000);
+		
+		std::cout << "Delay took: " << mincopter.hal.scheduler->micros()-ts_now_us << " (us)\n";
 #endif
 
 		/*
@@ -343,6 +349,8 @@ void init_ardupilot()
 		end = micros()-start_time;
 		mincopter.cliSerial->printf_P(PSTR("TEST5-%uus\n"), end);
 		*/
+
+		
 
 }
 

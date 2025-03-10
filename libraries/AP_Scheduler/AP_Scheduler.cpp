@@ -24,6 +24,10 @@
 #include <AP_Scheduler.h>
 #include <AP_Param.h>
 
+#ifdef TARGET_ARCH_LINUX
+	#include <iostream>
+#endif
+
 extern const AP_HAL::HAL& hal;
 
 /*
@@ -57,11 +61,19 @@ void AP_Scheduler::tick(void)
 /*
   run one tick
   this will run as many scheduler tasks as we can in the specified time
- */
+*/
 void AP_Scheduler::run(uint16_t time_available)
 {
     uint32_t run_started_usec = hal.scheduler->micros();
     uint32_t now = run_started_usec;
+
+#ifdef TARGET_ARCH_LINUX
+		static uint32_t run_start_ts, prev=0;
+		run_start_ts = hal.scheduler->micros();
+		//std::cout << "TIME DIFF SCHED (us): " << run_start_ts - prev << "\n";
+		prev = run_start_ts;
+#endif
+
 
     for (uint8_t i=0; i<_num_tasks; i++) {
         uint16_t dt = _tick_counter - _last_run[i];
@@ -97,7 +109,7 @@ void AP_Scheduler::run(uint16_t time_available)
                 uint32_t time_taken = now - _task_time_started;
 
 								// If this is 100ms since 
-								if (_tick_counter%100==0) hal.console->printf_P(PSTR("FUNC-task%u-%uus\n"),i, time_taken);
+								//if (_tick_counter%100==0) hal.console->printf_P(PSTR("FUNC-task%u-%uus\n"),i, time_taken);
                 
                 if (time_taken > _task_time_allowed) {
                     // the event overran!

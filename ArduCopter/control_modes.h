@@ -35,11 +35,5 @@ void update_roll_pitch_mode(void);
 */
 void update_yaw_mode(void);
 
-// TODO Remove these - they are unused
-// NOTE are these used?
-void save_trim();
-void auto_trim();
-
-
 
 

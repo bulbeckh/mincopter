@@ -63,8 +63,8 @@
 - `void update_roll_pitch_mode(void)`
 - `bool set_yaw_mode(uint8_t new_yaw_mode)`
 - `void update_yaw_mode(void)`
-- `void save_trim()`
-- `void auto_trim()`
+- `void save_trim()` REMOVED
+- `void auto_trim()` REMOVED
 
 ## failsafe.h
 - `void failsafe_enable()`
