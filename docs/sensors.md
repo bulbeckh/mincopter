@@ -44,6 +44,15 @@ Sensor readings
 
 
 AHRS (DCM)
+- Updates using `update` func which simply maintains a DCM matrix and repeatedly updates small angle changes with from gyro measurements.
+
+
+**The remaining elements are all part of the updated flight software and what I plan to backport to AVR hardware**
+
+Quaternion
+NavEKF2
+NavEKF3
+new `AP_AHRS` library
 
 
 
