@@ -7,7 +7,6 @@
 #include <RC_Channel.h>
 #include <AC_PID.h>
 #include <APM_PI.h>
-#include <AP_RCMapper.h>
 
 #include "config.h"
 

@@ -25,7 +25,6 @@
 #include <AP_Math.h>
 #include <inttypes.h>
 #include <AP_Compass.h>
-#include <AP_Airspeed.h>
 #include <AP_GPS.h>
 #include <AP_InertialSensor.h>
 #include <AP_Baro.h>
@@ -86,10 +85,6 @@ public:
         if (_compass != NULL) {
             _compass->set_board_orientation((enum Rotation)_board_orientation.get());
         }
-    }
-
-    void set_airspeed(AP_Airspeed *airspeed) {
-        _airspeed = airspeed;
     }
 
     const GPS *get_gps() const {
@@ -171,33 +166,6 @@ public:
         return Vector3f(0,0,0);
     }
 
-    // return an airspeed estimate if available. return true
-    // if we have an estimate
-    virtual bool airspeed_estimate(float *airspeed_ret) const;
-
-    // return a true airspeed estimate (navigation airspeed) if
-    // available. return true if we have an estimate
-    bool airspeed_estimate_true(float *airspeed_ret) const {
-        if (!airspeed_estimate(airspeed_ret)) {
-            return false;
-        }
-        *airspeed_ret *= get_EAS2TAS();
-        return true;
-    }
-
-    // get apparent to true airspeed ratio
-    float get_EAS2TAS(void) const {
-        if (_airspeed) {
-            return _airspeed->get_EAS2TAS();
-        }
-        return 1.0f;
-    }
-
-    // return true if airspeed comes from an airspeed sensor, as
-    // opposed to an IMU estimate
-    bool airspeed_sensor_enabled(void) const {
-        return _airspeed != NULL && _airspeed->use();
-    }
 
     // return a ground vector estimate in meters/second, in North/East order
     Vector2f groundspeed_vector(void);
@@ -267,9 +235,6 @@ protected:
     // pointer to compass object, if available
     Compass         * _compass;
 
-    // pointer to airspeed object, if available
-    AP_Airspeed     * _airspeed;
-
     // time in microseconds of last compass update
     uint32_t _compass_last_update;
 
@@ -296,6 +261,5 @@ protected:
 };
 
 #include <AP_AHRS_DCM.h>
-#include <AP_AHRS_HIL.h>
 
 #endif // __AP_AHRS_H__

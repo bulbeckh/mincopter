@@ -72,10 +72,6 @@ public:
         return _wind;
     }
 
-    // return an airspeed estimate if available. return true
-    // if we have an estimate
-    bool airspeed_estimate(float *airspeed_ret);
-
     bool            use_compass(void);
 
 private:
@@ -157,11 +153,12 @@ private:
     Vector3f _last_fuse;
     Vector3f _last_vel;
     uint32_t _last_wind_time;
-    float _last_airspeed;
     uint32_t _last_consistent_heading;
 
     // estimated wind in m/s
     Vector3f _wind;
+
+		float _last_airspeed;
 };
 
 #endif // __AP_AHRS_DCM_H__

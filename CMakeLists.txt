@@ -51,7 +51,6 @@ list(APPEND MC_LIBS_CORE
 		AP_ADC
 		AP_ADC_AnalogSource
 		AP_AHRS
-		AP_Airspeed
 		AP_Baro
 		AP_BattMonitor
 		#AP_Buffer
@@ -69,14 +68,9 @@ list(APPEND MC_LIBS_CORE
 		AP_Motors
 		AP_Notify
 		AP_Param
-		AP_PerfMon
-		AP_RCMapper
 		AP_Scheduler
-		#AP_Vehicle
 		DataFlash
 		Filter
-		#GCS_Console
-		#GCS_MAVLink
 		PID
 		RC_Channel
 )

@@ -1150,11 +1150,6 @@ const AP_Param::Info var_info[] PROGMEM = {
     MCINSTANCE_GOBJECT(motors, "MOT_",         AP_Motors),
 #endif
 
-    // @Group: RCMAP_
-    // @Path: ../libraries/AP_RCMapper/AP_RCMapper.cpp
-		/* REMOVED
-    GOBJECT(rcmap, "RCMAP_",        RCMapper),
-		*/
     AP_VAREND
 };
 
