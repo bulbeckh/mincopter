@@ -63,8 +63,46 @@ class MCInstance {
 #endif
 
 			compass(),
-			motors(&g.rc_1, &g.rc_2, &g.rc_3, &g.rc_4)
+			motors(&rc_1, &rc_2, &rc_3, &rc_4),
 			//param_loader(var_info, WP_START_BYTE)
+
+			// Parameters initialisations
+        rc_1                (CH_1),
+        rc_2                (CH_2),
+        rc_3                (CH_3),
+        rc_4                (CH_4),
+        rc_5                (CH_5),
+        rc_6                (CH_6),
+        rc_7                (CH_7),
+        rc_8                (CH_8),
+
+        // PID controller	initial P	        initial I		    initial D
+        //          initial imax
+        //-----------------------------------------------------------------------------------------------------
+        pid_rate_roll           (RATE_ROLL_P,           RATE_ROLL_I,            RATE_ROLL_D,            RATE_ROLL_IMAX),
+        pid_rate_pitch          (RATE_PITCH_P,          RATE_PITCH_I,           RATE_PITCH_D,           RATE_PITCH_IMAX),
+        pid_rate_yaw            (RATE_YAW_P,            RATE_YAW_I,             RATE_YAW_D,             RATE_YAW_IMAX),
+
+        pid_loiter_rate_lat     (LOITER_RATE_P,         LOITER_RATE_I,          LOITER_RATE_D,          LOITER_RATE_IMAX),
+        pid_loiter_rate_lon     (LOITER_RATE_P,         LOITER_RATE_I,          LOITER_RATE_D,          LOITER_RATE_IMAX),
+
+        pid_throttle_rate       (THROTTLE_RATE_P,       THROTTLE_RATE_I,        THROTTLE_RATE_D,        THROTTLE_RATE_IMAX),
+        pid_throttle_accel      (THROTTLE_ACCEL_P,      THROTTLE_ACCEL_I,       THROTTLE_ACCEL_D,       THROTTLE_ACCEL_IMAX),
+        pid_optflow_roll        (OPTFLOW_ROLL_P,        OPTFLOW_ROLL_I,         OPTFLOW_ROLL_D,         OPTFLOW_IMAX),
+        pid_optflow_pitch       (OPTFLOW_PITCH_P,       OPTFLOW_PITCH_I,        OPTFLOW_PITCH_D,        OPTFLOW_IMAX),
+
+        // PI controller	initial P			initial I			initial
+        // imax
+        //----------------------------------------------------------------------
+        pi_loiter_lat           (LOITER_P,              LOITER_I,               LOITER_IMAX),
+        pi_loiter_lon           (LOITER_P,              LOITER_I,               LOITER_IMAX),
+
+        pi_stabilize_roll       (STABILIZE_ROLL_P,      STABILIZE_ROLL_I,       STABILIZE_ROLL_IMAX),
+        pi_stabilize_pitch      (STABILIZE_PITCH_P,     STABILIZE_PITCH_I,      STABILIZE_PITCH_IMAX),
+        pi_stabilize_yaw        (STABILIZE_YAW_P,       STABILIZE_YAW_I,        STABILIZE_YAW_IMAX),
+
+        pi_alt_hold             (ALT_HOLD_P,            ALT_HOLD_I,             ALT_HOLD_IMAX)
+
 		{
 		}
 
@@ -161,7 +199,90 @@ class MCInstance {
 
 		// TODO Remove/Replace
 		/* @brief Core parameters class which holds PID controllers and other objects */
-		Parameters g;
+		//Parameters g;
+		
+    AP_Int16        format_version;
+    AP_Int8         software_type;
+    AP_Int8         serial1_baud;
+#if MAVLINK_COMM_NUM_BUFFERS > 2
+    AP_Int8         serial2_baud;
+#endif
+
+    AP_Int8         failsafe_battery_enabled;   // battery failsafe enabled
+    AP_Float        fs_batt_voltage;            // battery voltage below which failsafe will be triggered
+    AP_Float        fs_batt_mah;                // battery capacity (in mah) below which failsafe will be triggered
+    AP_Int8         failsafe_gps_enabled;       // gps failsafe enabled
+    AP_Int8         failsafe_gcs;               // ground station failsafe behavior
+    AP_Int16        gps_hdop_good;              // GPS Hdop value at or below this value represent a good position
+    AP_Int8         compass_enabled;
+    AP_Int8         rssi_pin;
+    AP_Float        rssi_range;                 // allows to set max voltage for rssi pin such as 5.0, 3.3 etc. 
+    AP_Int16        angle_max;                  // maximum lean angle of the copter in centi-degrees
+    AP_Int32        angle_rate_max;             // maximum rotation rate in roll/pitch axis requested by angle controller used in stabilize, loiter, rtl, auto flight modes
+    
+    AP_Int8         command_total;
+    AP_Int8         command_index;
+
+    AP_Int16        land_speed;
+    AP_Int16        pilot_velocity_z_max;        // maximum vertical velocity the pilot may request
+
+    AP_Int16        throttle_min;
+    AP_Int16        throttle_max;
+    AP_Int8         failsafe_throttle;
+    AP_Int16        failsafe_throttle_value;
+    AP_Int16        throttle_cruise;
+    AP_Int16        throttle_mid;
+    AP_Int16        log_bitmask;
+    AP_Int8         esc_calibrate;
+    AP_Int8         radio_tuning;
+    AP_Int16        radio_tuning_high;
+    AP_Int16        radio_tuning_low;
+    AP_Int8         frame_orientation;
+    AP_Int8         ch7_option;
+    AP_Int8         ch8_option;
+    AP_Int8         arming_check;
+
+    RC_Channel              rc_1;
+    RC_Channel              rc_2;
+    RC_Channel              rc_3;
+    RC_Channel              rc_4;
+    RC_Channel_aux          rc_5;
+    RC_Channel_aux          rc_6;
+    RC_Channel_aux          rc_7;
+    RC_Channel_aux          rc_8;
+
+    AP_Int16                rc_speed; // speed of fast RC Channels in Hz
+
+    AC_PID                  pid_rate_roll;
+    AC_PID                  pid_rate_pitch;
+    AC_PID                  pid_rate_yaw;
+
+    AC_PID                  pid_loiter_rate_lat;
+    AC_PID                  pid_loiter_rate_lon;
+
+    AC_PID                  pid_throttle_rate;
+    AC_PID                  pid_throttle_accel;
+
+    APM_PI                  pi_loiter_lat;
+    APM_PI                  pi_loiter_lon;
+
+    APM_PI                  pi_stabilize_roll;
+    APM_PI                  pi_stabilize_pitch;
+    APM_PI                  pi_stabilize_yaw;
+
+    APM_PI                  pi_alt_hold;
+
+
+
+
+
+
+
+
+
+
+		// TODO Move all objects in parameters class here for now and then replace names in each function
+		// !!!!!!!!!!!!!!!!!!!!!!!!!
 
 		// Motor Output
 		AP_MotorsQuad motors;
@@ -184,7 +305,7 @@ class MCInstance {
 
 		// TODO Move to BTree
 		/* @brief Array of flight modes, defaulting to 1 */
-		AP_Int8 *flight_modes = &g.flight_mode1;
+		//AP_Int8 *flight_modes = &g.flight_mode1;
 
 		// TODO Remove/change to BTree
 		/* @brief Control mode variable - NOTE will be replaced */
@@ -213,7 +334,7 @@ class MCInstance {
 		// Throttle variables
 		int16_t throttle_accel_target_ef;    // earth frame throttle acceleration target
 		bool throttle_accel_controller_active;   // true when accel based throttle controller is active, false when higher level throttle controllers are providing throttle output directly
-		float throttle_avg;                  // g.throttle_cruise as a float
+		float throttle_avg;                  // throttle_cruise as a float
 		int16_t desired_climb_rate;          // pilot desired climb rate - for logging purposes only
 		float target_alt_for_reporting;      // target altitude in cm for reporting (logs and ground station)
 

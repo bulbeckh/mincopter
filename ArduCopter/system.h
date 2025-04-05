@@ -64,6 +64,6 @@ bool GPS_ok();
 void update_auto_armed();
 uint32_t map_baudrate(int8_t rate, uint32_t default_baud);
 void check_usb_mux(void);
-void print_flight_mode(AP_HAL::BetterStream *port, uint8_t mode);
+//void print_flight_mode(AP_HAL::BetterStream *port, uint8_t mode);
 
 
