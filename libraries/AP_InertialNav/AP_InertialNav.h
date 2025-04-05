@@ -6,7 +6,7 @@
 #include <AP_AHRS.h>
 #include <AP_InertialSensor.h>          // ArduPilot Mega IMU Library
 #include <AP_Baro.h>                    // ArduPilot Mega Barometer Library
-#include <AP_Buffer.h>                  // FIFO buffer library
+// HASH include <AP_Buffer.h>                  // FIFO buffer library
 #include <AP_GPS_Glitch.h>              // GPS Glitch detection library
 
 #define AP_INTERTIALNAV_TC_XY   2.5f // default time constant for complementary filter's X & Y axis
@@ -293,8 +293,12 @@ protected:
     uint32_t                _gps_last_update;           // system time of last gps update in ms
     uint32_t                _gps_last_time;             // time of last gps update according to the gps itself in ms
     uint8_t                 _historic_xy_counter;       // counter used to slow saving of position estimates for later comparison to gps
-    AP_BufferFloat_Size5    _hist_position_estimate_x;  // buffer of historic accel based position to account for gpslag
-    AP_BufferFloat_Size5    _hist_position_estimate_y;  // buffer of historic accel based position to account for gps lag
+    //AP_BufferFloat_Size5    _hist_position_estimate_x;  // buffer of historic accel based position to account for gpslag
+    //AP_BufferFloat_Size5    _hist_position_estimate_y;  // buffer of historic accel based position to account for gps lag
+#define AP_INAV_MAX_XY_POS_ESTIMATE 5
+		float _hist_position_estimate_x[AP_INAV_MAX_XY_POS_ESTIMATE];
+		float _hist_position_estimate_y[AP_INAV_MAX_XY_POS_ESTIMATE];
+
     int32_t                 _base_lat;                  // base latitude  (home location) in 100 nano degrees (i.e. degree value multiplied by 10,000,000)
     int32_t                 _base_lon;                  // base longitude (home location) in 100 nano degrees (i.e. degree value multiplied by 10,000,000)
     float                   _lon_to_cm_scaling;         // conversion of longitude to centimeters
@@ -305,7 +309,14 @@ protected:
     float                   _k2_z;                      // gain for vertical velocity correction
     float                   _k3_z;                      // gain for vertical accelerometer offset correction
     uint32_t                _baro_last_update;          // time of last barometer update in ms
-    AP_BufferFloat_Size15   _hist_position_estimate_z;  // buffer of historic accel based altitudes to account for barometer lag
+    //AP_BufferFloat_Size15   _hist_position_estimate_z;  // buffer of historic accel based altitudes to account for barometer lag
+#define AP_INAV_MAX_Z_POS_ESTIMATE 15
+		float _hist_position_estimate_z[AP_INAV_MAX_Z_POS_ESTIMATE];
+
+		// Counters to replace usage of AP_Buffer
+		uint8_t _hist_pos_x_index=0;
+		uint8_t _hist_pos_y_index=0;
+		uint8_t _hist_pos_z_index=0;
 
     // general variables
     Vector3f                _position_base;             // (uncorrected) position estimate in cm - relative to the home location (_base_lat, _base_lon, 0)

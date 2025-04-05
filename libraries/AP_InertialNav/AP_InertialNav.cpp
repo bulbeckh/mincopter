@@ -94,15 +94,22 @@ void AP_InertialNav::update(float dt)
     // calculate new velocity
     _velocity += velocity_increase;
 
+		// TODO Modified code from original usage of AP_Buffer - might need to check this
+
     // store 3rd order estimate (i.e. estimated vertical position) for future use
-    _hist_position_estimate_z.push_back(_position_base.z);
+    //_hist_position_estimate_z.push_back(_position_base.z);
+		_hist_position_estimate_z[_hist_pos_z_index % AP_INAV_MAX_Z_POS_ESTIMATE] = _position_base.z;
+		_hist_pos_z_index++;
 
     // store 3rd order estimate (i.e. horizontal position) for future use at 10hz
     _historic_xy_counter++;
     if( _historic_xy_counter >= AP_INTERTIALNAV_SAVE_POS_AFTER_ITERATIONS ) {
         _historic_xy_counter = 0;
-        _hist_position_estimate_x.push_back(_position_base.x);
-        _hist_position_estimate_y.push_back(_position_base.y);
+
+				_hist_position_estimate_x[_hist_pos_x_index % AP_INAV_MAX_XY_POS_ESTIMATE];
+				_hist_position_estimate_y[_hist_pos_y_index % AP_INAV_MAX_XY_POS_ESTIMATE];
+        //_hist_position_estimate_x.push_back(_position_base.x);
+        //_hist_position_estimate_y.push_back(_position_base.y);
     }
 }
 
@@ -189,9 +196,10 @@ void AP_InertialNav::correct_with_gps(uint32_t now, int32_t lon, int32_t lat)
         }else{
             // ublox gps positions are delayed by 400ms
             // we store historical position at 10hz so 4 iterations ago
-            if( _hist_position_estimate_x.is_full()) {
-                hist_position_base_x = _hist_position_estimate_x.front();
-                hist_position_base_y = _hist_position_estimate_y.front();
+            //if( _hist_position_estimate_x.is_full()) {
+						if( _hist_pos_x_index==AP_INAV_MAX_X_POS_ESTIMATE ) {
+                hist_position_base_x = _hist_position_estimate_x[0];
+                hist_position_base_y = _hist_position_estimate_y[0];
             }else{
                 hist_position_base_x = _position_base.x;
                 hist_position_base_y = _position_base.y;
@@ -251,8 +259,10 @@ void AP_InertialNav::set_home_position(int32_t lon, int32_t lat)
     _position.y = 0;
 
     // clear historic estimates
-    _hist_position_estimate_x.clear();
-    _hist_position_estimate_y.clear();
+    //_hist_position_estimate_x.clear();
+    //_hist_position_estimate_y.clear();
+		_hist_pos_x_index=0;
+		_hist_pos_y_index=0;
 
     // set xy as enabled
     _xy_enabled = true;
@@ -345,8 +355,8 @@ void AP_InertialNav::correct_with_baro(float baro_alt, float dt)
     // 3rd order samples (i.e. position from baro) are delayed by 150ms (15 iterations at 100hz)
     // so we should calculate error using historical estimates
     float hist_position_base_z;
-    if( _hist_position_estimate_z.is_full() ) {
-        hist_position_base_z = _hist_position_estimate_z.front();
+    if( _hist_pos_z_index==AP_INAV_MAX_Z_POS_ESTIMATE ) {
+        hist_position_base_z = _hist_position_estimate_z[0];
     }else{
         hist_position_base_z = _position_base.z;
     }
@@ -405,11 +415,16 @@ void AP_InertialNav::set_position_xy(float x, float y)
     _position_correction.y = 0;
 
     // clear historic estimates
-    _hist_position_estimate_x.clear();
-    _hist_position_estimate_y.clear();
+    _hist_pos_x_index=0;
+    _hist_pos_y_index=0;
 
     // add new position for future use
     _historic_xy_counter = 0;
-    _hist_position_estimate_x.push_back(_position_base.x);
-    _hist_position_estimate_y.push_back(_position_base.y);
+    //_hist_position_estimate_x.push_back(_position_base.x);
+    //_hist_position_estimate_y.push_back(_position_base.y);
+		_hist_position_estimate_x[_hist_pos_x_index] = _position_base.x;
+		_hist_position_estimate_y[_hist_pos_y_index] = _position_base.y;
+		_hist_pos_x_index++;
+		_hist_pos_y_index++;
+
 }
