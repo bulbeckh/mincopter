@@ -219,7 +219,6 @@ protected:
 #include "AP_InertialSensor_HIL.h"
 #include "AP_InertialSensor_PX4.h"
 #include "AP_InertialSensor_UserInteract_Stream.h"
-#include "AP_InertialSensor_UserInteract_MAVLink.h"
 #include "AP_InertialSensor_Flymaple.h"
 #include "AP_InertialSensor_L3G4200D.h"
 

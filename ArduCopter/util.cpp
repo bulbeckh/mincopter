@@ -341,7 +341,7 @@ void read_receiver_rssi(void)
 void init_home()
 {
     set_home_is_set(true);
-    mcstate.home.id         = MAV_CMD_NAV_WAYPOINT;
+    mcstate.home.id         = 0; //previously MAV_CMD_NAV_WAYPOINT
     mcstate.home.lng        = mincopter.g_gps->longitude;                                 // Lon * 10**7
     mcstate.home.lat        = mincopter.g_gps->latitude;                                  // Lat * 10**7
     mcstate.home.alt        = 0;                                                        // Home is always 0
