@@ -3,6 +3,7 @@
 
 #include "mcinstance.h"
 #include "mcstate.h"
+#include "config.h"
 
 #include "log.h"
 
@@ -187,7 +188,7 @@ void crash_check()
     static int32_t baro_alt_prev;
 
     // return immediately if motors are not armed or pilot's throttle is above zero
-    if (!mincopter.motors.armed() || (mincopter.g.rc_3.control_in != 0 && !mcstate.failsafe.radio)) {
+    if (!mincopter.motors.armed() || (mincopter.rc_3.control_in != 0 && !mcstate.failsafe.radio)) {
         inverted_count = 0;
         return;
     }
@@ -199,7 +200,7 @@ void crash_check()
     }
 
     // check angles
-    int32_t lean_max = mincopter.g.angle_max + CRASH_CHECK_ANGLE_DEVIATION_CD;
+    int32_t lean_max = mincopter.angle_max + CRASH_CHECK_ANGLE_DEVIATION_CD;
     if (labs(mcstate.ahrs.roll_sensor) > lean_max || labs(mcstate.ahrs.pitch_sensor) > lean_max) {
         inverted_count++;
 
@@ -329,11 +330,11 @@ void init_compass()
 void read_receiver_rssi(void)
 {
     // avoid divide by zero
-    if (mincopter.g.rssi_range <= 0) {
+    if (mincopter.rssi_range <= 0) {
         mincopter.receiver_rssi = 0;
     }else{
-        mincopter.rssi_analog_source->set_pin(mincopter.g.rssi_pin);
-        float ret = mincopter.rssi_analog_source->voltage_average() * 255 / mincopter.g.rssi_range;
+        mincopter.rssi_analog_source->set_pin(mincopter.rssi_pin);
+        float ret = mincopter.rssi_analog_source->voltage_average() * 255 / mincopter.rssi_range;
         mincopter.receiver_rssi = constrain_int16(ret, 0, 255);
     }
 }
@@ -355,7 +356,7 @@ void init_home()
     // set inertial nav's home position
     mcstate.inertial_nav.set_home_position(mincopter.g_gps->longitude, mincopter.g_gps->latitude);
 
-    if (mincopter.g.log_bitmask & MASK_LOG_CMD)
+    if (mincopter.log_bitmask & MASK_LOG_CMD)
         Log_Write_Cmd(0, &mcstate.home);
 
     // update navigation scalers.  used to offset the shrinking longitude as we go towards the poles

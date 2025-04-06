@@ -127,25 +127,20 @@ void AP_AHRS::set_trim(Vector3f new_trim)
     Vector3f trim;
     trim.x = constrain_float(new_trim.x, ToRad(-AP_AHRS_TRIM_LIMIT), ToRad(AP_AHRS_TRIM_LIMIT));
     trim.y = constrain_float(new_trim.y, ToRad(-AP_AHRS_TRIM_LIMIT), ToRad(AP_AHRS_TRIM_LIMIT));
-    _trim.set_and_save(trim);
+    _trim = trim;
 }
 
 // add_trim - adjust the roll and pitch trim up to a total of 10 degrees
 void AP_AHRS::add_trim(float roll_in_radians, float pitch_in_radians, bool save_to_eeprom)
 {
-    Vector3f trim = _trim.get();
+    Vector3f trim = _trim;
 
     // add new trim
     trim.x = constrain_float(trim.x + roll_in_radians, ToRad(-AP_AHRS_TRIM_LIMIT), ToRad(AP_AHRS_TRIM_LIMIT));
     trim.y = constrain_float(trim.y + pitch_in_radians, ToRad(-AP_AHRS_TRIM_LIMIT), ToRad(AP_AHRS_TRIM_LIMIT));
 
     // set new trim values
-    _trim.set(trim);
-
-    // save to eeprom
-    if( save_to_eeprom ) {
-        _trim.save();
-    }
+    _trim = trim;
 }
 
 // return a ground speed estimate in m/s

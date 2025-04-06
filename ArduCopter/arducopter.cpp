@@ -78,7 +78,6 @@
 #include "config_channels.h"
 
 // Local modules
-#include "parameters.h"
 #include "attitude.h"
 #include "compat.h"
 #include "control_modes.h"

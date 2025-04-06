@@ -103,21 +103,21 @@ bool AP_Compass_PX4::read(void)
         _sum[i].rotate(MAG_BOARD_ORIENTATION);
 
         // override any user setting of COMPASS_EXTERNAL 
-        _external.set(_is_external[0]);
+        _external = _is_external[0];
 
         if (_is_external[i]) {
             // add user selectable orientation
-            _sum[i].rotate((enum Rotation)_orientation.get());
+            _sum[i].rotate((enum Rotation)_orientation);
         } else {
             // add in board orientation from AHRS
             _sum[i].rotate(_board_orientation);
         }
 
-        _sum[i] += _offset[i].get();
+        _sum[i] += _offset[i];
 
         // apply motor compensation
         if (_motor_comp_type != AP_COMPASS_MOT_COMP_DISABLED && _thr_or_curr != 0.0f) {
-            _motor_offset[i] = _motor_compensation[i].get() * _thr_or_curr;
+            _motor_offset[i] = _motor_compensation[i] * _thr_or_curr;
             _sum[i] += _motor_offset[i];
         } else {
             _motor_offset[i].zero();

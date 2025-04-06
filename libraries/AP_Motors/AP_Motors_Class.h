@@ -157,10 +157,10 @@ protected:
 
     // parameters
     AP_CurveInt16_Size4 _throttle_curve;        // curve used to linearize the pwm->thrust
-    AP_Int8             _throttle_curve_enabled;        // enable throttle curve
-    AP_Int8             _throttle_curve_mid;    // throttle which produces 1/2 the maximum thrust.  expressed as a percentage (i.e. 0 ~ 100 ) of the full throttle range
-    AP_Int8             _throttle_curve_max;    // throttle which produces the maximum thrust.  expressed as a percentage (i.e. 0 ~ 100 ) of the full throttle range
-    AP_Int16            _spin_when_armed;       // used to control whether the motors always spin when armed.  pwm value above radio_min 
+    int8_t             _throttle_curve_enabled;        // enable throttle curve
+    int8_t             _throttle_curve_mid;    // throttle which produces 1/2 the maximum thrust.  expressed as a percentage (i.e. 0 ~ 100 ) of the full throttle range
+    int8_t             _throttle_curve_max;    // throttle which produces the maximum thrust.  expressed as a percentage (i.e. 0 ~ 100 ) of the full throttle range
+    int16_t            _spin_when_armed;       // used to control whether the motors always spin when armed.  pwm value above radio_min 
 
     // internal variables
     RC_Channel*         _rc_roll, *_rc_pitch, *_rc_throttle, *_rc_yaw;  // input in from users

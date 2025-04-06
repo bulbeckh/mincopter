@@ -22,7 +22,7 @@
 
 #include <AP_HAL.h>
 #include <AP_Scheduler.h>
-#include <AP_Param.h>
+
 
 #ifdef TARGET_ARCH_LINUX
 	#include <iostream>

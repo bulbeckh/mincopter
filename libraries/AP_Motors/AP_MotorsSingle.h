@@ -56,10 +56,10 @@ protected:
     virtual void        output_armed();
     virtual void        output_disarmed();
 
-    AP_Int8             _rev_roll;      // REV Roll feedback
-    AP_Int8             _rev_pitch;     // REV pitch feedback
-    AP_Int8             _rev_yaw;       // REV yaw feedback
-    AP_Int16            _servo_speed;   // servo speed
+    int8_t             _rev_roll;      // REV Roll feedback
+    int8_t             _rev_pitch;     // REV pitch feedback
+    int8_t             _rev_yaw;       // REV yaw feedback
+    int16_t            _servo_speed;   // servo speed
     RC_Channel*         _servo1;
     RC_Channel*         _servo2;
     RC_Channel*         _servo3;

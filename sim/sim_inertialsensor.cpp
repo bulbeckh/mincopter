@@ -61,7 +61,7 @@ bool AP_InertialSensor_Sim::update( void )
     _accel[0].rotate(_board_orientation);
     _accel[0] *= 1 / _num_samples;
 
-    Vector3f accel_scale = _accel_scale[0].get();
+    Vector3f accel_scale = _accel_scale[0];
     _accel[0].x *= accel_scale.x;
     _accel[0].y *= accel_scale.y;
     _accel[0].z *= accel_scale.z;

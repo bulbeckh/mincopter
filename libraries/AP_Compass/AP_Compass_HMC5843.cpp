@@ -364,18 +364,18 @@ bool AP_Compass_HMC5843::read()
     _field[0].rotate(MAG_BOARD_ORIENTATION);
 
     // add user selectable orientation
-    _field[0].rotate((enum Rotation)_orientation.get());
+    _field[0].rotate((enum Rotation)_orientation);
 
     if (!_external) {
         // and add in AHRS_ORIENTATION setting if not an external compass
         _field[0].rotate(_board_orientation);
     }
 
-    _field[0] += _offset[0].get();
+    _field[0] += _offset[0];
 
     // apply motor compensation
     if(_motor_comp_type != AP_COMPASS_MOT_COMP_DISABLED && _thr_or_curr != 0.0f) {
-        _motor_offset[0] = _motor_compensation[0].get() * _thr_or_curr;
+        _motor_offset[0] = _motor_compensation[0] * _thr_or_curr;
         _field[0] += _motor_offset[0];
     }else{
         _motor_offset[0].zero();

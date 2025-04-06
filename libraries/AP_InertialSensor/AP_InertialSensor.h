@@ -153,9 +153,7 @@ public:
 
     // override default filter frequency
     void set_default_filter(float filter_hz) {
-        if (!_mpu6000_filter.load()) {
-            _mpu6000_filter.set(filter_hz);
-        }
+        _mpu6000_filter = filter_hz;
     }
 
     virtual uint16_t error_count(void) const { return 0; }
@@ -187,9 +185,6 @@ protected:
     virtual void            _calculate_trim(Vector3f accel_sample, float& trim_roll, float& trim_pitch);
 #endif
 
-    // save parameters to eeprom
-    void  _save_parameters();
-
     // Most recent accelerometer reading obtained by ::update
     Vector3f _accel[INS_MAX_INSTANCES];
 
@@ -200,15 +195,15 @@ protected:
     Vector3f _gyro[INS_MAX_INSTANCES];
 
     // product id
-    AP_Int16 _product_id;
+    int16_t _product_id;
 
     // accelerometer scaling and offsets
-    AP_Vector3f             _accel_scale[INS_MAX_INSTANCES];
-    AP_Vector3f             _accel_offset[INS_MAX_INSTANCES];
-    AP_Vector3f             _gyro_offset[INS_MAX_INSTANCES];
+    Vector3f             _accel_scale[INS_MAX_INSTANCES];
+    Vector3f             _accel_offset[INS_MAX_INSTANCES];
+    Vector3f             _gyro_offset[INS_MAX_INSTANCES];
 
     // filtering frequency (0 means default)
-    AP_Int8                 _mpu6000_filter;
+    int8_t                 _mpu6000_filter;
 
     // board orientation from AHRS
     enum Rotation			_board_orientation;

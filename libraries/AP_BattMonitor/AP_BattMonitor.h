@@ -4,7 +4,7 @@
 
 #include <inttypes.h>
 #include <AP_Common.h>
-#include <AP_Param.h>
+
 #include <AP_Math.h>                // ArduPilot Mega Vector/Matrix math Library
 #include <AP_ADC.h>                 // ArduPilot Mega Analog to Digital Converter Library
 #include <AP_ADC_AnalogSource.h>
@@ -84,7 +84,7 @@ public:
     int8_t monitoring() const { return _monitoring; }
 
     /// monitoring - returns whether we are monitoring voltage only or voltage and current
-    void set_monitoring(uint8_t mon) { _monitoring.set(mon); }
+    void set_monitoring(uint8_t mon) { _monitoring = mon; }
 
     /// Battery voltage.  Initialized to 99 to prevent low voltage events at startup
     float voltage() const { return _voltage; }
@@ -106,13 +106,13 @@ public:
 protected:
 
     /// parameters
-    AP_Int8     _monitoring;                /// 0=disabled, 3=voltage only, 4=voltage and current
-    AP_Int8     _volt_pin;                  /// board pin used to measure battery voltage
-    AP_Int8     _curr_pin;                  /// board pin used to measure battery current
-    AP_Float    _volt_multiplier;           /// voltage on volt pin multiplied by this to calculate battery voltage
-    AP_Float    _curr_amp_per_volt;         /// voltage on current pin multiplied by this to calculate current in amps
-    AP_Float    _curr_amp_offset;           /// offset voltage that is subtracted from current pin before conversion to amps
-    AP_Int32    _pack_capacity;             /// battery pack capacity less reserve in mAh
+    int8_t     _monitoring;                /// 0=disabled, 3=voltage only, 4=voltage and current
+    int8_t     _volt_pin;                  /// board pin used to measure battery voltage
+    int8_t     _curr_pin;                  /// board pin used to measure battery current
+    float   _volt_multiplier;           /// voltage on volt pin multiplied by this to calculate battery voltage
+    float   _curr_amp_per_volt;         /// voltage on current pin multiplied by this to calculate current in amps
+    float   _curr_amp_offset;           /// offset voltage that is subtracted from current pin before conversion to amps
+    int32_t    _pack_capacity;             /// battery pack capacity less reserve in mAh
 
     /// internal variables
     float       _voltage;                   /// last read voltage

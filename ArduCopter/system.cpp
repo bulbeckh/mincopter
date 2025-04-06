@@ -12,7 +12,6 @@ extern MCState mcstate;
 #include "util.h"
 #include "log.h"
 #include "radio.h"
-#include "parameters.h"
 
 #ifdef TARGET_ARCH_LINUX
 	#include <iostream>
@@ -92,7 +91,7 @@ void init_ardupilot()
     // initialise battery monitor
     mincopter.battery.init();
 
-    mincopter.rssi_analog_source      = mincopter.hal.analogin->channel(mincopter.g.rssi_pin);
+    mincopter.rssi_analog_source      = mincopter.hal.analogin->channel(mincopter.rssi_pin);
     mincopter.board_vcc_analog_source = mincopter.hal.analogin->channel(ANALOG_INPUT_BOARD_VCC);
 
     mincopter.barometer.init();
@@ -118,12 +117,12 @@ void init_ardupilot()
     // we have a 2nd serial port for telemetry on all boards except
     // APM2. We actually do have one on APM2 but it isn't necessary as
     // a MUX is used
-    mincopter.hal.uartC->begin(map_baudrate(mincopter.g.serial1_baud, SERIAL1_BAUD), 128, 128);
+    mincopter.hal.uartC->begin(map_baudrate(mincopter.serial1_baud, SERIAL1_BAUD), 128, 128);
     //gcs[1].init(hal.uartC);
 #endif
 #if MAVLINK_COMM_NUM_BUFFERS > 2
     if (mincopter.hal.uartD != NULL) {
-        mincopter.hal.uartD->begin(map_baudrate(mincopter.g.serial2_baud, SERIAL2_BAUD), 128, 128);
+        mincopter.hal.uartD->begin(map_baudrate(mincopter.serial2_baud, SERIAL2_BAUD), 128, 128);
         //gcs[2].init(hal.uartD);
     }
 #endif
@@ -145,7 +144,7 @@ void init_ardupilot()
     mincopter.DataFlash.Init(log_structure, 22);
     if (!mincopter.DataFlash.CardInserted()) {
         //gcs_send_text_P(SEVERITY_LOW, PSTR("No dataflash inserted"));
-        mincopter.g.log_bitmask.set(0);
+        mincopter.log_bitmask = 0;
     } else if (mincopter.DataFlash.NeedErase()) {
         //gcs_send_text_P(SEVERITY_LOW, PSTR("ERASING LOGS"));
         do_erase_logs();
@@ -179,7 +178,7 @@ void init_ardupilot()
     // GPS Initialization
     mincopter.g_gps->init(mincopter.hal.uartB, GPS::GPS_ENGINE_AIRBORNE_1G);
 
-    if(mincopter.g.compass_enabled)
+    if(mincopter.compass_enabled)
         init_compass();
 
 		/*
@@ -413,7 +412,7 @@ bool set_mode(uint8_t mode)
 
         case AUTO:
             // check we have a GPS and at least one mission command (note the home position is always command 0)
-            if ((GPS_ok() && mincopter.g.command_total > 1) || ignore_checks) {
+            if ((GPS_ok() && mincopter.command_total > 1) || ignore_checks) {
                 success = true;
                 // roll-pitch, throttle and yaw modes will all be set by the first nav command
                 //init_commands();            // clear the command queues. will be reloaded when "run_autopilot" calls "update_commands" function
@@ -460,7 +459,7 @@ void update_auto_armed()
         // arm checks
         
         // if motors are armed and throttle is above zero auto_armed should be true
-        if(mincopter.motors.armed() && mincopter.g.rc_3.control_in != 0) {
+        if(mincopter.motors.armed() && mincopter.rc_3.control_in != 0) {
             set_auto_armed(true);
         }
     }
@@ -504,7 +503,7 @@ void check_usb_mux(void)
     if (mincopter.ap.usb_connected) {
         mincopter.hal.uartA->begin(SERIAL0_BAUD);
     } else {
-        mincopter.hal.uartA->begin(map_baudrate(mincopter.g.serial1_baud, SERIAL1_BAUD));
+        mincopter.hal.uartA->begin(map_baudrate(mincopter.serial1_baud, SERIAL1_BAUD));
     }
 #endif
 }

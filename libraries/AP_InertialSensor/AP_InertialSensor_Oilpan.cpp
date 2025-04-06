@@ -75,9 +75,9 @@ bool AP_InertialSensor_Oilpan::update()
         return false;
     }
     float adc_values[6];
-    Vector3f gyro_offset = _gyro_offset[0].get();
-    Vector3f accel_scale = _accel_scale[0].get();
-    Vector3f accel_offset = _accel_offset[0].get();
+    Vector3f gyro_offset = _gyro_offset[0];
+    Vector3f accel_scale = _accel_scale[0];
+    Vector3f accel_offset = _accel_offset[0];
 
     _delta_time_micros = _adc->Ch6(_sensors, adc_values);
     _temp = _adc->Ch(_gyro_temp_ch);

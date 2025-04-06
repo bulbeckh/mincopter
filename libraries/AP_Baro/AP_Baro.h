@@ -3,7 +3,7 @@
 #ifndef __AP_BARO_H__
 #define __AP_BARO_H__
 
-#include <AP_Param.h>
+
 #include <Filter.h>
 #include <DerivativeFilter.h>
 
@@ -57,13 +57,13 @@ public:
     // ground temperature in degrees C
     // the ground values are only valid after calibration
     float           get_ground_temperature(void) {
-        return _ground_temperature.get();
+        return _ground_temperature;
     }
 
     // ground pressure in Pascal
     // the ground values are only valid after calibration
     float           get_ground_pressure(void) {
-        return _ground_pressure.get();
+        return _ground_pressure;
     }
 
     // get last time sample was taken (in ms)
@@ -76,9 +76,9 @@ protected:
     uint8_t                             _pressure_samples;
 
 private:
-    AP_Float                            _ground_temperature;
-    AP_Float                            _ground_pressure;
-    AP_Int8                             _alt_offset;
+    float                           _ground_temperature;
+    float                           _ground_pressure;
+    int8_t                             _alt_offset;
     float                               _altitude;
     float                               _last_altitude_EAS2TAS;
     float                               _EAS2TAS;

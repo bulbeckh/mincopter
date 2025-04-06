@@ -31,9 +31,9 @@ void failsafe_radio_on_event()
         case ACRO:
         case SPORT:
             // if throttle is zero disarm motors
-            if (mincopter.g.rc_3.control_in == 0) {
+            if (mincopter.rc_3.control_in == 0) {
                 init_disarm_motors();
-            }else if(mincopter.g.failsafe_throttle == FS_THR_ENABLED_ALWAYS_LAND) {
+            }else if(mincopter.failsafe_throttle == FS_THR_ENABLED_ALWAYS_LAND) {
                 // if failsafe_throttle is 3 (i.e. FS_THR_ENABLED_ALWAYS_LAND) land immediately
                 set_mode(LAND);
 						// TODO Change home_distance to mcstate
@@ -49,7 +49,7 @@ void failsafe_radio_on_event()
             break;
         case AUTO:
             // failsafe_throttle is 1 do RTL, 2 means continue with the mission
-            if (mincopter.g.failsafe_throttle == FS_THR_ENABLED_ALWAYS_RTL) {
+            if (mincopter.failsafe_throttle == FS_THR_ENABLED_ALWAYS_RTL) {
                 if(mincopter.home_distance > mcstate.wp_nav.get_waypoint_radius()) {
                     if (!set_mode(RTL)) {
                         set_mode(LAND);
@@ -58,7 +58,7 @@ void failsafe_radio_on_event()
                     // We are very close to home so we will land
                     set_mode(LAND);
                 }
-            }else if(mincopter.g.failsafe_throttle == FS_THR_ENABLED_ALWAYS_LAND) {
+            }else if(mincopter.failsafe_throttle == FS_THR_ENABLED_ALWAYS_LAND) {
                 // if failsafe_throttle is 3 (i.e. FS_THR_ENABLED_ALWAYS_LAND) land immediately
             	set_mode(LAND);
             }
@@ -67,9 +67,9 @@ void failsafe_radio_on_event()
         case LOITER:
         case ALT_HOLD:
             // if landed with throttle at zero disarm, otherwise do the regular thing
-            if (mincopter.g.rc_3.control_in == 0 && mincopter.ap.land_complete) {
+            if (mincopter.rc_3.control_in == 0 && mincopter.ap.land_complete) {
                 init_disarm_motors();
-            }else if(mincopter.g.failsafe_throttle == FS_THR_ENABLED_ALWAYS_LAND) {
+            }else if(mincopter.failsafe_throttle == FS_THR_ENABLED_ALWAYS_LAND) {
                 // if failsafe_throttle is 3 (i.e. FS_THR_ENABLED_ALWAYS_LAND) land immediately
                 set_mode(LAND);
             }else if(mincopter.home_distance > mcstate.wp_nav.get_waypoint_radius()) {
@@ -83,11 +83,11 @@ void failsafe_radio_on_event()
             break;
         case LAND:
             // continue to land if battery failsafe is also active otherwise fall through to default handling
-            if (mincopter.g.failsafe_battery_enabled == FS_BATT_LAND && mcstate.failsafe.battery) {
+            if (mincopter.failsafe_battery_enabled == FS_BATT_LAND && mcstate.failsafe.battery) {
                 break;
             }
         default:
-            if(mincopter.g.failsafe_throttle == FS_THR_ENABLED_ALWAYS_LAND) {
+            if(mincopter.failsafe_throttle == FS_THR_ENABLED_ALWAYS_LAND) {
                 // if failsafe_throttle is 3 (i.e. FS_THR_ENABLED_ALWAYS_LAND) land immediately
                 set_mode(LAND);
             }else if(mincopter.home_distance > mcstate.wp_nav.get_waypoint_radius()) {
@@ -124,17 +124,17 @@ void failsafe_battery_event(void)
     }
 
     // failsafe check
-    if (mincopter.g.failsafe_battery_enabled != FS_BATT_DISABLED && mincopter.motors.armed()) {
+    if (mincopter.failsafe_battery_enabled != FS_BATT_DISABLED && mincopter.motors.armed()) {
         switch(mincopter.control_mode) {
             case STABILIZE:
             case ACRO:
             case SPORT:
                 // if throttle is zero disarm motors
-                if (mincopter.g.rc_3.control_in == 0) {
+                if (mincopter.rc_3.control_in == 0) {
                     init_disarm_motors();
                 }else{
                     // set mode to RTL or LAND
-                    if (mincopter.g.failsafe_battery_enabled == FS_BATT_RTL && mincopter.home_distance > mcstate.wp_nav.get_waypoint_radius()) {
+                    if (mincopter.failsafe_battery_enabled == FS_BATT_RTL && mincopter.home_distance > mcstate.wp_nav.get_waypoint_radius()) {
                         if (!set_mode(RTL)) {
                             set_mode(LAND);
                         }
@@ -156,13 +156,13 @@ void failsafe_battery_event(void)
             case LOITER:
             case ALT_HOLD:
                 // if landed with throttle at zero disarm, otherwise fall through to default handling
-                if (mincopter.g.rc_3.control_in == 0 && mincopter.ap.land_complete) {
+                if (mincopter.rc_3.control_in == 0 && mincopter.ap.land_complete) {
                     init_disarm_motors();
                     break;
                 }
             default:
                 // set mode to RTL or LAND
-                if (mincopter.g.failsafe_battery_enabled == FS_BATT_RTL && mincopter.home_distance > mcstate.wp_nav.get_waypoint_radius()) {
+                if (mincopter.failsafe_battery_enabled == FS_BATT_RTL && mincopter.home_distance > mcstate.wp_nav.get_waypoint_radius()) {
                     if (!set_mode(RTL)) {
                         set_mode(LAND);
                     }
@@ -269,7 +269,7 @@ void fence_check()
 
             // disarm immediately if we think we are on the ground
             // don't disarm if the high-altitude fence has been broken because it's likely the user has pulled their throttle to zero to bring it down
-            if(/* manual_flight_mode(control_mode) && */ mincopter.g.rc_3.control_in == 0 && !mcstate.failsafe.radio && ((mcstate.fence.get_breaches() & AC_FENCE_TYPE_ALT_MAX)== 0)){
+            if(/* manual_flight_mode(control_mode) && */ mincopter.rc_3.control_in == 0 && !mcstate.failsafe.radio && ((mcstate.fence.get_breaches() & AC_FENCE_TYPE_ALT_MAX)== 0)){
                 init_disarm_motors();
             }else{
                 // if we are within 100m of the fence, RTL

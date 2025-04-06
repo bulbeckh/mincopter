@@ -4,7 +4,7 @@
 
 #include <inttypes.h>
 #include <AP_Common.h>
-#include <AP_Param.h>
+
 #include <AP_Math.h>
 #include <AC_PID.h>             // PID library
 #include <APM_PI.h>             // PID library
@@ -144,7 +144,7 @@ public:
     float get_waypoint_radius() const { return _wp_radius_cm; }
 
     /// get_waypoint_acceleration - returns acceleration in cm/s/s during missions
-    float get_waypoint_acceleration() const { return _wp_accel_cms.get(); }
+    float get_waypoint_acceleration() const { return _wp_accel_cms; }
 
     /// set_lean_angle_max - limits maximum lean angle
     void set_lean_angle_max(int16_t angle_cd) { if (angle_cd >= 1000 && angle_cd <= 8000) {_lean_angle_max_cd = angle_cd;} }
@@ -197,12 +197,12 @@ protected:
     AC_PID*		const _pid_rate_lon;
 
     // parameters
-    AP_Float    _loiter_speed_cms;      // maximum horizontal speed in cm/s while in loiter
-    AP_Float    _wp_speed_cms;          // maximum horizontal speed in cm/s during missions
-    AP_Float    _wp_speed_up_cms;       // climb speed target in cm/s
-    AP_Float    _wp_speed_down_cms;     // descent speed target in cm/s
-    AP_Float    _wp_radius_cm;          // distance from a waypoint in cm that, when crossed, indicates the wp has been reached
-    AP_Float    _wp_accel_cms;          // acceleration in cm/s/s during missions
+    float   _loiter_speed_cms;      // maximum horizontal speed in cm/s while in loiter
+    float   _wp_speed_cms;          // maximum horizontal speed in cm/s during missions
+    float   _wp_speed_up_cms;       // climb speed target in cm/s
+    float   _wp_speed_down_cms;     // descent speed target in cm/s
+    float   _wp_radius_cm;          // distance from a waypoint in cm that, when crossed, indicates the wp has been reached
+    float   _wp_accel_cms;          // acceleration in cm/s/s during missions
     uint8_t     _loiter_step;           // used to decide which portion of loiter controller to run during this iteration
     uint8_t     _wpnav_step;            // used to decide which portion of wpnav controller to run during this iteration
     uint32_t	_loiter_last_update;    // time of last update_loiter call

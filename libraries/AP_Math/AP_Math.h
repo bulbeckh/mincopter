@@ -6,7 +6,8 @@
 // Assorted useful math operations for ArduPilot(Mega)
 
 #include <AP_Common.h>
-#include <AP_Param.h>
+#include <AP_HAL.h>
+
 #include <math.h>
 #ifdef __AVR__
 # include <AP_Math_AVR_Compat.h>
@@ -47,8 +48,8 @@
 #define LATLON_TO_CM 1.113195f
 
 // define AP_Param types AP_Vector3f and Ap_Matrix3f
-AP_PARAMDEFV(Matrix3f, Matrix3f, AP_PARAM_MATRIX3F);
-AP_PARAMDEFV(Vector3f, Vector3f, AP_PARAM_VECTOR3F);
+//AP_PARAMDEFV(Matrix3f, Matrix3f, AP_PARAM_MATRIX3F);
+//AP_PARAMDEFV(Vector3f, Vector3f, AP_PARAM_VECTOR3F);
 
 // a varient of asin() that always gives a valid answer.
 float           safe_asin(float v);

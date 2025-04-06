@@ -115,8 +115,8 @@ AP_InertialSensor::init( Start_style style,
 
     // check scaling
     for (uint8_t i=0; i<get_accel_count(); i++) {
-        if (_accel_scale[i].get().is_zero()) {
-            _accel_scale[i].set(Vector3f(1,1,1));
+        if (_accel_scale[i].is_zero()) {
+            _accel_scale[i] = Vector3f(1,1,1);
         }
     }
 
@@ -126,24 +126,11 @@ AP_InertialSensor::init( Start_style style,
     }
 }
 
-// save parameters to eeprom
-void AP_InertialSensor::_save_parameters()
-{
-    _product_id.save();
-    for (uint8_t i=0; i<INS_MAX_INSTANCES; i++) {
-        _accel_scale[i].save();
-        _accel_offset[i].save();
-        _gyro_offset[i].save();
-    }
-}
-
 void
 AP_InertialSensor::init_gyro()
 {
     _init_gyro();
 
-    // save calibration
-    _save_parameters();
 }
 
 void
@@ -249,8 +236,6 @@ AP_InertialSensor::init_accel()
 {
     _init_accel();
 
-    // save calibration
-    _save_parameters();
 }
 
 void
@@ -371,8 +356,8 @@ bool AP_InertialSensor::calibrate_accel(AP_InertialSensor_UserInteract* interact
 
     for (uint8_t k=0; k<num_accels; k++) {
         // backup original offsets and scaling
-        orig_offset[k] = _accel_offset[k].get();
-        orig_scale[k]  = _accel_scale[k].get();
+        orig_offset[k] = _accel_offset[k];
+        orig_scale[k]  = _accel_scale[k];
 
         // clear accelerometer offsets and scaling
         _accel_offset[k] = Vector3f(0,0,0);
@@ -456,10 +441,9 @@ bool AP_InertialSensor::calibrate_accel(AP_InertialSensor_UserInteract* interact
 
         for (uint8_t k=0; k<num_accels; k++) {
             // set and save calibration
-            _accel_offset[k].set(new_offsets[k]);
-            _accel_scale[k].set(new_scaling[k]);
+            _accel_offset[k] = new_offsets[k];
+            _accel_scale[k] = new_scaling[k];
         }
-        _save_parameters();
 
         // calculate the trims as well from primary accels and pass back to caller
         _calculate_trim(samples[0][0], trim_roll, trim_pitch);
@@ -471,8 +455,8 @@ failed:
     interact->printf_P(PSTR("Calibration FAILED\n"));
     // restore original scaling and offsets
     for (uint8_t k=0; k<num_accels; k++) {
-        _accel_offset[k].set(orig_offset[k]);
-        _accel_scale[k].set(orig_scale[k]);
+        _accel_offset[k] = orig_offset[k];
+        _accel_scale[k] = orig_scale[k]; 
     }
     return false;
 }
@@ -481,7 +465,9 @@ failed:
 /// @note this should not be called while flying because it reads from the eeprom which can be slow
 bool AP_InertialSensor::calibrated()
 {
-    return _accel_offset[0].load();
+		// TODO This may be the incorrect way to check calibration. Previous code checked to see if the eeprom
+    //return _accel_offset[0];
+		return false;
 }
 
 // _calibrate_model - perform low level accel calibration
@@ -634,8 +620,8 @@ void AP_InertialSensor::_calibrate_find_delta(float dS[6], float JS[6][6], float
 void AP_InertialSensor::_calculate_trim(Vector3f accel_sample, float& trim_roll, float& trim_pitch)
 {
     // scale sample and apply offsets
-    Vector3f accel_scale = _accel_scale[0].get();
-    Vector3f accel_offsets = _accel_offset[0].get();
+    Vector3f accel_scale = _accel_scale[0];
+    Vector3f accel_offsets = _accel_offset[0];
     Vector3f scaled_accels_x( accel_sample.x * accel_scale.x - accel_offsets.x,
                               0,
                               accel_sample.z * accel_scale.z - accel_offsets.z );

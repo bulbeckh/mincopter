@@ -286,7 +286,7 @@ protected:
 
     // XY Axis specific variables
     bool                    _xy_enabled;                // xy position estimates enabled
-    AP_Float                _time_constant_xy;          // time constant for horizontal corrections in s
+    float               _time_constant_xy;          // time constant for horizontal corrections in s
     float                   _k1_xy;                     // gain for horizontal position correction
     float                   _k2_xy;                     // gain for horizontal velocity correction
     float                   _k3_xy;                     // gain for horizontal accelerometer offset correction
@@ -304,7 +304,7 @@ protected:
     float                   _lon_to_cm_scaling;         // conversion of longitude to centimeters
 
     // Z Axis specific variables
-    AP_Float                _time_constant_z;           // time constant for vertical corrections in s
+    float               _time_constant_z;           // time constant for vertical corrections in s
     float                   _k1_z;                      // gain for vertical position correction
     float                   _k2_z;                      // gain for vertical velocity correction
     float                   _k3_z;                      // gain for vertical accelerometer offset correction

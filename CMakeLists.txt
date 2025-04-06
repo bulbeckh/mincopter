@@ -67,7 +67,7 @@ list(APPEND MC_LIBS_CORE
 		AP_Menu
 		AP_Motors
 		AP_Notify
-		AP_Param
+		##AP_Param
 		AP_Scheduler
 		DataFlash
 		Filter

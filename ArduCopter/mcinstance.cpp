@@ -19,7 +19,7 @@ extern MCState mcstate;
 #include "system.h"
 
 void read_compass(void) {
-	if (mincopter.g.compass_enabled) mincopter.compass.accumulate();
+	if (mincopter.compass_enabled) mincopter.compass.accumulate();
 }
 
 // NOTE What is the difference between read_baro and barometer.accumulate?
@@ -48,7 +48,7 @@ void update_GPS(void)
 				last_gps_reading = mincopter.g_gps->last_message_time_ms();
 
 				// log GPS message
-				if (mincopter.g.log_bitmask & MASK_LOG_GPS) {
+				if (mincopter.log_bitmask & MASK_LOG_GPS) {
 						mincopter.DataFlash.Log_Write_GPS(mincopter.g_gps, mcstate.current_loc.alt);
 				}
 
@@ -89,7 +89,7 @@ void update_GPS(void)
 										// set system clock for log timestamps
 										mincopter.hal.util->set_system_clock(mincopter.g_gps->time_epoch_usec());
 
-										if (mincopter.g.compass_enabled) {
+										if (mincopter.compass_enabled) {
 												// Set compass declination automatically
 												mincopter.compass.set_initial_location(mincopter.g_gps->latitude, mincopter.g_gps->longitude);
 										}
@@ -118,17 +118,17 @@ void read_batt_compass(void)
 
     // check for low voltage or current if the low voltage check hasn't already been triggered
     // we only check when we're not powered by USB to avoid false alarms during bench tests
-    if (!mincopter.ap.usb_connected && !mcstate.failsafe.battery && mincopter.battery.exhausted(mincopter.g.fs_batt_voltage, mincopter.g.fs_batt_mah)) {
+    if (!mincopter.ap.usb_connected && !mcstate.failsafe.battery && mincopter.battery.exhausted(mincopter.fs_batt_voltage, mincopter.fs_batt_mah)) {
         failsafe_battery_event();
     }
 
 #if HIL_MODE != HIL_MODE_ATTITUDE  // don't execute in HIL mode
-		if(mincopter.g.compass_enabled) {
+		if(mincopter.compass_enabled) {
 				if (mincopter.compass.read()) {
 						mincopter.compass.null_offsets();
 				}
 				// log compass information
-				if (mincopter.g.log_bitmask & MASK_LOG_COMPASS) {
+				if (mincopter.log_bitmask & MASK_LOG_COMPASS) {
 						Log_Write_Compass();
 				}
 		}
@@ -159,10 +159,10 @@ void one_hz_loop()
 
 		// TODO Move these to btree
 		// pass latest alt hold kP value to navigation controller
-		mcstate.wp_nav.set_althold_kP(mincopter.g.pi_alt_hold.kP());
+		mcstate.wp_nav.set_althold_kP(mincopter.pi_alt_hold.kP());
 
 		// update latest lean angle to navigation controller
-		mcstate.wp_nav.set_lean_angle_max(mincopter.g.angle_max);
+		mcstate.wp_nav.set_lean_angle_max(mincopter.angle_max);
 
 		// TODO Move arming to btree
 		// perform pre-arm checks & display failures every 30 seconds
@@ -183,7 +183,7 @@ void one_hz_loop()
 				mcstate.ahrs.set_orientation();
 
 				// check the user hasn't updated the frame orientation
-				mincopter.motors.set_frame_orientation(mincopter.g.frame_orientation);
+				mincopter.motors.set_frame_orientation(mincopter.frame_orientation);
 		}
 
 		check_usb_mux();

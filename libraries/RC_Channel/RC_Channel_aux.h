@@ -53,7 +53,7 @@ public:
         k_nr_aux_servo_functions         ///< This must be the last enum value (only add new values _before_ this one)
     } Aux_servo_function_t;
 
-    AP_Int8         function;           ///< see Aux_servo_function_t enum
+    int8_t         function;           ///< see Aux_servo_function_t enum
 
     void            output_ch(unsigned char ch_nr);
 

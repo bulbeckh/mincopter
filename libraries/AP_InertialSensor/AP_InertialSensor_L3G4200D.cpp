@@ -234,7 +234,7 @@ bool AP_InertialSensor_L3G4200D::update(void)
     if (!wait_for_sample(1000)) {
         return false;
     }
-    Vector3f accel_scale = _accel_scale[0].get();
+    Vector3f accel_scale = _accel_scale[0];
 
     _previous_accel[0] = _accel[0];
 

@@ -164,7 +164,7 @@ void update_nav_mode()
 
     // log to dataflash at 10hz
     log_counter++;
-    if (log_counter >= 10 && (mincopter.g.log_bitmask & MASK_LOG_NTUN) && mincopter.nav_mode != NAV_NONE) {
+    if (log_counter >= 10 && (mincopter.log_bitmask & MASK_LOG_NTUN) && mincopter.nav_mode != NAV_NONE) {
         log_counter = 0;
         Log_Write_Nav_Tuning();
     }

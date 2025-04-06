@@ -7,7 +7,7 @@
 #define __RC_CHANNEL_H__
 
 #include <AP_Common.h>
-#include <AP_Param.h>
+
 
 #define RC_CHANNEL_TYPE_ANGLE 0
 #define RC_CHANNEL_TYPE_RANGE 1
@@ -44,8 +44,6 @@ public:
     void        zero_min_max();
 
     // startup
-    void        load_eeprom(void);
-    void        save_eeprom(void);
     void        save_trim(void);
     void        set_type(uint8_t t);
 
@@ -85,9 +83,9 @@ public:
     int16_t         pwm_out;
     int16_t         radio_out;
 
-    AP_Int16        radio_min;
-    AP_Int16        radio_trim;
-    AP_Int16        radio_max;
+    int16_t        radio_min;
+    int16_t        radio_trim;
+    int16_t        radio_max;
 
     // includes offset from PWM
     //int16_t   get_radio_out(void);
@@ -113,8 +111,8 @@ public:
     static RC_Channel *rc_channel(uint8_t i);
 
 private:
-    AP_Int8         _reverse;
-    AP_Int16        _dead_zone;
+    int8_t         _reverse;
+    int16_t        _dead_zone;
     uint8_t         _type;
     int16_t         _high;
     int16_t         _low;

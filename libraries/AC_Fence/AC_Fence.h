@@ -4,7 +4,7 @@
 
 #include <inttypes.h>
 #include <AP_Common.h>
-#include <AP_Param.h>
+
 #include <AP_Math.h>
 #include <AP_InertialNav.h>     // Inertial Navigation library
 
@@ -66,7 +66,7 @@ public:
     float get_breach_distance(uint8_t fence_type) const;
 
     /// get_action - getter for user requested action on limit breach
-    uint8_t get_action() const { return _action.get(); }
+    uint8_t get_action() const { return _action; }
 
     /// get_safe_alt - returns maximum safe altitude (i.e. alt_max - margin)
     float get_safe_alt() const { return _alt_max - _margin; }
@@ -92,12 +92,12 @@ private:
     const AP_InertialNav *const _inav;
 
     // parameters
-    AP_Int8         _enabled;               // top level enable/disable control
-    AP_Int8         _enabled_fences;        // bit mask holding which fences are enabled
-    AP_Int8         _action;                // recovery action specified by user
-    AP_Float        _alt_max;               // altitude upper limit in meters
-    AP_Float        _circle_radius;         // circle fence radius in meters
-    AP_Float        _margin;                // distance in meters that autopilot's should maintain from the fence to avoid a breach
+    int8_t         _enabled;               // top level enable/disable control
+    int8_t         _enabled_fences;        // bit mask holding which fences are enabled
+ 	  int8_t         _action;                // recovery action specified by user
+    float       _alt_max;               // altitude upper limit in meters
+    float       _circle_radius;         // circle fence radius in meters
+    float       _margin;                // distance in meters that autopilot's should maintain from the fence to avoid a breach
 
     // backup fences
     float           _alt_max_backup;        // backup altitude upper limit in meters used to refire the breach if the vehicle continues to move further away

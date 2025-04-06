@@ -4,7 +4,7 @@
 
 #include <inttypes.h>
 #include <AP_Common.h>
-#include <AP_Param.h>
+
 #include <AP_Math.h>
 #include <AP_Declination.h> // ArduPilot Mega Declination Helper Library
 
@@ -87,13 +87,6 @@ public:
     /// @param  offsets             Offsets to the raw mag_ values.
     ///
     void set_offsets(const Vector3f &offsets);
-
-    /// Saves the current compass offset x/y/z values.
-    ///
-    /// This should be invoked periodically to save the offset values maintained by
-    /// ::null_offsets.
-    ///
-    void save_offsets();
 
     // return the number of compass instances
     virtual uint8_t get_count(void) const { return 1; }
@@ -182,12 +175,6 @@ public:
     const Vector3f& get_motor_compensation(uint8_t i) const { return _motor_compensation[i]; }
     const Vector3f& get_motor_compensation(void) const { return get_motor_compensation(0); }
 
-    /// Saves the current motor compensation x/y/z values.
-    ///
-    /// This should be invoked periodically to save the offset values calculated by the motor compensation auto learning
-    ///
-    void save_motor_compensation();
-
     /// Returns the current motor compensation offset values
     ///
     /// @returns                    The current compass offsets.
@@ -214,7 +201,7 @@ public:
     //static const struct AP_Param::GroupInfo var_info[];
 
     // settable parameters
-    AP_Int8 _learn;                             ///<enable calibration learning
+    int8_t _learn;                             ///<enable calibration learning
 
 protected:
     virtual uint8_t _get_primary(void) const { return 0; }
@@ -222,12 +209,12 @@ protected:
     bool _healthy[COMPASS_MAX_INSTANCES];
     Vector3f _field[COMPASS_MAX_INSTANCES];     ///< magnetic field strength
 
-    AP_Int8 _orientation;
-    AP_Vector3f _offset[COMPASS_MAX_INSTANCES];
-    AP_Float _declination;
-    AP_Int8 _use_for_yaw;                       ///<enable use for yaw calculation
-    AP_Int8 _auto_declination;                  ///<enable automatic declination code
-    AP_Int8 _external;                          ///<compass is external
+    int8_t _orientation;
+    Vector3f _offset[COMPASS_MAX_INSTANCES];
+    float _declination;
+    int8_t _use_for_yaw;                       ///<enable use for yaw calculation
+    int8_t _auto_declination;                  ///<enable automatic declination code
+    int8_t _external;                          ///<compass is external
 
     bool _null_init_done;                           ///< first-time-around flag used by offset nulling
 
@@ -237,8 +224,8 @@ protected:
     Vector3i _mag_history[COMPASS_MAX_INSTANCES][_mag_history_size];
 
     // motor compensation
-    AP_Int8     _motor_comp_type;               // 0 = disabled, 1 = enabled for throttle, 2 = enabled for current
-    AP_Vector3f _motor_compensation[COMPASS_MAX_INSTANCES]; // factors multiplied by throttle and added to compass outputs
+    int8_t     _motor_comp_type;               // 0 = disabled, 1 = enabled for throttle, 2 = enabled for current
+    Vector3f    _motor_compensation[COMPASS_MAX_INSTANCES]; // factors multiplied by throttle and added to compass outputs
     Vector3f    _motor_offset[COMPASS_MAX_INSTANCES]; // latest compensation added to compass
     float       _thr_or_curr;                   // throttle expressed as a percentage from 0 ~ 1.0 or current expressed in amps
 

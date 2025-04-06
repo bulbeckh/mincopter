@@ -178,7 +178,7 @@ bool AP_InertialSensor_Flymaple::update(void)
     if (!wait_for_sample(100)) {
         return false;
     }
-    Vector3f accel_scale = _accel_scale[0].get();
+    Vector3f accel_scale = _accel_scale[0];
 
     // Not really needed since Flymaple _accumulate runs in the main thread
     hal.scheduler->suspend_timer_procs();

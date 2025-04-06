@@ -145,9 +145,9 @@ bool AP_InertialSensor_PX4::update(void)
         _previous_accel[k] = _accel[k];
         _accel[k] = _accel_in[k];
         _accel[k].rotate(_board_orientation);
-        _accel[k].x *= _accel_scale[k].get().x;
-        _accel[k].y *= _accel_scale[k].get().y;
-        _accel[k].z *= _accel_scale[k].get().z;
+        _accel[k].x *= _accel_scale[k].x;
+        _accel[k].y *= _accel_scale[k].y;
+        _accel[k].z *= _accel_scale[k].z;
         _accel[k]   -= _accel_offset[k];
     }
 

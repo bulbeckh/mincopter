@@ -3,7 +3,7 @@
 #include <AP_HAL.h>
 #include "DataFlash.h"
 #include <stdlib.h>
-#include <AP_Param.h>
+
 #include <AP_Math.h>
 #include <AP_Baro.h>
 
@@ -570,8 +570,6 @@ uint16_t DataFlash_Class::StartNewLog(void)
         hal.scheduler->delay(10);
     }
 
-    // and all current parameters
-    Log_Write_Parameters();
     return ret;
 }
 
@@ -600,54 +598,6 @@ void DataFlash_Class::Log_Write_Format(const struct LogStructure *s)
     Log_Fill_Format(s, pkt);
     WriteBlock(&pkt, sizeof(pkt));
 }
-
-
-/*
-  write a parameter to the log
- */
-void DataFlash_Class::Log_Write_Parameter(const char *name, float value)
-{
-    struct log_Parameter pkt = {
-        LOG_PACKET_HEADER_INIT(LOG_PARAMETER_MSG),
-        name  : {},
-        value : value
-    };
-    strncpy(pkt.name, name, sizeof(pkt.name));
-    WriteBlock(&pkt, sizeof(pkt));
-}
-
-/*
-  write a parameter to the log
- */
-void DataFlash_Class::Log_Write_Parameter(const AP_Param *ap, 
-                                          const AP_Param::ParamToken &token, 
-                                          enum ap_var_type type)
-{
-    char name[16];
-    ap->copy_name_token(token, &name[0], sizeof(name), true);
-    Log_Write_Parameter(name, ap->cast_to_float(type));
-}
-
-/*
-  write all parameters to the log - used when starting a new log so
-  the log file has a full record of the parameters
- */
-void DataFlash_Class::Log_Write_Parameters(void)
-{
-    AP_Param::ParamToken token;
-    AP_Param *ap;
-    enum ap_var_type type;
-
-    for (ap=AP_Param::first(&token, &type);
-         ap;
-         ap=AP_Param::next_scalar(&token, &type)) {
-        Log_Write_Parameter(ap, token, type);
-        // slow down the parameter dump to prevent saturating
-        // the dataflash write bandwidth
-        hal.scheduler->delay(1);
-    }
-}
-
 
 
 // Write an GPS packet

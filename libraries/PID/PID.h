@@ -7,7 +7,7 @@
 #define __PID_H__
 
 #include <AP_Common.h>
-#include <AP_Param.h>
+
 #include <stdlib.h>
 #include <math.h>               // for fabs()
 
@@ -49,14 +49,6 @@ public:
     ///
     void        reset_I();
 
-    /// Load gain properties
-    ///
-    void        load_gains();
-
-    /// Save gain properties
-    ///
-    void        save_gains();
-
     /// @name	parameter accessors
     //@{
 
@@ -69,29 +61,29 @@ public:
     }
 
     float        kP() const {
-        return _kp.get();
+        return _kp;
     }
     float        kI() const {
-        return _ki.get();
+        return _ki;
     }
     float        kD() const {
-        return _kd.get();
+        return _kd;
     }
     int16_t        imax() const {
-        return _imax.get();
+        return _imax;
     }
 
     void        kP(const float v)               {
-        _kp.set(v);
+        _kp = v;
     }
     void        kI(const float v)               {
-        _ki.set(v);
+        _ki = v;
     }
     void        kD(const float v)               {
-        _kd.set(v);
+        _kd = v;
     }
     void        imax(const int16_t v)   {
-        _imax.set(abs(v));
+        _imax = abs(v);
     }
 
     float        get_integrator() const {
@@ -101,10 +93,10 @@ public:
     //static const struct AP_Param::GroupInfo        var_info[];
 
 private:
-    AP_Float        _kp;
-    AP_Float        _ki;
-    AP_Float        _kd;
-    AP_Int16        _imax;
+    float       _kp;
+    float       _ki;
+    float       _kd;
+    int16_t        _imax;
 
     float           _integrator;///< integrator value
     float           _last_error;///< last error for derivative

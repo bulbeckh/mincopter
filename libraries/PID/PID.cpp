@@ -105,20 +105,3 @@ PID::reset_I()
     _last_derivative = NAN;
 }
 
-void
-PID::load_gains()
-{
-    _kp.load();
-    _ki.load();
-    _kd.load();
-    _imax.load();
-}
-
-void
-PID::save_gains()
-{
-    _kp.save();
-    _ki.save();
-    _kd.save();
-    _imax.save();
-}

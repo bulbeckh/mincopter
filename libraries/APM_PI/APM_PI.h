@@ -7,7 +7,7 @@
 #define __APM_PI_H__
 
 #include <stdlib.h>
-#include <AP_Param.h>
+
 
 /// @class	APM_PI
 /// @brief	Object managing one PI control
@@ -58,14 +58,6 @@ public:
     ///
     void        reset_I();
 
-    /// Load gain properties
-    ///
-    void        load_gains();
-
-    /// Save gain properties
-    ///
-    void        save_gains();
-
     /// @name	parameter accessors
     //@{
 
@@ -78,23 +70,23 @@ public:
     }
 
     float           kP() const {
-        return _kp.get();
+        return _kp;
     }
     float           kI() const {
-        return _ki.get();
+        return _ki;
     }
     int16_t         imax() const {
-        return _imax.get();
+        return _imax;
     }
 
     void            kP(const float v)               {
-        _kp.set(v);
+        _kp = v;
     }
     void            kI(const float v)               {
-        _ki.set(v);
+        _ki = v;
     }
     void            imax(const int16_t v)   {
-        _imax.set(abs(v));
+        _imax = abs(v);
     }
     float           get_integrator() const {
         return _integrator;
@@ -106,9 +98,9 @@ public:
     //static const struct AP_Param::GroupInfo        var_info[];
 
 private:
-    AP_Float        _kp;
-    AP_Float        _ki;
-    AP_Int16        _imax;
+    float       _kp;
+    float       _ki;
+    int16_t        _imax;
 
     // integrator value
     float           _integrator;

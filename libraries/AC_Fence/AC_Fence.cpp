@@ -72,10 +72,10 @@ AC_Fence::AC_Fence(const AP_InertialNav* inav) :
 
     // check for silly fence values
     if (_alt_max < 0) {
-        _alt_max.set_and_save(AC_FENCE_ALT_MAX_DEFAULT);
+        _alt_max = AC_FENCE_ALT_MAX_DEFAULT;
     }
     if (_circle_radius < 0) {
-        _circle_radius.set_and_save(AC_FENCE_CIRCLE_RADIUS_DEFAULT);
+        _circle_radius = AC_FENCE_CIRCLE_RADIUS_DEFAULT;
     }
 }
 

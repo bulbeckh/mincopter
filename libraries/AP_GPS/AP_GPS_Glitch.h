@@ -54,9 +54,9 @@ private:
     } _flags;
 
     // parameters
-    AP_Int8     _enabled;           // top level enable/disable control
-    AP_Float    _radius_cm;         // radius in cm within which all new positions from GPS are accepted
-    AP_Float    _accel_max_cmss;    // vehicles maximum acceleration in cm/s/s
+    int8_t     _enabled;           // top level enable/disable control
+    float   _radius_cm;         // radius in cm within which all new positions from GPS are accepted
+    float   _accel_max_cmss;    // vehicles maximum acceleration in cm/s/s
 
     // gps sanity check variables
     uint32_t    _last_good_update;  // system time of last gps update that passed checks

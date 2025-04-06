@@ -65,7 +65,7 @@ void AP_Baro::calibrate()
 
     // reset the altitude offset when we calibrate. The altitude
     // offset is supposed to be for within a flight
-    _alt_offset.set_and_save(0);
+    _alt_offset = 0;
 
     {
         uint32_t tstart = hal.scheduler->millis();
@@ -116,8 +116,8 @@ void AP_Baro::calibrate()
         hal.scheduler->delay(100);
     }
 
-    _ground_pressure.set_and_save(ground_pressure);
-    _ground_temperature.set_and_save(ground_temperature);
+    _ground_pressure = ground_pressure;
+    _ground_temperature = ground_temperature;
 }
 
 /**
@@ -127,8 +127,8 @@ void AP_Baro::calibrate()
 */
 void AP_Baro::update_calibration()
 {
-    _ground_pressure.set(get_pressure());
-    _ground_temperature.set(get_temperature());
+    _ground_pressure = get_pressure();
+    _ground_temperature = get_temperature();
 }
 
 // return current altitude estimate relative to time that calibrate()

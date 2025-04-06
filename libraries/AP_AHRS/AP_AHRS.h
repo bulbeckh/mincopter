@@ -28,7 +28,7 @@
 #include <AP_GPS.h>
 #include <AP_InertialSensor.h>
 #include <AP_Baro.h>
-#include <AP_Param.h>
+
 
 #define AP_AHRS_TRIM_LIMIT 10.0f        // maximum trim angle in degrees
 
@@ -81,9 +81,9 @@ public:
     // allow for runtime change of orientation
     // this makes initial config easier
     void set_orientation() {
-        _ins.set_board_orientation((enum Rotation)_board_orientation.get());
+        _ins.set_board_orientation((enum Rotation)_board_orientation);
         if (_compass != NULL) {
-            _compass->set_board_orientation((enum Rotation)_board_orientation.get());
+            _compass->set_board_orientation((enum Rotation)_board_orientation);
         }
     }
 
@@ -198,7 +198,7 @@ public:
     }
 
     // get trim
-    const Vector3f &get_trim() const { return _trim.get(); }
+    const Vector3f &get_trim() const { return _trim; }
 
     // set trim
     virtual void            set_trim(Vector3f new_trim);
@@ -210,18 +210,18 @@ public:
     //static const struct AP_Param::GroupInfo var_info[];
 
     // these are public for ArduCopter
-	AP_Float _kp_yaw;
-    AP_Float _kp;
-    AP_Float gps_gain;
+		float _kp_yaw;
+    float _kp;
+    float gps_gain;
 
 protected:
     // settable parameters
-    AP_Float beta;
-    AP_Int8 _gps_use;
-    AP_Int8 _wind_max;
-    AP_Int8 _board_orientation;
-    AP_Int8 _gps_minsats;
-    AP_Int8 _gps_delay;
+    float beta;
+    int8_t _gps_use;
+    int8_t _wind_max;
+    int8_t _board_orientation;
+    int8_t _gps_minsats;
+    int8_t _gps_delay;
 
     // flags structure
     struct ahrs_flags {
@@ -244,7 +244,7 @@ protected:
     GPS                 *&_gps;
 
     // a vector to capture the difference between the controller and body frames
-    AP_Vector3f         _trim;
+    Vector3f         _trim;
 
     // the limit of the gyro drift claimed by the sensors, in
     // radians/s/s

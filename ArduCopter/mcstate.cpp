@@ -15,7 +15,7 @@ MCState::MCState() :
 		ahrs(mincopter.ins, mincopter.g_gps),
 		fence(&this->inertial_nav),
 		inertial_nav(&this->ahrs, &mincopter.barometer, mincopter.g_gps, mincopter.gps_glitch),
-		wp_nav(&this->inertial_nav, &this->ahrs, &mincopter.g.pi_loiter_lat, &mincopter.g.pi_loiter_lon, &mincopter.g.pid_loiter_rate_lat, &mincopter.g.pid_loiter_rate_lon)
+		wp_nav(&this->inertial_nav, &this->ahrs, &mincopter.pi_loiter_lat, &mincopter.pi_loiter_lon, &mincopter.pid_loiter_rate_lat, &mincopter.pid_loiter_rate_lon)
 {
 
 }
@@ -67,7 +67,7 @@ void MCState::failsafe_gps_check()
     uint32_t last_gps_update_ms;
 
     // return immediately if gps failsafe is disabled or we have never had GPS lock
-    if (mincopter.g.failsafe_gps_enabled == FS_GPS_DISABLED || !mincopter.ap.home_is_set) {
+    if (mincopter.failsafe_gps_enabled == FS_GPS_DISABLED || !mincopter.ap.home_is_set) {
         // if we have just disabled the gps failsafe, ensure the gps failsafe event is cleared
         if (failsafe.gps) {
             set_failsafe_gps(false);
@@ -99,7 +99,7 @@ void MCState::failsafe_gps_check()
     Log_Write_Error(ERROR_SUBSYSTEM_FAILSAFE_GPS, ERROR_CODE_FAILSAFE_OCCURRED);
 
     // take action based on flight mode and FS_GPS_ENABLED parameter
-    if (mincopter.g.failsafe_gps_enabled == FS_GPS_ALTHOLD && !failsafe.radio) {
+    if (mincopter.failsafe_gps_enabled == FS_GPS_ALTHOLD && !failsafe.radio) {
     	set_mode(ALT_HOLD);
     } else {
       set_mode(LAND);

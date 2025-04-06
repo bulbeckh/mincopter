@@ -12,6 +12,8 @@ extern MCState mcstate;
 #include "navigation.h"
 #include "util.h"
 
+#include "config.h"
+
 
 // set_throttle_mode - sets the throttle mode and initialises any variables as required
 bool set_throttle_mode( uint8_t new_throttle_mode )
@@ -107,7 +109,7 @@ bool set_roll_pitch_mode(uint8_t new_roll_pitch_mode)
 
     switch( new_roll_pitch_mode ) {
         case ROLL_PITCH_STABLE:
-            reset_roll_pitch_in_filters(mincopter.g.rc_1.control_in, mincopter.g.rc_2.control_in);
+            reset_roll_pitch_in_filters(mincopter.rc_1.control_in, mincopter.rc_2.control_in);
             roll_pitch_initialised = true;
             break;
         case ROLL_PITCH_AUTO:
@@ -185,7 +187,7 @@ bool set_yaw_mode(uint8_t new_yaw_mode)
 void update_yaw_mode(void)
 {
 		// TODO Remove for autonomous flight
-    int16_t pilot_yaw = mincopter.g.rc_4.control_in;
+    int16_t pilot_yaw = mincopter.rc_4.control_in;
 
     // do not process pilot's yaw input during radio failsafe
     if (mcstate.failsafe.radio) {
@@ -318,7 +320,7 @@ void update_roll_pitch_mode(void)
         break;
     }
 
-    if(mincopter.g.rc_3.control_in == 0 && mincopter.control_mode <= ACRO) {
+    if(mincopter.rc_3.control_in == 0 && mincopter.control_mode <= ACRO) {
         reset_rate_I();
     }
 

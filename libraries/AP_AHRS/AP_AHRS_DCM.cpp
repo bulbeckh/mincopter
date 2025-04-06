@@ -442,15 +442,15 @@ AP_AHRS_DCM::drift_correction_yaw(void)
  */
 Vector3f AP_AHRS_DCM::ra_delayed(const Vector3f &ra)
 {
-    if (_ra_delay_length != _gps_delay.get()) {
+    if (_ra_delay_length != _gps_delay) {
         // the AHRS_GPS_DELAY setting has changed
 
         // constrain it between 0 and 5
-        if (_gps_delay.get() > 5) {
-            _gps_delay.set(5);
+        if (_gps_delay > 5) {
+            _gps_delay = 5;
         }
-        if (_gps_delay.get() < 0) {
-            _gps_delay.set(0);
+        if (_gps_delay < 0) {
+            _gps_delay = 0;
         }
         if (_ra_delay_buffer != NULL) {
             delete[] _ra_delay_buffer;
@@ -458,7 +458,7 @@ Vector3f AP_AHRS_DCM::ra_delayed(const Vector3f &ra)
         }
 
         // allocate the new buffer
-        _ra_delay_length = _gps_delay.get();
+        _ra_delay_length = _gps_delay;
         if (_ra_delay_length != 0) {
             _ra_delay_buffer = new Vector3f[_ra_delay_length];
         }
@@ -593,7 +593,7 @@ AP_AHRS_DCM::drift_correction(float deltat)
 
     bool using_gps_corrections = false;
     if (_flags.correct_centrifugal && (_have_gps_lock || _flags.fly_forward)) {
-        float v_scale = gps_gain.get()/(_ra_deltat*GRAVITY_MSS);
+        float v_scale = gps_gain/(_ra_deltat*GRAVITY_MSS);
         Vector3f vdelta = (velocity - _last_velocity) * v_scale;
         GA_e += vdelta;
         GA_e.normalize();

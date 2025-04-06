@@ -7,7 +7,7 @@
 #define DataFlash_h
 
 #include <AP_Common.h>
-#include <AP_Param.h>
+
 #include <AP_GPS.h>
 #include <AP_InertialSensor.h>
 #include <AP_Baro.h>
@@ -45,7 +45,7 @@ public:
     uint16_t StartNewLog(void);
     void EnableWrites(bool enable) { _writes_enabled = enable; }
     void Log_Write_Format(const struct LogStructure *structure);
-    void Log_Write_Parameter(const char *name, float value);
+    //void Log_Write_Parameter(const char *name, float value);
     void Log_Write_GPS(const GPS *gps, int32_t relative_alt);
     void Log_Write_IMU(const AP_InertialSensor &ins);
     void Log_Write_RCIN(void);
@@ -72,9 +72,8 @@ protected:
                           AP_HAL::BetterStream *port);
     
     void Log_Fill_Format(const struct LogStructure *structure, struct log_Format &pkt);
-    void Log_Write_Parameter(const AP_Param *ap, const AP_Param::ParamToken &token, 
-                             enum ap_var_type type);
-    void Log_Write_Parameters(void);
+    //void Log_Write_Parameter(const AP_Param *ap, const AP_Param::ParamToken &token,enum ap_var_type type);
+    //void Log_Write_Parameters(void);
     virtual uint16_t start_new_log(void) = 0;
 
     const struct LogStructure *_structures;

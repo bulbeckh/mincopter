@@ -28,7 +28,7 @@
 /**
  * This is the Arduino (v1.0) Print class, with some changes:
  * - Removed methods for class String or _FlashStringHelper
- * - printFloat takes a float, not a double. (double === float on AVR, but
+ * - printfloattakes a float, not a double. (double === float on AVR, but
  *   not on other platforms)
  */
 

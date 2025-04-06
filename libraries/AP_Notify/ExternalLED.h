@@ -20,7 +20,7 @@
 
 #include <AP_Common.h>
 #include <AP_HAL.h>
-#include <AP_Param.h>
+
 
 #if CONFIG_HAL_BOARD == HAL_BOARD_APM2
  #define EXTERNAL_LED_ARMED   61    // Armed LED - AN7

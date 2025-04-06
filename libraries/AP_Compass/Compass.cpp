@@ -130,30 +130,13 @@ Compass::init()
 void
 Compass::set_offsets(const Vector3f &offsets)
 {
-    _offset[0].set(offsets);
-}
-
-void
-Compass::save_offsets()
-{
-    for (uint8_t k=0; k<COMPASS_MAX_INSTANCES; k++) {
-        _offset[k].save();
-    }
+    _offset[0] = offsets;
 }
 
 void
 Compass::set_motor_compensation(const Vector3f &motor_comp_factor, uint8_t i)
 {
-    _motor_compensation[i].set(motor_comp_factor);
-}
-
-void
-Compass::save_motor_compensation()
-{
-    _motor_comp_type.save();
-    for (uint8_t k=0; k<COMPASS_MAX_INSTANCES; k++) {
-        _motor_compensation[k].save();
-    }
+    _motor_compensation[i] = motor_comp_factor;
 }
 
 void
@@ -164,10 +147,10 @@ Compass::set_initial_location(int32_t latitude, int32_t longitude)
 #if !defined( __AVR_ATmega1280__ )
     if (_auto_declination) {
         // Set the declination based on the lat/lng from GPS
-        _declination.set(radians(
+        _declination = radians(
                 AP_Declination::get_declination(
                     (float)latitude / 10000000,
-                    (float)longitude / 10000000)));
+                    (float)longitude / 10000000));
     }
 #endif
 }
@@ -175,17 +158,13 @@ Compass::set_initial_location(int32_t latitude, int32_t longitude)
 void
 Compass::set_declination(float radians, bool save_to_eeprom)
 {
-    if (save_to_eeprom) {
-        _declination.set_and_save(radians);
-    }else{
-        _declination.set(radians);
-    }
+    _declination = radians;
 }
 
 float
 Compass::get_declination() const
 {
-    return _declination.get();
+    return _declination;
 }
 
 /*
@@ -258,7 +237,7 @@ Compass::null_offsets(void)
         // first time through
         _null_init_done = true;
         for (uint8_t k=0; k<COMPASS_MAX_INSTANCES; k++) {
-            const Vector3f &ofs = _offset[k].get();
+            const Vector3f &ofs = _offset[k];
             for (uint8_t i=0; i<_mag_history_size; i++) {
                 // fill the history buffer with the current mag vector,
                 // with the offset removed
@@ -270,7 +249,7 @@ Compass::null_offsets(void)
     }
 
     for (uint8_t k=0; k<COMPASS_MAX_INSTANCES; k++) {
-        const Vector3f &ofs = _offset[k].get();
+        const Vector3f &ofs = _offset[k];
         Vector3f b1, diff;
         float length;
 
@@ -318,6 +297,6 @@ Compass::null_offsets(void)
         }
 
         // set the new offsets
-        _offset[k].set(_offset[k].get() - diff);
+        _offset[k] = _offset[k] - diff;
     }
 }

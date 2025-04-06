@@ -116,9 +116,7 @@ RC_Channel::set_angle(int16_t angle)
 void
 RC_Channel::set_default_dead_zone(int16_t dzone)
 {
-    if (!_dead_zone.load()) {
-        _dead_zone.set(abs(dzone));
-    }
+    _dead_zone = abs(dzone);
 }
 
 void
@@ -208,30 +206,10 @@ RC_Channel::calc_pwm(void)
         radio_out       = pwm_out + radio_trim;
     }
 
-    radio_out = constrain_int16(radio_out, radio_min.get(), radio_max.get());
+    radio_out = constrain_int16(radio_out, radio_min, radio_max);
 }
 
 // ------------------------------------------
-
-void
-RC_Channel::load_eeprom(void)
-{
-    radio_min.load();
-    radio_trim.load();
-    radio_max.load();
-    _reverse.load();
-    _dead_zone.load();
-}
-
-void
-RC_Channel::save_eeprom(void)
-{
-    radio_min.save();
-    radio_trim.save();
-    radio_max.save();
-    _reverse.save();
-    _dead_zone.save();
-}
 
 // ------------------------------------------
 
@@ -244,8 +222,8 @@ RC_Channel::zero_min_max()
 void
 RC_Channel::update_min_max()
 {
-    radio_min = ap_min(radio_min.get(), radio_in);
-    radio_max = ap_max(radio_max.get(), radio_in);
+    radio_min = ap_min(radio_min, radio_in);
+    radio_max = ap_max(radio_max, radio_in);
 }
 
 /*
@@ -297,10 +275,10 @@ RC_Channel::angle_to_pwm()
 int16_t
 RC_Channel::pwm_to_range_dz(uint16_t dead_zone)
 {
-    int16_t r_in = constrain_int16(radio_in, radio_min.get(), radio_max.get());
+    int16_t r_in = constrain_int16(radio_in, radio_min, radio_max);
 
     if (_reverse == -1) {
-	    r_in = radio_max.get() - (r_in - radio_min.get());
+	    r_in = radio_max - (r_in - radio_min);
     }
 
     int16_t radio_trim_low  = radio_min + dead_zone;

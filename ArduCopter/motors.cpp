@@ -29,7 +29,7 @@ void arm_motors_check()
     bool allow_arming = false;
 
     // ensure throttle is down
-    if (mincopter.g.rc_3.control_in > 0) {
+    if (mincopter.rc_3.control_in > 0) {
         arming_counter = 0;
         return;
     }
@@ -45,7 +45,7 @@ void arm_motors_check()
         return;
     }
 
-    int16_t tmp = mincopter.g.rc_4.control_in;
+    int16_t tmp = mincopter.rc_4.control_in;
 
     // full right
     if (tmp > 4000) {
@@ -98,7 +98,7 @@ void auto_disarm_check()
     static uint8_t auto_disarming_counter;
 
     // exit immediately if we are already disarmed or throttle is not zero
-    if (!mincopter.motors.armed() || mincopter.g.rc_3.control_in > 0) {
+    if (!mincopter.motors.armed() || mincopter.rc_3.control_in > 0) {
         auto_disarming_counter = 0;
         return;
     }
@@ -185,11 +185,11 @@ void init_arm_motors()
     mcstate.ahrs.set_correct_centrifugal(true);
 
     // set hover throttle
-    mincopter.motors.set_mid_throttle(mincopter.g.throttle_mid);
+    mincopter.motors.set_mid_throttle(mincopter.throttle_mid);
 
     // Cancel arming if throttle is raised too high so that copter does not suddenly take off
     //read_radio();
-    if (mincopter.g.rc_3.control_in > mincopter.g.throttle_cruise && mincopter.g.throttle_cruise > 100) {
+    if (mincopter.rc_3.control_in > mincopter.throttle_cruise && mincopter.throttle_cruise > 100) {
         mincopter.motors.output_min();
         failsafe_enable();
         return;
@@ -217,7 +217,7 @@ void pre_arm_checks(bool display_failure)
     }
 
     // succeed if pre arm checks are disabled
-    if(mincopter.g.arming_check == ARMING_CHECK_NONE) {
+    if(mincopter.arming_check == ARMING_CHECK_NONE) {
         set_pre_arm_check(true);
         set_pre_arm_rc_check(true);
         return;
@@ -233,7 +233,7 @@ void pre_arm_checks(bool display_failure)
     }
 
     // check Baro
-    if ((mincopter.g.arming_check == ARMING_CHECK_ALL) || (mincopter.g.arming_check & ARMING_CHECK_BARO)) {
+    if ((mincopter.arming_check == ARMING_CHECK_ALL) || (mincopter.arming_check & ARMING_CHECK_BARO)) {
         // barometer health check
         if(!mincopter.barometer.healthy) {
             if (display_failure) {
@@ -251,7 +251,7 @@ void pre_arm_checks(bool display_failure)
     }
 
     // check Compass
-    if ((mincopter.g.arming_check == ARMING_CHECK_ALL) || (mincopter.g.arming_check & ARMING_CHECK_COMPASS)) {
+    if ((mincopter.arming_check == ARMING_CHECK_ALL) || (mincopter.arming_check & ARMING_CHECK_COMPASS)) {
         // check the compass is healthy
         if(!mincopter.compass.healthy()) {
             if (display_failure) {
@@ -288,7 +288,7 @@ void pre_arm_checks(bool display_failure)
     }
 
     // check GPS
-    if ((mincopter.g.arming_check == ARMING_CHECK_ALL) || (mincopter.g.arming_check & ARMING_CHECK_GPS)) {
+    if ((mincopter.arming_check == ARMING_CHECK_ALL) || (mincopter.arming_check & ARMING_CHECK_GPS)) {
         // check gps is ok if required - note this same check is repeated again in arm_checks
         if (!pre_arm_gps_checks(display_failure)) {
             return;
@@ -303,7 +303,7 @@ void pre_arm_checks(bool display_failure)
     }
 
     // check INS
-    if ((mincopter.g.arming_check == ARMING_CHECK_ALL) || (mincopter.g.arming_check & ARMING_CHECK_INS)) {
+    if ((mincopter.arming_check == ARMING_CHECK_ALL) || (mincopter.arming_check & ARMING_CHECK_INS)) {
         // check accelerometers have been calibrated
         if(!mincopter.ins.calibrated()) {
             if (display_failure) {
@@ -323,7 +323,7 @@ void pre_arm_checks(bool display_failure)
 
 #ifndef CONFIG_ARCH_BOARD_PX4FMU_V1
     // check board voltage
-    if ((mincopter.g.arming_check == ARMING_CHECK_ALL) || (mincopter.g.arming_check & ARMING_CHECK_VOLTAGE)) {
+    if ((mincopter.arming_check == ARMING_CHECK_ALL) || (mincopter.arming_check & ARMING_CHECK_VOLTAGE)) {
         if(board_voltage() < BOARD_VOLTAGE_MIN || board_voltage() > BOARD_VOLTAGE_MAX) {
             if (display_failure) {
                 //gcs_send_text_P(SEVERITY_HIGH,PSTR("PreArm: Check Board Voltage"));
@@ -334,10 +334,10 @@ void pre_arm_checks(bool display_failure)
 #endif
 
     // check various parameter values
-    if ((mincopter.g.arming_check == ARMING_CHECK_ALL) || (mincopter.g.arming_check & ARMING_CHECK_PARAMETERS)) {
+    if ((mincopter.arming_check == ARMING_CHECK_ALL) || (mincopter.arming_check & ARMING_CHECK_PARAMETERS)) {
 
         // ensure ch7 and ch8 have different functions
-        if ((mincopter.g.ch7_option != 0 || mincopter.g.ch8_option != 0) && mincopter.g.ch7_option == mincopter.g.ch8_option) {
+        if ((mincopter.ch7_option != 0 || mincopter.ch8_option != 0) && mincopter.ch7_option == mincopter.ch8_option) {
             if (display_failure) {
                 //gcs_send_text_P(SEVERITY_HIGH,PSTR("PreArm: Ch7&Ch8 Opt cannot be same"));
             }
@@ -345,9 +345,9 @@ void pre_arm_checks(bool display_failure)
         }
 
         // failsafe parameter checks
-        if (mincopter.g.failsafe_throttle) {
+        if (mincopter.failsafe_throttle) {
             // check throttle min is above throttle failsafe trigger and that the trigger is above ppm encoder's loss-of-signal value of 900
-            if (mincopter.g.rc_3.radio_min <= mincopter.g.failsafe_throttle_value+10 || mincopter.g.failsafe_throttle_value < 910) {
+            if (mincopter.rc_3.radio_min <= mincopter.failsafe_throttle_value+10 || mincopter.failsafe_throttle_value < 910) {
                 if (display_failure) {
                     //gcs_send_text_P(SEVERITY_HIGH,PSTR("PreArm: Check FS_THR_VALUE"));
                 }
@@ -356,17 +356,9 @@ void pre_arm_checks(bool display_failure)
         }
 
         // lean angle parameter check
-        if (mincopter.g.angle_max < 1000 || mincopter.g.angle_max > 8000) {
+        if (mincopter.angle_max < 1000 || mincopter.angle_max > 8000) {
             if (display_failure) {
                 //gcs_send_text_P(SEVERITY_HIGH,PSTR("PreArm: Check ANGLE_MAX"));
-            }
-            return;
-        }
-
-        // acro balance parameter check
-        if ((mincopter.g.acro_balance_roll > mincopter.g.pi_stabilize_roll.kP()) || (mincopter.g.acro_balance_pitch > mincopter.g.pi_stabilize_pitch.kP())) {
-            if (display_failure) {
-                //gcs_send_text_P(SEVERITY_HIGH,PSTR("PreArm: ACRO_BAL_ROLL/PITCH"));
             }
             return;
         }
@@ -385,23 +377,25 @@ void pre_arm_rc_checks()
     }
 
     // set rc-checks to success if RC checks are disabled
-    if ((mincopter.g.arming_check != ARMING_CHECK_ALL) && !(mincopter.g.arming_check & ARMING_CHECK_RC)) {
+    if ((mincopter.arming_check != ARMING_CHECK_ALL) && !(mincopter.arming_check & ARMING_CHECK_RC)) {
         set_pre_arm_rc_check(true);
         return;
     }
 
     // check if radio has been calibrated
-    if(!mincopter.g.rc_3.radio_min.load() && !mincopter.g.rc_3.radio_max.load()) {
+		/*
+    if(!mincopter.rc_3.radio_min.load() && !mincopter.rc_3.radio_max.load()) {
         return;
     }
+		*/
 
     // check channels 1 & 2 have min <= 1300 and max >= 1700
-    if (mincopter.g.rc_1.radio_min > 1300 || mincopter.g.rc_1.radio_max < 1700 || mincopter.g.rc_2.radio_min > 1300 || mincopter.g.rc_2.radio_max < 1700) {
+    if (mincopter.rc_1.radio_min > 1300 || mincopter.rc_1.radio_max < 1700 || mincopter.rc_2.radio_min > 1300 || mincopter.rc_2.radio_max < 1700) {
         return;
     }
 
     // check channels 3 & 4 have min <= 1300 and max >= 1700
-    if (mincopter.g.rc_3.radio_min > 1300 || mincopter.g.rc_3.radio_max < 1700 || mincopter.g.rc_4.radio_min > 1300 || mincopter.g.rc_4.radio_max < 1700) {
+    if (mincopter.rc_3.radio_min > 1300 || mincopter.rc_3.radio_max < 1700 || mincopter.rc_4.radio_min > 1300 || mincopter.rc_4.radio_max < 1700) {
         return;
     }
 
@@ -423,7 +417,7 @@ bool pre_arm_gps_checks(bool display_failure)
     }
 
     // warn about hdop separately - to prevent user confusion with no gps lock
-    if (mincopter.g_gps->hdop > mincopter.g.gps_hdop_good) {
+    if (mincopter.g_gps->hdop > mincopter.gps_hdop_good) {
         if (display_failure) {
             //gcs_send_text_P(SEVERITY_HIGH,PSTR("PreArm: High GPS HDOP"));
         }
@@ -439,12 +433,12 @@ bool pre_arm_gps_checks(bool display_failure)
 bool arm_checks(bool display_failure)
 {
     // succeed if arming checks are disabled
-    if (mincopter.g.arming_check == ARMING_CHECK_NONE) {
+    if (mincopter.arming_check == ARMING_CHECK_NONE) {
         return true;
     }
 
     // check Baro & inav alt are within 1m
-    if ((mincopter.g.arming_check == ARMING_CHECK_ALL) || (mincopter.g.arming_check & ARMING_CHECK_BARO)) {
+    if ((mincopter.arming_check == ARMING_CHECK_ALL) || (mincopter.arming_check & ARMING_CHECK_BARO)) {
         if(fabs(mcstate.inertial_nav.get_altitude() - mincopter.baro_alt) > 100) {
             if (display_failure) {
                 //gcs_send_text_P(SEVERITY_HIGH,PSTR("Arm: Alt disparity"));
@@ -454,16 +448,16 @@ bool arm_checks(bool display_failure)
     }
 
     // check gps is ok if required - note this same check is also done in pre-arm checks
-    if ((mincopter.g.arming_check == ARMING_CHECK_ALL) || (mincopter.g.arming_check & ARMING_CHECK_GPS)) {
+    if ((mincopter.arming_check == ARMING_CHECK_ALL) || (mincopter.arming_check & ARMING_CHECK_GPS)) {
         if (!pre_arm_gps_checks(display_failure)) {
             return false;
         }
     }
 
     // check parameters
-    if ((mincopter.g.arming_check == ARMING_CHECK_ALL) || (mincopter.g.arming_check & ARMING_CHECK_PARAMETERS)) {
+    if ((mincopter.arming_check == ARMING_CHECK_ALL) || (mincopter.arming_check & ARMING_CHECK_PARAMETERS)) {
         // check throttle is above failsafe throttle
-        if (mincopter.g.failsafe_throttle != FS_THR_DISABLED && mincopter.g.rc_3.radio_in < mincopter.g.failsafe_throttle_value) {
+        if (mincopter.failsafe_throttle != FS_THR_DISABLED && mincopter.rc_3.radio_in < mincopter.failsafe_throttle_value) {
             if (display_failure) {
                 //gcs_send_text_P(SEVERITY_HIGH,PSTR("Arm: Thr below FS"));
             }
@@ -472,8 +466,8 @@ bool arm_checks(bool display_failure)
     }
 
     // check lean angle
-    if ((mincopter.g.arming_check == ARMING_CHECK_ALL) || (mincopter.g.arming_check & ARMING_CHECK_INS)) {
-        if (labs(mcstate.ahrs.roll_sensor) > mincopter.g.angle_max || labs(mcstate.ahrs.pitch_sensor) > mincopter.g.angle_max) {
+    if ((mincopter.arming_check == ARMING_CHECK_ALL) || (mincopter.arming_check & ARMING_CHECK_INS)) {
+        if (labs(mcstate.ahrs.roll_sensor) > mincopter.angle_max || labs(mcstate.ahrs.pitch_sensor) > mincopter.angle_max) {
             if (display_failure) {
                 //gcs_send_text_P(SEVERITY_HIGH,PSTR("Arm: Leaning"));
             }
@@ -509,17 +503,6 @@ void init_disarm_motors()
 
     // disable inertial nav errors temporarily
     mcstate.inertial_nav.ignore_next_error();
-
-    mincopter.compass.save_offsets();
-
-    mincopter.g.throttle_cruise.save();
-
-/* REMOVE AUTOTUNE
-#if AUTOTUNE == ENABLED
-    // save auto tuned parameters
-    auto_tune_save_tuning_gains_and_reset();
-#endif
-*/
 
     // we are not in the air
     set_takeoff_complete(false);

@@ -42,7 +42,7 @@ void AP_Compass_HIL::_setup_earth_field(void)
     // rotate _Bearth for inclination and declination. -66 degrees
     // is the inclination in Canberra, Australia
     Matrix3f R;
-    R.from_euler(0, ToRad(66), _declination.get());
+    R.from_euler(0, ToRad(66), _declination);
     _Bearth = R * _Bearth;
 }
 
@@ -51,11 +51,11 @@ void AP_Compass_HIL::_setup_earth_field(void)
 bool AP_Compass_HIL::read()
 {
     // get offsets
-    Vector3f ofs = _offset[0].get();
+    Vector3f ofs = _offset[0];
 
     // apply motor compensation
     if(_motor_comp_type != AP_COMPASS_MOT_COMP_DISABLED && _thr_or_curr != 0.0f) {
-        _motor_offset[0] = _motor_compensation[0].get() * _thr_or_curr;
+        _motor_offset[0] = _motor_compensation[0] * _thr_or_curr;
     }else{
         _motor_offset[0].zero();
     }
@@ -81,9 +81,9 @@ void AP_Compass_HIL::setHIL(float roll, float pitch, float yaw)
     // create a rotation matrix for the given attitude
     R.from_euler(roll, pitch, yaw);
 
-    if (_last_declination != _declination.get()) {
+    if (_last_declination != _declination) {
         _setup_earth_field();
-        _last_declination = _declination.get();
+        _last_declination = _declination;
     }
 
     // convert the earth frame magnetic vector to body frame, and
@@ -96,7 +96,7 @@ void AP_Compass_HIL::setHIL(float roll, float pitch, float yaw)
     _hil_mag.rotate(MAG_BOARD_ORIENTATION);
 
     // add user selectable orientation
-    _hil_mag.rotate((enum Rotation)_orientation.get());
+    _hil_mag.rotate((enum Rotation)_orientation);
 
     if (!_external) {
         // and add in AHRS_ORIENTATION setting if not an external compass

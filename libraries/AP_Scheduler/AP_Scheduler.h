@@ -23,7 +23,8 @@
 #ifndef AP_SCHEDULER_H
 #define AP_SCHEDULER_H
 
-#include <AP_Param.h>
+#include <stdint.h>
+
 
 /*
   A task scheduler for APM main loops
@@ -72,7 +73,7 @@ public:
 
 private:
 	// used to enable scheduler debugging
-	AP_Int8 _debug;
+	int8_t _debug;
 	
 	// progmem list of tasks to run
 	const struct Task *_tasks;

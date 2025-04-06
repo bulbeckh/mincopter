@@ -46,18 +46,3 @@ APM_PI::reset_I()
     _integrator = 0;
 }
 
-void
-APM_PI::load_gains()
-{
-    _kp.load();
-    _ki.load();
-    _imax.load();
-}
-
-void
-APM_PI::save_gains()
-{
-    _kp.save();
-    _ki.save();
-    _imax.save();
-}

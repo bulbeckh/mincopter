@@ -12,6 +12,9 @@
 #include <AP_ADC_AnalogSource.h>
 #include <AP_BattMonitor.h>
 #include <AP_HAL.h>
+#include <APM_PI.h>
+#include <AC_PID.h>
+#include <RC_Channel.h>
 
 #ifdef TARGET_ARCH_AVR
 	#include <AP_HAL_AVR.h>
@@ -26,8 +29,9 @@
 	#error "wrong target from within mcinstance.h"
 #endif
 
-#include "parameters.h"
 #include "failsafe.h"
+
+#include "config.h"
 
 /* MCInstance is an abstraction of the MinCopter inputs and outputs. It holds the interfaces for each of the sensors
 * like the IMU (ins), GPS, and also the interface to the motors (ESCs).
@@ -88,8 +92,8 @@ class MCInstance {
 
         pid_throttle_rate       (THROTTLE_RATE_P,       THROTTLE_RATE_I,        THROTTLE_RATE_D,        THROTTLE_RATE_IMAX),
         pid_throttle_accel      (THROTTLE_ACCEL_P,      THROTTLE_ACCEL_I,       THROTTLE_ACCEL_D,       THROTTLE_ACCEL_IMAX),
-        pid_optflow_roll        (OPTFLOW_ROLL_P,        OPTFLOW_ROLL_I,         OPTFLOW_ROLL_D,         OPTFLOW_IMAX),
-        pid_optflow_pitch       (OPTFLOW_PITCH_P,       OPTFLOW_PITCH_I,        OPTFLOW_PITCH_D,        OPTFLOW_IMAX),
+        //pid_optflow_roll        (OPTFLOW_ROLL_P,        OPTFLOW_ROLL_I,         OPTFLOW_ROLL_D,         OPTFLOW_IMAX),
+        //pid_optflow_pitch       (OPTFLOW_PITCH_P,       OPTFLOW_PITCH_I,        OPTFLOW_PITCH_D,        OPTFLOW_IMAX),
 
         // PI controller	initial P			initial I			initial
         // imax
@@ -201,46 +205,46 @@ class MCInstance {
 		/* @brief Core parameters class which holds PID controllers and other objects */
 		//Parameters g;
 		
-    AP_Int16        format_version;
-    AP_Int8         software_type;
-    AP_Int8         serial1_baud;
+    int16_t        format_version;
+    int8_t         software_type;
+    int8_t         serial1_baud;
 #if MAVLINK_COMM_NUM_BUFFERS > 2
-    AP_Int8         serial2_baud;
+    int8_5         serial2_baud;
 #endif
 
-    AP_Int8         failsafe_battery_enabled;   // battery failsafe enabled
-    AP_Float        fs_batt_voltage;            // battery voltage below which failsafe will be triggered
-    AP_Float        fs_batt_mah;                // battery capacity (in mah) below which failsafe will be triggered
-    AP_Int8         failsafe_gps_enabled;       // gps failsafe enabled
-    AP_Int8         failsafe_gcs;               // ground station failsafe behavior
-    AP_Int16        gps_hdop_good;              // GPS Hdop value at or below this value represent a good position
-    AP_Int8         compass_enabled;
-    AP_Int8         rssi_pin;
-    AP_Float        rssi_range;                 // allows to set max voltage for rssi pin such as 5.0, 3.3 etc. 
-    AP_Int16        angle_max;                  // maximum lean angle of the copter in centi-degrees
-    AP_Int32        angle_rate_max;             // maximum rotation rate in roll/pitch axis requested by angle controller used in stabilize, loiter, rtl, auto flight modes
+    int8_t         failsafe_battery_enabled;   // battery failsafe enabled
+    float        fs_batt_voltage;            // battery voltage below which failsafe will be triggered
+    float        fs_batt_mah;                // battery capacity (in mah) below which failsafe will be triggered
+    int8_t         failsafe_gps_enabled;       // gps failsafe enabled
+    int8_t         failsafe_gcs;               // ground station failsafe behavior
+    int16_t        gps_hdop_good;              // GPS Hdop value at or below this value represent a good position
+    int8_t         compass_enabled;
+    int8_t         rssi_pin;
+    float        rssi_range;                 // allows to set max voltage for rssi pin such as 5.0, 3.3 etc. 
+    int16_t        angle_max;                  // maximum lean angle of the copter in centi-degrees
+    int32_t        angle_rate_max;             // maximum rotation rate in roll/pitch axis requested by angle controller used in stabilize, loiter, rtl, auto flight modes
     
-    AP_Int8         command_total;
-    AP_Int8         command_index;
+    int8_t         command_total;
+    int8_t         command_index;
 
-    AP_Int16        land_speed;
-    AP_Int16        pilot_velocity_z_max;        // maximum vertical velocity the pilot may request
+    int16_t        land_speed;
+    int16_t        pilot_velocity_z_max;        // maximum vertical velocity the pilot may request
 
-    AP_Int16        throttle_min;
-    AP_Int16        throttle_max;
-    AP_Int8         failsafe_throttle;
-    AP_Int16        failsafe_throttle_value;
-    AP_Int16        throttle_cruise;
-    AP_Int16        throttle_mid;
-    AP_Int16        log_bitmask;
-    AP_Int8         esc_calibrate;
-    AP_Int8         radio_tuning;
-    AP_Int16        radio_tuning_high;
-    AP_Int16        radio_tuning_low;
-    AP_Int8         frame_orientation;
-    AP_Int8         ch7_option;
-    AP_Int8         ch8_option;
-    AP_Int8         arming_check;
+    int16_t        throttle_min;
+    int16_t        throttle_max;
+    int8_t         failsafe_throttle;
+    int16_t        failsafe_throttle_value;
+    int16_t        throttle_cruise;
+    int16_t        throttle_mid;
+    int16_t        log_bitmask;
+    int8_t         esc_calibrate;
+    int8_t         radio_tuning;
+    int16_t        radio_tuning_high;
+    int16_t        radio_tuning_low;
+    int8_t         frame_orientation;
+    int8_t         ch7_option;
+    int8_t         ch8_option;
+    int8_t         arming_check;
 
     RC_Channel              rc_1;
     RC_Channel              rc_2;
@@ -251,7 +255,7 @@ class MCInstance {
     RC_Channel_aux          rc_7;
     RC_Channel_aux          rc_8;
 
-    AP_Int16                rc_speed; // speed of fast RC Channels in Hz
+    int16_t                rc_speed; // speed of fast RC Channels in Hz
 
     AC_PID                  pid_rate_roll;
     AC_PID                  pid_rate_pitch;

@@ -107,9 +107,9 @@ select_logs(uint8_t argc, const Menu::arg *argv)
     }
 
     if (!strcasecmp_P(argv[0].str, PSTR("enable"))) {
-        mincopter.g.log_bitmask.set_and_save(mincopter.g.log_bitmask | bits);
+        mincopter.log_bitmask = mincopter.log_bitmask | bits;
     }else{
-        mincopter.g.log_bitmask.set_and_save(mincopter.g.log_bitmask & ~bits);
+        mincopter.log_bitmask = mincopter.log_bitmask & ~bits;
     }
 
     return(0);
@@ -178,7 +178,7 @@ void Log_Write_Current()
     struct log_Current pkt = {
         LOG_PACKET_HEADER_INIT(LOG_CURRENT_MSG),
         time_ms             : mincopter.hal.scheduler->millis(),
-        throttle_out        : mincopter.g.rc_3.servo_out,
+        throttle_out        : mincopter.rc_3.servo_out,
         //throttle_integrator : throttle_integrator,
         battery_voltage     : (int16_t) (mincopter.battery.voltage() * 100.0f),
         current_amps        : (int16_t) (mincopter.battery.current_amps() * 100.0f),
@@ -282,9 +282,9 @@ void Log_Write_Control_Tuning()
     struct log_Control_Tuning pkt = {
         LOG_PACKET_HEADER_INIT(LOG_CONTROL_TUNING_MSG),
         time_ms             : mincopter.hal.scheduler->millis(),
-        throttle_in         : mincopter.g.rc_3.control_in,
+        throttle_in         : mincopter.rc_3.control_in,
         angle_boost         : mincopter.angle_boost,
-        throttle_out        : mincopter.g.rc_3.servo_out,
+        throttle_out        : mincopter.rc_3.servo_out,
         desired_alt         : 0.0, // NOTE rmeoved the following function: get_target_alt_for_reporting() / 100.0f,
         inav_alt            : mcstate.current_loc.alt / 100.0f,
         baro_alt            : mincopter.baro_alt,
@@ -403,7 +403,7 @@ void Log_Write_Cmd(uint8_t num, const struct Location *wp)
 {
     struct log_Cmd pkt = {
         LOG_PACKET_HEADER_INIT(LOG_CMD_MSG),
-        command_total       : mincopter.g.command_total,
+        command_total       : mincopter.command_total,
         command_number      : num,
         waypoint_id         : wp->id,
         waypoint_options    : wp->options,
@@ -454,7 +454,7 @@ void Log_Write_Mode(uint8_t mode)
     struct log_Mode pkt = {
         LOG_PACKET_HEADER_INIT(LOG_MODE_MSG),
         mode            : mode,
-        throttle_cruise : mincopter.g.throttle_cruise,
+        throttle_cruise : mincopter.throttle_cruise,
     };
     mincopter.DataFlash.WriteBlock(&pkt, sizeof(pkt));
 }
@@ -480,7 +480,7 @@ struct PACKED log_Event {
 // Wrote an event packet
 void Log_Write_Event(uint8_t id)
 {
-    if (mincopter.g.log_bitmask != 0) {
+    if (mincopter.log_bitmask != 0) {
         struct log_Event pkt = {
             LOG_PACKET_HEADER_INIT(LOG_EVENT_MSG),
             id  : id
@@ -498,7 +498,7 @@ struct PACKED log_Data_Int16t {
 // Write an int16_t data packet
 void Log_Write_Data(uint8_t id, int16_t value)
 {
-    if (mincopter.g.log_bitmask != 0) {
+    if (mincopter.log_bitmask != 0) {
         struct log_Data_Int16t pkt = {
             LOG_PACKET_HEADER_INIT(LOG_DATA_INT16_MSG),
             id          : id,
@@ -517,7 +517,7 @@ struct PACKED log_Data_UInt16t {
 // Write an uint16_t data packet
 void Log_Write_Data(uint8_t id, uint16_t value)
 {
-    if (mincopter.g.log_bitmask != 0) {
+    if (mincopter.log_bitmask != 0) {
         struct log_Data_UInt16t pkt = {
             LOG_PACKET_HEADER_INIT(LOG_DATA_UINT16_MSG),
             id          : id,
@@ -536,7 +536,7 @@ struct PACKED log_Data_Int32t {
 // Write an int32_t data packet
 void Log_Write_Data(uint8_t id, int32_t value)
 {
-    if (mincopter.g.log_bitmask != 0) {
+    if (mincopter.log_bitmask != 0) {
         struct log_Data_Int32t pkt = {
             LOG_PACKET_HEADER_INIT(LOG_DATA_INT32_MSG),
             id          : id,
@@ -555,7 +555,7 @@ struct PACKED log_Data_UInt32t {
 // Write a uint32_t data packet
 void Log_Write_Data(uint8_t id, uint32_t value)
 {
-    if (mincopter.g.log_bitmask != 0) {
+    if (mincopter.log_bitmask != 0) {
         struct log_Data_UInt32t pkt = {
             LOG_PACKET_HEADER_INIT(LOG_DATA_UINT32_MSG),
             id          : id,
@@ -574,7 +574,7 @@ struct PACKED log_Data_Float {
 // Write a float data packet
 void Log_Write_Data(uint8_t id, float value)
 {
-    if (mincopter.g.log_bitmask != 0) {
+    if (mincopter.log_bitmask != 0) {
         struct log_Data_Float pkt = {
             LOG_PACKET_HEADER_INIT(LOG_DATA_FLOAT_MSG),
             id          : id,
@@ -660,7 +660,7 @@ void Log_Read(uint16_t log_num, uint16_t start_page, uint16_t end_page)
 // start a new log
 void start_logging() 
 {
-    if (mincopter.g.log_bitmask != 0) {
+    if (mincopter.log_bitmask != 0) {
         if (!mincopter.ap.logging_started) {
             mincopter.ap.logging_started = true;
             //in_mavlink_delay = true;
