@@ -40,7 +40,13 @@ class AC_WPNav
 public:
 
     /// Constructor
-    AC_WPNav(const AP_InertialNav* inav, const AP_AHRS* ahrs, APM_PI* pid_pos_lat, APM_PI* pid_pos_lon, AC_PID* pid_rate_lat, AC_PID* pid_rate_lon);
+    AC_WPNav(const AP_InertialNav* inav,
+				const AP_AHRS* ahrs,
+				AC_PID* pid_pos_lat,
+				AC_PID* pid_pos_lon,
+				AC_PID* pid_rate_lat,
+				AC_PID* pid_rate_lon
+		);
 
     ///
     /// simple loiter controller
@@ -191,8 +197,8 @@ protected:
     const AP_AHRS*        const _ahrs;
 
     // pointers to pid controllers
-    APM_PI*		const _pid_pos_lat;
-    APM_PI*		const _pid_pos_lon;
+    AC_PID*		const _pid_pos_lat;
+    AC_PID*		const _pid_pos_lon;
     AC_PID*		const _pid_rate_lat;
     AC_PID*		const _pid_rate_lon;
 

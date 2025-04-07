@@ -12,7 +12,7 @@
 #include <AP_ADC_AnalogSource.h>
 #include <AP_BattMonitor.h>
 #include <AP_HAL.h>
-#include <APM_PI.h>
+// HASH include <APM_PI.h>
 #include <AC_PID.h>
 #include <RC_Channel.h>
 
@@ -267,20 +267,21 @@ class MCInstance {
     AC_PID                  pid_throttle_rate;
     AC_PID                  pid_throttle_accel;
 
+		/*
     APM_PI                  pi_loiter_lat;
     APM_PI                  pi_loiter_lon;
-
     APM_PI                  pi_stabilize_roll;
     APM_PI                  pi_stabilize_pitch;
     APM_PI                  pi_stabilize_yaw;
-
     APM_PI                  pi_alt_hold;
+		*/
 
-
-
-
-
-
+    AC_PID                  pi_loiter_lat;
+    AC_PID                  pi_loiter_lon;
+    AC_PID                  pi_stabilize_roll;
+    AC_PID                  pi_stabilize_pitch;
+    AC_PID                  pi_stabilize_yaw;
+    AC_PID                  pi_alt_hold;
 
 
 

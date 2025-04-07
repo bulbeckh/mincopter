@@ -71,7 +71,7 @@ list(APPEND MC_LIBS_CORE
 		AP_Scheduler
 		DataFlash
 		Filter
-		PID
+		##PID
 		RC_Channel
 )
 ## TODO Remove this way of doing it - there should be a better way
