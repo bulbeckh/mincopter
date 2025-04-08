@@ -1,5 +1,10 @@
 # ac-dev mincopter temp repo
 
+### New Structure
+
+dev/ - devices
+
+
 **NOTE**
 I had previously been using ArduPilot-3.1.2 as the 'last supported' firmware for APM2.5, however, I have recently found out that this was just a typo and instead, the actual last supported version is `ArduCopter-3.2.1`.
 

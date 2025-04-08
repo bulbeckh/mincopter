@@ -196,7 +196,6 @@ void sensor_update_loop()
     // --------------------
     MC_PROFILE(readinertia,{read_inertia();})
 
-		// #TODO Move to behaviour tree
 		// Calls flight P controller to convert desired angle into desired rate
 		MC_PROFILE(updatemodes,{update_yaw_mode(); update_roll_pitch_mode();})
 
