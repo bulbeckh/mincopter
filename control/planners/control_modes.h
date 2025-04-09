@@ -22,18 +22,6 @@ bool set_roll_pitch_mode(uint8_t new_roll_pitch_mode);
 */
 bool set_yaw_mode(uint8_t new_yaw_mode);
 
-/* @brief Triggers run of the throttle controller based on the current throttle mode
-*/
-void update_throttle_mode(void);
-
-/* @brief Triggers run of the roll and pitch controllers based on the current
-* roll/pitch modes set by `set_roll_pitch_mode`
-*/
-void update_roll_pitch_mode(void);
-
-/* @brief Triggers update of the yaw controller based on current yaw mode
-*/
-void update_yaw_mode(void);
 
 
 

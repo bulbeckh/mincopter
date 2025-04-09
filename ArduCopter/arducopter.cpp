@@ -107,6 +107,10 @@ AP_Scheduler scheduler;
 
 MCState mcstate;
 
+// TODO Define controllers and planners here (and pass mincopter/mcstate as args)
+//
+//
+
 // NOTE Bad hack to resolve linking errors as AP_Scheduler library uses an extern hal reference as original HAL was defined globally
 const AP_HAL::HAL& hal = mincopter.hal;
 
@@ -167,6 +171,23 @@ void loop()
 }
 
 
+/* There should be strictly three components to the flight loop
+ *
+ * 1. Sensor updates
+ * 2. State updates
+ * 3. Control determination
+ *
+ * + things like logging/comms
+ *
+ */
+
+void control_determination()
+{
+		/* At lower frequency than controller */
+		planner.run();
+
+		controller.run();
+}
 
 
 
@@ -175,56 +196,19 @@ void sensor_update_loop()
 {
 		static uint32_t n_measure=0;
 
+		// (Part of state update)
     // IMU DCM Algorithm
     // --------------------
     MC_PROFILE(readahrs,{mcstate.read_AHRS();})
 
+		// (Part of state update for now - long term remove this)
     // reads all of the necessary trig functions for cameras, throttle, etc.
     // --------------------------------------------------------------------
     MC_PROFILE(updatetrig,{mcstate.update_trig();})
 
-		// #TODO Move this to the behaviour tree
-		// Run controllers that take body frame rate targets and convert to motor values using PID rate controllers (get_rate_{roll,pitch,yaw})
-		MC_PROFILE(rrcontrollers,{run_rate_controllers();})
 
-		// #TODO Move to behaviour tree ?? Should updating  motors should be responsbility of control algorithm?
-    // write out the servo PWM values to motors
-    // ------------------------------
-    MC_PROFILE(updatemotors,{mincopter.motors.output();})
-
-    // Inertial Nav
-    // --------------------
+		// (Part of state update)
     MC_PROFILE(readinertia,{read_inertia();})
-
-		// Calls flight P controller to convert desired angle into desired rate
-		MC_PROFILE(updatemodes,{update_yaw_mode(); update_roll_pitch_mode();})
-
-		// #TODO Remove or replace. I think all calcs are now done using body frame anyway after removing other modes
-		// convert rate targets to body frame using DCM values (stored in variables like cos_roll_x and cos_pitch_x)
-    update_rate_controller_targets();
-
-		n_measure+=1;
-		// Performance profiling - dump every 100ms
-		if (n_measure>100) {
-			mincopter.cliSerial->printf_P(PSTR("PP00:UpdateMode,RunRateController,ReadAHRS,UpdateTrig,UpdateMotors,ReadInertia\n"));
-			mincopter.cliSerial->printf_P(PSTR("PP01:%fus%fus%fus%fus%fus%fus\n"),
-					(float)updatemodes.t_sum/(1.0f* updatemodes.n_measure),
-					(float)rrcontrollers.t_sum/(1.0f* rrcontrollers.n_measure),
-					(float)readahrs.t_sum/(1.0f* readahrs.n_measure),
-					(float)updatetrig.t_sum/(1.0f* updatetrig.n_measure),
-					(float)updatemotors.t_sum/(1.0f* updatemotors.n_measure),
-					(float)readinertia.t_sum/(1.0f* readinertia.n_measure));
-
-			// Rest global measure variable
-			n_measure=0;
-
-			MC_RESET(updatemodes)
-			MC_RESET(rrcontrollers)
-			MC_RESET(readahrs)
-			MC_RESET(updatetrig)
-			MC_RESET(updatemotors)
-			MC_RESET(readinertia)
-		}
 }
 
 // TODO move this to btree
@@ -280,12 +264,12 @@ The only thing that should be scheduled like this is sensor updates
  */
 const AP_Scheduler::Task scheduler_tasks[] PROGMEM = {
 /*												 TOTAL 4210 */
-    { update_GPS, 				 2,     900 },
-    { read_batt_compass,  10,     720 },
+    { update_GPS, 				 2,     900 }, /* Sensor Update - GPS */
+    { read_batt_compass,  10,     720 }, /* Sensor Update - Battery */
 // control_modes.cpp
-    { update_altitude,    10,    1000 },
-    { read_compass,        2,     420 },
-    { read_baro,  				 2,     250 },
+    { update_altitude,    10,    1000 }, /* Sensor Update - IMU */
+    { read_compass,        2,     420 }, /* Sensor Update - Compass */
+    { read_baro,  				 2,     250 }, /* Sensor Update - Barometer */
     { one_hz_loop,       100,     420 },
 		{ dump_serial, 				20,     500 },
 		{ run_cli,            10,     500 },
@@ -293,10 +277,10 @@ const AP_Scheduler::Task scheduler_tasks[] PROGMEM = {
     //{ crash_check,          10,      20 },
     //{ read_receiver_rssi,   10,      50 }
     //{ update_notify,         2,     100 },
-    { run_nav_updates,      10,     800 },
+    { run_nav_updates,      10,     800 }, 	/* Not really required anymore - move into planner */
     //{ fence_check	 ,        33,      90 },
     //{ arm_motors_check,     10,      10 },
-    { update_nav_mode,       1,     400 }
+    { update_nav_mode,       1,     400 }   /* Entry point to run planner */
 };
 
 
