@@ -7,6 +7,7 @@
 | lib/ | libraries for math, logging, navigation |
 | control/controllers | controller implementation for 'local' planning of control output based on desired state computed by planner |
 | control/planners | planner implementations for computing higher-level goals and trajectories |
+| state/ | state estimation libraries which update copter state object (position, velocity, angular accel/rotation) |
 | arch/ | HAL and architecture-specific backends |
 | mincopter/ | entry point and initialisation code and scheduling of main flight loops |
 
