@@ -1,6 +1,6 @@
 // mincopter - henry
 
-/** MinCopter - A modular end-to-end flight controller for AVR-based Quadcopters
+/** MinCopter - A modular end-to-end flight controller supporting multiple backend architectures and copter configurations
 *
 * The runtime defines the MCInstance object and the AP_Scheduler object at the global level.
 * 
@@ -8,64 +8,23 @@
 * to run the behaviour tree. The behaviour tree is the modular part and will handle updating
 * of the copter state and executing the control libraries.
 *
-* ## Sensor Updates
+* **Sensor Updates**
 * The following sensors are updated at 100Hz via the scheduler.
 * - Compass (Magnetometer)
 * - Barometer
 * - IMU (currently indirectly via call to `update_altitude`
 * - GPS
+* - LEDs (via AP_Notify)
+* - Battery Monitor (via AP_BattMonitor)
 *
-* ## State Updates
-* The behaviour tree is responsible for choosing and updating the copter state periodically.
-* 
-* ## Control Updates
-* The behaviour tree is also responsible for using the current copter state to determine
-* control outputs.
-* 
-* ## Behaviour Tree Control
-* The default control algorithms call hierarchy looks like the following:
+* **State Updates**
+* The state estimation library is responsible for updating state variables so that that navigation and control libraries
+* can generate control outputs based on current state. This library is modular meaning multiple state estimation libraries
+* can be used (i.e. EKF3, DCM)
 *
-* - update_roll_pitch_mode
-* 	- get_stabilize_roll
-* 		- set_roll_rate_target
-* 	- get_stabilize_pitch
-* 		- set_pitch_rate_target
-* - update_yaw_mode
-* 	- get_stabilize_yaw
-*			- set_yaw_rate_target
-* - update_throttle_mode
-* 	- get_throttle_althold_with_slew
-*			- get_throttle_althold
-* 			- get_throttle_rate
-* 				- set_throttle_accel_target
-* - run_rate_controllers
-* 	- get_rate_roll
-* 	- get_rate_pitch
-* 	- get_rate_yaw
-* 	- get_throttle_accel
-*		- set_throttle_out
-*			- (optional) get_angle_boost
-*
-*
-* The throttle land controller has the following path
-*	 - update_throttle_mode
-* 	  - get_throttle_land
-*		 		- get_throttle_rate_stabilized
-*					- get_throttle_althold
-*						- get_throttle_rate
-*
-* Additionally, the YAW_MODE parameter will route a number of different calls
-*	YAW_LOOK_AT_NEXT_WP
-* 	- get_yaw_slew
-* 	- get_stabilize_yaw
-*
-* YAW_LOOK_AT_LOCATION
-* 	- get_look_at_yaw
-*
-* YAW_LOOK_AHEAD
-* 	- get_look_ahead_yaw
-*
-* The final AUTO mode likely won't even need yaw control
+* **Control Updates**
+* The controller is responsible for generating control outputs (and sending to motors) and planner is responsible for
+* higher level waypoint/trajectory planning as well as managing fences and failsafes.
 *
 */
 

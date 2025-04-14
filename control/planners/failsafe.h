@@ -72,6 +72,7 @@ void failsafe_battery_event(void);
 */
 void failsafe_gps_off_event(void);
 
+void failsafe_gps_check(void);
 
 void fence_check();
 

@@ -1,9 +1,7 @@
 #pragma once
 
 #include <AP_AHRS.h>
-#include <AP_InertialNav.h>     // ArduPilot Mega inertial navigation library
-#include <AC_WPNav.h>     		// ArduCopter waypoint navigation library
-#include <AC_Fence.h>           // Arducopter Fence library
+#include <AP_InertialNav.h>
 
 #include "failsafe.h"
 
@@ -26,29 +24,16 @@ class MCState
 
 	public:
 	
-		/* @brief ahrs tracks the copter orientation and heading */
+		/* @brief ahrs tracks the copter orientation */
 		AP_AHRS_DCM ahrs;
 
-		// TODO Move this to planner - shouldn't be part of state
-		// Failsafe
-		AP_FAILSAFE_T failsafe;
-
+		/* @brief inertial_nav fuses AHRS and GPS to determine position and velocity */
 		AP_InertialNav inertial_nav;
-		AC_Fence fence;
-
-		// TODO Move this to BTree as this is a control function not a state function
-		AC_WPNav wp_nav;
 
 	public:
 		/* @brief IMU roll rates that get updated during read_AHRS */
 		// TODO does this really need to be here - can we use ins readings directly instead?
 		Vector3f omega;
-
-		/* @brief Desired Roll/Pitch angles in (centi-degrees) and desired yaw */
-		// TODO Should the control values be part of the btree? Should there be a separate class holding control variables and PID controllers
-		int16_t control_roll;
-		int16_t control_pitch;
-		int32_t control_yaw;
 
 		/* @brief Orientation values from DCM. Updated during call to update_trig in fast_loop */
 		float cos_roll_x         = 1.0;
@@ -70,9 +55,10 @@ class MCState
 		// TODO Do these really need to be class methods
 		void update_trig(void);
 
+		/* @brief Entry point into state update
+		 */
 		void read_AHRS(void);
 
-		void failsafe_gps_check(void);
 
 };
 

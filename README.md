@@ -1,9 +1,14 @@
 # ac-dev mincopter temp repo
 
-### New Structure
-
-dev/ - devices
-
+### Structure
+| Directory | Contents | 
+| --- | --- | 
+| dev/ | device (sensor) abstractions and backends including GPS, Barometer, IMU, Flash Storage, ... |
+| lib/ | libraries for math, logging, navigation |
+| control/controllers | controller implementation for 'local' planning of control output based on desired state computed by planner |
+| control/planners | planner implementations for computing higher-level goals and trajectories |
+| arch/ | HAL and architecture-specific backends |
+| mincopter/ | entry point and initialisation code and scheduling of main flight loops |
 
 **NOTE**
 I had previously been using ArduPilot-3.1.2 as the 'last supported' firmware for APM2.5, however, I have recently found out that this was just a typo and instead, the actual last supported version is `ArduCopter-3.2.1`.
