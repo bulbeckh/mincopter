@@ -11,9 +11,17 @@ class MCState
 {
 
 	public:
-		/* @brief MCState
-		* @param mci (MCInstance*) Pointer to an MCInstance object containing interfaces to sensor inputs and control outputs
-		*/
+		/* @brief MCState is a shared representation of the copter at a given time including kinematics (position, velocity, accel)
+		 * and angular rotation/velocity.
+		 *
+		 * Things like flight states/modes and armed/disarmed states should be part of the planner and **not** part of state.
+		 *
+		 * The controllers should rely on this copter state object as inputs for determining control outputs.
+		 *
+		 * State estimation should reside here which takes input from sensors (in dev/) and determine state (i.e. via EKF3, DCM).
+		 *
+		 * @param mci (MCInstance*) Pointer to an MCInstance object containing interfaces to sensor inputs and control outputs
+		 */
 		MCState();
 
 	public:
@@ -21,6 +29,7 @@ class MCState
 		/* @brief ahrs tracks the copter orientation and heading */
 		AP_AHRS_DCM ahrs;
 
+		// TODO Move this to planner - shouldn't be part of state
 		// Failsafe
 		AP_FAILSAFE_T failsafe;
 

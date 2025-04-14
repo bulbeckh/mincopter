@@ -33,18 +33,14 @@
 
 #include "config.h"
 
-/* MCInstance is an abstraction of the MinCopter inputs and outputs. It holds the interfaces for each of the sensors
-* like the IMU (ins), GPS, and also the interface to the motors (ESCs).
-*
-*
-*/
-
-// NOTE This should be in header file of AP_Baro
-//extern AP_Baro_MS5611_SPI AP_Baro_MS5611::spi;
-
 class MCInstance {
 
 	public:
+		/* @brief MCInstance is an abstraction of the mincopter inputs and outputs (in dev/). It is used by state and directly
+		 * throughout other libraries and classes.
+		 *
+		 * This class should contain the 'wiring' between the various backend sensors and board architectures.
+		 */
 		MCInstance() :
 #ifdef TARGET_ARCH_LINUX
 			DataFlash("/home/henry/Documents/mc-dev/logs"),
