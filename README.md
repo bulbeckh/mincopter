@@ -33,24 +33,29 @@ To have a minimal, modular, and optimised UAV QuadCopter runtime that can suppor
 - Actual hardware re-implementation of drone board with different sensors to showcase HAL benefit
 
 ### `TODO`
-- [ ] Move to a single PID controller class
+- [ ] Rewrite AP_Scheduler in arch/
+- [ ] Add RTOS capability for some microcontrollers
+- [ ] Rewrite CMakeLists for new structure
+- [ ] Test other ISA backends (ARM) and split codebase
+- [ ] Identify areas where architecture can decrease runtime (hardware acceleration)
 - [ ] Implement NavEKF3 in mincopter
 - [ ] Implement MPC
 - [ ] Move code to btree and implement btree call in `fast_loop`
 - [ ] Test Rust implementations of some functions
 - [ ] Add Rust HAL using Embedded-HAL
 - [ ] Design console functionality (log retrieval, live sensor readings)
-- [x] Build console client (in Python)
-- [x] Build console functionality (via AP\_Menu)
 - [ ] Implement truly asynchronous console interface
-- [x] Build console `echo` script to echo console messages to stdout
 - [ ] Merge serial.h and menu.h into a single serial interface unit
 - [ ] Implement custom logging messages
 - [ ] Write script for easy log retrieval, parsing, and storage in python
-- [x] Write code to profile function runtime
 - [ ] Compare executable size and storage regions (text, data, bss) with original ac-3.2.1
-- [ ] Add SITL via AP\_HAL\_Linux
+- [ ] Add simulated sensor backends in sim/ for using w AP\_HAL\_Linux
 - [ ] Add dockerfile for unified development environment
+- [x] Move to a single PID controller class
+- [x] Build console client (in Python)
+- [x] Build console functionality (via AP\_Menu)
+- [x] Write code to profile function runtime
+- [x] Build console `echo` script to echo console messages to stdout
 
 ### Upload: Flashing board via wsl
 In an Admin PowerShell:
