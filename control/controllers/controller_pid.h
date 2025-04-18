@@ -32,7 +32,7 @@ class PID_Controller : MC_Controller
 
 		void run() override;
 
-		/* Controller runs in the following modes
+		/* Controller runs in the following way, using inputs
 		 *
 		 * - update_roll_pitch_mode(), using control_roll and control_pitch as inputs
 		 *   - get_stabilize_roll

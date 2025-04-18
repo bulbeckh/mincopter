@@ -412,7 +412,7 @@ bool set_mode(uint8_t mode)
 
         case AUTO:
             // check we have a GPS and at least one mission command (note the home position is always command 0)
-            if ((GPS_ok() && mincopter.command_total > 1) || ignore_checks) {
+            if (GPS_ok() || ignore_checks) {
                 success = true;
                 // roll-pitch, throttle and yaw modes will all be set by the first nav command
                 //init_commands();            // clear the command queues. will be reloaded when "run_autopilot" calls "update_commands" function

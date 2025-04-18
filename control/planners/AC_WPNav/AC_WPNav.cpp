@@ -4,68 +4,6 @@
 
 extern const AP_HAL::HAL& hal;
 
-/*
-const AP_Param::GroupInfo AC_WPNav::var_info[] PROGMEM = {
-    // index 0 was used for the old orientation matrix
-
-    // @Param: SPEED
-    // @DisplayName: Waypoint Horizontal Speed Target
-    // @Description: Defines the speed in cm/s which the aircraft will attempt to maintain horizontally during a WP mission
-    // @Units: cm/s
-    // @Range: 0 2000
-    // @Increment: 50
-    // @User: Standard
-    AP_GROUPINFO("SPEED",       0, AC_WPNav, _wp_speed_cms, WPNAV_WP_SPEED),
-
-    // @Param: RADIUS
-    // @DisplayName: Waypoint Radius
-    // @Description: Defines the distance from a waypoint, that when crossed indicates the wp has been hit.
-    // @Units: cm
-    // @Range: 100 1000
-    // @Increment: 1
-    // @User: Standard
-    AP_GROUPINFO("RADIUS",      1, AC_WPNav, _wp_radius_cm, WPNAV_WP_RADIUS),
-
-    // @Param: SPEED_UP
-    // @DisplayName: Waypoint Climb Speed Target
-    // @Description: Defines the speed in cm/s which the aircraft will attempt to maintain while climbing during a WP mission
-    // @Units: cm/s
-    // @Range: 0 1000
-    // @Increment: 50
-    // @User: Standard
-    AP_GROUPINFO("SPEED_UP",    2, AC_WPNav, _wp_speed_up_cms, WPNAV_WP_SPEED_UP),
-
-    // @Param: SPEED_DN
-    // @DisplayName: Waypoint Descent Speed Target
-    // @Description: Defines the speed in cm/s which the aircraft will attempt to maintain while descending during a WP mission
-    // @Units: cm/s
-    // @Range: 0 1000
-    // @Increment: 50
-    // @User: Standard
-    AP_GROUPINFO("SPEED_DN",    3, AC_WPNav, _wp_speed_down_cms, WPNAV_WP_SPEED_DOWN),
-
-    // @Param: LOIT_SPEED
-    // @DisplayName: Loiter Horizontal Maximum Speed
-    // @Description: Defines the maximum speed in cm/s which the aircraft will travel horizontally while in loiter mode
-    // @Units: cm/s
-    // @Range: 0 2000
-    // @Increment: 50
-    // @User: Standard
-    AP_GROUPINFO("LOIT_SPEED",  4, AC_WPNav, _loiter_speed_cms, WPNAV_LOITER_SPEED),
-
-    // @Param: ACCEL
-    // @DisplayName: Waypoint Acceleration 
-    // @Description: Defines the horizontal acceleration in cm/s/s used during missions
-    // @Units: cm/s/s
-    // @Range: 0 980
-    // @Increment: 10
-    // @User: Standard
-    AP_GROUPINFO("ACCEL",       5, AC_WPNav, _wp_accel_cms, WPNAV_ACCELERATION),
-
-    AP_GROUPEND
-};
-*/
-
 // Default constructor.
 // Note that the Vector/Matrix constructors already implicitly zero
 // their values.

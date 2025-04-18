@@ -174,41 +174,26 @@ class MCInstance {
 		/* @brief Core parameters class which holds PID controllers and other objects */
 		//Parameters g;
 		
-    int16_t        format_version;
-    int8_t         software_type;
     int8_t         serial1_baud;
 #if MAVLINK_COMM_NUM_BUFFERS > 2
-    int8_5         serial2_baud;
+    int8_t         serial2_baud;
 #endif
 
-    int8_t         failsafe_battery_enabled;   // battery failsafe enabled
-    float        fs_batt_voltage;            // battery voltage below which failsafe will be triggered
-    float        fs_batt_mah;                // battery capacity (in mah) below which failsafe will be triggered
-    int8_t         failsafe_gps_enabled;       // gps failsafe enabled
-    int8_t         failsafe_gcs;               // ground station failsafe behavior
     int16_t        gps_hdop_good;              // GPS Hdop value at or below this value represent a good position
     int8_t         compass_enabled;
+
     int8_t         rssi_pin;
     float        rssi_range;                 // allows to set max voltage for rssi pin such as 5.0, 3.3 etc. 
+																						
     int16_t        angle_max;                  // maximum lean angle of the copter in centi-degrees
-																							 //
-    
-    int8_t         command_total;
-    int8_t         command_index;
+																							
 
-
-
-    int8_t         failsafe_throttle;
-    int16_t        failsafe_throttle_value;
     int16_t        throttle_mid;
+
     int16_t        log_bitmask;
     int8_t         esc_calibrate;
-    int8_t         radio_tuning;
-    int16_t        radio_tuning_high;
-    int16_t        radio_tuning_low;
+
     int8_t         frame_orientation;
-    int8_t         ch7_option;
-    int8_t         ch8_option;
     int8_t         arming_check;
 
     RC_Channel              rc_1;
@@ -222,10 +207,6 @@ class MCInstance {
 
     int16_t                rc_speed; // speed of fast RC Channels in Hz
 
-
-		// TODO Move all objects in parameters class here for now and then replace names in each function
-		// !!!!!!!!!!!!!!!!!!!!!!!!!
-
 		// Motor Output
 		AP_MotorsQuad motors;
 
@@ -233,106 +214,19 @@ class MCInstance {
 		// Input sources for battery voltage, battery current, board vcc
 		AP_HAL::AnalogSource* board_vcc_analog_source;
 
-		/* --- FLIGHT ABSTRACTIONS  -----------------------------------------------------------
-		*
-		*
-		* ---------------------------------------------------------------------------------- */
-
 		/* @brief HAL reference */
 		const AP_HAL::HAL& hal = AP_HAL_BOARD_DRIVER;
 
 		/* @brief Reference to BetterStream used for communicating over serial */
 		AP_HAL::BetterStream* cliSerial;
 
-
-		// TODO Move to BTree
-		/* @brief Array of flight modes, defaulting to 1 */
-		//AP_Int8 *flight_modes = &g.flight_mode1;
-
-		// TODO Remove/change to BTree
-		/* @brief Control mode variable - NOTE will be replaced */
-		int8_t control_mode = STABILIZE;
-
-		// TODO Remove
-		AP_UNION_T ap;
-
-		/****** THESE ARE CONTROL ABSTRACTIONS ******/
-
-		// TODO This is not used - REMOVE
-		// Rate Frame
-		//uint8_t rate_targets_frame = EARTH_FRAME;
-
-
-		// Throttle variables
-		int16_t desired_climb_rate;          // pilot desired climb rate - for logging purposes only
-		float target_alt_for_reporting;      // target altitude in cm for reporting (logs and ground station)
-
-		// The Commanded Throttle from the autopilot.
-		int16_t nav_throttle;    // 0-1000 for throttle control
-
-		// Yaw will point at this location if yaw_mode is set to YAW_LOOK_AT_LOCATION
-		Vector3f yaw_look_at_WP;
-		// bearing from current location to the yaw_look_at_WP
-		int32_t yaw_look_at_WP_bearing;
-		// yaw used for YAW_LOOK_AT_HEADING yaw_mode
-		int32_t yaw_look_at_heading;
-		// Deg/s we should turn
-		int16_t yaw_look_at_heading_slew;
-
-
-		/********************
-		NAVIGATION VARIABLES
-		********************/
-		// The original bearing to the next waypoint.  used to point the nose of the copter at the next waypoint
-		int32_t original_wp_bearing;
-		// The location of home in relation to the copter in centi-degrees
-		int32_t home_bearing;
-		// distance between plane and home in cm
-		int32_t home_distance;
-
-		int32_t initial_armed_bearing;
-
-		// The cm/s we are moving up or down based on filtered data - Positive = UP
-		int16_t climb_rate;
-		// The altitude as reported by Baro in cm – Values can be quite high
-		int32_t baro_alt;
-
-		////////////////////////////////////////////////////////////////////////////////
-		// GPS variables
-		////////////////////////////////////////////////////////////////////////////////
-		// This is used to scale GPS values for EEPROM storage
-		// 10^7 times Decimal GPS means 1 == 1cm
-		// This approximation makes calculations integer and it's easy to read
-		const float t7 = 10000000.0;
-		// We use atan2 and other trig techniques to calaculate angles
-		// We need to scale the longitude up to make these calcs work
-		// to account for decreasing distance between lines of longitude away from the equator
-		float scaleLongUp = 1;
-		// Sometimes we need to remove the scaling for distance calcs
-		float scaleLongDown = 1;
-
-		/* @brief Flight mode variables that get updated during call to set_mode */
-		uint8_t yaw_mode = STABILIZE_YAW;
-		uint8_t roll_pitch_mode = STABILIZE_RP;
-		uint8_t throttle_mode = STABILIZE_THR;
-		uint8_t nav_mode;
-
 		/* @brief Integration time (in seconds) for the gyros (DCM algorithm) */
 		// TODO Move this to the control folder as I believe it's the only place its used
 		float G_Dt = 0.02;
 
-		// Performance monitoring
-		int16_t pmTest1;
-
-		// Used to exit the roll and pitch auto trim function
-		uint8_t auto_trim_counter;
-
-
 
 	public:
-
 		// TODO remove the call to ins.update() from the ahrs library and add the sensor update here
-
 
 };
 

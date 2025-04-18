@@ -336,14 +336,6 @@ void pre_arm_checks(bool display_failure)
     // check various parameter values
     if ((mincopter.arming_check == ARMING_CHECK_ALL) || (mincopter.arming_check & ARMING_CHECK_PARAMETERS)) {
 
-        // ensure ch7 and ch8 have different functions
-        if ((mincopter.ch7_option != 0 || mincopter.ch8_option != 0) && mincopter.ch7_option == mincopter.ch8_option) {
-            if (display_failure) {
-                //gcs_send_text_P(SEVERITY_HIGH,PSTR("PreArm: Ch7&Ch8 Opt cannot be same"));
-            }
-            return;
-        }
-
         // failsafe parameter checks
         if (mincopter.failsafe_throttle) {
             // check throttle min is above throttle failsafe trigger and that the trigger is above ppm encoder's loss-of-signal value of 900
