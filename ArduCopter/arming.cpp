@@ -324,7 +324,9 @@ void pre_arm_checks(bool display_failure)
 #ifndef CONFIG_ARCH_BOARD_PX4FMU_V1
     // check board voltage
     if ((mincopter.arming_check == ARMING_CHECK_ALL) || (mincopter.arming_check & ARMING_CHECK_VOLTAGE)) {
-        if(board_voltage() < BOARD_VOLTAGE_MIN || board_voltage() > BOARD_VOLTAGE_MAX) {
+    		uint16_t bv = mincopter.board_vcc_analog_source->voltage_latest() * 1000;
+
+        if(bv < BOARD_VOLTAGE_MIN || bv > BOARD_VOLTAGE_MAX) {
             if (display_failure) {
                 //gcs_send_text_P(SEVERITY_HIGH,PSTR("PreArm: Check Board Voltage"));
             }

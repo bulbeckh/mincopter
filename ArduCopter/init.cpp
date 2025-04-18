@@ -235,7 +235,18 @@ void init_ardupilot()
 		/* NOTE removed */
     //init_aux_switches();
 
-    startup_ground(true);
+    // initialise ahrs (may push imu calibration into the mpu6000 if using that device).
+    mcstate.ahrs.init();
+
+    // Warm up and read Gyro offsets
+    // -----------------------------
+    mincopter.ins.init(AP_InertialSensor::COLD_START, mincopter.ins_sample_rate);
+
+    // setup fast AHRS gains to get right attitude
+    mcstate.ahrs.set_fast_gains(true);
+
+    // set landed flag
+    set_land_complete(true);
 
 #if LOGGING_ENABLED == ENABLED
     Log_Write_Startup();
@@ -351,168 +362,5 @@ void init_ardupilot()
 
 		
 
-}
-
-
-//******************************************************************************
-//This function does all the calibrations, etc. that we need during a ground start
-//******************************************************************************
-void startup_ground(bool force_gyro_cal)
-{
-    //gcs_send_text_P(SEVERITY_LOW,PSTR("GROUND START"));
-
-    // initialise ahrs (may push imu calibration into the mpu6000 if using that device).
-    mcstate.ahrs.init();
-
-    // Warm up and read Gyro offsets
-    // -----------------------------
-    mincopter.ins.init(force_gyro_cal?AP_InertialSensor::COLD_START:AP_InertialSensor::WARM_START,
-             mincopter.ins_sample_rate);
-
-    // setup fast AHRS gains to get right attitude
-    mcstate.ahrs.set_fast_gains(true);
-
-    // set landed flag
-    set_land_complete(true);
-}
-
-// returns true if the GPS is ok and home position is set
-bool GPS_ok()
-{
-    if (mincopter.g_gps != NULL && mincopter.ap.home_is_set && mincopter.g_gps->status() == GPS::GPS_OK_FIX_3D && !mincopter.gps_glitch.glitching() && !mcstate.failsafe.gps) {
-        return true;
-    }else{
-        return false;
-    }
-}
-
-// set_mode - change flight mode and perform any necessary initialisation
-/* NOTE deprecated in favour of auto-only modes */
-bool set_mode(uint8_t mode)
-{
-    // boolean to record if flight mode could be set
-    bool success = false;
-    bool ignore_checks = !mincopter.motors.armed();   // allow switching to any mode if disarmed.  We rely on the arming check to perform
-
-    // return immediately if we are already in the desired mode
-		// #TODO control_mode is part of MCInstance but will be moved either as a state variable or the btree
-    if (mode == mincopter.control_mode) {
-        return true;
-    }
-
-    switch(mode) {
-
-        case STABILIZE:
-            success = true;
-            set_yaw_mode(STABILIZE_YAW);
-            set_roll_pitch_mode(STABILIZE_RP);
-            set_throttle_mode(STABILIZE_THR);
-            set_nav_mode(NAV_NONE);
-            break;
-
-        case AUTO:
-            // check we have a GPS and at least one mission command (note the home position is always command 0)
-            if (GPS_ok() || ignore_checks) {
-                success = true;
-                // roll-pitch, throttle and yaw modes will all be set by the first nav command
-                //init_commands();            // clear the command queues. will be reloaded when "run_autopilot" calls "update_commands" function
-								// NOTE removed commands - need to reconfigure how autpilot starts and runs
-            }
-            break;
-
-        case LAND:
-            success = true;
-						// NOTE As with above, need to reconfigure how autopilot works here
-            //do_land(NULL);  // land at current location
-            break;
-
-        default:
-            success = false;
-            break;
-    }
-
-    // update flight mode
-    if (success) {
-        mincopter.control_mode = mode;
-        //Log_Write_Mode(control_mode);
-    }else{
-        // Log error that we failed to enter desired flight mode
-        //Log_Write_Error(ERROR_SUBSYSTEM_FLIGHT_MODE,mode);
-    }
-
-    // return success or failure
-    return success;
-}
-
-// update_auto_armed - update status of auto_armed flag
-void update_auto_armed()
-{
-    // disarm checks
-    if(mincopter.ap.auto_armed){
-        // if motors are disarmed, auto_armed should also be false
-        if(!mincopter.motors.armed()) {
-            set_auto_armed(false);
-            return;
-        }
-
-    }else{
-        // arm checks
-        
-        // if motors are armed and throttle is above zero auto_armed should be true
-        if(mincopter.motors.armed() && mincopter.rc_3.control_in != 0) {
-            set_auto_armed(true);
-        }
-    }
-}
-
-/*
- *  map from a 8 bit EEPROM baud rate to a real baud rate
- */
-uint32_t map_baudrate(int8_t rate, uint32_t default_baud)
-{
-    switch (rate) {
-    case 1:    return 1200;
-    case 2:    return 2400;
-    case 4:    return 4800;
-    case 9:    return 9600;
-    case 19:   return 19200;
-    case 38:   return 38400;
-    case 57:   return 57600;
-    case 111:  return 111100;
-    case 115:  return 115200;
-    }
-    //cliSerial->println_P(PSTR("Invalid baudrate"));
-    return default_baud;
-}
-
-void check_usb_mux(void)
-{
-    bool usb_check = mincopter.hal.gpio->usb_connected();
-    if (usb_check == mincopter.ap.usb_connected) {
-        return;
-    }
-
-    // the user has switched to/from the telemetry port
-    mincopter.ap.usb_connected = usb_check;
-
-#if CONFIG_HAL_BOARD == HAL_BOARD_APM2
-    // the APM2 has a MUX setup where the first serial port switches
-    // between USB and a TTL serial connection. When on USB we use
-    // SERIAL0_BAUD, but when connected as a TTL serial port we run it
-    // at SERIAL1_BAUD.
-    if (mincopter.ap.usb_connected) {
-        mincopter.hal.uartA->begin(SERIAL0_BAUD);
-    } else {
-        mincopter.hal.uartA->begin(map_baudrate(mincopter.serial1_baud, SERIAL1_BAUD));
-    }
-#endif
-}
-
-/*
- * Read Vcc vs 1.1v internal reference
- */
-uint16_t board_voltage(void)
-{
-    return mincopter.board_vcc_analog_source->voltage_latest() * 1000;
 }
 

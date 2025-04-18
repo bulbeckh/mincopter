@@ -10,6 +10,62 @@ void WP_Planner::run(void)
 
 }
 
+bool WP_Planner::set_mode(uint8_t mode)
+{
+    // boolean to record if flight mode could be set
+    bool success = false;
+    bool ignore_checks = !mincopter.motors.armed();   // allow switching to any mode if disarmed.  We rely on the arming check to perform
+
+    // return immediately if we are already in the desired mode
+		// #TODO control_mode is part of MCInstance but will be moved either as a state variable or the btree
+    if (mode == mincopter.control_mode) {
+        return true;
+    }
+
+    switch(mode) {
+
+        case STABILIZE:
+            success = true;
+            set_yaw_mode(STABILIZE_YAW);
+            set_roll_pitch_mode(STABILIZE_RP);
+            set_throttle_mode(STABILIZE_THR);
+            set_nav_mode(NAV_NONE);
+            break;
+
+        case AUTO:
+            // check we have a GPS and at least one mission command (note the home position is always command 0)
+            if (GPS_ok() || ignore_checks) {
+                success = true;
+                // roll-pitch, throttle and yaw modes will all be set by the first nav command
+                //init_commands();            // clear the command queues. will be reloaded when "run_autopilot" calls "update_commands" function
+								// NOTE removed commands - need to reconfigure how autpilot starts and runs
+            }
+            break;
+
+        case LAND:
+            success = true;
+						// NOTE As with above, need to reconfigure how autopilot works here
+            //do_land(NULL);  // land at current location
+            break;
+
+        default:
+            success = false;
+            break;
+    }
+
+    // update flight mode
+    if (success) {
+        mincopter.control_mode = mode;
+        //Log_Write_Mode(control_mode);
+    }else{
+        // Log error that we failed to enter desired flight mode
+        //Log_Write_Error(ERROR_SUBSYSTEM_FLIGHT_MODE,mode);
+    }
+
+    // return success or failure
+    return success;
+}
+
 // update_land_detector - checks if we have landed and updates the ap.land_complete flag
 // returns true if we have landed
 bool WP_Planner::update_land_detector()

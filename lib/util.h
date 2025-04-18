@@ -62,4 +62,10 @@ float pv_get_bearing_cd(const Vector3f &origin, const Vector3f &destination);
 void init_home();
 
 
+bool GPS_ok();
 
+void update_auto_armed();
+
+uint32_t map_baudrate(int8_t rate, uint32_t default_baud);
+
+void check_usb_mux(void);

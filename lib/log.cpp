@@ -175,6 +175,8 @@ struct PACKED log_Current {
 // Write an Current data packet
 void Log_Write_Current()
 {
+    uint16_t bv = mincopter.board_vcc_analog_source->voltage_latest() * 1000;
+
     struct log_Current pkt = {
         LOG_PACKET_HEADER_INIT(LOG_CURRENT_MSG),
         time_ms             : mincopter.hal.scheduler->millis(),
@@ -182,7 +184,7 @@ void Log_Write_Current()
         //throttle_integrator : throttle_integrator,
         battery_voltage     : (int16_t) (mincopter.battery.voltage() * 100.0f),
         current_amps        : (int16_t) (mincopter.battery.current_amps() * 100.0f),
-        board_voltage       : board_voltage(),
+        board_voltage       : bv,
         current_total       : mincopter.battery.current_total_mah()
     };
     mincopter.DataFlash.WriteBlock(&pkt, sizeof(pkt));

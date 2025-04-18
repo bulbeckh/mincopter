@@ -132,7 +132,12 @@ class WP_Planner : MC_Planner
 		float scaleLongDown = 1;
 
 	private:
-		/* @brief Gets latitude and longitude from inertial nav
+
+		/* @brief Sets the control_mode (e.g. ALT_HOLD, STABILIZE, etc.)
+		* @param mode The control mode to be set.
+		*/
+		bool set_mode(uint8_t mode); /* @brief Gets latitude and longitude from inertial nav
+
 		*/
 		void calc_position();
 

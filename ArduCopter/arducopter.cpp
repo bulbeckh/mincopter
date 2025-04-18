@@ -58,10 +58,9 @@
 	#include <iostream>
 #endif
 
-/* GLOBAL Objects */
-
 // TODO Check that accessing mincopter directly without dereferencing via pointer will not mess up any virtual methods/inheritance
 MCInstance mincopter;
+
 AP_Scheduler scheduler;
 
 MCState mcstate;
@@ -73,11 +72,7 @@ MCState mcstate;
 // NOTE Bad hack to resolve linking errors as AP_Scheduler library uses an extern hal reference as original HAL was defined globally
 const AP_HAL::HAL& hal = mincopter.hal;
 
-
-
-// Time in microseconds of main control loop
 uint32_t fast_loopTimer;
-// Counter of main loop executions.  Used for performance monitoring and failsafe processing
 uint16_t mainLoop_count;
 
 // Forward Declaration
@@ -241,14 +236,10 @@ void setup()
 		// NOTE cliSerial is an alias for mincopter.hal.console
     mincopter.cliSerial = mincopter.hal.console;
 
-    // Load the default values of variables listed in var_info[]s
-    //AP_Param::setup_sketch_defaults();
-
     init_ardupilot();
 
     // initialise the main loop scheduler
     scheduler.init(&scheduler_tasks[0], sizeof(scheduler_tasks)/sizeof(scheduler_tasks[0]));
-
 }
 
 // NOTE Replaced the macro expansion with the main entrypoint to avoid modifying AP_HAL_AVR library
