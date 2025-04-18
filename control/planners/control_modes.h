@@ -23,5 +23,7 @@ bool set_roll_pitch_mode(uint8_t new_roll_pitch_mode);
 bool set_yaw_mode(uint8_t new_yaw_mode);
 
 
+/* This is called during set_throttle_mode to get the initial alt hold desired altitude */
+int32_t get_initial_alt_hold( int32_t alt_cm, int16_t climb_rate_cms);
 
 

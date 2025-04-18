@@ -15,6 +15,28 @@ extern MCState mcstate;
 #include "config.h"
 
 
+// get_initial_alt_hold - get new target altitude based on current altitude and climb rate
+int32_t get_initial_alt_hold( int32_t alt_cm, int16_t climb_rate_cms)
+{
+    int32_t target_alt;
+    int32_t linear_distance;      // half the distace we swap between linear and sqrt and the distace we offset sqrt.
+    int32_t linear_velocity;      // the velocity we swap between linear and sqrt.
+
+    linear_velocity = ALT_HOLD_ACCEL_MAX/pi_alt_hold.kP();
+
+    if (abs(climb_rate_cms) < linear_velocity) {
+        target_alt = alt_cm + climb_rate_cms/pi_alt_hold.kP();
+    } else {
+        linear_distance = ALT_HOLD_ACCEL_MAX/(2*pi_alt_hold.kP()*pi_alt_hold.kP());
+        if (climb_rate_cms > 0){
+            target_alt = alt_cm + linear_distance + (int32_t)climb_rate_cms*(int32_t)climb_rate_cms/(2*ALT_HOLD_ACCEL_MAX);
+        } else {
+            target_alt = alt_cm - ( linear_distance + (int32_t)climb_rate_cms*(int32_t)climb_rate_cms/(2*ALT_HOLD_ACCEL_MAX) );
+        }
+    }
+    return constrain_int32(target_alt, alt_cm - ALT_HOLD_INIT_MAX_OVERSHOOT, alt_cm + ALT_HOLD_INIT_MAX_OVERSHOOT);
+}
+
 // set_throttle_mode - sets the throttle mode and initialises any variables as required
 bool set_throttle_mode( uint8_t new_throttle_mode )
 {

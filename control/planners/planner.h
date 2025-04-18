@@ -1,7 +1,12 @@
 // Planner Class
 //
-//
 
+/* The planner class is responsible for determining target state given the current state. It provides the
+ * controllers with desired roll/pitch/yaw/throttle targets that the controller actualises.
+ *
+ * The planner is also responsible for managing copter states including failsafe checks and fence checks.
+ *
+ */
 
 #include <AC_Fence.h>
 #include <AC_WPNav.h>

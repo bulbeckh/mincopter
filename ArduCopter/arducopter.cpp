@@ -140,6 +140,11 @@ void loop()
  *
  */
 
+void state_update()
+{
+	mcstate.read_AHRS();
+}
+
 void control_determination()
 {
 		/* At lower frequency than controller */
@@ -147,8 +152,6 @@ void control_determination()
 
 		controller.run();
 }
-
-
 
 // Main loop - 100hz
 void sensor_update_loop()
@@ -173,22 +176,7 @@ void sensor_update_loop()
 // TODO move this to btree
 // throttle_loop - should be run at 50 hz
 // ---------------------------
-void throttle_loop()
-{
-    // get altitude and climb rate from inertial lib
-    read_inertial_altitude();
-
-    // Update the throttle ouput
-    // -------------------------
-    update_throttle_mode();
-
-    // check if we've landed
-    update_land_detector();
-
-    // check auto_armed status
-    update_auto_armed();
-}
-
+//void throttle_loop()
 
 
 /*
@@ -232,7 +220,7 @@ const AP_Scheduler::Task scheduler_tasks[] PROGMEM = {
     { one_hz_loop,       100,     420 },
 		{ dump_serial, 				20,     500 },
 		{ run_cli,            10,     500 },
-    { throttle_loop,         2,     450 },
+    //{ throttle_loop,         2,     450 },
     //{ crash_check,          10,      20 },
     //{ read_receiver_rssi,   10,      50 }
     //{ update_notify,         2,     100 },

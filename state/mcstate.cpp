@@ -13,9 +13,9 @@ extern MCInstance mincopter;
 
 MCState::MCState() : 
 		ahrs(mincopter.ins, mincopter.g_gps),
-		fence(&this->inertial_nav),
+		//fence(&this->inertial_nav),
 		inertial_nav(&this->ahrs, &mincopter.barometer, mincopter.g_gps, mincopter.gps_glitch),
-		wp_nav(&this->inertial_nav, &this->ahrs, &mincopter.pi_loiter_lat, &mincopter.pi_loiter_lon, &mincopter.pid_loiter_rate_lat, &mincopter.pid_loiter_rate_lon)
+		//wp_nav(&this->inertial_nav, &this->ahrs, &mincopter.pi_loiter_lat, &mincopter.pi_loiter_lon, &mincopter.pid_loiter_rate_lat, &mincopter.pid_loiter_rate_lon)
 {
 
 }

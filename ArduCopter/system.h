@@ -4,35 +4,6 @@
 
 #include <AP_HAL.h>
 
-/*
-HASH include <AP_Menu.h>
-HASH include "parameters.h"
-HASH include <AP_Math.h>
-HASH include <AP_AHRS.h>
-HASH include <AP_Motors.h>
-HASH include <AP_InertialNav.h>
-HASH include <GPS.h>
-HASH include <AP_GPS_Glitch.h>
-HASH include <AP_Compass.h>
-HASH include <AC_Fence.h>
-HASH include <AC_WPNav.h>
-HASH include <AP_BattMonitor.h>
-HASH include <AP_HAL.h>
-HASH include <DataFlash.h>
-HASH include <AP_GPS.h>
-HASH include <AP_Progmem.h>
-HASH include "navigation.h"
-HASH include "util.h"
-HASH include "motors.h"
-HASH include "log.h"
-HASH include "config.h"
-HASH include "control_modes.h"
-HASH include "failsafe.h"
-*/
-
-// 
-//void load_parameters(void);
-
 /* @brief Gets board voltage
 * @returns Board voltage
 */
@@ -51,7 +22,6 @@ bool set_mode(uint8_t mode);
 * @param force_gyro_cal Whether or not to use COLD or WARM start for INS
 */
 void startup_ground(bool force_gyro_cal);
-
 
 /* @brief Checks if GPS is ok
 * @returns True if GPS is ok otherwise false

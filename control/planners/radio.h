@@ -4,9 +4,6 @@
 
 #include <stdint.h>
 
-// system.cpp
-bool set_mode(uint8_t mode);
-
 /* @brief Setup default dead zones for each radio channel
 */
 void default_dead_zones();

@@ -191,19 +191,15 @@ class MCInstance {
     int8_t         rssi_pin;
     float        rssi_range;                 // allows to set max voltage for rssi pin such as 5.0, 3.3 etc. 
     int16_t        angle_max;                  // maximum lean angle of the copter in centi-degrees
-    int32_t        angle_rate_max;             // maximum rotation rate in roll/pitch axis requested by angle controller used in stabilize, loiter, rtl, auto flight modes
+																							 //
     
     int8_t         command_total;
     int8_t         command_index;
 
-    int16_t        land_speed;
-    int16_t        pilot_velocity_z_max;        // maximum vertical velocity the pilot may request
 
-    int16_t        throttle_min;
-    int16_t        throttle_max;
+
     int8_t         failsafe_throttle;
     int16_t        failsafe_throttle_value;
-    int16_t        throttle_cruise;
     int16_t        throttle_mid;
     int16_t        log_bitmask;
     int8_t         esc_calibrate;
@@ -264,26 +260,13 @@ class MCInstance {
 
 		// TODO This is not used - REMOVE
 		// Rate Frame
-		uint8_t rate_targets_frame = EARTH_FRAME;
+		//uint8_t rate_targets_frame = EARTH_FRAME;
 
-		// TODO Move to BTree
-		/* @brief Rate controller targets updated by update_rate_controller_targets and feed into PID rate controllers */
-		int32_t roll_rate_target_ef;
-		int32_t pitch_rate_target_ef;
-		int32_t yaw_rate_target_ef;
-		int32_t roll_rate_target_bf;
-		int32_t pitch_rate_target_bf;
-		int32_t yaw_rate_target_bf;
 
 		// Throttle variables
-		int16_t throttle_accel_target_ef;    // earth frame throttle acceleration target
-		bool throttle_accel_controller_active;   // true when accel based throttle controller is active, false when higher level throttle controllers are providing throttle output directly
-		float throttle_avg;                  // throttle_cruise as a float
 		int16_t desired_climb_rate;          // pilot desired climb rate - for logging purposes only
 		float target_alt_for_reporting;      // target altitude in cm for reporting (logs and ground station)
 
-		// The (throttle) controller desired altitude in cm
-		float controller_desired_alt;
 		// The Commanded Throttle from the autopilot.
 		int16_t nav_throttle;    // 0-1000 for throttle control
 
@@ -296,29 +279,19 @@ class MCInstance {
 		// Deg/s we should turn
 		int16_t yaw_look_at_heading_slew;
 
-		// An additional throttle added to keep the copter at the same altitude when banking
-		int16_t angle_boost;
-		// counter to verify landings
-		uint16_t land_detector;
 
 		/********************
 		NAVIGATION VARIABLES
 		********************/
-		// This is the angle from the copter to the next waypoint in centi-degrees
-		int32_t wp_bearing;
 		// The original bearing to the next waypoint.  used to point the nose of the copter at the next waypoint
 		int32_t original_wp_bearing;
 		// The location of home in relation to the copter in centi-degrees
 		int32_t home_bearing;
 		// distance between plane and home in cm
 		int32_t home_distance;
-		// distance between plane and next waypoint in cm.
-		uint32_t wp_distance;
 
 		int32_t initial_armed_bearing;
 
-		// The cm we are off in altitude from next_WP.alt – Positive value means we are below the WP
-		int32_t altitude_error;
 		// The cm/s we are moving up or down based on filtered data - Positive = UP
 		int16_t climb_rate;
 		// The altitude as reported by Baro in cm – Values can be quite high
@@ -337,7 +310,6 @@ class MCInstance {
 		float scaleLongUp = 1;
 		// Sometimes we need to remove the scaling for distance calcs
 		float scaleLongDown = 1;
-		float lon_error, lat_error;      // Used to report how many cm we are from the next waypoint or loiter target position
 
 		/* @brief Flight mode variables that get updated during call to set_mode */
 		uint8_t yaw_mode = STABILIZE_YAW;
@@ -355,9 +327,6 @@ class MCInstance {
 		// Used to exit the roll and pitch auto trim function
 		uint8_t auto_trim_counter;
 
-		// attitude.h
-		float roll_in_filtered;     // roll-in in filtered with RC_FEEL_RP parameter
-		float pitch_in_filtered;    // pitch-in filtered with RC_FEEL_RP parameter
 
 
 	public:
