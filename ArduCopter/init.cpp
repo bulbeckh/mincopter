@@ -178,8 +178,7 @@ void init_ardupilot()
     // GPS Initialization
     mincopter.g_gps->init(mincopter.hal.uartB, GPS::GPS_ENGINE_AIRBORNE_1G);
 
-    if(mincopter.compass_enabled)
-        init_compass();
+    init_compass();
 
 		/*
     // init the optical flow sensor

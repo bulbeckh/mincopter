@@ -7,7 +7,7 @@
 
 #include <AP_Math.h>
 #include <AC_PID.h>             // PID library
-#include <APM_PI.h>             // PID library
+// HASH include <APM_PI.h>             // PID library
 #include <AP_InertialNav.h>     // Inertial Navigation library
 
 // loiter maximum velocities and accelerations

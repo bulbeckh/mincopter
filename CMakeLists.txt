@@ -37,6 +37,69 @@ message("TOOLCHAIN FILE: ${TOOLCHAIN_FILE}")
 message(STATUS "C Compiler: ${CMAKE_C_COMPILER}")
 message(STATUS "CXX Compiler: ${CMAKE_CXX_COMPILER}")
 
+#[[ Main Directories
+
+- state/
+- control/
+- arch/
+- dev/
+- lib/
+- arducopter/ (soon to be renamed to mincopter)
+
+]]
+
+list(APPEND MC_INCLUDE_DIRS
+	control/include
+)
+
+file(GLOB MC_LIBS_CONTROL "control/*.cpp")
+foreach(src ${MC_LIBS_CONTROL})
+	message(STATUS "${src}")
+endforeach()
+
+add_library(libs_control STATIC ${MC_LIBS_CONTROL})
+
+## Temporary fix
+target_include_directories(libs_control PUBLIC
+	ArduCopter/
+	arch/AP_HAL
+	arch/AP_HAL_AVR
+	arch/AP_HAL_Linux
+	arch/AP_Progmem
+	arch/AP_Scheduler
+	lib/AP_Common
+	lib/AP_Curve
+	lib/AP_Menu
+	lib/AP_Math
+	lib/Filter
+	lib/RC_Channel
+	lib/
+	state/AP_AHRS
+	state/AP_InertialNav
+	state/
+	dev/AP_ADC
+	dev/AP_ADC_AnalogSource
+	dev/AP_Baro
+	dev/AP_BattMonitor
+	dev/AP_Compass
+	dev/AP_Declination
+	dev/AP_GPS
+	dev/AP_InertialSensor
+	dev/AP_Motors
+	dev/AP_Notify
+	dev/DataFlash
+	control/include/controllers/AC_PID
+	control/include/controllers/
+	control/include/planners/AC_Fence
+	control/include/planners/AC_WPNav
+	control/include/planners/
+)
+
+get_target_property(dirs libs_control INCLUDE_DIRECTORIES)
+message(STATUS "include for libs_control: ${dirs}")
+
+#[[
+
 ## Get list of libraries to include headers
 file(GLOB MC_INCLUDE_DIRS LIST_DIRECTORIES true RELATIVE ${CMAKE_SOURCE_DIR} "${CMAKE_SOURCE_DIR}/libraries/*")
 message(STATUS "Found the following for MC_INCLUDE_DIRS: ${MC_INCLUDE_DIRS}")
@@ -240,4 +303,6 @@ endif()
 #target_link_libraries(ArduCopter btree)
 #target_include_directories(ArduCopter PUBLIC ./btree/src)
 
+
+]]
 

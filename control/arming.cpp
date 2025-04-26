@@ -5,25 +5,25 @@
 #define AUTO_TRIM_DELAY         100 // called at 10hz so 10 seconds
 #define AUTO_DISARMING_DELAY    15  // called at 1hz so 15 seconds
 
-#include "motors.h"
+#include "planner_waypoint.h"
 
 #include "mcinstance.h"
 #include "mcstate.h"
 
-#include "log.h"
-#include "attitude.h"
-#include "system.h"
-#include "radio.h"
-#include "util.h"
-#include "navigation.h"
-
 extern MCInstance mincopter;
 extern MCState mcstate;
+
+#include "log.h"
+#include "init.h"
+#include "radio.h"
+#include "util.h"
 
 
 // arm_motors_check - checks for pilot input to arm or disarm the copter
 // called at 10hz
-void arm_motors_check()
+
+/* REMOVE
+void WP_Planner::arm_motors_check()
 {
     static int16_t arming_counter;
     bool allow_arming = false;
@@ -90,10 +90,11 @@ void arm_motors_check()
         arming_counter = 0;
     }
 }
+*/
 
 // auto_disarm_check - disarms the copter if it has been sitting on the ground in manual mode with throttle low for at least 15 seconds
 // called at 1hz
-void auto_disarm_check()
+void WP_Planner::auto_disarm_check()
 {
     static uint8_t auto_disarming_counter;
 
@@ -104,7 +105,7 @@ void auto_disarm_check()
     }
 
     // allow auto disarm in manual flight modes or Loiter/AltHold if we're landed
-    if(mincopter.ap.land_complete && (mincopter.control_mode == LOITER || mincopter.control_mode == ALT_HOLD)) {
+    if(ap.land_complete && (control_mode == LOITER || control_mode == ALT_HOLD)) {
         auto_disarming_counter++;
 
         if(auto_disarming_counter >= AUTO_DISARMING_DELAY) {
@@ -117,7 +118,7 @@ void auto_disarm_check()
 }
 
 // init_arm_motors - performs arming process including initialisation of barometer and gyros
-void init_arm_motors()
+void WP_Planner::init_arm_motors()
 {
 	// arming marker
     // Flag used to track if we have armed the motors the first time.
@@ -155,11 +156,11 @@ void init_arm_motors()
     // --------------------
     //init_simple_bearing();
 
-    mincopter.initial_armed_bearing = mcstate.ahrs.yaw_sensor;
+    initial_armed_bearing = mcstate.ahrs.yaw_sensor;
 
     // Reset home position
     // -------------------
-    if (mincopter.ap.home_is_set) {
+    if (ap.home_is_set) {
         init_home();
         calc_distance_and_bearing();
     }
@@ -185,11 +186,11 @@ void init_arm_motors()
     mcstate.ahrs.set_correct_centrifugal(true);
 
     // set hover throttle
-    mincopter.motors.set_mid_throttle(mincopter.throttle_mid);
+    //mincopter.motors.set_mid_throttle(mincopter.throttle_mid);
 
     // Cancel arming if throttle is raised too high so that copter does not suddenly take off
     //read_radio();
-    if (mincopter.rc_3.control_in > mincopter.throttle_cruise && mincopter.throttle_cruise > 100) {
+    if (mincopter.rc_3.control_in > throttle_cruise && throttle_cruise > 100) {
         mincopter.motors.output_min();
         failsafe_enable();
         return;
@@ -209,10 +210,10 @@ void init_arm_motors()
 }
 
 // perform pre-arm checks and set ap.pre_arm_check flag
-void pre_arm_checks(bool display_failure)
+void WP_Planner::pre_arm_checks(bool display_failure)
 {
     // exit immediately if we've already successfully performed the pre-arm check
-    if (mincopter.ap.pre_arm_check) {
+    if (ap.pre_arm_check) {
         return;
     }
 
@@ -225,7 +226,7 @@ void pre_arm_checks(bool display_failure)
 
     // pre-arm rc checks a prerequisite
     pre_arm_rc_checks();
-    if(!mincopter.ap.pre_arm_rc_check) {
+    if(!ap.pre_arm_rc_check) {
         if (display_failure) {
             //gcs_send_text_P(SEVERITY_HIGH,PSTR("PreArm: RC not calibrated"));
         }
@@ -242,7 +243,7 @@ void pre_arm_checks(bool display_failure)
             return;
         }
         // check Baro & inav alt are within 1m
-        if(fabs(mcstate.inertial_nav.get_altitude() - mincopter.baro_alt) > 100) {
+        if(fabs(mcstate.inertial_nav.get_altitude() - baro_alt) > 100) {
             if (display_failure) {
                 //gcs_send_text_P(SEVERITY_HIGH,PSTR("PreArm: Alt disparity"));
             }
@@ -296,7 +297,7 @@ void pre_arm_checks(bool display_failure)
 
 #if AC_FENCE == ENABLED
         // check fence is initialised
-        if(!mcstate.fence.pre_arm_check() || (((mcstate.fence.get_enabled_fences() & AC_FENCE_TYPE_CIRCLE) != 0) && !pre_arm_gps_checks(display_failure))) {
+        if(!fence.pre_arm_check() || (((fence.get_enabled_fences() & AC_FENCE_TYPE_CIRCLE) != 0) && !pre_arm_gps_checks(display_failure))) {
             return;
         }
 #endif
@@ -321,27 +322,13 @@ void pre_arm_checks(bool display_failure)
         }
     }
 
-#ifndef CONFIG_ARCH_BOARD_PX4FMU_V1
-    // check board voltage
-    if ((mincopter.arming_check == ARMING_CHECK_ALL) || (mincopter.arming_check & ARMING_CHECK_VOLTAGE)) {
-    		uint16_t bv = mincopter.board_vcc_analog_source->voltage_latest() * 1000;
-
-        if(bv < BOARD_VOLTAGE_MIN || bv > BOARD_VOLTAGE_MAX) {
-            if (display_failure) {
-                //gcs_send_text_P(SEVERITY_HIGH,PSTR("PreArm: Check Board Voltage"));
-            }
-            return;
-        }
-    }
-#endif
-
     // check various parameter values
     if ((mincopter.arming_check == ARMING_CHECK_ALL) || (mincopter.arming_check & ARMING_CHECK_PARAMETERS)) {
 
         // failsafe parameter checks
-        if (mincopter.failsafe_throttle) {
+        if (failsafe_throttle) {
             // check throttle min is above throttle failsafe trigger and that the trigger is above ppm encoder's loss-of-signal value of 900
-            if (mincopter.rc_3.radio_min <= mincopter.failsafe_throttle_value+10 || mincopter.failsafe_throttle_value < 910) {
+            if (mincopter.rc_3.radio_min <= failsafe_throttle_value+10 || failsafe_throttle_value < 910) {
                 if (display_failure) {
                     //gcs_send_text_P(SEVERITY_HIGH,PSTR("PreArm: Check FS_THR_VALUE"));
                 }
@@ -350,7 +337,7 @@ void pre_arm_checks(bool display_failure)
         }
 
         // lean angle parameter check
-        if (mincopter.angle_max < 1000 || mincopter.angle_max > 8000) {
+        if (angle_max < 1000 || angle_max > 8000) {
             if (display_failure) {
                 //gcs_send_text_P(SEVERITY_HIGH,PSTR("PreArm: Check ANGLE_MAX"));
             }
@@ -363,10 +350,10 @@ void pre_arm_checks(bool display_failure)
 }
 
 // perform pre_arm_rc_checks checks and set ap.pre_arm_rc_check flag
-void pre_arm_rc_checks()
+void WP_Planner::pre_arm_rc_checks()
 {
     // exit immediately if we've already successfully performed the pre-arm rc check
-    if( mincopter.ap.pre_arm_rc_check ) {
+    if( ap.pre_arm_rc_check ) {
         return;
     }
 
@@ -398,7 +385,7 @@ void pre_arm_rc_checks()
 }
 
 // performs pre_arm gps related checks and returns true if passed
-bool pre_arm_gps_checks(bool display_failure)
+bool WP_Planner::pre_arm_gps_checks(bool display_failure)
 {
     float speed_cms = mcstate.inertial_nav.get_velocity().length();     // speed according to inertial nav in cm/s
 
@@ -424,7 +411,7 @@ bool pre_arm_gps_checks(bool display_failure)
 
 // arm_checks - perform final checks before arming
 // always called just before arming.  Return true if ok to arm
-bool arm_checks(bool display_failure)
+bool WP_Planner::arm_checks(bool display_failure)
 {
     // succeed if arming checks are disabled
     if (mincopter.arming_check == ARMING_CHECK_NONE) {
@@ -433,7 +420,7 @@ bool arm_checks(bool display_failure)
 
     // check Baro & inav alt are within 1m
     if ((mincopter.arming_check == ARMING_CHECK_ALL) || (mincopter.arming_check & ARMING_CHECK_BARO)) {
-        if(fabs(mcstate.inertial_nav.get_altitude() - mincopter.baro_alt) > 100) {
+        if(fabs(mcstate.inertial_nav.get_altitude() - baro_alt) > 100) {
             if (display_failure) {
                 //gcs_send_text_P(SEVERITY_HIGH,PSTR("Arm: Alt disparity"));
             }
@@ -451,7 +438,7 @@ bool arm_checks(bool display_failure)
     // check parameters
     if ((mincopter.arming_check == ARMING_CHECK_ALL) || (mincopter.arming_check & ARMING_CHECK_PARAMETERS)) {
         // check throttle is above failsafe throttle
-        if (mincopter.failsafe_throttle != FS_THR_DISABLED && mincopter.rc_3.radio_in < mincopter.failsafe_throttle_value) {
+        if (failsafe_throttle != FS_THR_DISABLED && mincopter.rc_3.radio_in < failsafe_throttle_value) {
             if (display_failure) {
                 //gcs_send_text_P(SEVERITY_HIGH,PSTR("Arm: Thr below FS"));
             }
@@ -461,7 +448,7 @@ bool arm_checks(bool display_failure)
 
     // check lean angle
     if ((mincopter.arming_check == ARMING_CHECK_ALL) || (mincopter.arming_check & ARMING_CHECK_INS)) {
-        if (labs(mcstate.ahrs.roll_sensor) > mincopter.angle_max || labs(mcstate.ahrs.pitch_sensor) > mincopter.angle_max) {
+        if (labs(mcstate.ahrs.roll_sensor) > angle_max || labs(mcstate.ahrs.pitch_sensor) > angle_max) {
             if (display_failure) {
                 //gcs_send_text_P(SEVERITY_HIGH,PSTR("Arm: Leaning"));
             }
@@ -482,7 +469,7 @@ bool arm_checks(bool display_failure)
 }
 
 // init_disarm_motors - disarm motors
-void init_disarm_motors()
+void WP_Planner::init_disarm_motors()
 {
     // return immediately if we are already disarmed
     if (!mincopter.motors.armed()) {
@@ -515,34 +502,3 @@ void init_disarm_motors()
     mcstate.ahrs.set_correct_centrifugal(false);
 }
 
-
-// servo_write - writes to a servo after checking the channel is not used for a motor
-void servo_write(uint8_t ch, uint16_t pwm)
-{
-    bool servo_ok = false;
-
-    #if (FRAME_CONFIG == QUAD_FRAME)
-        // Quads can use RC5 and higher as servos
-        if (ch >= CH_5) servo_ok = true;
-    #elif (FRAME_CONFIG == TRI_FRAME || FRAME_CONFIG == SINGLE_FRAME)
-        // Tri's and Singles can use RC5, RC6, RC8 and higher
-        if (ch == CH_5 || ch == CH_6 || ch >= CH_8) servo_ok = true;
-    #elif (FRAME_CONFIG == HEXA_FRAME || FRAME_CONFIG == Y6_FRAME)
-        // Hexa and Y6 can use RC7 and higher
-        if (ch >= CH_7) servo_ok = true;
-    #elif (FRAME_CONFIG == OCTA_FRAME || FRAME_CONFIG == OCTA_QUAD_FRAME)
-        // Octa and X8 can use RC9 and higher
-        if (ch >= CH_9) servo_ok = true;
-    #elif (FRAME_CONFIG == HELI_FRAME)
-        // Heli's can use RC5, RC6, RC7, not RC8, and higher
-        if (ch == CH_5 || ch == CH_6 || ch == CH_7 || ch >= CH_9) servo_ok = true;
-    #else
-        // throw compile error if frame type is unrecognise
-        #error Unrecognised frame type
-    #endif
-
-    if (servo_ok) {
-        mincopter.hal.rcout->enable_ch(ch);
-        mincopter.hal.rcout->write(ch, pwm);
-    }
-}

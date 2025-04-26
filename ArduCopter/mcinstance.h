@@ -170,9 +170,8 @@ class MCInstance {
 		/* @brief notify is used to control onboard LED behaviour */
 		AP_Notify notify;
 
-		// TODO Remove/Replace
-		/* @brief Core parameters class which holds PID controllers and other objects */
-		//Parameters g;
+
+		/* Hardware Variables */
 		
     int8_t         serial1_baud;
 #if MAVLINK_COMM_NUM_BUFFERS > 2
@@ -180,22 +179,34 @@ class MCInstance {
 #endif
 
     int16_t        gps_hdop_good;              // GPS Hdop value at or below this value represent a good position
-    int8_t         compass_enabled;
-
+																				
+		/* RSSI Information - used as part of voltage readers */
     int8_t         rssi_pin;
-    float        rssi_range;                 // allows to set max voltage for rssi pin such as 5.0, 3.3 etc. 
+    float        	 rssi_range;                 // allows to set max voltage for rssi pin such as 5.0, 3.3 etc. 
 																						
-    int16_t        angle_max;                  // maximum lean angle of the copter in centi-degrees
-																							
-
-    int16_t        throttle_mid;
-
+		/* Bitmask to determin what to log */
     int16_t        log_bitmask;
+
+		/* Used during startup checks and calibration */
     int8_t         esc_calibrate;
 
+		/* Passed to motors on startup TODO move to compile-time variable */
     int8_t         frame_orientation;
+
+		// TODO Move this to planner or another class that manages arming/disarming
     int8_t         arming_check;
 
+		/* RC Channels
+		 *
+		 * rc_1 -> Roll
+		 * rc_2 -> Pitch
+		 * rc_3 -> Throttle
+		 * rc_4 -> Yaw
+		 * rc_5 -> undefined
+		 * rc_6 -> undefined
+		 * rc_7 -> undefined
+		 * rc_8 -> undefined
+		 */
     RC_Channel              rc_1;
     RC_Channel              rc_2;
     RC_Channel              rc_3;

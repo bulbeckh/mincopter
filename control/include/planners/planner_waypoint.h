@@ -6,20 +6,23 @@
 /* The waypoint planner should start in a land state and then fly to each waypoint and the end in a land state.
  *
  *
- * METHOD
- * 
- * 1. Check failsafe and fence.
+ * ## Flight States
+ * TAKEOFF  - Planner begins in this state. Carefully tuned motor gains.
+ * WAYPOINT - Navigation between waypoints. Standard flight mode.
+ * LOITER   - Stationary mode for being stationary in air.
+ * LAND     - Prepare for landing. Slower descent speed and checks for ground.
  *
- * 2. Check if criteria is met to move to next state (i.e. from LAND to first WP or from 4th WP to 5th WP).
+ * ## Motor States
+ * ARMED    - Can send outputs to motors.
+ * DISARMED - Cannot send outputs to motors.
  *
- * 3. Use planner to determine control inputs/targets.
- *
- *
+ * ## Sensor States
+ * CLEAN    - All sensors have valid readings and can be trusted.
+ * DIRTY    - At least one sensor is not working and has been broken for a minimum threshold time.
  *
  * planner_waypoint is responsible for generating the following control inputs to the controller
  *
- *
- * - control_pitch
+ * - control_pitch. 
  * - control_roll
  * - control_yaw
  * - a desired altitude (from wp_nav.get_desired_alt)
@@ -42,12 +45,23 @@
  *
  */
 
+#include "planner.h"
+#include "config.h"
+
+enum class WP_FLIGHT_STATE
+{
+		TAKEOFF,
+		WAYPOINT,
+		LOITER,
+		LAND
+};
 
 class WP_Planner : MC_Planner
 {
 
 	public:
 		WP_Planner() :
+			MC_Planner()
 		{
 		}
 
@@ -111,10 +125,11 @@ class WP_Planner : MC_Planner
 		int8_t control_mode = STABILIZE;
 
 		/* @brief Flight mode variables that get updated during call to set_mode */
-		uint8_t yaw_mode = STABILIZE_YAW;
-		uint8_t roll_pitch_mode = STABILIZE_RP;
-		uint8_t throttle_mode = STABILIZE_THR;
-		uint8_t nav_mode;
+		//uint8_t yaw_mode = STABILIZE_YAW;
+		//uint8_t roll_pitch_mode = STABILIZE_RP;
+		//uint8_t throttle_mode = STABILIZE_THR;
+
+		WP_FLIGHT_STATE nav_mode = WP_FLIGHT_STATE::TAKEOFF;
 
 		// Throttle variables
 		int16_t desired_climb_rate;          // pilot desired climb rate - for logging purposes only
@@ -130,6 +145,9 @@ class WP_Planner : MC_Planner
 		float scaleLongUp = 1;
 		// Sometimes we need to remove the scaling for distance calcs
 		float scaleLongDown = 1;
+
+		// Max lean-angle of the copter in centi-degrees
+		int16_t angle_max;
 
 	private:
 
@@ -158,5 +176,46 @@ class WP_Planner : MC_Planner
 		/* @brief Unsets the land detector variable
 		*/
 		void reset_land_detector();
-}
+
+		/* @brief Sets throttle mode
+		*/
+		bool init_throttle( uint8_t new_throttle_mode );
+
+		/* @brief Sets the yaw mode
+		*/
+		bool init_yaw(uint8_t new_yaw_mode);
+
+		/* This is called during set_throttle_mode to get the initial alt hold desired altitude */
+		int32_t get_initial_alt_hold( int32_t alt_cm, int16_t climb_rate_cms);
+
+		/****** Arming Functions ******/
+
+		// TODO Remove this function - for manual arming only
+		/* @brief Checks for sustained pilot input required to arm/disarm motor (throttle down and stick to right). Function call is
+		* scheduled at 10hz via scheduler
+		*/
+		// REMOVE
+		//void arm_motors_check();
+
+		/* @brief Arms motors. Starts logging, enables output to motors, and a few other functions
+		*/
+		void init_arm_motors();
+
+		/* @brief Disarms motors.
+		*/
+		void init_disarm_motors();
+
+		/* @brief Disarms motors if copter has been stationary on ground for 15sec. Called at 1hz by 1hz_loop
+		*/
+		void auto_disarm_check(); 
+
+		/* @brief Checks run before motors are armed
+		*/
+		void pre_arm_checks(bool display_failure);
+		void pre_arm_rc_checks();
+		bool pre_arm_gps_checks(bool display_failure);
+		bool arm_checks(bool display_failure);
+
+};
+
 

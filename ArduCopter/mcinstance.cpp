@@ -19,7 +19,7 @@ extern MCState mcstate;
 #include "system.h"
 
 void read_compass(void) {
-	if (mincopter.compass_enabled) mincopter.compass.accumulate();
+	mincopter.compass.accumulate();
 }
 
 // NOTE What is the difference between read_baro and barometer.accumulate?
@@ -89,10 +89,8 @@ void update_GPS(void)
 										// set system clock for log timestamps
 										mincopter.hal.util->set_system_clock(mincopter.g_gps->time_epoch_usec());
 
-										if (mincopter.compass_enabled) {
-												// Set compass declination automatically
-												mincopter.compass.set_initial_location(mincopter.g_gps->latitude, mincopter.g_gps->longitude);
-										}
+										// Set compass declination automatically
+										mincopter.compass.set_initial_location(mincopter.g_gps->latitude, mincopter.g_gps->longitude);
 								}
 						} else {
 								// start again if we lose 3d lock
@@ -123,14 +121,12 @@ void read_batt_compass(void)
     }
 
 #if HIL_MODE != HIL_MODE_ATTITUDE  // don't execute in HIL mode
-		if(mincopter.compass_enabled) {
-				if (mincopter.compass.read()) {
-						mincopter.compass.null_offsets();
-				}
-				// log compass information
-				if (mincopter.log_bitmask & MASK_LOG_COMPASS) {
-						Log_Write_Compass();
-				}
+		if (mincopter.compass.read()) {
+				mincopter.compass.null_offsets();
+		}
+		// log compass information
+		if (mincopter.log_bitmask & MASK_LOG_COMPASS) {
+				Log_Write_Compass();
 		}
 #endif
 

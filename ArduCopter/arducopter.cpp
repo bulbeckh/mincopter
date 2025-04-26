@@ -219,10 +219,10 @@ const AP_Scheduler::Task scheduler_tasks[] PROGMEM = {
     //{ crash_check,          10,      20 },
     //{ read_receiver_rssi,   10,      50 }
     //{ update_notify,         2,     100 },
-    { run_nav_updates,      10,     800 }, 	/* Not really required anymore - move into planner */
+    //{ run_nav_updates,      10,     800 }, 	/* Planner Update - moved to planner */
     //{ fence_check	 ,        33,      90 },
     //{ arm_motors_check,     10,      10 },
-    { update_nav_mode,       1,     400 }   /* Entry point to run planner */
+    //{ update_nav_mode,       1,     400 }   /* Planner Update - moved to planner */
 };
 
 
