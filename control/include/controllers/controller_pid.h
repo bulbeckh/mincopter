@@ -3,14 +3,17 @@
 
 #include <stdint.h>
 
+#include "control.h"
+#include "mcinstance.h"
+#include "mcstate.h"
+
 class PID_Controller : MC_Controller
 {
 	public:
 
+		// TODO Remove this call to parent constructor as nothing is actually initialised in control.h yet
 		PID_Controller(
-				MC_State* mcstate,
-				MC_Instance* mcinstance
-		) : MC_Controller(mcstate, mcinstance),
+		) : MC_Controller(),
 
         // PID controller	      initial P	              initial I		            initial D               initial imax
         //-----------------------------------------------------------------------------------------------------
@@ -26,7 +29,8 @@ class PID_Controller : MC_Controller
         pi_stabilize_yaw        (STABILIZE_YAW_P,       STABILIZE_YAW_I,        STABILIZE_YAW_IMAX),
         pid_throttle_rate       (THROTTLE_RATE_P,       THROTTLE_RATE_I,        THROTTLE_RATE_D,        THROTTLE_RATE_IMAX),
         pi_alt_hold             (ALT_HOLD_P,            ALT_HOLD_I,             ALT_HOLD_IMAX)
-		;
+	{
+	}
 
 	public:
 
@@ -74,6 +78,8 @@ class PID_Controller : MC_Controller
 
 		int16_t throttle_accel_target_ef;
 
+	public:
+		// Public for now - needs to be accessible from planner and getter/setter is bloat
 		float throttle_avg;                  // throttle_cruise as a float
 		bool throttle_accel_controller_active;   // true when accel based throttle controller is active, false when higher level throttle controllers are providing throttle output directly
 																		
@@ -82,7 +88,8 @@ class PID_Controller : MC_Controller
     int16_t        throttle_cruise;
 
     int32_t        angle_rate_max;             // maximum rotation rate in roll/pitch axis requested by angle controller used in stabilize, loiter, rtl, auto flight modes
-																						
+	
+	private:
 		// An additional throttle added to keep the copter at the same altitude when banking
 		int16_t angle_boost;
 
@@ -158,8 +165,6 @@ class PID_Controller : MC_Controller
 		* @param deg_per_sec The maximum rate-of-change of yaw value. For example AUTO_YAW_SLEW_RATE
 		*/
 		int32_t get_yaw_slew(int32_t current_yaw, int32_t desired_yaw, int16_t deg_per_sec);
-		void get_look_at_yaw();
-		void get_look_ahead_yaw(int16_t pilot_yaw);
 
 		/****** Lower-level controllers ******/
 
@@ -200,6 +205,7 @@ class PID_Controller : MC_Controller
 		*/
 		void update_throttle_cruise(int16_t throttle);
 
+	public:
 
 		/****** Reset functions ******/
 
@@ -215,5 +221,5 @@ class PID_Controller : MC_Controller
 		*/
 		void reset_throttle_I(void);
 
-}
+};
 

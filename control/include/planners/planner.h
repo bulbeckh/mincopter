@@ -35,7 +35,7 @@ class MC_Planner
 
 		MC_Planner() :
 			fence(&mcstate.inertial_nav),
-			wp_nav(&mcstate.ahrs)
+			wp_nav(&mcstate.inertial_nav, &mcstate.ahrs)
 		{
 		}
 

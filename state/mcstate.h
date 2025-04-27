@@ -3,7 +3,6 @@
 #include <AP_AHRS.h>
 #include <AP_InertialNav.h>
 
-#include "failsafe.h"
 
 class MCState
 {

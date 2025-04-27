@@ -194,7 +194,6 @@ add_executable(ArduCopter
 	ArduCopter/attitude.cpp
 	ArduCopter/util.cpp
 	ArduCopter/control_modes.cpp
-	ArduCopter/failsafe.cpp
 	ArduCopter/motors.cpp
 	ArduCopter/navigation.cpp
 	ArduCopter/radio.cpp

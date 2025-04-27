@@ -7,10 +7,10 @@
  *
  *
  * ## Flight States
- * TAKEOFF  - Planner begins in this state. Carefully tuned motor gains.
- * WAYPOINT - Navigation between waypoints. Standard flight mode.
- * LOITER   - Stationary mode for being stationary in air.
- * LAND     - Prepare for landing. Slower descent speed and checks for ground.
+ * FS_TAKEOFF  - Planner begins in this state. Carefully tuned motor gains.
+ * FS_WAYPOINT - Navigation between waypoints. Standard flight mode.
+ * FS_LOITER   - Stationary mode for being stationary in air.
+ * FS_LAND     - Prepare for landing. Slower descent speed and checks for ground.
  *
  * ## Motor States
  * ARMED    - Can send outputs to motors.
@@ -42,6 +42,7 @@
  *   	 - (four steps)
  *   	 - get_loiter_acceleration_to_lean_angles
  * 
+ * TODO A lot of the functionality specified in this base class needs to be hoisted to the parent class - planner.h
  *
  */
 
@@ -50,13 +51,13 @@
 
 enum class WP_FLIGHT_STATE
 {
-		TAKEOFF,
-		WAYPOINT,
-		LOITER,
-		LAND
+		FS_TAKEOFF,
+		FS_WAYPOINT,
+		FS_LOITER,
+		FS_LAND
 };
 
-class WP_Planner : MC_Planner
+class WP_Planner : public MC_Planner
 {
 
 	public:
@@ -66,6 +67,8 @@ class WP_Planner : MC_Planner
 		}
 
 	public:
+
+		void run(void) override;
 
 		/* @brief entry point into the planner. Called by scheduler */
 		void run_nav_updates(void);
@@ -91,17 +94,19 @@ class WP_Planner : MC_Planner
 		/* Navigation Parameters */
 
 		// The original bearing to the next waypoint.  used to point the nose of the copter at the next waypoint
+		// Used in the YAW_LOOK_AHEAD_NEXT_WP yaw mode
 		int32_t original_wp_bearing;
-		// The location of home in relation to the copter in centi-degrees
-		int32_t home_bearing;
+
 		// distance between plane and home in cm
 		int32_t home_distance;
-		int32_t initial_armed_bearing;
+
 		// The cm/s we are moving up or down based on filtered data - Positive = UP
 		int16_t climb_rate;
+
 		// The altitude as reported by Baro in cm – Values can be quite high
 		int32_t baro_alt;
 																							 
+		//TODO Remove wp_distance and wp_bearing - I think they are updated but not used
 		// Distance between copter and next wp in cm
 		uint32_t wp_distance;
 
@@ -114,10 +119,6 @@ class WP_Planner : MC_Planner
 		Vector3f yaw_look_at_WP;
 		// bearing from current location to the yaw_look_at_WP
 		int32_t yaw_look_at_WP_bearing;
-		// yaw used for YAW_LOOK_AT_HEADING yaw_mode
-		int32_t yaw_look_at_heading;
-		// Deg/s we should turn
-		int16_t yaw_look_at_heading_slew;
 
 		/* Planner State Variables */
 
@@ -129,7 +130,7 @@ class WP_Planner : MC_Planner
 		//uint8_t roll_pitch_mode = STABILIZE_RP;
 		//uint8_t throttle_mode = STABILIZE_THR;
 
-		WP_FLIGHT_STATE nav_mode = WP_FLIGHT_STATE::TAKEOFF;
+		WP_FLIGHT_STATE nav_mode = WP_FLIGHT_STATE::FS_TAKEOFF;
 
 		// Throttle variables
 		int16_t desired_climb_rate;          // pilot desired climb rate - for logging purposes only
@@ -167,12 +168,15 @@ class WP_Planner : MC_Planner
 		*/
 		void reset_nav_params(void);
 
+	public:
 		// NOTE why does this return bool? Return val not used during throttle loop
 		/* @brief Runs land detection during throttle loop
 		* @returns true if landed 
 		*/
 		bool update_land_detector();
 
+
+	private:
 		/* @brief Unsets the land detector variable
 		*/
 		void reset_land_detector();
@@ -181,21 +185,10 @@ class WP_Planner : MC_Planner
 		*/
 		bool init_throttle( uint8_t new_throttle_mode );
 
-		/* @brief Sets the yaw mode
-		*/
-		bool init_yaw(uint8_t new_yaw_mode);
-
 		/* This is called during set_throttle_mode to get the initial alt hold desired altitude */
 		int32_t get_initial_alt_hold( int32_t alt_cm, int16_t climb_rate_cms);
 
 		/****** Arming Functions ******/
-
-		// TODO Remove this function - for manual arming only
-		/* @brief Checks for sustained pilot input required to arm/disarm motor (throttle down and stick to right). Function call is
-		* scheduled at 10hz via scheduler
-		*/
-		// REMOVE
-		//void arm_motors_check();
 
 		/* @brief Arms motors. Starts logging, enables output to motors, and a few other functions
 		*/
@@ -215,6 +208,28 @@ class WP_Planner : MC_Planner
 		void pre_arm_rc_checks();
 		bool pre_arm_gps_checks(bool display_failure);
 		bool arm_checks(bool display_failure);
+
+		/****** Failsafe Functions ******/
+
+		/* @brief Called when radio loses connection, triggering the failsafe to kick-in
+		*/
+		void failsafe_radio_on_event();
+
+		/* @brief Called when returning from a failsafe mode
+		*/
+		void failsafe_radio_off_event();
+
+		/* @brief Called when a low battery occurs, triggering failsafe
+		*/
+		void failsafe_battery_event(void);
+
+		/* @brief Called when GPS returns signal
+		*/
+		void failsafe_gps_off_event(void);
+
+		void failsafe_gps_check(void);
+
+		void fence_check();
 
 };
 

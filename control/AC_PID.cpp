@@ -14,27 +14,6 @@
 // f_cut = 30 Hz -> _filter =  5.3052e-3
 const float  AC_PID::_filter = 7.9577e-3; // Set to  "1 / ( 2 * PI * f_cut )";
 
-/*
-const AP_Param::GroupInfo AC_PID::var_info[] PROGMEM = {
-    // @Param: P
-    // @DisplayName: PID Proportional Gain
-    // @Description: P Gain which produces an output value that is proportional to the current error value
-    AP_GROUPINFO("P",    0, AC_PID, _kp, 0),
-    // @Param: I
-    // @DisplayName: PID Integral Gain
-    // @Description: I Gain which produces an output that is proportional to both the magnitude and the duration of the error
-    AP_GROUPINFO("I",    1, AC_PID, _ki, 0),
-    // @Param: D
-    // @DisplayName: PID Derivative Gain
-    // @Description: D Gain which produces an output that is proportional to the rate of change of the error
-    AP_GROUPINFO("D",    2, AC_PID, _kd, 0),
-    // @Param: IMAX
-    // @DisplayName: PID Integral Maximum
-    // @Description: The maximum/minimum value that the I term can output
-    AP_GROUPINFO("IMAX", 3, AC_PID, _imax, 0),
-    AP_GROUPEND
-};
-*/
 
 int32_t AC_PID::get_p(int32_t error)
 {

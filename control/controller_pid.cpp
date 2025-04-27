@@ -2,12 +2,27 @@
 #include "controller_pid.h"
 
 #include "util.h"
-#include "navigation.h"
-#include "motors.h"
-
 #include "config.h"
 
 #include <AP_Math.h>
+
+#include "mcinstance.h"
+#include "mcstate.h"
+#include "planner.h"
+
+// TODO Move this directly to the planner,h file
+#include "planner_waypoint.h"
+
+extern MCInstance mincopter;
+extern MCState    state;
+
+/* TODO Change these extern references to defines that expand to the planner configuration being used
+ *
+ * For example, it would have something like
+ *
+ * `extern PLANNER_TYPE planner;` which would expand to `extern WP_Planner planner;`
+ */
+extern WP_Planner planner;
 
 void PID_Controller::run()
 {
@@ -36,7 +51,7 @@ void PID_Controller::run()
 
 		// TODO move this to planner
     // check if we've landed
-    update_land_detector();
+    planner.update_land_detector();
 
     // check auto_armed status
     update_auto_armed();
@@ -47,7 +62,7 @@ void PID_Controller::run()
 
 		run_rate_controllers();
 
-    mincopter->motors.output();
+    mincopter.motors.output();
 
 }
 
@@ -55,15 +70,13 @@ void PID_Controller::run()
 void PID_Controller::get_stabilize_roll(int32_t target_angle)
 {
     // angle error
-    target_angle = wrap_180_cd(target_angle - state->ahrs.roll_sensor);
+    target_angle = wrap_180_cd(target_angle - state.ahrs.roll_sensor);
 
     // convert to desired rate
     int32_t target_rate = pi_stabilize_roll.kP() * target_angle;
 
     // constrain the target rate
-    if (!mincopter->ap.disable_stab_rate_limit) {
-        target_rate = constrain_int32(target_rate, -angle_rate_max, angle_rate_max);
-    }
+    target_rate = constrain_int32(target_rate, -angle_rate_max, angle_rate_max);
 
     // set targets for rate controller
 		roll_rate_target_ef = target_rate;
@@ -72,15 +85,13 @@ void PID_Controller::get_stabilize_roll(int32_t target_angle)
 void PID_Controller::get_stabilize_pitch(int32_t target_angle)
 {
     // angle error
-    target_angle            = wrap_180_cd(target_angle - state->ahrs.pitch_sensor);
+    target_angle            = wrap_180_cd(target_angle - state.ahrs.pitch_sensor);
 
     // convert to desired rate
     int32_t target_rate = pi_stabilize_pitch.kP() * target_angle;
 
-    // constrain the target rate
-    if (!mincopter->ap.disable_stab_rate_limit) {
-        target_rate = constrain_int32(target_rate, -angle_rate_max, angle_rate_max);
-    }
+		// constrain target
+    target_rate = constrain_int32(target_rate, -angle_rate_max, angle_rate_max);
 
     // set targets for rate controller
 		pitch_rate_target_ef = target_rate;
@@ -92,7 +103,7 @@ void PID_Controller::get_stabilize_yaw(int32_t target_angle)
     int32_t angle_error;
 
     // angle error
-    angle_error = wrap_180_cd(target_angle - state->ahrs.yaw_sensor);
+    angle_error = wrap_180_cd(target_angle - state.ahrs.yaw_sensor);
 
     // limit the error we're feeding to the PID
     angle_error = constrain_int32(angle_error, -4500, 4500);
@@ -107,18 +118,18 @@ void PID_Controller::get_stabilize_yaw(int32_t target_angle)
 void PID_Controller::update_rate_controller_targets()
 {
 		// convert earth frame rates to body frame rates
-    roll_rate_target_bf     = roll_rate_target_ef - state->sin_pitch * yaw_rate_target_ef;
-    pitch_rate_target_bf    = state->cos_roll_x  * pitch_rate_target_ef + state->sin_roll * state->cos_pitch_x * yaw_rate_target_ef;
-    yaw_rate_target_bf      = state->cos_pitch_x * state->cos_roll_x * yaw_rate_target_ef - state->sin_roll * pitch_rate_target_ef;
+    roll_rate_target_bf     = roll_rate_target_ef - state.sin_pitch * yaw_rate_target_ef;
+    pitch_rate_target_bf    = state.cos_roll_x  * pitch_rate_target_ef + state.sin_roll * state.cos_pitch_x * yaw_rate_target_ef;
+    yaw_rate_target_bf      = state.cos_pitch_x * state.cos_roll_x * yaw_rate_target_ef - state.sin_roll * pitch_rate_target_ef;
 }
 
 void PID_Controller::run_rate_controllers()
 {
     // call rate controllers
 		// TODO This doesn't need to be passed in as a parameter
-    mincopter->rc_1.servo_out = get_rate_roll(roll_rate_target_bf);
-    mincopter->rc_2.servo_out = get_rate_pitch(pitch_rate_target_bf);
-    mincopter->rc_4.servo_out = get_rate_yaw(yaw_rate_target_bf);
+    mincopter.rc_1.servo_out = get_rate_roll(roll_rate_target_bf);
+    mincopter.rc_2.servo_out = get_rate_pitch(pitch_rate_target_bf);
+    mincopter.rc_4.servo_out = get_rate_yaw(yaw_rate_target_bf);
 
     // run throttle controller if accel based throttle controller is enabled and active (active means it has been given a target)
     if( throttle_accel_controller_active ) {
@@ -135,7 +146,7 @@ int16_t PID_Controller::get_rate_roll(int32_t target_rate)
 
     // get current rate
 		// TODO Change this to get reading directly from sensors unless perfomance is signficantly degraded
-    current_rate    = (state->omega.x * DEGX100);
+    current_rate    = (state.omega.x * DEGX100);
 
     // call pid controller
     rate_error  = target_rate - current_rate;
@@ -145,7 +156,7 @@ int16_t PID_Controller::get_rate_roll(int32_t target_rate)
     i = pid_rate_roll.get_integrator();
 
     // update i term as long as we haven't breached the limits or the I term will certainly reduce
-    if (!mincopter->motors.limit.roll_pitch || ((i>0&&rate_error<0)||(i<0&&rate_error>0))) {
+    if (!mincopter.motors.limit.roll_pitch || ((i>0&&rate_error<0)||(i<0&&rate_error>0))) {
         i = pid_rate_roll.get_i(rate_error, mincopter.G_Dt);
     }
 
@@ -167,7 +178,7 @@ int16_t PID_Controller::get_rate_pitch(int32_t target_rate)
     int32_t output;                                                                     // output from pid controller
 
     // get current rate
-    current_rate    = (state->omega.y * DEGX100);
+    current_rate    = (state.omega.y * DEGX100);
 
     // call pid controller
     rate_error      = target_rate - current_rate;
@@ -198,7 +209,7 @@ int16_t PID_Controller::get_rate_yaw(int32_t target_rate)
     int32_t output;
 
     // rate control
-    rate_error              = target_rate - (state->omega.z * DEGX100);
+    rate_error              = target_rate - (state.omega.z * DEGX100);
 
     // separately calculate p, i, d values for logging
 		p = pid_rate_yaw.get_p(rate_error);
@@ -223,36 +234,6 @@ int16_t PID_Controller::get_rate_yaw(int32_t target_rate)
 
 
 /*************************************************************
- * yaw controllers
- *************************************************************/
-
-// get_look_at_yaw - updates bearing to location held in look_at_yaw_WP and calls stabilize yaw controller
-// should be called at 100hz
-void PID_Controller::get_look_at_yaw()
-{
-    static uint8_t look_at_yaw_counter = 0;     // used to reduce update rate to 10hz
-
-    look_at_yaw_counter++;
-    if( look_at_yaw_counter >= 10 ) {
-        look_at_yaw_counter = 0;
-        mincopter->yaw_look_at_WP_bearing = pv_get_bearing_cd(state->inertial_nav.get_position(), mincopter->yaw_look_at_WP);
-    }
-
-    // slew yaw and call stabilize controller
-    state->control_yaw = get_yaw_slew(state->control_yaw, mincopter->yaw_look_at_WP_bearing, AUTO_YAW_SLEW_RATE);
-    get_stabilize_yaw(state->control_yaw);
-}
-
-void PID_Controller::get_look_ahead_yaw(int16_t pilot_yaw)
-{
-    // Commanded Yaw to automatically look ahead.
-    if (mincopter->g_gps->fix && mincopter->g_gps->ground_speed_cm > YAW_LOOK_AHEAD_MIN_SPEED) {
-        state->control_yaw = get_yaw_slew(state->control_yaw, mincopter->g_gps->ground_course_cd, AUTO_YAW_SLEW_RATE);
-        get_stabilize_yaw(wrap_360_cd(state->control_yaw + pilot_yaw));   // Allow pilot to "skid" around corners up to 45 degrees
-    }
-}
-
-/*************************************************************
  *  throttle control
  ****************************************************************/
 
@@ -264,7 +245,7 @@ void PID_Controller::update_throttle_cruise(int16_t throttle)
         throttle_avg = throttle_cruise;
     }
     // calc average throttle if we are in a level hover
-    if (throttle > throttle_min && abs(mincopter->climb_rate) < 60 && labs(state->ahrs.roll_sensor) < 500 && labs(state->ahrs.pitch_sensor) < 500) {
+    if (throttle > throttle_min && abs(planner.climb_rate) < 60 && labs(state.ahrs.roll_sensor) < 500 && labs(state.ahrs.pitch_sensor) < 500) {
         throttle_avg = throttle_avg * 0.99f + (float)throttle * 0.01f;
         throttle_cruise = throttle_avg;
     }
@@ -274,13 +255,13 @@ void PID_Controller::update_throttle_cruise(int16_t throttle)
 // throttle value should be 0 ~ 1000
 int16_t PID_Controller::get_angle_boost(int16_t throttle)
 {
-    float temp = state->cos_pitch_x * state->cos_roll_x;
+    float temp = state.cos_pitch_x * state.cos_roll_x;
     int16_t throttle_out;
 
     temp = constrain_float(temp, 0.5f, 1.0f);
 
     // reduce throttle if we go inverted
-    temp = constrain_float(9000-ap_max(labs(state->ahrs.roll_sensor),labs(state->ahrs.pitch_sensor)), 0, 3000) / (3000 * temp);
+    temp = constrain_float(9000-ap_max(labs(state.ahrs.roll_sensor),labs(state.ahrs.pitch_sensor)), 0, 3000) / (3000 * temp);
 
     // apply scale and constrain throttle
     throttle_out = constrain_float((float)(throttle-throttle_min) * temp + throttle_min, throttle_min, 1000);
@@ -296,15 +277,15 @@ int16_t PID_Controller::get_angle_boost(int16_t throttle)
 void PID_Controller::set_throttle_out( int16_t throttle_out, bool apply_angle_boost )
 {
     if( apply_angle_boost ) {
-        mincopter->rc_3.servo_out = get_angle_boost(throttle_out);
+        mincopter.rc_3.servo_out = get_angle_boost(throttle_out);
     } else {
-        mincopter->rc_3.servo_out = throttle_out;
+        mincopter.rc_3.servo_out = throttle_out;
         // clear angle_boost for logging purposes
         angle_boost = 0;
     }
 
     // update compass with throttle value
-    mincopter->compass.set_throttle((float)mincopter->rc_3.servo_out/1000.0f);
+    mincopter.compass.set_throttle((float)mincopter.rc_3.servo_out/1000.0f);
 }
 
 // get_throttle_accel - accelerometer based throttle controller
@@ -319,7 +300,7 @@ int16_t PID_Controller::get_throttle_accel(int16_t z_target_accel)
     uint32_t now = millis();
 
     // Calculate Earth Frame Z acceleration
-    z_accel_meas = -(state->ahrs.get_accel_ef().z + GRAVITY_MSS) * 100;
+    z_accel_meas = -(state.ahrs.get_accel_ef().z + GRAVITY_MSS) * 100;
 
     // reset target altitude if this controller has just been engaged
     if( now - last_call_ms > 100 ) {
@@ -338,7 +319,7 @@ int16_t PID_Controller::get_throttle_accel(int16_t z_target_accel)
     i = pid_throttle_accel.get_integrator();
 
     // update i term as long as we haven't breached the limits or the I term will certainly reduce
-    if ((!mincopter->motors.limit.throttle_lower && !mincopter->motors.limit.throttle_upper) || (i>0&&z_accel_error<0) || (i<0&&z_accel_error>0)) {
+    if ((!mincopter.motors.limit.throttle_lower && !mincopter.motors.limit.throttle_upper) || (i>0&&z_accel_error<0) || (i<0&&z_accel_error>0)) {
         i = pid_throttle_accel.get_i(z_accel_error, .01f);
     }
 
@@ -370,7 +351,7 @@ void PID_Controller::get_throttle_rate(float z_target_speed)
         output = 0;
     } else {
         // calculate rate error and filter with cut off frequency of 2 Hz
-        z_rate_error    = z_rate_error + 0.20085f * ((z_target_speed - mincopter->climb_rate) - z_rate_error);
+        z_rate_error    = z_rate_error + 0.20085f * ((z_target_speed - planner.climb_rate) - z_rate_error);
         // feed forward acceleration based on change in the filtered desired speed.
         z_target_speed_delta = 0.20085f * (z_target_speed - z_target_speed_filt);
         z_target_speed_filt    = z_target_speed_filt + z_target_speed_delta;
@@ -392,7 +373,7 @@ void PID_Controller::get_throttle_rate(float z_target_speed)
     // update throttle cruise
     // TO-DO: this may not be correct because g.rc_3.servo_out has not been updated for this iteration
     if( z_target_speed == 0 ) {
-        update_throttle_cruise(mincopter->rc_3.servo_out);
+        update_throttle_cruise(mincopter.rc_3.servo_out);
     }
 }
 
@@ -406,7 +387,7 @@ void PID_Controller::get_throttle_althold(int32_t target_alt, int16_t min_climb_
     int32_t linear_distance;      // half the distace we swap between linear and sqrt and the distace we offset sqrt.
 
     // calculate altitude error
-    alt_error    = target_alt - state->current_loc.alt;
+    alt_error    = target_alt - state.current_loc.alt;
 
     // check kP to avoid division by zero
     if( pi_alt_hold.kP() != 0 ) {
@@ -435,12 +416,12 @@ void PID_Controller::get_throttle_althold_with_slew(int32_t target_alt, int16_t 
 {
     float alt_change = target_alt-controller_desired_alt;
     // adjust desired alt if motors have not hit their limits
-    if ((alt_change<0 && !mincopter->motors.limit.throttle_lower) || (alt_change>0 && !mincopter->motors.limit.throttle_upper)) {
+    if ((alt_change<0 && !mincopter.motors.limit.throttle_lower) || (alt_change>0 && !mincopter.motors.limit.throttle_upper)) {
         controller_desired_alt += constrain_float(alt_change, min_climb_rate*0.02f, max_climb_rate*0.02f);
     }
 
     // do not let target altitude get too far from current altitude
-    controller_desired_alt = constrain_float(controller_desired_alt,state->current_loc.alt-750,state->current_loc.alt+750);
+    controller_desired_alt = constrain_float(controller_desired_alt,state.current_loc.alt-750,state.current_loc.alt+750);
 
     get_throttle_althold(controller_desired_alt, min_climb_rate-250, max_climb_rate+250);   // 250 is added to give head room to alt hold controller
 }
@@ -451,18 +432,18 @@ void PID_Controller::get_throttle_althold_with_slew(int32_t target_alt, int16_t 
 void PID_Controller::get_throttle_rate_stabilized(int16_t target_rate)
 {
     // adjust desired alt if motors have not hit their limits
-    if ((target_rate<0 && !mincopter->motors.limit.throttle_lower) || (target_rate>0 && !mincopter->motors.limit.throttle_upper)) {
+    if ((target_rate<0 && !mincopter.motors.limit.throttle_lower) || (target_rate>0 && !mincopter.motors.limit.throttle_upper)) {
         controller_desired_alt += target_rate * 0.02f;
     }
 
     // do not let target altitude get too far from current altitude
-    controller_desired_alt = constrain_float(controller_desired_alt,mcstate.current_loc.alt-750,mcstate.current_loc.alt+750);
+    controller_desired_alt = constrain_float(controller_desired_alt,state.current_loc.alt-750,state.current_loc.alt+750);
 
 #if AC_FENCE == ENABLED
     // do not let target altitude be too close to the fence
     // To-Do: add this to other altitude controllers
-    if((state->fence.get_enabled_fences() & AC_FENCE_TYPE_ALT_MAX) != 0) {
-        float alt_limit = state->fence.get_safe_alt() * 100.0f;
+    if((planner.fence.get_enabled_fences() & AC_FENCE_TYPE_ALT_MAX) != 0) {
+        float alt_limit = planner.fence.get_safe_alt() * 100.0f;
         if (controller_desired_alt > alt_limit) {
             controller_desired_alt = alt_limit;
         }
@@ -478,18 +459,19 @@ void PID_Controller::get_throttle_rate_stabilized(int16_t target_rate)
 void PID_Controller::get_throttle_land()
 {
     // if we are above 10m
-    if (state->current_loc.alt >= LAND_START_ALT) {
-        get_throttle_althold_with_slew(LAND_START_ALT, -state->wp_nav.get_descent_velocity(), -abs(land_speed));
+    if (state.current_loc.alt >= LAND_START_ALT) {
+        get_throttle_althold_with_slew(LAND_START_ALT, -planner.wp_nav.get_descent_velocity(), -abs(land_speed));
     }else{
         get_throttle_rate_stabilized(-abs(land_speed));
 
         // disarm when the landing detector says we've landed and throttle is at min (or we're in failsafe so we have no pilot thorottle input)
 #if LAND_REQUIRE_MIN_THROTTLE_TO_DISARM == ENABLED
-        if( mincopter->ap.land_complete && (mincopter->rc_3.control_in == 0 || state->failsafe.radio) ) {
+        if( planner.ap.land_complete && (mincopter.rc_3.control_in == 0 || planner.failsafe.radio) ) {
 #else
-        if (mincopter->ap.land_complete) {
+        if (planner.ap.land_complete) {
 #endif
-            init_disarm_motors();
+					// TODO Remove this - the controller should not be responsible for determining arming/disarming or whether we are in a landed state
+            //init_disarm_motors();
         }
     }
 }
@@ -538,31 +520,28 @@ void PID_Controller::update_throttle_mode(void)
         return;
     }
 
-		// TODO this is part of control
-    switch(mincopter.throttle_mode) {
-
-    case THROTTLE_AUTO:
-        // auto pilot altitude controller with target altitude held in wp_nav.get_desired_alt()
-        if(mincopter.ap.auto_armed) {
+    // auto pilot altitude controller with target altitude held in wp_nav.get_desired_alt()
+        if(planner.ap.auto_armed) {
             // special handling if we are just taking off
-            if (mincopter.ap.land_complete) {
+            if (planner.ap.land_complete) {
                 // tell motors to do a slow start.
                 mincopter.motors.slow_start(true);
             }
-            get_throttle_althold_with_slew(mcstate.wp_nav.get_desired_alt(), -mcstate.wp_nav.get_descent_velocity(), mcstate.wp_nav.get_climb_velocity());
+            get_throttle_althold_with_slew(planner.wp_nav.get_desired_alt(), -planner.wp_nav.get_descent_velocity(), planner.wp_nav.get_climb_velocity());
         }else{
             // pilot's throttle must be at zero so keep motors off
             set_throttle_out(0, false);
             // deactivate accel based throttle controller
     				throttle_accel_controller_active = false;
         }
-        break;
 
+		/* TODO Remove the throttle landing mode but maybe keep some functionality
     case THROTTLE_LAND:
         // landing throttle controller
         get_throttle_land();
         break;
     }
+		*/
 }
 
 // update_yaw_mode - run high level yaw controllers
@@ -573,144 +552,56 @@ void PID_Controller::update_yaw_mode(void)
     int16_t pilot_yaw = mincopter.rc_4.control_in;
 
     // do not process pilot's yaw input during radio failsafe
-    if (mcstate.failsafe.radio) {
+    if (planner.failsafe.radio) {
         pilot_yaw = 0;
     }
 
 		// TODO this is part of control
-    switch(mincopter.yaw_mode) {
+		//
+    
+		// if we are landed reset yaw target to current heading
+    if (planner.ap.land_complete) {
+			planner.control_yaw = state.ahrs.yaw_sensor;
+    } else {
+      // point towards next waypoint (no pilot input accepted)
+      // we don't use wp_bearing because we don't want the copter to turn too much during flight
+      planner.control_yaw = get_yaw_slew(planner.control_yaw, planner.original_wp_bearing, AUTO_YAW_SLEW_RATE);
+    }
+    
+		get_stabilize_yaw(planner.control_yaw);
 
-		/* NOTE REMOVE DUE TO ACRO VARIABLE IN get_yaw_rate_stabilized_ef
-    case YAW_HOLD:
-        // if we are landed reset yaw target to current heading
-        if (ap.land_complete) {
-            control_yaw = ahrs.yaw_sensor;
-        }
-        // heading hold at heading held in control_yaw but allow input from pilot
-        get_yaw_rate_stabilized_ef(pilot_yaw);
-        break;
-		*/
-
-		/* REMOVE ACRO
-    case YAW_ACRO:
-        // pilot controlled yaw using rate controller
-        get_yaw_rate_stabilized_bf(pilot_yaw);
-        break;
-		*/
-
-    case YAW_LOOK_AT_NEXT_WP:
-        // if we are landed reset yaw target to current heading
-        if (mincopter.ap.land_complete) {
-            mcstate.control_yaw = mcstate.ahrs.yaw_sensor;
-        }else{
-            // point towards next waypoint (no pilot input accepted)
-            // we don't use wp_bearing because we don't want the copter to turn too much during flight
-            mcstate.control_yaw = get_yaw_slew(mcstate.control_yaw, mincopter.original_wp_bearing, AUTO_YAW_SLEW_RATE);
-        }
-        get_stabilize_yaw(mcstate.control_yaw);
-
-        // if there is any pilot input, switch to YAW_HOLD mode for the next iteration
-        if (pilot_yaw != 0) {
-            set_yaw_mode(YAW_HOLD);
-        }
-        break;
-
-    case YAW_LOOK_AT_LOCATION:
-        // if we are landed reset yaw target to current heading
-        if (mincopter.ap.land_complete) {
-            mcstate.control_yaw = mcstate.ahrs.yaw_sensor;
-        }
-        // point towards a location held in yaw_look_at_WP
-        get_look_at_yaw();
-
-        // if there is any pilot input, switch to YAW_HOLD mode for the next iteration
-        if (pilot_yaw != 0) {
-            set_yaw_mode(YAW_HOLD);
-        }
-        break;
+    // REMOVED YAW_LOOK_AT_LOCATION:
 
 		// REMOVED get_circle_yaw
 
-    case YAW_LOOK_AT_HOME:
-        // if we are landed reset yaw target to current heading
-        if (mincopter.ap.land_complete) {
-            mcstate.control_yaw = mcstate.ahrs.yaw_sensor;
-        }else{
-            // keep heading always pointing at home with no pilot input allowed
-            mcstate.control_yaw = get_yaw_slew(mcstate.control_yaw, mincopter.home_bearing, AUTO_YAW_SLEW_RATE);
-        }
-        get_stabilize_yaw(mcstate.control_yaw);
+    // REMOVED YAW_LOOK_AT_HOME:
 
-        // if there is any pilot input, switch to YAW_HOLD mode for the next iteration
-        if (pilot_yaw != 0) {
-            set_yaw_mode(YAW_HOLD);
-        }
-        break;
+    // REMOVED YAW_LOOK_AT_HEADING:
 
-    case YAW_LOOK_AT_HEADING:
-        // if we are landed reset yaw target to current heading
-        if (mincopter.ap.land_complete) {
-            mcstate.control_yaw = mcstate.ahrs.yaw_sensor;
-        }else{
-            // keep heading pointing in the direction held in yaw_look_at_heading with no pilot input allowed
-            mcstate.control_yaw = get_yaw_slew(mcstate.control_yaw, mincopter.yaw_look_at_heading, mincopter.yaw_look_at_heading_slew);
-        }
-        get_stabilize_yaw(mcstate.control_yaw);
-        break;
+	  // REMOVED YAW_LOOK_AHEAD:
 
-	case YAW_LOOK_AHEAD:
-        // if we are landed reset yaw target to current heading
-        if (mincopter.ap.land_complete) {
-            mcstate.control_yaw = mcstate.ahrs.yaw_sensor;
-        }
-		// Commanded Yaw to automatically look ahead.
-        get_look_ahead_yaw(pilot_yaw);
-        break;
+    // REMOVED YAW_RESETTOARMEDYAW:
 
-    case YAW_RESETTOARMEDYAW:
-        // if we are landed reset yaw target to current heading
-        if (mincopter.ap.land_complete) {
-            mcstate.control_yaw = mcstate.ahrs.yaw_sensor;
-        }else{
-            // changes yaw to be same as when quad was armed
-            mcstate.control_yaw = get_yaw_slew(mcstate.control_yaw, mincopter.initial_armed_bearing, AUTO_YAW_SLEW_RATE);
-        }
-        get_stabilize_yaw(mcstate.control_yaw);
-
-        // if there is any pilot input, switch to YAW_HOLD mode for the next iteration
-        if (pilot_yaw != 0) {
-            set_yaw_mode(YAW_HOLD);
-        }
-
-        break;
-    }
 }
 
 // update_roll_pitch_mode - run high level roll and pitch controllers
 // 100hz update rate
 void PID_Controller::update_roll_pitch_mode(void)
 {
-    switch(mincopter.roll_pitch_mode) {
-		// NO ACRO MODE
+		// Get control roll/pitch from the waypoint controller
+    planner.control_roll = planner.wp_nav.get_desired_roll();
+    planner.control_pitch = planner.wp_nav.get_desired_pitch();
 
-		// NO manual modes
-    case ROLL_PITCH_AUTO:
-				// Get control roll/pitch from the waypoint controller
-        mcstate.control_roll = mcstate.wp_nav.get_desired_roll();
-        mcstate.control_pitch = mcstate.wp_nav.get_desired_pitch();
+    get_stabilize_roll(planner.control_roll);
+    get_stabilize_pitch(planner.control_pitch);
 
-        get_stabilize_roll(mcstate.control_roll);
-        get_stabilize_pitch(mcstate.control_pitch);
-        break;
-    }
-
-    if(mincopter.rc_3.control_in == 0 && mincopter.control_mode <= ACRO) {
+    if(mincopter.rc_3.control_in == 0 && planner.control_mode <= ACRO) {
         reset_rate_I();
     }
 
-    if(mincopter.ap.new_radio_frame) {
+    if(planner.ap.new_radio_frame) {
         // clear new radio frame info
-        mincopter.ap.new_radio_frame = false;
+        planner.ap.new_radio_frame = false;
     }
 
 }

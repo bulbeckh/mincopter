@@ -10,87 +10,17 @@
 #include "mcinstance.h"
 #include "mcstate.h"
 
+#include "controller_pid.h"
+
 extern MCInstance mincopter;
 extern MCState mcstate;
+
+extern PID_Controller pid_controller;
 
 #include "log.h"
 #include "init.h"
 #include "radio.h"
 #include "util.h"
-
-
-// arm_motors_check - checks for pilot input to arm or disarm the copter
-// called at 10hz
-
-/* REMOVE
-void WP_Planner::arm_motors_check()
-{
-    static int16_t arming_counter;
-    bool allow_arming = false;
-
-    // ensure throttle is down
-    if (mincopter.rc_3.control_in > 0) {
-        arming_counter = 0;
-        return;
-    }
-
-    // allow arming/disarming in Loiter and AltHold if landed
-    if (mincopter.ap.land_complete && (mincopter.control_mode == LOITER || mincopter.control_mode == ALT_HOLD)) {
-        allow_arming = true;
-    }
-
-    // kick out other flight modes
-    if (!allow_arming) {
-        arming_counter = 0;
-        return;
-    }
-
-    int16_t tmp = mincopter.rc_4.control_in;
-
-    // full right
-    if (tmp > 4000) {
-
-        // increase the arming counter to a maximum of 1 beyond the auto trim counter
-        if( arming_counter <= AUTO_TRIM_DELAY ) {
-            arming_counter++;
-        }
-
-        // arm the motors and configure for flight
-        if (arming_counter == ARM_DELAY && !mincopter.motors.armed()) {
-            // run pre-arm-checks and display failures
-            pre_arm_checks(true);
-            if(mincopter.ap.pre_arm_check && arm_checks(true)) {
-                init_arm_motors();
-            }else{
-                // reset arming counter if pre-arm checks fail
-                arming_counter = 0;
-            }
-        }
-
-        // arm the motors and configure for flight
-        if (arming_counter == AUTO_TRIM_DELAY && mincopter.motors.armed() && mincopter.control_mode == STABILIZE) {
-            mincopter.auto_trim_counter = 250;
-        }
-
-    // full left
-    }else if (tmp < -4000) {
-
-        // increase the counter to a maximum of 1 beyond the disarm delay
-        if( arming_counter <= DISARM_DELAY ) {
-            arming_counter++;
-        }
-
-        // disarm the motors
-        if (arming_counter == DISARM_DELAY && mincopter.motors.armed()) {
-            init_disarm_motors();
-        }
-
-    // Yaw is centered so reset arming counter
-    }else{
-        arming_counter = 0;
-    }
-}
-*/
 
 // auto_disarm_check - disarms the copter if it has been sitting on the ground in manual mode with throttle low for at least 15 seconds
 // called at 1hz
@@ -126,9 +56,6 @@ void WP_Planner::init_arm_motors()
     // which calibrates the IMU
     static bool did_ground_start = false;
 
-    // disable cpu failsafe because initialising everything takes a while
-    failsafe_disable();
-
     // disable inertial nav errors temporarily
     mcstate.inertial_nav.ignore_next_error();
 
@@ -156,8 +83,6 @@ void WP_Planner::init_arm_motors()
     // --------------------
     //init_simple_bearing();
 
-    initial_armed_bearing = mcstate.ahrs.yaw_sensor;
-
     // Reset home position
     // -------------------
     if (ap.home_is_set) {
@@ -167,12 +92,15 @@ void WP_Planner::init_arm_motors()
 
     // all I terms are invalid
     // -----------------------
-    reset_I_all();
+    pid_controller.reset_I_all();
 
+		// TODO Removed because startup_ground function missing/removed. Investigate further
+		/*
     if(did_ground_start == false) {
         did_ground_start = true;
         startup_ground(true);
     }
+		*/
 
 #if HIL_MODE != HIL_MODE_ATTITUDE
     // fast baro calibration to reset ground pressure
@@ -190,9 +118,8 @@ void WP_Planner::init_arm_motors()
 
     // Cancel arming if throttle is raised too high so that copter does not suddenly take off
     //read_radio();
-    if (mincopter.rc_3.control_in > throttle_cruise && throttle_cruise > 100) {
+    if (mincopter.rc_3.control_in > pid_controller.throttle_cruise && pid_controller.throttle_cruise > 100) {
         mincopter.motors.output_min();
-        failsafe_enable();
         return;
     }
 
@@ -205,8 +132,6 @@ void WP_Planner::init_arm_motors()
     // log arming to dataflash
     Log_Write_Event(DATA_ARMED);
 
-    // reenable failsafe
-    failsafe_enable();
 }
 
 // perform pre-arm checks and set ap.pre_arm_check flag
