@@ -80,6 +80,11 @@ class WP_Planner : public MC_Planner
 		float lon_error;
 		float lat_error; 
 
+		bool throttle_initialised;
+
+		// counter to verify landings
+		uint16_t land_detector;
+
 		AP_UNION_T ap;
 
 		/* Failsafe Parameters */
@@ -205,7 +210,10 @@ class WP_Planner : public MC_Planner
 		/* @brief Checks run before motors are armed
 		*/
 		void pre_arm_checks(bool display_failure);
+
+	public:
 		void pre_arm_rc_checks();
+	private:
 		bool pre_arm_gps_checks(bool display_failure);
 		bool arm_checks(bool display_failure);
 

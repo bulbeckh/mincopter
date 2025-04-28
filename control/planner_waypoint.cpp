@@ -5,8 +5,18 @@
 #include "util.h"
 #include "log.h"
 
+#include "mcinstance.h"
+#include "mcstate.h"
 extern MCInstance mincopter;
 extern MCState mcstate;
+
+/* TODO There should be a clear one-way relationship between planner and controller. At the moment it is being mixed
+ * Either the planner should set controller control variables directly like 'controller_desired_altitude' or the controller should request
+ * the variables from the planner.
+ */
+#include "control.h"
+#include "controller_pid.h"
+extern PID_Controller controller;
 
 void WP_Planner::run(void)
 {
@@ -19,71 +29,18 @@ void WP_Planner::run(void)
 	 * 3. Use planner to determine control inputs/targets.
 	 */
 
-
+  // 1. Failsafe and fence checks
 	/* Fence Check */
 	fence_check();
 
 	/* Failsafe Check */
 	//failsafe_check()
+	
+	// 2. State changes
 
+	// 3. Control determination
 	update_nav_mode();
 
-}
-
-bool WP_Planner::set_mode(uint8_t mode)
-{
-    // boolean to record if flight mode could be set
-    bool success = false;
-    bool ignore_checks = !mincopter.motors.armed();   // allow switching to any mode if disarmed.  We rely on the arming check to perform
-
-    // return immediately if we are already in the desired mode
-		// #TODO control_mode is part of MCInstance but will be moved either as a state variable or the btree
-    if (mode == control_mode) {
-        return true;
-    }
-
-    switch(mode) {
-
-        case STABILIZE:
-            success = true;
-            set_yaw_mode(STABILIZE_YAW);
-            set_roll_pitch_mode(STABILIZE_RP);
-            set_throttle_mode(STABILIZE_THR);
-            set_nav_mode(NAV_NONE);
-            break;
-
-        case AUTO:
-            // check we have a GPS and at least one mission command (note the home position is always command 0)
-            if (GPS_ok() || ignore_checks) {
-                success = true;
-                // roll-pitch, throttle and yaw modes will all be set by the first nav command
-                //init_commands();            // clear the command queues. will be reloaded when "run_autopilot" calls "update_commands" function
-								// NOTE removed commands - need to reconfigure how autpilot starts and runs
-            }
-            break;
-
-        case LAND:
-            success = true;
-						// NOTE As with above, need to reconfigure how autopilot works here
-            //do_land(NULL);  // land at current location
-            break;
-
-        default:
-            success = false;
-            break;
-    }
-
-    // update flight mode
-    if (success) {
-        control_mode = mode;
-        //Log_Write_Mode(control_mode);
-    }else{
-        // Log error that we failed to enter desired flight mode
-        //Log_Write_Error(ERROR_SUBSYSTEM_FLIGHT_MODE,mode);
-    }
-
-    // return success or failure
-    return success;
 }
 
 // update_land_detector - checks if we have landed and updates the ap.land_complete flag
@@ -91,7 +48,7 @@ bool WP_Planner::set_mode(uint8_t mode)
 bool WP_Planner::update_land_detector()
 {
     // detect whether we have landed by watching for low climb rate and minimum throttle
-    if (abs(climb_rate) < 20 && mincopter->motors.limit.throttle_lower) {
+    if (abs(climb_rate) < 20 && mincopter.motors.limit.throttle_lower) {
         if (!ap.land_complete) {
             // run throttle controller if accel based throttle controller is enabled and active (active means it has been given a target)
             if( land_detector < LAND_DETECTOR_TRIGGER) {
@@ -101,7 +58,7 @@ bool WP_Planner::update_land_detector()
                 land_detector = 0;
             }
         }
-    }else if (mincopter->rc_3.control_in != 0 || failsafe.radio){    // zero throttle locks land_complete as true
+    }else if (mincopter.rc_3.control_in != 0 || failsafe.radio){    // zero throttle locks land_complete as true
         // we've sensed movement up or down so reset land_detector
         land_detector = 0;
         if(ap.land_complete) {
@@ -137,10 +94,7 @@ void WP_Planner::calc_distance_and_bearing()
     Vector3f curr = mcstate.inertial_nav.get_position();
 
     // get target from loiter or wpinav controller
-    if( nav_mode == NAV_LOITER || nav_mode == NAV_CIRCLE ) {
-        wp_distance = wp_nav.get_distance_to_target();
-        wp_bearing = wp_nav.get_bearing_to_target();
-    }else if( nav_mode == NAV_WP ) {
+  	if( nav_mode == WP_FLIGHT_STATE::FS_WAYPOINT ) {
         wp_distance = wp_nav.get_distance_to_destination();
         wp_bearing = wp_nav.get_bearing_to_destination();
     }else{
@@ -151,10 +105,7 @@ void WP_Planner::calc_distance_and_bearing()
     // calculate home distance and bearing
     if(GPS_ok()) {
         home_distance = pythagorous2(curr.x, curr.y);
-        home_bearing = pv_get_bearing_cd(curr,Vector3f(0,0,0));
-
-        // update super simple bearing (if required) because it relies on home_bearing
-        //update_super_simple_bearing(false);
+        //home_bearing = pv_get_bearing_cd(curr,Vector3f(0,0,0));
     }
 }
 
@@ -169,7 +120,7 @@ void WP_Planner::update_nav_mode()
 
     switch( nav_mode ) {
 
-        case NAV_LOITER:
+			case WP_FLIGHT_STATE::FS_LOITER:
             // reset target if we are still on the ground
             if (ap.land_complete) {
                 wp_nav.init_loiter_target(mcstate.inertial_nav.get_position(),mcstate.inertial_nav.get_velocity());
@@ -179,7 +130,7 @@ void WP_Planner::update_nav_mode()
             }
             break;
 
-        case NAV_WP:
+			case WP_FLIGHT_STATE::FS_WAYPOINT:
             // call waypoint controller
             wp_nav.update_wpnav();
             break;
@@ -214,12 +165,12 @@ int32_t WP_Planner::get_initial_alt_hold( int32_t alt_cm, int16_t climb_rate_cms
     int32_t linear_distance;      // half the distace we swap between linear and sqrt and the distace we offset sqrt.
     int32_t linear_velocity;      // the velocity we swap between linear and sqrt.
 
-    linear_velocity = ALT_HOLD_ACCEL_MAX/pi_alt_hold.kP();
+    linear_velocity = ALT_HOLD_ACCEL_MAX/controller.pi_alt_hold.kP();
 
     if (abs(climb_rate_cms) < linear_velocity) {
-        target_alt = alt_cm + climb_rate_cms/pi_alt_hold.kP();
+        target_alt = alt_cm + climb_rate_cms/controller.pi_alt_hold.kP();
     } else {
-        linear_distance = ALT_HOLD_ACCEL_MAX/(2*pi_alt_hold.kP()*pi_alt_hold.kP());
+        linear_distance = ALT_HOLD_ACCEL_MAX/(2*controller.pi_alt_hold.kP()*controller.pi_alt_hold.kP());
         if (climb_rate_cms > 0){
             target_alt = alt_cm + linear_distance + (int32_t)climb_rate_cms*(int32_t)climb_rate_cms/(2*ALT_HOLD_ACCEL_MAX);
         } else {
@@ -231,8 +182,8 @@ int32_t WP_Planner::get_initial_alt_hold( int32_t alt_cm, int16_t climb_rate_cms
 
 bool WP_Planner::init_throttle( uint8_t new_throttle_mode )
 {
-		mincopter.controller_desired_alt = get_initial_alt_hold(mcstate.current_loc.alt, mincopter.climb_rate);     // reset controller desired altitude to current altitude
-    wp_nav.set_desired_alt(mincopter.controller_desired_alt);                                 // same as above but for loiter controller
+		controller.controller_desired_alt = get_initial_alt_hold(mcstate.current_loc.alt, climb_rate);     // reset controller desired altitude to current altitude
+    wp_nav.set_desired_alt(controller.controller_desired_alt);                                 // same as above but for loiter controller
     throttle_initialised = true;
 
 		/* LANDING case
@@ -275,12 +226,7 @@ void WP_Planner::fence_check()
 						}else{
 								// if we are within 100m of the fence, RTL
 								if (fence.get_breach_distance(new_breaches) <= AC_FENCE_GIVE_UP_DISTANCE) {
-										if (!set_mode(RTL)) {
-												set_mode(LAND);
-										}
-								}else{
-										// if more than 100m outside the fence just force a land
-										set_mode(LAND);
+										nav_mode = WP_FLIGHT_STATE::FS_LAND;
 								}
 						}
 				}
@@ -302,6 +248,8 @@ void WP_Planner::failsafe_radio_on_event()
         return;
     }
 
+		// TODO This should work but it is heavily unoptimized
+		//
     // This is how to handle a failsafe.
 		//
 		// TODO Remove the switch statement in favor of a single AUTO mode
@@ -312,32 +260,20 @@ void WP_Planner::failsafe_radio_on_event()
                 init_disarm_motors();
             }else if(failsafe_throttle == FS_THR_ENABLED_ALWAYS_LAND) {
                 // if failsafe_throttle is 3 (i.e. FS_THR_ENABLED_ALWAYS_LAND) land immediately
-                set_mode(LAND);
+								nav_mode = WP_FLIGHT_STATE::FS_LAND;
 						// TODO Change home_distance to mcstate
 						// TODO wp_nav will be moved to the btree
-            }else if(home_distance > wp_nav.get_waypoint_radius()) {
-                if (!set_mode(RTL)) {
-                    set_mode(LAND);
-                }
-            }else{
-                // We have no GPS or are very close to home so we will land
-                set_mode(LAND);
+            } else {
+								nav_mode = WP_FLIGHT_STATE::FS_LAND;
             }
             break;
         case AUTO:
             // failsafe_throttle is 1 do RTL, 2 means continue with the mission
             if (failsafe_throttle == FS_THR_ENABLED_ALWAYS_RTL) {
-                if(home_distance > wp_nav.get_waypoint_radius()) {
-                    if (!set_mode(RTL)) {
-                        set_mode(LAND);
-                    }
-                }else{
-                    // We are very close to home so we will land
-                    set_mode(LAND);
-                }
+								nav_mode = WP_FLIGHT_STATE::FS_LAND;
             }else if(failsafe_throttle == FS_THR_ENABLED_ALWAYS_LAND) {
                 // if failsafe_throttle is 3 (i.e. FS_THR_ENABLED_ALWAYS_LAND) land immediately
-            	set_mode(LAND);
+								nav_mode = WP_FLIGHT_STATE::FS_LAND;
             }
             // if failsafe_throttle is 2 (i.e. FS_THR_ENABLED_CONTINUE_MISSION) no need to do anything
             break;
@@ -348,14 +284,11 @@ void WP_Planner::failsafe_radio_on_event()
                 init_disarm_motors();
             }else if(failsafe_throttle == FS_THR_ENABLED_ALWAYS_LAND) {
                 // if failsafe_throttle is 3 (i.e. FS_THR_ENABLED_ALWAYS_LAND) land immediately
-                set_mode(LAND);
+								nav_mode = WP_FLIGHT_STATE::FS_LAND;
             }else if(home_distance > wp_nav.get_waypoint_radius()) {
-                if (!set_mode(RTL)) {
-                    set_mode(LAND);
-                }
+								nav_mode = WP_FLIGHT_STATE::FS_LAND;
             }else{
-                // We have no GPS or are very close to home so we will land
-                set_mode(LAND);
+								nav_mode = WP_FLIGHT_STATE::FS_LAND;
             }
             break;
         case LAND:
@@ -366,14 +299,11 @@ void WP_Planner::failsafe_radio_on_event()
         default:
             if(failsafe_throttle == FS_THR_ENABLED_ALWAYS_LAND) {
                 // if failsafe_throttle is 3 (i.e. FS_THR_ENABLED_ALWAYS_LAND) land immediately
-                set_mode(LAND);
+								nav_mode = WP_FLIGHT_STATE::FS_LAND;
             }else if(home_distance > wp_nav.get_waypoint_radius()) {
-                if (!set_mode(RTL)){
-                    set_mode(LAND);
-                }
+								nav_mode = WP_FLIGHT_STATE::FS_LAND;
             }else{
-                // We have no GPS or are very close to home so we will land
-                set_mode(LAND);
+								nav_mode = WP_FLIGHT_STATE::FS_LAND;
             }
             break;
     }
@@ -407,25 +337,12 @@ void WP_Planner::failsafe_battery_event(void)
                 if (mincopter.rc_3.control_in == 0) {
                     init_disarm_motors();
                 }else{
-                    // set mode to RTL or LAND
-                    if (failsafe_battery_enabled == FS_BATT_RTL && home_distance > wp_nav.get_waypoint_radius()) {
-                        if (!set_mode(RTL)) {
-                            set_mode(LAND);
-                        }
-                    }else{
-                        set_mode(LAND);
-                    }
+									nav_mode = WP_FLIGHT_STATE::FS_LAND;
                 }
                 break;
             case AUTO:
                 // set mode to RTL or LAND
-                if (home_distance > wp_nav.get_waypoint_radius()) {
-                    if (!set_mode(RTL)) {
-                        set_mode(LAND);
-                    }
-                }else{
-                    set_mode(LAND);
-                }
+								nav_mode = WP_FLIGHT_STATE::FS_LAND;
                 break;
             case LOITER:
             case ALT_HOLD:
@@ -435,14 +352,7 @@ void WP_Planner::failsafe_battery_event(void)
                     break;
                 }
             default:
-                // set mode to RTL or LAND
-                if (failsafe_battery_enabled == FS_BATT_RTL && home_distance > wp_nav.get_waypoint_radius()) {
-                    if (!set_mode(RTL)) {
-                        set_mode(LAND);
-                    }
-                }else{
-                    set_mode(LAND);
-                }
+								nav_mode = WP_FLIGHT_STATE::FS_LAND;
                 break;
         }
     }
@@ -494,8 +404,8 @@ void WP_Planner::failsafe_gps_check()
 
     // take action based on flight mode and FS_GPS_ENABLED parameter
     if (failsafe_gps_enabled == FS_GPS_ALTHOLD && !failsafe.radio) {
-    	set_mode(ALT_HOLD);
+			nav_mode = WP_FLIGHT_STATE::FS_LOITER;
     } else {
-      set_mode(LAND);
+			nav_mode = WP_FLIGHT_STATE::FS_LAND;
     }
 }

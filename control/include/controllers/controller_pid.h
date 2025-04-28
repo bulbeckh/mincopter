@@ -7,7 +7,9 @@
 #include "mcinstance.h"
 #include "mcstate.h"
 
-class PID_Controller : MC_Controller
+#include "AC_PID.h"
+
+class PID_Controller : public MC_Controller
 {
 	public:
 
@@ -88,19 +90,17 @@ class PID_Controller : MC_Controller
     int16_t        throttle_cruise;
 
     int32_t        angle_rate_max;             // maximum rotation rate in roll/pitch axis requested by angle controller used in stabilize, loiter, rtl, auto flight modes
+																							 
+		// The (throttle) controller desired altitude in cm
+		float controller_desired_alt;
 	
 	private:
 		// An additional throttle added to keep the copter at the same altitude when banking
 		int16_t angle_boost;
 
-		// The (throttle) controller desired altitude in cm
-		float controller_desired_alt;
-
     int16_t        pilot_velocity_z_max;        // maximum vertical velocity the pilot may request
 																								//
     int16_t        land_speed;
-		// counter to verify landings
-		uint16_t land_detector;
 
 
 	private:
@@ -110,8 +110,12 @@ class PID_Controller : MC_Controller
     AC_PID                  pi_stabilize_pitch;
     AC_PID                  pi_stabilize_yaw;
     AC_PID                  pid_throttle_rate;
+
+	public:
+		// TODO Temporarily public to fix bi-direction between planner and controller
     AC_PID                  pi_alt_hold;
 
+	private:
 		// Rate Controllers
     AC_PID                  pid_rate_roll;
     AC_PID                  pid_rate_pitch;

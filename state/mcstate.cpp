@@ -8,13 +8,11 @@
 extern MCInstance mincopter;
 
 #include "util.h"
-#include "log.h"
-#include "system.h"
 
 MCState::MCState() : 
 		ahrs(mincopter.ins, mincopter.g_gps),
 		//fence(&this->inertial_nav),
-		inertial_nav(&this->ahrs, &mincopter.barometer, mincopter.g_gps, mincopter.gps_glitch),
+		inertial_nav(&this->ahrs, &mincopter.barometer, mincopter.g_gps, mincopter.gps_glitch)
 		//wp_nav(&this->inertial_nav, &this->ahrs, &mincopter.pi_loiter_lat, &mincopter.pi_loiter_lon, &mincopter.pid_loiter_rate_lat, &mincopter.pid_loiter_rate_lon)
 {
 
@@ -51,8 +49,9 @@ void MCState::update_trig(void){
 		sin_pitch       = -temp.c.x;
 		sin_roll        = temp.c.y / cos_pitch_x;
 
+		// TODO If this is used by wp_nav then it needs to pull from here
 		// update wp_nav controller with trig values
-		wp_nav.set_cos_sin_yaw(cos_yaw, sin_yaw, cos_pitch_x);
+		//wp_nav.set_cos_sin_yaw(cos_yaw, sin_yaw, cos_pitch_x);
 
 		//flat:
 		// 0 ° = cos_yaw:  1.00, sin_yaw:  0.00,

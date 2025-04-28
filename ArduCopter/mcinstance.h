@@ -13,7 +13,6 @@
 #include <AP_BattMonitor.h>
 #include <AP_HAL.h>
 // HASH include <APM_PI.h>
-#include <AC_PID.h>
 #include <RC_Channel.h>
 
 #ifdef TARGET_ARCH_AVR
@@ -28,8 +27,6 @@
 #else
 	#error "wrong target from within mcinstance.h"
 #endif
-
-#include "failsafe.h"
 
 #include "config.h"
 

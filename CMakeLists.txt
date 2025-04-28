@@ -48,6 +48,8 @@ message(STATUS "CXX Compiler: ${CMAKE_CXX_COMPILER}")
 
 ]]
 
+#### Build - control/ ####
+
 list(APPEND MC_INCLUDE_DIRS
 	control/include
 )
@@ -93,10 +95,56 @@ target_include_directories(libs_control PUBLIC
 	control/include/planners/AC_Fence
 	control/include/planners/AC_WPNav
 	control/include/planners/
+	sim/
 )
 
 get_target_property(dirs libs_control INCLUDE_DIRECTORIES)
 message(STATUS "include for libs_control: ${dirs}")
+
+#### Build - state/ ####
+
+file(GLOB MC_LIBS_STATE "state/*.cpp")
+foreach(src ${MC_LIBS_STATE})
+	message(STATUS "${src}")
+endforeach()
+
+add_library(libs_state STATIC ${MC_LIBS_STATE})
+target_include_directories(libs_state PUBLIC
+	ArduCopter/
+	arch/AP_HAL
+	arch/AP_HAL_AVR
+	arch/AP_HAL_Linux
+	arch/AP_Progmem
+	arch/AP_Scheduler
+	lib/AP_Common
+	lib/AP_Curve
+	lib/AP_Menu
+	lib/AP_Math
+	lib/Filter
+	lib/RC_Channel
+	lib/
+	state/AP_AHRS
+	state/AP_InertialNav
+	state/
+	dev/AP_ADC
+	dev/AP_ADC_AnalogSource
+	dev/AP_Baro
+	dev/AP_BattMonitor
+	dev/AP_Compass
+	dev/AP_Declination
+	dev/AP_GPS
+	dev/AP_InertialSensor
+	dev/AP_Motors
+	dev/AP_Notify
+	dev/DataFlash
+	sim/
+)
+
+#### Build - dev/ and sim/ ####
+
+#### Build - mincopter/ ####
+
+#### Build - arch/ ####
 
 #[[
 

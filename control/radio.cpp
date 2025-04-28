@@ -11,7 +11,12 @@
 extern MCInstance mincopter;
 extern MCState mcstate;
 
-#include "motors.h"
+#include "planner_waypoint.h"
+extern WP_Planner planner;
+
+#include "controller_pid.h"
+extern PID_Controller controller;
+
 #include "util.h"
 
 void default_dead_zones()
@@ -53,7 +58,7 @@ void init_rc_out()
     mincopter.motors.set_update_rate(mincopter.rc_speed);
     mincopter.motors.set_frame_orientation(mincopter.frame_orientation);
     mincopter.motors.Init();                                              // motor initialisation
-    mincopter.motors.set_min_throttle(mincopter.throttle_min);
+    mincopter.motors.set_min_throttle(controller.throttle_min);
 
 		/*
     for(uint8_t i = 0; i < 5; i++) {
@@ -93,8 +98,8 @@ void init_rc_out()
 		*/
 
     // enable output to motors
-    pre_arm_rc_checks();
-    if (mincopter.ap.pre_arm_rc_check) {
+    planner.pre_arm_rc_checks();
+    if (planner.ap.pre_arm_rc_check) {
         output_min();
     }
 }
@@ -111,36 +116,36 @@ void output_min()
 void set_throttle_and_failsafe(uint16_t throttle_pwm)
 {
     // if failsafe not enabled pass through throttle and exit
-    if(mincopter.failsafe_throttle == FS_THR_DISABLED) {
+    if(planner.failsafe_throttle == FS_THR_DISABLED) {
         mincopter.rc_3.set_pwm(throttle_pwm);
         return;
     }
 
     //check for low throttle value
-    if (throttle_pwm < (uint16_t)mincopter.failsafe_throttle_value) {
+    if (throttle_pwm < (uint16_t)planner.failsafe_throttle_value) {
 
         // if we are already in failsafe or motors not armed pass through throttle and exit
-        if (mcstate.failsafe.radio || !mincopter.motors.armed()) {
+        if (planner.failsafe.radio || !mincopter.motors.armed()) {
             mincopter.rc_3.set_pwm(throttle_pwm);
             return;
         }
 
         // check for 3 low throttle values
         // Note: we do not pass through the low throttle until 3 low throttle values are recieved
-        mcstate.failsafe.radio_counter++;
-        if( mcstate.failsafe.radio_counter >= FS_COUNTER ) {
-            mcstate.failsafe.radio_counter = FS_COUNTER;  // check to ensure we don't overflow the counter
+        planner.failsafe.radio_counter++;
+        if( planner.failsafe.radio_counter >= FS_COUNTER ) {
+            planner.failsafe.radio_counter = FS_COUNTER;  // check to ensure we don't overflow the counter
             set_failsafe_radio(true);
             mincopter.rc_3.set_pwm(throttle_pwm);   // pass through failsafe throttle
         }
     }else{
         // we have a good throttle so reduce failsafe counter
-        mcstate.failsafe.radio_counter--;
-        if( mcstate.failsafe.radio_counter <= 0 ) {
-            mcstate.failsafe.radio_counter = 0;   // check to ensure we don't underflow the counter
+        planner.failsafe.radio_counter--;
+        if( planner.failsafe.radio_counter <= 0 ) {
+            planner.failsafe.radio_counter = 0;   // check to ensure we don't underflow the counter
 
             // disengage failsafe after three (nearly) consecutive valid throttle values
-            if (mcstate.failsafe.radio) {
+            if (planner.failsafe.radio) {
                 set_failsafe_radio(false);
             }
         }
