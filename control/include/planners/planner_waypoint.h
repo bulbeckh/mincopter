@@ -105,9 +105,6 @@ class WP_Planner : public MC_Planner
 		// distance between plane and home in cm
 		int32_t home_distance;
 
-		// The cm/s we are moving up or down based on filtered data - Positive = UP
-		int16_t climb_rate;
-
 		// The altitude as reported by Baro in cm – Values can be quite high
 		int32_t baro_alt;
 																							 
@@ -210,6 +207,13 @@ class WP_Planner : public MC_Planner
 		/* @brief Checks run before motors are armed
 		*/
 		void pre_arm_checks(bool display_failure);
+
+		/* @brief Reduces rate-of-change of yaw to a maximum value
+		* @param current_yaw The current yaw value. Usually control_yaw
+		* @param desired_yaw The target yaw value.
+		* @param deg_per_sec The maximum rate-of-change of yaw value. For example AUTO_YAW_SLEW_RATE
+		*/
+		int32_t get_yaw_slew(int32_t current_yaw, int32_t desired_yaw, int16_t deg_per_sec);
 
 	public:
 		void pre_arm_rc_checks();

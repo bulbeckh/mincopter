@@ -73,11 +73,5 @@ class MC_Planner
 		AC_WPNav wp_nav;
 
 
-		/* @brief Desired roll/pitch/yaw values for determination by planner and usage by controller
-		 */
-		int16_t control_roll;
-		int16_t control_pitch;
-		int32_t control_yaw;
-
 };
 

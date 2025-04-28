@@ -41,6 +41,15 @@ void WP_Planner::run(void)
 	// 3. Control determination
 	update_nav_mode();
 
+  controller.control_roll = planner.wp_nav.get_desired_roll();
+  controller.control_pitch = planner.wp_nav.get_desired_pitch();
+
+	/* TODO At some point during update_nav_mode, the control_yaw will be updated. It is passed through a slew filter
+	 * to ensure it stays between a specified rate. This is moved from controller to planner and now needs to be called
+	 */
+
+ //controller.control_yaw = get_yaw_slew(controller.control_yaw, original_wp_bearing, AUTO_YAW_SLEW_RATE);
+
 }
 
 // update_land_detector - checks if we have landed and updates the ap.land_complete flag
@@ -48,7 +57,7 @@ void WP_Planner::run(void)
 bool WP_Planner::update_land_detector()
 {
     // detect whether we have landed by watching for low climb rate and minimum throttle
-    if (abs(climb_rate) < 20 && mincopter.motors.limit.throttle_lower) {
+    if (abs(controller.climb_rate) < 20 && mincopter.motors.limit.throttle_lower) {
         if (!ap.land_complete) {
             // run throttle controller if accel based throttle controller is enabled and active (active means it has been given a target)
             if( land_detector < LAND_DETECTOR_TRIGGER) {
@@ -182,7 +191,7 @@ int32_t WP_Planner::get_initial_alt_hold( int32_t alt_cm, int16_t climb_rate_cms
 
 bool WP_Planner::init_throttle( uint8_t new_throttle_mode )
 {
-		controller.controller_desired_alt = get_initial_alt_hold(mcstate.current_loc.alt, climb_rate);     // reset controller desired altitude to current altitude
+		controller.controller_desired_alt = get_initial_alt_hold(mcstate.current_loc.alt, controller.climb_rate);     // reset controller desired altitude to current altitude
     wp_nav.set_desired_alt(controller.controller_desired_alt);                                 // same as above but for loiter controller
     throttle_initialised = true;
 
@@ -409,3 +418,14 @@ void WP_Planner::failsafe_gps_check()
 			nav_mode = WP_FLIGHT_STATE::FS_LAND;
     }
 }
+
+// get_yaw_slew - reduces rate of change of yaw to a maximum
+// assumes it is called at 100hz so centi-degrees and update rate cancel each other out
+int32_t WP_Planner::get_yaw_slew(int32_t current_yaw, int32_t desired_yaw, int16_t deg_per_sec)
+{
+		// An example of how this function meant to be called
+		//control_yaw = get_yaw_slew(control_yaw, planner.original_wp_bearing, AUTO_YAW_SLEW_RATE);
+    return wrap_360_cd(current_yaw + constrain_int16(wrap_180_cd(desired_yaw - current_yaw), -deg_per_sec, deg_per_sec));
+}
+
+

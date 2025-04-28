@@ -43,12 +43,14 @@ class PID_Controller : public MC_Controller
 		 * - update_roll_pitch_mode(), using control_roll and control_pitch as inputs
 		 *   - get_stabilize_roll
 		 *   - get_stabilize_pitch
+		 *
 		 * - update_yaw_mode(), using control_yaw as input (either directly or after passing through get_yaw_slew)
 		 *   - get_look_at_yaw, if mode is YAW_LOOK_AT_LOCATION
 		 *     - get_stabilize_yaw
 		 *   - get_look_ahead_yaw, if mode is YAW_LOOK_AHEAD
 		 *     - get_stabilize_yaw
 		 *   - get_stabilize_yaw, if mode is any other mode
+		 *
 		 * - update_throttle_mode()
 		 *   - get_throttle_althold_with_slew
 		 *     - get_throttle_althold
@@ -93,6 +95,10 @@ class PID_Controller : public MC_Controller
 																							 
 		// The (throttle) controller desired altitude in cm
 		float controller_desired_alt;
+
+		// The cm/s we are moving up or down based on filtered data - Positive = UP
+		int16_t climb_rate;
+
 	
 	private:
 		// An additional throttle added to keep the copter at the same altitude when banking
@@ -159,16 +165,6 @@ class PID_Controller : public MC_Controller
 		void get_throttle_land();
 		void get_throttle_althold(int32_t target_alt, int16_t min_climb_rate, int16_t max_climb_rate);
 		void get_throttle_althold_with_slew(int32_t target_alt, int16_t min_climb_rate, int16_t max_climb_rate);
-
-		/* @brief Wrappers around get_stabilize_yaw, ultimately modifying the control_yaw variable
-		 */
-
-		/* @brief Reduces rate-of-change of yaw to a maximum value
-		* @param current_yaw The current yaw value. Usually control_yaw
-		* @param desired_yaw The target yaw value.
-		* @param deg_per_sec The maximum rate-of-change of yaw value. For example AUTO_YAW_SLEW_RATE
-		*/
-		int32_t get_yaw_slew(int32_t current_yaw, int32_t desired_yaw, int16_t deg_per_sec);
 
 		/****** Lower-level controllers ******/
 

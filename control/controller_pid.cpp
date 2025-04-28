@@ -51,7 +51,7 @@ void PID_Controller::run()
 
 		// TODO move this to planner
     // check if we've landed
-    planner.update_land_detector();
+    //planner.update_land_detector();
 
     // check auto_armed status
     update_auto_armed();
@@ -245,7 +245,7 @@ void PID_Controller::update_throttle_cruise(int16_t throttle)
         throttle_avg = throttle_cruise;
     }
     // calc average throttle if we are in a level hover
-    if (throttle > throttle_min && abs(planner.climb_rate) < 60 && labs(state.ahrs.roll_sensor) < 500 && labs(state.ahrs.pitch_sensor) < 500) {
+    if (throttle > throttle_min && abs(climb_rate) < 60 && labs(state.ahrs.roll_sensor) < 500 && labs(state.ahrs.pitch_sensor) < 500) {
         throttle_avg = throttle_avg * 0.99f + (float)throttle * 0.01f;
         throttle_cruise = throttle_avg;
     }
@@ -351,7 +351,7 @@ void PID_Controller::get_throttle_rate(float z_target_speed)
         output = 0;
     } else {
         // calculate rate error and filter with cut off frequency of 2 Hz
-        z_rate_error    = z_rate_error + 0.20085f * ((z_target_speed - planner.climb_rate) - z_rate_error);
+        z_rate_error    = z_rate_error + 0.20085f * ((z_target_speed - climb_rate) - z_rate_error);
         // feed forward acceleration based on change in the filtered desired speed.
         z_target_speed_delta = 0.20085f * (z_target_speed - z_target_speed_filt);
         z_target_speed_filt    = z_target_speed_filt + z_target_speed_delta;
@@ -407,7 +407,6 @@ void PID_Controller::get_throttle_althold(int32_t target_alt, int16_t min_climb_
 
     // call rate based throttle controller which will update accel based throttle controller targets
     get_throttle_rate(desired_rate);
-
 }
 
 // get_throttle_althold_with_slew - altitude controller with slew to avoid step changes in altitude target
@@ -438,17 +437,6 @@ void PID_Controller::get_throttle_rate_stabilized(int16_t target_rate)
 
     // do not let target altitude get too far from current altitude
     controller_desired_alt = constrain_float(controller_desired_alt,state.current_loc.alt-750,state.current_loc.alt+750);
-
-#if AC_FENCE == ENABLED
-    // do not let target altitude be too close to the fence
-    // To-Do: add this to other altitude controllers
-    if((planner.fence.get_enabled_fences() & AC_FENCE_TYPE_ALT_MAX) != 0) {
-        float alt_limit = planner.fence.get_safe_alt() * 100.0f;
-        if (controller_desired_alt > alt_limit) {
-            controller_desired_alt = alt_limit;
-        }
-    }
-#endif
 
     get_throttle_althold(controller_desired_alt, -pilot_velocity_z_max-250, pilot_velocity_z_max+250);   // 250 is added to give head room to alt hold controller
 }
@@ -498,12 +486,6 @@ void PID_Controller::reset_throttle_I(void)
     pid_throttle_accel.reset_I();
 }
 
-// get_yaw_slew - reduces rate of change of yaw to a maximum
-// assumes it is called at 100hz so centi-degrees and update rate cancel each other out
-int32_t PID_Controller::get_yaw_slew(int32_t current_yaw, int32_t desired_yaw, int16_t deg_per_sec)
-{
-    return wrap_360_cd(current_yaw + constrain_int16(wrap_180_cd(desired_yaw - current_yaw), -deg_per_sec, deg_per_sec));
-}
 
 
 // update_throttle_mode - run high level throttle controllers
@@ -520,20 +502,13 @@ void PID_Controller::update_throttle_mode(void)
         return;
     }
 
-    // auto pilot altitude controller with target altitude held in wp_nav.get_desired_alt()
-        if(planner.ap.auto_armed) {
-            // special handling if we are just taking off
-            if (planner.ap.land_complete) {
-                // tell motors to do a slow start.
-                mincopter.motors.slow_start(true);
-            }
-            get_throttle_althold_with_slew(planner.wp_nav.get_desired_alt(), -planner.wp_nav.get_descent_velocity(), planner.wp_nav.get_climb_velocity());
-        }else{
-            // pilot's throttle must be at zero so keep motors off
-            set_throttle_out(0, false);
-            // deactivate accel based throttle controller
-    				throttle_accel_controller_active = false;
-        }
+		/* TODO Move the slow start call to the planner to initiate slow start when mode changes from land to takeoff
+    if (planner.ap.land_complete) {
+      	// tell motors to do a slow start.
+        mincopter.motors.slow_start(true);
+    }
+		*/
+    get_throttle_althold_with_slew(planner.wp_nav.get_desired_alt(), -planner.wp_nav.get_descent_velocity(), planner.wp_nav.get_climb_velocity());
 
 		/* TODO Remove the throttle landing mode but maybe keep some functionality
     case THROTTLE_LAND:
@@ -551,24 +526,15 @@ void PID_Controller::update_yaw_mode(void)
 		// TODO Remove for autonomous flight
     int16_t pilot_yaw = mincopter.rc_4.control_in;
 
-    // do not process pilot's yaw input during radio failsafe
-    if (planner.failsafe.radio) {
-        pilot_yaw = 0;
-    }
-
-		// TODO this is part of control
-		//
-    
-		// if we are landed reset yaw target to current heading
+		// if we are landed reset yaw target to current heading'
+		/* TODO Move the LAND checks here to planner. Planner should not even be running output to motors if we are landed.
     if (planner.ap.land_complete) {
-			planner.control_yaw = state.ahrs.yaw_sensor;
-    } else {
-      // point towards next waypoint (no pilot input accepted)
-      // we don't use wp_bearing because we don't want the copter to turn too much during flight
-      planner.control_yaw = get_yaw_slew(planner.control_yaw, planner.original_wp_bearing, AUTO_YAW_SLEW_RATE);
-    }
+			control_yaw = state.ahrs.yaw_sensor;
+		}
+		*/
     
-		get_stabilize_yaw(planner.control_yaw);
+		// TODO Remove the control_yaw as a parameter as the variable already exists in this class
+		get_stabilize_yaw(control_yaw);
 
     // REMOVED YAW_LOOK_AT_LOCATION:
 
@@ -588,21 +554,15 @@ void PID_Controller::update_yaw_mode(void)
 // 100hz update rate
 void PID_Controller::update_roll_pitch_mode(void)
 {
-		// Get control roll/pitch from the waypoint controller
-    planner.control_roll = planner.wp_nav.get_desired_roll();
-    planner.control_pitch = planner.wp_nav.get_desired_pitch();
 
-    get_stabilize_roll(planner.control_roll);
-    get_stabilize_pitch(planner.control_pitch);
+    get_stabilize_roll(control_roll);
+    get_stabilize_pitch(control_pitch);
 
+		/* TODO Need to determine when to reset the I terms in each PID controller. Shouldn't be dependent on planner though
     if(mincopter.rc_3.control_in == 0 && planner.control_mode <= ACRO) {
         reset_rate_I();
     }
-
-    if(planner.ap.new_radio_frame) {
-        // clear new radio frame info
-        planner.ap.new_radio_frame = false;
-    }
+		*/
 
 }
 
