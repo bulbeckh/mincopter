@@ -1,14 +1,43 @@
 ![logo](./docs/mincopter-logo.png)
-# ac-dev mincopter temp repo
+**MinCopter** is a modular end-to-end UAV quadrotor flight system, optimized for speed and size. Designed to work across multiple backend architectures, **MinCopter** contains high-performance planners, controllers, and state estimation libraries. **MinCopter** uses multiple abstraction layers, allowing users to easily switch between controller, planner, and state estimation implementations. Through use of a hardware abstraction layer, both the physical sensors and the underlying MCU are decoupled from the flight software.
 
+## Dependencies
+TODO - Add each of the backend compilers (gcc-libc, avr-gcc, gcc-arm-none-eabi)
 
-### Description
-### Dependencies
-### Building (see docs)
-### Documentation 
-### TODO & Roadmap
-### Acknowledgements
+## Building (see docs)
+1. Navigate to build/
+```bash
+cd ./build
+```
 
+2. Run CMake, specifying the target architecture. A full list is in ./xx
+```bash
+cmake .. -DTARGET_ARCH=<target_architecture>
+```
+
+3. Run Make
+```bash
+make -j4
+```
+
+To upload: flashing board via wsl
+
+In an Admin PowerShell:
+1. `usbipd list`
+2. `usbipd bind --busid <bus>`
+3. `usbipd attach --wsl --busid <bus>`
+
+## Documentation 
+See docs/
+
+## TODO & Roadmap
+TODO
+
+## FAQs
+TODO
+
+## Acknowledgements
+Add list of ArduCopter contributors for each state library
 Add license
 
 ### Structure
@@ -68,9 +97,4 @@ To have a minimal, modular, and optimised UAV QuadCopter runtime that can suppor
 - [x] Write code to profile function runtime
 - [x] Build console `echo` script to echo console messages to stdout
 
-### Upload: Flashing board via wsl
-In an Admin PowerShell:
-1. `usbipd list`
-2. `usbipd bind --busid <bus>`
-3. `usbipd attach --wsl --busid <bus>`
 
