@@ -98,7 +98,8 @@ class PID_Controller : public MC_Controller
 
 		// The cm/s we are moving up or down based on filtered data - Positive = UP
 		int16_t climb_rate;
-
+		int16_t max_climb_rate;
+		int16_t min_climb_rate;
 	
 	private:
 		// An additional throttle added to keep the copter at the same altitude when banking

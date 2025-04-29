@@ -9,6 +9,7 @@
 #include "mcstate.h"
 extern MCInstance mincopter;
 extern MCState mcstate;
+//TODO Change all these references to either state or mcstate.
 
 /* TODO There should be a clear one-way relationship between planner and controller. At the moment it is being mixed
  * Either the planner should set controller control variables directly like 'controller_desired_altitude' or the controller should request
@@ -41,15 +42,37 @@ void WP_Planner::run(void)
 	// 3. Control determination
 	update_nav_mode();
 
-  controller.control_roll = planner.wp_nav.get_desired_roll();
-  controller.control_pitch = planner.wp_nav.get_desired_pitch();
+	// Roll/Pitch determination
+  controller.control_roll = wp_nav.get_desired_roll();
+  controller.control_pitch = wp_nav.get_desired_pitch();
 
 	/* TODO At some point during update_nav_mode, the control_yaw will be updated. It is passed through a slew filter
 	 * to ensure it stays between a specified rate. This is moved from controller to planner and now needs to be called
 	 */
 
- //controller.control_yaw = get_yaw_slew(controller.control_yaw, original_wp_bearing, AUTO_YAW_SLEW_RATE);
+	// Yaw determination
+	//controller.control_yaw = get_yaw_slew(controller.control_yaw, original_wp_bearing, AUTO_YAW_SLEW_RATE);
+	
+	// Throttle determination
+  get_throttle_althold_with_slew(wp_nav.get_desired_alt(), -wp_nav.get_descent_velocity(), wp_nav.get_climb_velocity());
+ 	
+}
 
+// get_throttle_althold_with_slew - altitude controller with slew to avoid step changes in altitude target
+// calls normal althold controller which updates accel based throttle controller targets
+void WP_Planner::get_throttle_althold_with_slew(int32_t target_alt, int16_t min_climb_rate, int16_t max_climb_rate)
+{
+    float alt_change = target_alt-controller.controller_desired_alt;
+    // adjust desired alt if motors have not hit their limits
+    if ((alt_change<0 && !mincopter.motors.limit.throttle_lower) || (alt_change>0 && !mincopter.motors.limit.throttle_upper)) {
+        controller.controller_desired_alt += constrain_float(alt_change, min_climb_rate*0.02f, max_climb_rate*0.02f);
+    }
+
+    // do not let target altitude get too far from current altitude
+    controller.controller_desired_alt = constrain_float(controller.controller_desired_alt,mcstate.current_loc.alt-750,mcstate.current_loc.alt+750);
+
+		controller.max_climb_rate = max_climb_rate;
+		controller.min_climb_rate = min_climb_rate;
 }
 
 // update_land_detector - checks if we have landed and updates the ap.land_complete flag

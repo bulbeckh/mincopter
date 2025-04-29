@@ -409,21 +409,6 @@ void PID_Controller::get_throttle_althold(int32_t target_alt, int16_t min_climb_
     get_throttle_rate(desired_rate);
 }
 
-// get_throttle_althold_with_slew - altitude controller with slew to avoid step changes in altitude target
-// calls normal althold controller which updates accel based throttle controller targets
-void PID_Controller::get_throttle_althold_with_slew(int32_t target_alt, int16_t min_climb_rate, int16_t max_climb_rate)
-{
-    float alt_change = target_alt-controller_desired_alt;
-    // adjust desired alt if motors have not hit their limits
-    if ((alt_change<0 && !mincopter.motors.limit.throttle_lower) || (alt_change>0 && !mincopter.motors.limit.throttle_upper)) {
-        controller_desired_alt += constrain_float(alt_change, min_climb_rate*0.02f, max_climb_rate*0.02f);
-    }
-
-    // do not let target altitude get too far from current altitude
-    controller_desired_alt = constrain_float(controller_desired_alt,state.current_loc.alt-750,state.current_loc.alt+750);
-
-    get_throttle_althold(controller_desired_alt, min_climb_rate-250, max_climb_rate+250);   // 250 is added to give head room to alt hold controller
-}
 
 // get_throttle_rate_stabilized - rate controller with additional 'stabilizer'
 // 'stabilizer' ensure desired rate is being met
@@ -508,7 +493,8 @@ void PID_Controller::update_throttle_mode(void)
         mincopter.motors.slow_start(true);
     }
 		*/
-    get_throttle_althold_with_slew(planner.wp_nav.get_desired_alt(), -planner.wp_nav.get_descent_velocity(), planner.wp_nav.get_climb_velocity());
+    //get_throttle_althold_with_slew(planner.wp_nav.get_desired_alt(), -planner.wp_nav.get_descent_velocity(), planner.wp_nav.get_climb_velocity());
+    get_throttle_althold(controller_desired_alt, min_climb_rate-250, max_climb_rate+250);   // 250 is added to give head room to alt hold controller
 
 		/* TODO Remove the throttle landing mode but maybe keep some functionality
     case THROTTLE_LAND:
