@@ -1,4 +1,15 @@
+![logo](./docs/mincopter-logo.png)
 # ac-dev mincopter temp repo
+
+
+### Description
+### Dependencies
+### Building (see docs)
+### Documentation 
+### TODO & Roadmap
+### Acknowledgements
+
+Add license
 
 ### Structure
 | Directory | Contents | 
