@@ -67,48 +67,59 @@ class PID_Controller : public MC_Controller
 		 *   - get_rate_pitch
 		 *   - get_rate_yaw
 		 *   - get_throttle_accel
+		 *     - set_throttle_out
+		 *       - get_angle_boost
 		 *
 		 */
 	
 	private:
-		/* @brief Rate controller targets updated by update_rate_controller_targets and feed into PID rate controllers */
+		/* @brief Rate controller targets in earth frame, updated by calls to get_stabilize_<roll,pitch,yaw> */
 		int32_t roll_rate_target_ef;
 		int32_t pitch_rate_target_ef;
 		int32_t yaw_rate_target_ef;
 
+		/* @brief Rate controller targets updated by update_rate_controller_targets and feed into PID rate controllers */
 		int32_t roll_rate_target_bf;
 		int32_t pitch_rate_target_bf;
 		int32_t yaw_rate_target_bf;
 
+		/* @brief Throttle target in earth frame, updated by get_throttle_rate */
 		int16_t throttle_accel_target_ef;
 
 	public:
-		// Public for now - needs to be accessible from planner and getter/setter is bloat
-		float throttle_avg;                  // throttle_cruise as a float
+
+		// Roll/Pitch Parameters
+		
+		/* @brief Maximum rotation rate in roll/pitch axis */
+    int32_t angle_rate_max;
+
+		// Throttle Parameters
+		
+		/* @brief xx */
 		bool throttle_accel_controller_active;   // true when accel based throttle controller is active, false when higher level throttle controllers are providing throttle output directly
 																		
+		/* @brief TODO add brief */
+		float throttle_avg;                  // throttle_cruise as a float
+    int16_t throttle_cruise;
+		
+		/* @brief Used to constrain throttle outputs from get_throttle_accel (low-level) between certain values*/
     int16_t        throttle_min;
     int16_t        throttle_max;
-    int16_t        throttle_cruise;
 
-    int32_t        angle_rate_max;             // maximum rotation rate in roll/pitch axis requested by angle controller used in stabilize, loiter, rtl, auto flight modes
-																							 
-		// The (throttle) controller desired altitude in cm
+		/* @brief The desired altitude in cm. Setup by planner */
 		float controller_desired_alt;
 
-		// The cm/s we are moving up or down based on filtered data - Positive = UP
+		/* @brief The current climb rate. Used during call to get_throttle_rate (high-level) */
+		// TODO Where is climb rate actually set??
 		int16_t climb_rate;
+
+		/* @brief Parameters to control vertical ascent/descent speed. Set by planner */
 		int16_t max_climb_rate;
 		int16_t min_climb_rate;
 	
 	private:
-		// An additional throttle added to keep the copter at the same altitude when banking
+		// Used for logging during run of rate controllers - can remove
 		int16_t angle_boost;
-
-    int16_t        pilot_velocity_z_max;        // maximum vertical velocity the pilot may request
-																								//
-    int16_t        land_speed;
-
 
 	private:
 	
@@ -162,10 +173,7 @@ class PID_Controller : public MC_Controller
 
 		/* @brief Wrappers around get_throttle_rate. All eventually call get_throttle_rate
 		 */
-		void get_throttle_rate_stabilized(int16_t target_rate);
-		void get_throttle_land();
 		void get_throttle_althold(int32_t target_alt, int16_t min_climb_rate, int16_t max_climb_rate);
-		void get_throttle_althold_with_slew(int32_t target_alt, int16_t min_climb_rate, int16_t max_climb_rate);
 
 		/****** Lower-level controllers ******/
 

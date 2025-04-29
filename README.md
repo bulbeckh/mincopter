@@ -34,13 +34,42 @@ See docs/
 TODO
 
 ## FAQs
-TODO
+**What is the aim of MinCopter?**
+To have a minimal, modular, and optimised UAV QuadCopter runtime that can support multiple architectures (AVR, ARM, x86-64). It should be modular enough to support multiple different state estimation/representation (DCM, Quaternion) and sensor fusion libraries (NavEKF, InertialNav) and control algorithms (PID, MPC, RL).
+
+**Why is it called MinCopter?**
+The primary goal of MinCopter is to have a very minimal (in terms of storage) flight software that can run on compute-constrained microcontrollers.
+
+**What is target state for completion?**
+- HAL (Hardware Abstraction Layer) with backends for Linux and AVR. (Support for ARM in later release)
+- Flight controller libraries for PID control and MPC control. (Support for RL in later release)
+- Asynchronous console interface (client application written in Python) for retrieving logs and streaming live sensor and variable readings
+- Actual hardware re-implementation of drone board with different sensors to showcase HAL benefit
+
+**How is this different to ArduCopter?**
+MinCopter started as a hard fork from ArduCopter, specifically `ardupilot-3.2.1`. A number of changes have been made since.
+- Moved from .pde files to .cpp and header files
+- Migrated build system to cmake
+- Removed unused/extra libraries
+- Removed manual flight modes and functionality
+- Removed GCS communication and Mavlink protocol support
+
+**NOTE**
+I had previously been using ArduPilot-3.1.2 as the 'last supported' firmware for APM2.5, however, I have recently found out that this was just a typo and instead, the actual last supported version is `ArduCopter-3.2.1`.
+
+I have now included `AP_HAL_Linux`, however, the sensors associated with the Linux-based boards are different. I need to implement a pure SITL HAL that is based on Linux but uses a software 'sensor' interface to mimic sensor readings.
+
+**What other projects is MinCopter based on?**
+The navigation stack (planners, controllers) is inspired by the ROS2 Nav2 project.
+
+## Contributing
+First step to contributing would be to read the developer guide which explains the codebase and how the different modules fit together. It also explains how new planners/controllers/state libraries are written.
 
 ## Acknowledgements
 Add list of ArduCopter contributors for each state library
 Add license
 
-### Structure
+## Structure
 | Directory | Contents | 
 | --- | --- | 
 | dev/ | device (sensor) abstractions and backends including GPS, Barometer, IMU, Flash Storage, ... |
@@ -50,27 +79,6 @@ Add license
 | state/ | state estimation libraries which update copter state object (position, velocity, angular accel/rotation) |
 | arch/ | HAL and architecture-specific backends |
 | mincopter/ | entry point and initialisation code and scheduling of main flight loops |
-
-**NOTE**
-I had previously been using ArduPilot-3.1.2 as the 'last supported' firmware for APM2.5, however, I have recently found out that this was just a typo and instead, the actual last supported version is `ArduCopter-3.2.1`.
-
-I have now included `AP_HAL_Linux`, however, the sensors associated with the Linux-based boards are different. I need to implement a pure SITL HAL that is based on Linux but uses a software 'sensor' interface to mimic sensor readings.
-
-### `Changes since hard-fork (ArduPilot-3.1.2)`
-- Moved from .pde files to .cpp and header files
-- Migrated build system to cmake
-- Removed unused/extra libraries (see below table)
-- Removed manual flight modes and functionality
-- Removed GCS communication and Mavlink protocol support
-
-### What is the aim?
-To have a minimal, modular, and optimised UAV QuadCopter runtime that can support multiple architectures (AVR, ARM, x86-64). It should be modular enough to support multiple different state estimation/representation (DCM, Quaternion) and sensor fusion libraries (NavEKF, InertialNav) and control algorithms (PID, MPC, RL).
-
-### What is target state for completion?
-- HAL (Hardware Abstraction Layer) with backends for Linux and AVR. (Support for ARM in later release)
-- Flight controller libraries for PID control and MPC control. (Support for RL in later release)
-- Asynchronous console interface (client application written in Python) for retrieving logs and streaming live sensor and variable readings
-- Actual hardware re-implementation of drone board with different sensors to showcase HAL benefit
 
 ### `TODO`
 - [ ] Rewrite AP_Scheduler in arch/

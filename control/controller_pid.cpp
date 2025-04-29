@@ -410,51 +410,11 @@ void PID_Controller::get_throttle_althold(int32_t target_alt, int16_t min_climb_
 }
 
 
-// get_throttle_rate_stabilized - rate controller with additional 'stabilizer'
-// 'stabilizer' ensure desired rate is being met
-// calls normal throttle rate controller which updates accel based throttle controller targets
-void PID_Controller::get_throttle_rate_stabilized(int16_t target_rate)
-{
-    // adjust desired alt if motors have not hit their limits
-    if ((target_rate<0 && !mincopter.motors.limit.throttle_lower) || (target_rate>0 && !mincopter.motors.limit.throttle_upper)) {
-        controller_desired_alt += target_rate * 0.02f;
-    }
-
-    // do not let target altitude get too far from current altitude
-    controller_desired_alt = constrain_float(controller_desired_alt,state.current_loc.alt-750,state.current_loc.alt+750);
-
-    get_throttle_althold(controller_desired_alt, -pilot_velocity_z_max-250, pilot_velocity_z_max+250);   // 250 is added to give head room to alt hold controller
-}
-
-// get_throttle_land - high level landing logic
-// sends the desired acceleration in the accel based throttle controller
-// called at 50hz
-void PID_Controller::get_throttle_land()
-{
-    // if we are above 10m
-    if (state.current_loc.alt >= LAND_START_ALT) {
-        get_throttle_althold_with_slew(LAND_START_ALT, -planner.wp_nav.get_descent_velocity(), -abs(land_speed));
-    }else{
-        get_throttle_rate_stabilized(-abs(land_speed));
-
-        // disarm when the landing detector says we've landed and throttle is at min (or we're in failsafe so we have no pilot thorottle input)
-#if LAND_REQUIRE_MIN_THROTTLE_TO_DISARM == ENABLED
-        if( planner.ap.land_complete && (mincopter.rc_3.control_in == 0 || planner.failsafe.radio) ) {
-#else
-        if (planner.ap.land_complete) {
-#endif
-					// TODO Remove this - the controller should not be responsible for determining arming/disarming or whether we are in a landed state
-            //init_disarm_motors();
-        }
-    }
-}
-
 // reset all I integrators
 void PID_Controller::reset_I_all(void)
 {
     reset_rate_I();
     reset_throttle_I();
-    //reset_optflow_I();
 }
 
 void PID_Controller::reset_rate_I()
@@ -477,9 +437,6 @@ void PID_Controller::reset_throttle_I(void)
 // 50 hz update rate
 void PID_Controller::update_throttle_mode(void)
 {
-    int16_t pilot_climb_rate;
-    int16_t pilot_throttle_scaled;
-
     // do not run throttle controllers if motors disarmed
     if( !mincopter.motors.armed() ) {
         set_throttle_out(0, false);
@@ -493,16 +450,8 @@ void PID_Controller::update_throttle_mode(void)
         mincopter.motors.slow_start(true);
     }
 		*/
-    //get_throttle_althold_with_slew(planner.wp_nav.get_desired_alt(), -planner.wp_nav.get_descent_velocity(), planner.wp_nav.get_climb_velocity());
     get_throttle_althold(controller_desired_alt, min_climb_rate-250, max_climb_rate+250);   // 250 is added to give head room to alt hold controller
 
-		/* TODO Remove the throttle landing mode but maybe keep some functionality
-    case THROTTLE_LAND:
-        // landing throttle controller
-        get_throttle_land();
-        break;
-    }
-		*/
 }
 
 // update_yaw_mode - run high level yaw controllers
