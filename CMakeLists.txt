@@ -103,8 +103,7 @@ message(STATUS "include for libs_control: ${dirs}")
 
 #### Build - state/ ####
 
-file(GLOB MC_LIBS_STATE "state/*.cpp")
-## TODO This won't build the other state libs - need to change to GLOB_RECURSE
+file(GLOB_RECURSE MC_LIBS_STATE "state/*.cpp")
 foreach(src ${MC_LIBS_STATE})
 	message(STATUS "${src}")
 endforeach()
@@ -209,7 +208,7 @@ target_include_directories(libs_sim PUBLIC
 )
 
 #### Build - arch/ ####
-file(GLOB_RECURSE MC_LIBS_ARCH "arch/*.cpp")
+file(GLOB_RECURSE MC_LIBS_ARCH "arch/*.cpp" "arch/*.c")
 foreach(src ${MC_LIBS_ARCH})
 	message(STATUS "${src}")
 endforeach()
@@ -292,6 +291,7 @@ add_executable(mincopter
 	ArduCopter/init.cpp
 	ArduCopter/mcinstance.cpp
 )
+
 target_link_libraries(mincopter
 	libs_arch
 	libs_sim

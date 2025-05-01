@@ -14,7 +14,7 @@
 #include "planner_waypoint.h"
 
 extern MCInstance mincopter;
-extern MCState    state;
+extern MCState    mcstate;
 
 /* TODO Change these extern references to defines that expand to the planner configuration being used
  *
@@ -70,7 +70,7 @@ void PID_Controller::run()
 void PID_Controller::get_stabilize_roll(int32_t target_angle)
 {
     // angle error
-    target_angle = wrap_180_cd(target_angle - state.ahrs.roll_sensor);
+    target_angle = wrap_180_cd(target_angle - mcstate.ahrs.roll_sensor);
 
     // convert to desired rate
     int32_t target_rate = pi_stabilize_roll.kP() * target_angle;
@@ -85,7 +85,7 @@ void PID_Controller::get_stabilize_roll(int32_t target_angle)
 void PID_Controller::get_stabilize_pitch(int32_t target_angle)
 {
     // angle error
-    target_angle            = wrap_180_cd(target_angle - state.ahrs.pitch_sensor);
+    target_angle            = wrap_180_cd(target_angle - mcstate.ahrs.pitch_sensor);
 
     // convert to desired rate
     int32_t target_rate = pi_stabilize_pitch.kP() * target_angle;
@@ -103,7 +103,7 @@ void PID_Controller::get_stabilize_yaw(int32_t target_angle)
     int32_t angle_error;
 
     // angle error
-    angle_error = wrap_180_cd(target_angle - state.ahrs.yaw_sensor);
+    angle_error = wrap_180_cd(target_angle - mcstate.ahrs.yaw_sensor);
 
     // limit the error we're feeding to the PID
     angle_error = constrain_int32(angle_error, -4500, 4500);
@@ -118,9 +118,9 @@ void PID_Controller::get_stabilize_yaw(int32_t target_angle)
 void PID_Controller::update_rate_controller_targets()
 {
 		// convert earth frame rates to body frame rates
-    roll_rate_target_bf     = roll_rate_target_ef - state.sin_pitch * yaw_rate_target_ef;
-    pitch_rate_target_bf    = state.cos_roll_x  * pitch_rate_target_ef + state.sin_roll * state.cos_pitch_x * yaw_rate_target_ef;
-    yaw_rate_target_bf      = state.cos_pitch_x * state.cos_roll_x * yaw_rate_target_ef - state.sin_roll * pitch_rate_target_ef;
+    roll_rate_target_bf     = roll_rate_target_ef - mcstate.sin_pitch * yaw_rate_target_ef;
+    pitch_rate_target_bf    = mcstate.cos_roll_x  * pitch_rate_target_ef + mcstate.sin_roll * mcstate.cos_pitch_x * yaw_rate_target_ef;
+    yaw_rate_target_bf      = mcstate.cos_pitch_x * mcstate.cos_roll_x * yaw_rate_target_ef - mcstate.sin_roll * pitch_rate_target_ef;
 }
 
 void PID_Controller::run_rate_controllers()
@@ -146,7 +146,7 @@ int16_t PID_Controller::get_rate_roll(int32_t target_rate)
 
     // get current rate
 		// TODO Change this to get reading directly from sensors unless perfomance is signficantly degraded
-    current_rate    = (state.omega.x * DEGX100);
+    current_rate    = (mcstate.omega.x * DEGX100);
 
     // call pid controller
     rate_error  = target_rate - current_rate;
@@ -178,7 +178,7 @@ int16_t PID_Controller::get_rate_pitch(int32_t target_rate)
     int32_t output;                                                                     // output from pid controller
 
     // get current rate
-    current_rate    = (state.omega.y * DEGX100);
+    current_rate    = (mcstate.omega.y * DEGX100);
 
     // call pid controller
     rate_error      = target_rate - current_rate;
@@ -209,7 +209,7 @@ int16_t PID_Controller::get_rate_yaw(int32_t target_rate)
     int32_t output;
 
     // rate control
-    rate_error              = target_rate - (state.omega.z * DEGX100);
+    rate_error              = target_rate - (mcstate.omega.z * DEGX100);
 
     // separately calculate p, i, d values for logging
 		p = pid_rate_yaw.get_p(rate_error);
@@ -245,7 +245,7 @@ void PID_Controller::update_throttle_cruise(int16_t throttle)
         throttle_avg = throttle_cruise;
     }
     // calc average throttle if we are in a level hover
-    if (throttle > throttle_min && abs(climb_rate) < 60 && labs(state.ahrs.roll_sensor) < 500 && labs(state.ahrs.pitch_sensor) < 500) {
+    if (throttle > throttle_min && abs(climb_rate) < 60 && labs(mcstate.ahrs.roll_sensor) < 500 && labs(mcstate.ahrs.pitch_sensor) < 500) {
         throttle_avg = throttle_avg * 0.99f + (float)throttle * 0.01f;
         throttle_cruise = throttle_avg;
     }
@@ -255,13 +255,13 @@ void PID_Controller::update_throttle_cruise(int16_t throttle)
 // throttle value should be 0 ~ 1000
 int16_t PID_Controller::get_angle_boost(int16_t throttle)
 {
-    float temp = state.cos_pitch_x * state.cos_roll_x;
+    float temp = mcstate.cos_pitch_x * mcstate.cos_roll_x;
     int16_t throttle_out;
 
     temp = constrain_float(temp, 0.5f, 1.0f);
 
     // reduce throttle if we go inverted
-    temp = constrain_float(9000-ap_max(labs(state.ahrs.roll_sensor),labs(state.ahrs.pitch_sensor)), 0, 3000) / (3000 * temp);
+    temp = constrain_float(9000-ap_max(labs(mcstate.ahrs.roll_sensor),labs(mcstate.ahrs.pitch_sensor)), 0, 3000) / (3000 * temp);
 
     // apply scale and constrain throttle
     throttle_out = constrain_float((float)(throttle-throttle_min) * temp + throttle_min, throttle_min, 1000);
@@ -300,7 +300,7 @@ int16_t PID_Controller::get_throttle_accel(int16_t z_target_accel)
     uint32_t now = millis();
 
     // Calculate Earth Frame Z acceleration
-    z_accel_meas = -(state.ahrs.get_accel_ef().z + GRAVITY_MSS) * 100;
+    z_accel_meas = -(mcstate.ahrs.get_accel_ef().z + GRAVITY_MSS) * 100;
 
     // reset target altitude if this controller has just been engaged
     if( now - last_call_ms > 100 ) {
@@ -387,7 +387,7 @@ void PID_Controller::get_throttle_althold(int32_t target_alt, int16_t min_climb_
     int32_t linear_distance;      // half the distace we swap between linear and sqrt and the distace we offset sqrt.
 
     // calculate altitude error
-    alt_error    = target_alt - state.current_loc.alt;
+    alt_error    = target_alt - mcstate.current_loc.alt;
 
     // check kP to avoid division by zero
     if( pi_alt_hold.kP() != 0 ) {
@@ -464,7 +464,7 @@ void PID_Controller::update_yaw_mode(void)
 		// if we are landed reset yaw target to current heading'
 		/* TODO Move the LAND checks here to planner. Planner should not even be running output to motors if we are landed.
     if (planner.ap.land_complete) {
-			control_yaw = state.ahrs.yaw_sensor;
+			control_yaw = mcstate.ahrs.yaw_sensor;
 		}
 		*/
     
