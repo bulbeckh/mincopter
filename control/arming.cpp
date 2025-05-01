@@ -15,7 +15,7 @@
 extern MCInstance mincopter;
 extern MCState mcstate;
 
-extern PID_Controller pid_controller;
+extern PID_Controller controller;
 
 #include "log.h"
 #include "init.h"
@@ -92,7 +92,7 @@ void WP_Planner::init_arm_motors()
 
     // all I terms are invalid
     // -----------------------
-    pid_controller.reset_I_all();
+    controller.reset_I_all();
 
 		// TODO Removed because startup_ground function missing/removed. Investigate further
 		/*
@@ -118,7 +118,7 @@ void WP_Planner::init_arm_motors()
 
     // Cancel arming if throttle is raised too high so that copter does not suddenly take off
     //read_radio();
-    if (mincopter.rc_3.control_in > pid_controller.throttle_cruise && pid_controller.throttle_cruise > 100) {
+    if (mincopter.rc_3.control_in > controller.throttle_cruise && controller.throttle_cruise > 100) {
         mincopter.motors.output_min();
         return;
     }

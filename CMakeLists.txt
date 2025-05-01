@@ -208,7 +208,27 @@ target_include_directories(libs_sim PUBLIC
 )
 
 #### Build - arch/ ####
-file(GLOB_RECURSE MC_LIBS_ARCH "arch/*.cpp" "arch/*.c")
+## This is dependent on the target architecture.
+##file(GLOB_RECURSE MC_LIBS_ARCH "arch/*.cpp" "arch/*.c")
+
+if (${TARGET_ARCH} STREQUAL "avr")
+	file(GLOB_RECURSE MC_LIBS_ARCH
+		"arch/AP_HAL/*.cpp"
+		"arch/AP_HAL/*.c"
+		"arch/AP_HAL_AVR/*.cpp"
+		"arch/AP_HAL_AVR/*.c"
+		"arch/AP_Progmem/*cpp"
+		"arch/AP_Scheduler/*.cpp"
+	)
+elseif(${TARGET_ARCH} STREQUAL "x86_64")
+	file(GLOB_RECURSE MC_LIBS_ARCH
+		"arch/AP_HAL/*.cpp"
+		"arch/AP_HAL/*.c"
+		"arch/AP_HAL_Linux/*.cpp"
+		"arch/AP_Scheduler/*.cpp"
+	)
+endif()
+
 foreach(src ${MC_LIBS_ARCH})
 	message(STATUS "${src}")
 endforeach()
