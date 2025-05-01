@@ -117,7 +117,6 @@ class PID_Controller : public MC_Controller
 		int16_t max_climb_rate;
 		int16_t min_climb_rate;
 	
-	private:
 		// Used for logging during run of rate controllers - can remove
 		int16_t angle_boost;
 

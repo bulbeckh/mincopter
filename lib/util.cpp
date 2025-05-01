@@ -10,16 +10,22 @@
 extern MCInstance mincopter;
 extern MCState mcstate;
 
-#include "motors.h"
+#include "planner.h"
+#include "planner_waypoint.h"
+extern WP_Planner planner;
+
+#include "control.h"
+#include "controller_pid.h"
+extern PID_Controller controller;
 
 // ap_state.pde
 void set_home_is_set(bool b)
 {
     // if no change, exit immediately
-    if( mincopter.ap.home_is_set == b )
+    if( planner.ap.home_is_set == b )
         return;
 
-    mincopter.ap.home_is_set 	= b;
+    planner.ap.home_is_set 	= b;
     if(b) {
         Log_Write_Event(DATA_SET_HOME);
     }
@@ -29,35 +35,36 @@ void set_home_is_set(bool b)
 void set_auto_armed(bool b)
 {
     // if no change, exit immediately
-    if( mincopter.ap.auto_armed == b )
+    if( planner.ap.auto_armed == b )
         return;
 
-    mincopter.ap.auto_armed = b;
+    planner.ap.auto_armed = b;
     if(b){
         Log_Write_Event(DATA_AUTO_ARMED);
     }
 }
 
 // TODO Why aren't these in failsafe.cpp
+// TODO Remove this whole function
 // ---------------------------------------------
 void set_failsafe_radio(bool b)
 {
     // only act on changes
     // -------------------
-    if(mcstate.failsafe.radio != b) {
+    if(planner.failsafe.radio != b) {
 
         // store the value so we don't trip the gate twice
         // -----------------------------------------------
-        mcstate.failsafe.radio = b;
+        planner.failsafe.radio = b;
 
-        if (mcstate.failsafe.radio == false) {
+        if (planner.failsafe.radio == false) {
             // We've regained radio contact
             // ----------------------------
-            failsafe_radio_off_event();
+            //failsafe_radio_off_event();
         }else{
             // We've lost radio contact
             // ------------------------
-            failsafe_radio_on_event();
+            //failsafe_radio_on_event();
         }
 
         // update AP_Notify
@@ -69,7 +76,7 @@ void set_failsafe_radio(bool b)
 // ---------------------------------------------
 void set_failsafe_battery(bool b)
 {
-    mcstate.failsafe.battery = b;
+    planner.failsafe.battery = b;
     AP_Notify::flags.failsafe_battery = b;
 }
 
@@ -77,7 +84,7 @@ void set_failsafe_battery(bool b)
 // ---------------------------------------------
 void set_failsafe_gps(bool b)
 {
-    mcstate.failsafe.gps = b;
+    planner.failsafe.gps = b;
 
     // update AP_Notify
     AP_Notify::flags.failsafe_gps = b;
@@ -87,20 +94,20 @@ void set_failsafe_gps(bool b)
 void set_takeoff_complete(bool b)
 {
     // if no change, exit immediately
-    if( mincopter.ap.takeoff_complete == b )
+    if( planner.ap.takeoff_complete == b )
         return;
 
     if(b){
         Log_Write_Event(DATA_TAKEOFF);
     }
-    mincopter.ap.takeoff_complete = b;
+    planner.ap.takeoff_complete = b;
 }
 
 // ---------------------------------------------
 void set_land_complete(bool b)
 {
     // if no change, exit immediately
-    if( mincopter.ap.land_complete == b )
+    if( planner.ap.land_complete == b )
         return;
 
     if(b){
@@ -108,23 +115,23 @@ void set_land_complete(bool b)
     }else{
         Log_Write_Event(DATA_NOT_LANDED);
     }
-    mincopter.ap.land_complete = b;
+    planner.ap.land_complete = b;
 }
 
 // ---------------------------------------------
 
 void set_pre_arm_check(bool b)
 {
-    if(mincopter.ap.pre_arm_check != b) {
-        mincopter.ap.pre_arm_check = b;
+    if(planner.ap.pre_arm_check != b) {
+        planner.ap.pre_arm_check = b;
         AP_Notify::flags.pre_arm_check = b;
     }
 }
 
 void set_pre_arm_rc_check(bool b)
 {
-    if(mincopter.ap.pre_arm_rc_check != b) {
-        mincopter.ap.pre_arm_rc_check = b;
+    if(planner.ap.pre_arm_rc_check != b) {
+        planner.ap.pre_arm_rc_check = b;
     }
 }
 
@@ -188,28 +195,30 @@ void crash_check()
     static int32_t baro_alt_prev;
 
     // return immediately if motors are not armed or pilot's throttle is above zero
-    if (!mincopter.motors.armed() || (mincopter.rc_3.control_in != 0 && !mcstate.failsafe.radio)) {
+    if (!mincopter.motors.armed() || (mincopter.rc_3.control_in != 0 && !planner.failsafe.radio)) {
         inverted_count = 0;
         return;
     }
 
     // return immediately if we are not in an angle stabilize flight mode or we are flipping
+		/*
     if (mincopter.control_mode == ACRO || mincopter.ap.do_flip) {
         inverted_count = 0;
         return;
     }
+		*/
 
     // check angles
-    int32_t lean_max = mincopter.angle_max + CRASH_CHECK_ANGLE_DEVIATION_CD;
+    int32_t lean_max = planner.angle_max + CRASH_CHECK_ANGLE_DEVIATION_CD;
     if (labs(mcstate.ahrs.roll_sensor) > lean_max || labs(mcstate.ahrs.pitch_sensor) > lean_max) {
         inverted_count++;
 
         // if we have just become inverted record the baro altitude
         if (inverted_count == 1) {
-            baro_alt_prev = mincopter.baro_alt;
+            baro_alt_prev = planner.baro_alt;
 
         // exit if baro altitude change indicates we are moving (probably falling)
-        }else if (labs(mincopter.baro_alt - baro_alt_prev) > CRASH_CHECK_ALT_CHANGE_LIMIT_CM) {
+        }else if (labs(planner.baro_alt - baro_alt_prev) > CRASH_CHECK_ALT_CHANGE_LIMIT_CM) {
             inverted_count = 0;
             return;
 
@@ -220,7 +229,7 @@ void crash_check()
             // send message to gcs
             //gcs_send_text_P(SEVERITY_HIGH,PSTR("Crash: Disarming"));
             // disarm motors
-            init_disarm_motors();
+            //init_disarm_motors();
         }
     }else{
         // we are not inverted so reset counter
@@ -242,7 +251,7 @@ void read_inertial_altitude()
 {
     // with inertial nav we can update the altitude and climb rate at 50hz
     mcstate.current_loc.alt = mcstate.inertial_nav.get_altitude();
-    mincopter.climb_rate = mcstate.inertial_nav.get_velocity_z();
+    controller.climb_rate = mcstate.inertial_nav.get_velocity_z();
 }
 
 // leds.pde
@@ -268,14 +277,14 @@ void update_notify()
 // pv_latlon_to_vector - convert lat/lon coordinates to a position vector
 Vector3f pv_latlon_to_vector(int32_t lat, int32_t lon, int32_t alt)
 {
-    Vector3f tmp((lat-mcstate.home.lat) * LATLON_TO_CM, (lon-mcstate.home.lng) * LATLON_TO_CM * mincopter.scaleLongDown, alt);
+    Vector3f tmp((lat-mcstate.home.lat) * LATLON_TO_CM, (lon-mcstate.home.lng) * LATLON_TO_CM * planner.scaleLongDown, alt);
     return tmp;
 }
 
 // pv_latlon_to_vector - convert lat/lon coordinates to a position vector
 Vector3f pv_location_to_vector(Location loc)
 {
-    Vector3f tmp((loc.lat-mcstate.home.lat) * LATLON_TO_CM, (loc.lng-mcstate.home.lng) * LATLON_TO_CM * mincopter.scaleLongDown, loc.alt);
+    Vector3f tmp((loc.lat-mcstate.home.lat) * LATLON_TO_CM, (loc.lng-mcstate.home.lng) * LATLON_TO_CM * planner.scaleLongDown, loc.alt);
     return tmp;
 }
 
@@ -288,7 +297,7 @@ int32_t pv_get_lat(const Vector3f pos_vec)
 // pv_get_lon - extract longitude from position vector
 int32_t pv_get_lon(const Vector3f &pos_vec)
 {
-    return mcstate.home.lng + (int32_t)(pos_vec.y / LATLON_TO_CM * mincopter.scaleLongUp);
+    return mcstate.home.lng + (int32_t)(pos_vec.y / LATLON_TO_CM * planner.scaleLongUp);
 }
 
 // pv_get_horizontal_distance_cm - return distance between two positions in cm
@@ -360,15 +369,15 @@ void init_home()
         Log_Write_Cmd(0, &mcstate.home);
 
     // update navigation scalers.  used to offset the shrinking longitude as we go towards the poles
-    mincopter.scaleLongDown = longitude_scale(mcstate.home);
-    mincopter.scaleLongUp   = 1.0f/mincopter.scaleLongDown;
+    planner.scaleLongDown = longitude_scale(mcstate.home);
+    planner.scaleLongUp   = 1.0f/planner.scaleLongDown;
 }
 
 
 // returns true if the GPS is ok and home position is set
 bool GPS_ok()
 {
-    if (mincopter.g_gps != NULL && mincopter.ap.home_is_set && mincopter.g_gps->status() == GPS::GPS_OK_FIX_3D && !mincopter.gps_glitch.glitching() && !mcstate.failsafe.gps) {
+    if (mincopter.g_gps != NULL && planner.ap.home_is_set && mincopter.g_gps->status() == GPS::GPS_OK_FIX_3D && !mincopter.gps_glitch.glitching() && !planner.failsafe.gps) {
         return true;
     }else{
         return false;
@@ -380,7 +389,7 @@ bool GPS_ok()
 void update_auto_armed()
 {
     // disarm checks
-    if(mincopter.ap.auto_armed){
+    if(planner.ap.auto_armed){
         // if motors are disarmed, auto_armed should also be false
         if(!mincopter.motors.armed()) {
             set_auto_armed(false);
@@ -420,19 +429,19 @@ uint32_t map_baudrate(int8_t rate, uint32_t default_baud)
 void check_usb_mux(void)
 {
     bool usb_check = mincopter.hal.gpio->usb_connected();
-    if (usb_check == mincopter.ap.usb_connected) {
+    if (usb_check == planner.ap.usb_connected) {
         return;
     }
 
     // the user has switched to/from the telemetry port
-    mincopter.ap.usb_connected = usb_check;
+    planner.ap.usb_connected = usb_check;
 
 #if CONFIG_HAL_BOARD == HAL_BOARD_APM2
     // the APM2 has a MUX setup where the first serial port switches
     // between USB and a TTL serial connection. When on USB we use
     // SERIAL0_BAUD, but when connected as a TTL serial port we run it
     // at SERIAL1_BAUD.
-    if (mincopter.ap.usb_connected) {
+    if (planner.ap.usb_connected) {
         mincopter.hal.uartA->begin(SERIAL0_BAUD);
     } else {
         mincopter.hal.uartA->begin(map_baudrate(mincopter.serial1_baud, SERIAL1_BAUD));

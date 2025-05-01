@@ -4,9 +4,17 @@
 #include "mcinstance.h"
 #include "mcstate.h"
 
+/* NOTE The reason why there is a mincopter instance here is because these are not class methods */
 extern MCInstance mincopter;
 extern MCState mcstate;
 
+#include "planner.h"
+#include "planner_waypoint.h"
+extern WP_Planner planner;
+
+#include "control.h"
+#include "controller_pid.h"
+extern PID_Controller controller;
 
 #ifdef TARGET_ARCH_LINUX
 	#include <iostream>
@@ -14,9 +22,8 @@ extern MCState mcstate;
 
 #include "defines.h"
 #include "util.h"
-#include "motors.h"
 #include "log.h"
-#include "system.h"
+#include "init.h"
 
 void read_compass(void) {
 	mincopter.compass.accumulate();
@@ -31,7 +38,7 @@ void update_altitude()
 {
 		// read in baro altitude
 		mincopter.barometer.read();
-		mincopter.baro_alt = mincopter.barometer.get_altitude() * 100.f;
+		planner.baro_alt = mincopter.barometer.get_altitude() * 100.f;
 }
 
 // called at 50hz
@@ -53,9 +60,9 @@ void update_GPS(void)
 				}
 
 				// run glitch protection and update AP_Notify if home has been initialised
-				if (mincopter.ap.home_is_set) {
+				if (planner.ap.home_is_set) {
 						mincopter.gps_glitch.check_position();
-						report_gps_glitch = (mincopter.gps_glitch.glitching() && !mincopter.ap.usb_connected);
+						report_gps_glitch = (mincopter.gps_glitch.glitching() && !planner.ap.usb_connected);
 						if (AP_Notify::flags.gps_glitching != report_gps_glitch) {
 								if (mincopter.gps_glitch.glitching()) {
 										Log_Write_Error(ERROR_SUBSYSTEM_GPS, ERROR_CODE_GPS_GLITCH);
@@ -73,7 +80,7 @@ void update_GPS(void)
 				mincopter.g_gps->new_data = false;
 
 				// check if we can initialise home yet
-				if (!mincopter.ap.home_is_set) {
+				if (!planner.ap.home_is_set) {
 						// if we have a 3d lock and valid location
 						if(mincopter.g_gps->status() >= GPS::GPS_OK_FIX_3D && mincopter.g_gps->latitude != 0) {
 								if( ground_start_count > 0 ) {
@@ -116,9 +123,11 @@ void read_batt_compass(void)
 
     // check for low voltage or current if the low voltage check hasn't already been triggered
     // we only check when we're not powered by USB to avoid false alarms during bench tests
-    if (!mincopter.ap.usb_connected && !mcstate.failsafe.battery && mincopter.battery.exhausted(mincopter.fs_batt_voltage, mincopter.fs_batt_mah)) {
+		/*
+    if (!mincopter.ap.usb_connected && !planner.failsafe.battery && mincopter.battery.exhausted(mincopter.fs_batt_voltage, mincopter.fs_batt_mah)) {
         failsafe_battery_event();
     }
+		*/
 
 #if HIL_MODE != HIL_MODE_ATTITUDE  // don't execute in HIL mode
 		if (mincopter.compass.read()) {
@@ -155,25 +164,28 @@ void one_hz_loop()
 
 		// TODO Move these to btree
 		// pass latest alt hold kP value to navigation controller
-		mcstate.wp_nav.set_althold_kP(mincopter.pi_alt_hold.kP());
+		planner.wp_nav.set_althold_kP(controller.pi_alt_hold.kP());
 
 		// update latest lean angle to navigation controller
-		mcstate.wp_nav.set_lean_angle_max(mincopter.angle_max);
+		planner.wp_nav.set_lean_angle_max(planner.angle_max);
 
 		// TODO Move arming to btree
 		// perform pre-arm checks & display failures every 30 seconds
 		static uint8_t pre_arm_display_counter = 15;
 		pre_arm_display_counter++;
+		/*
 		if (pre_arm_display_counter >= 30) {
 				pre_arm_checks(true);
 				pre_arm_display_counter = 0;
 		}else{
 				pre_arm_checks(false);
 		}
+		*/
 
 		// auto disarm checks
-		auto_disarm_check();
+		//auto_disarm_check();
 
+		/*
 		if (!mincopter.motors.armed()) {
 				// make it possible to change ahrs orientation at runtime during initial config
 				mcstate.ahrs.set_orientation();
@@ -181,6 +193,7 @@ void one_hz_loop()
 				// check the user hasn't updated the frame orientation
 				mincopter.motors.set_frame_orientation(mincopter.frame_orientation);
 		}
+		*/
 
 		check_usb_mux();
 

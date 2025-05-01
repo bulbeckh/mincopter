@@ -10,7 +10,14 @@
 extern MCInstance mincopter;
 extern MCState mcstate;
 
-#include "system.h"
+#include "planner.h"
+#include "planner_waypoint.h"
+extern WP_Planner planner;
+
+#include "control.h"
+#include "controller_pid.h"
+extern PID_Controller controller;
+
 #include "util.h"
 
 // Code to Write and Read packets from DataFlash log memory
@@ -240,7 +247,7 @@ struct PACKED log_Nav_Tuning {
 // Write an Nav Tuning packet
 void Log_Write_Nav_Tuning()
 {
-    const Vector3f &desired_position = mcstate.wp_nav.get_loiter_target();
+    const Vector3f &desired_position = planner.wp_nav.get_loiter_target();
     const Vector3f &position = mcstate.inertial_nav.get_position();
     const Vector3f &velocity = mcstate.inertial_nav.get_velocity();
 
@@ -251,12 +258,12 @@ void Log_Write_Nav_Tuning()
         desired_pos_y   : desired_position.y,
         pos_x           : position.x,
         pos_y           : position.y,
-        desired_vel_x   : mcstate.wp_nav.desired_vel.x,
-        desired_vel_y   : mcstate.wp_nav.desired_vel.y,
+        desired_vel_x   : planner.wp_nav.desired_vel.x,
+        desired_vel_y   : planner.wp_nav.desired_vel.y,
         vel_x           : velocity.x,
         vel_y           : velocity.y,
-        desired_accel_x : mcstate.wp_nav.desired_accel.x,
-        desired_accel_y : mcstate.wp_nav.desired_accel.y
+        desired_accel_x : planner.wp_nav.desired_accel.x,
+        desired_accel_y : planner.wp_nav.desired_accel.y
     };
     mincopter.DataFlash.WriteBlock(&pkt, sizeof(pkt));
 }
@@ -285,17 +292,17 @@ void Log_Write_Control_Tuning()
         LOG_PACKET_HEADER_INIT(LOG_CONTROL_TUNING_MSG),
         time_ms             : mincopter.hal.scheduler->millis(),
         throttle_in         : mincopter.rc_3.control_in,
-        angle_boost         : mincopter.angle_boost,
+        angle_boost         : controller.angle_boost,
         throttle_out        : mincopter.rc_3.servo_out,
         desired_alt         : 0.0, // NOTE rmeoved the following function: get_target_alt_for_reporting() / 100.0f,
         inav_alt            : mcstate.current_loc.alt / 100.0f,
-        baro_alt            : mincopter.baro_alt,
+        baro_alt            : planner.baro_alt,
 				/*
         desired_sonar_alt   : (int16_t)target_sonar_alt,
         sonar_alt           : sonar_alt,
 				*/
-        desired_climb_rate  : mincopter.desired_climb_rate,
-        climb_rate          : mincopter.climb_rate
+        desired_climb_rate  : planner.desired_climb_rate,
+        climb_rate          : controller.climb_rate
     };
     mincopter.DataFlash.WriteBlock(&pkt, sizeof(pkt));
 }
@@ -380,10 +387,10 @@ void Log_Write_Performance()
         num_long_running : 0, /* perf_info_get_num_long_running(), */
         num_loops        : 0, /* perf_info_get_num_loops(), */
         max_time         : 0, /* perf_info_get_max_time(), */
-        pm_test          : mincopter.pmTest1,
+        pm_test          : 0, /* mincopter.pmTest1, */
         i2c_lockup_count : mincopter.hal.i2c->lockup_count(),
         ins_error_count  : mincopter.ins.error_count(),
-        inav_error_count : mcstate.inertial_nav.error_count()
+        inav_error_count : 0, /* mcstate.inertial_nav.error_count() */
     };
     mincopter.DataFlash.WriteBlock(&pkt, sizeof(pkt));
 }
@@ -405,7 +412,7 @@ void Log_Write_Cmd(uint8_t num, const struct Location *wp)
 {
     struct log_Cmd pkt = {
         LOG_PACKET_HEADER_INIT(LOG_CMD_MSG),
-        command_total       : mincopter.command_total,
+        command_total       : 0, /* mincopter.command_total, */
         command_number      : num,
         waypoint_id         : wp->id,
         waypoint_options    : wp->options,
@@ -434,11 +441,11 @@ void Log_Write_Attitude()
     struct log_Attitude pkt = {
         LOG_PACKET_HEADER_INIT(LOG_ATTITUDE_MSG),
         time_ms         : mincopter.hal.scheduler->millis(),
-        control_roll    : (int16_t)mcstate.control_roll,
+        control_roll    : (int16_t)controller.control_roll,
         roll            : (int16_t)mcstate.ahrs.roll_sensor,
-        control_pitch   : (int16_t)mcstate.control_pitch,
+        control_pitch   : (int16_t)controller.control_pitch,
         pitch           : (int16_t)mcstate.ahrs.pitch_sensor,
-        control_yaw     : (uint16_t)mcstate.control_yaw,
+        control_yaw     : (uint16_t)controller.control_yaw,
         yaw             : (uint16_t)mcstate.ahrs.yaw_sensor
     };
     mincopter.DataFlash.WriteBlock(&pkt, sizeof(pkt));
@@ -456,7 +463,7 @@ void Log_Write_Mode(uint8_t mode)
     struct log_Mode pkt = {
         LOG_PACKET_HEADER_INIT(LOG_MODE_MSG),
         mode            : mode,
-        throttle_cruise : mincopter.throttle_cruise,
+        throttle_cruise : controller.throttle_cruise,
     };
     mincopter.DataFlash.WriteBlock(&pkt, sizeof(pkt));
 }
@@ -663,8 +670,8 @@ void Log_Read(uint16_t log_num, uint16_t start_page, uint16_t end_page)
 void start_logging() 
 {
     if (mincopter.log_bitmask != 0) {
-        if (!mincopter.ap.logging_started) {
-            mincopter.ap.logging_started = true;
+        if (!planner.ap.logging_started) {
+            planner.ap.logging_started = true;
             //in_mavlink_delay = true;
             mincopter.DataFlash.StartNewLog();
             //in_mavlink_delay = false;
@@ -681,7 +688,7 @@ void start_logging()
             }
 
             // log the flight mode
-            Log_Write_Mode(mincopter.control_mode);
+            //Log_Write_Mode(mincopter.control_mode);
         }
         // enable writes
         mincopter.DataFlash.EnableWrites(true);

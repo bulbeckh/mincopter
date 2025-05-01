@@ -1,5 +1,5 @@
 
-#include "system.h"
+#include "init.h"
 
 #include "mcinstance.h"
 #include "mcstate.h"
@@ -7,11 +7,12 @@
 extern MCInstance mincopter;
 extern MCState mcstate;
 
-#include "control_modes.h"
-#include "navigation.h"
+#include "planner.h"
+#include "planner_waypoint.h"
+extern WP_Planner planner;
+
 #include "util.h"
 #include "log.h"
-#include "radio.h"
 
 #ifdef TARGET_ARCH_LINUX
 	#include <iostream>
@@ -108,7 +109,7 @@ void init_ardupilot()
 
     // we start by assuming USB connected, as we initialed the serial
     // port with SERIAL0_BAUD. check_usb_mux() fixes this if need be.
-    mincopter.ap.usb_connected = true;
+    planner.ap.usb_connected = true;
 
 
     check_usb_mux();
@@ -156,14 +157,14 @@ void init_ardupilot()
 
 		/* NOTE no RC input in auto modes */
     //init_rc_in();               // sets up rc channels from radio
-    init_rc_out();              // sets up motors and output to escs
+    //init_rc_out();              // sets up motors and output to escs
 
     /*
      *  setup the 'main loop is dead' check. Note that this relies on
      *  the RC library being initialised.
      */
 
-    mincopter.hal.scheduler->register_timer_failsafe(failsafe_check, 1000);
+    //mincopter.hal.scheduler->register_timer_failsafe(failsafe_check, 1000);
 
 #if HIL_MODE != HIL_MODE_ATTITUDE
  #if CONFIG_ADC == ENABLED

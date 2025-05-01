@@ -1,13 +1,12 @@
 
 #include "serial.h"
+#include "util.h"
 
 #include "mcinstance.h"
 #include "mcstate.h"
 
 extern MCInstance mincopter;
 extern MCState mcstate;
-
-#include "system.h"
 
 void dump_serial()
 {

@@ -34,20 +34,13 @@
 
 #include "defines.h"
 #include "config.h"
-#include "config_channels.h"
 
 // Local modules
-#include "attitude.h"
 #include "compat.h"
-#include "control_modes.h"
-#include "failsafe.h"
-#include "motors.h"
 #include "log.h"
-#include "navigation.h"
-#include "radio.h"
-#include "system.h"
+#include "init.h"
 #include "util.h"
-#include "serial.h"
+
 #include "profiler.h"
 
 #include "mcinstance.h"
@@ -66,8 +59,16 @@ AP_Scheduler scheduler;
 MCState mcstate;
 
 // TODO Define controllers and planners here (and pass mincopter/mcstate as args)
-//
-//
+
+#include "control.h"
+#include "controller_pid.h"
+PID_Controller controller;
+
+#include "planner.h"
+#include "planner_waypoint.h"
+WP_Planner planner;
+
+
 
 // NOTE Bad hack to resolve linking errors as AP_Scheduler library uses an extern hal reference as original HAL was defined globally
 const AP_HAL::HAL& hal = mincopter.hal;
@@ -213,7 +214,7 @@ const AP_Scheduler::Task scheduler_tasks[] PROGMEM = {
     { read_compass,        2,     420 }, /* Sensor Update - Compass */
     { read_baro,  				 2,     250 }, /* Sensor Update - Barometer */
     { one_hz_loop,       100,     420 },
-		{ dump_serial, 				20,     500 },
+		//{ dump_serial, 				20,     500 },
 		{ run_cli,            10,     500 },
     //{ throttle_loop,         2,     450 },
     //{ crash_check,          10,      20 },

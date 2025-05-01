@@ -104,6 +104,7 @@ message(STATUS "include for libs_control: ${dirs}")
 #### Build - state/ ####
 
 file(GLOB MC_LIBS_STATE "state/*.cpp")
+## TODO This won't build the other state libs - need to change to GLOB_RECURSE
 foreach(src ${MC_LIBS_STATE})
 	message(STATUS "${src}")
 endforeach()
@@ -141,10 +142,200 @@ target_include_directories(libs_state PUBLIC
 )
 
 #### Build - dev/ and sim/ ####
+file(GLOB_RECURSE MC_LIBS_DEV "dev/*.cpp")
+foreach(src ${MC_LIBS_DEV})
+	message(STATUS "${src}")
+endforeach()
 
-#### Build - mincopter/ ####
+add_library(libs_dev STATIC ${MC_LIBS_DEV})
+target_include_directories(libs_dev PUBLIC
+	arch/AP_HAL
+	arch/AP_HAL_AVR
+	arch/AP_HAL_Linux
+	arch/AP_Progmem
+	arch/AP_Scheduler
+	lib/AP_Common
+	lib/AP_Curve
+	lib/AP_Menu
+	lib/AP_Math
+	lib/Filter
+	lib/RC_Channel
+	lib/
+	dev/AP_ADC
+	dev/AP_ADC_AnalogSource
+	dev/AP_Baro
+	dev/AP_BattMonitor
+	dev/AP_Compass
+	dev/AP_Declination
+	dev/AP_GPS
+	dev/AP_InertialSensor
+	dev/AP_Motors
+	dev/AP_Notify
+	dev/DataFlash
+	sim/
+)
+
+file(GLOB MC_LIBS_SIM "sim/*.cpp")
+foreach(src ${MC_LIBS_SIM})
+	message(STATUS "${src}")
+endforeach()
+
+add_library(libs_sim STATIC ${MC_LIBS_SIM})
+target_include_directories(libs_sim PUBLIC
+	arch/AP_HAL
+	arch/AP_HAL_AVR
+	arch/AP_HAL_Linux
+	arch/AP_Progmem
+	arch/AP_Scheduler
+	lib/AP_Common
+	lib/AP_Curve
+	lib/AP_Menu
+	lib/AP_Math
+	lib/Filter
+	lib/RC_Channel
+	lib/
+	dev/AP_ADC
+	dev/AP_ADC_AnalogSource
+	dev/AP_Baro
+	dev/AP_BattMonitor
+	dev/AP_Compass
+	dev/AP_Declination
+	dev/AP_GPS
+	dev/AP_InertialSensor
+	dev/AP_Motors
+	dev/AP_Notify
+	dev/DataFlash
+	sim/
+)
 
 #### Build - arch/ ####
+file(GLOB_RECURSE MC_LIBS_ARCH "arch/*.cpp")
+foreach(src ${MC_LIBS_ARCH})
+	message(STATUS "${src}")
+endforeach()
+
+add_library(libs_arch STATIC ${MC_LIBS_ARCH})
+target_include_directories(libs_arch PUBLIC
+	lib/AP_Common
+	lib/AP_Curve
+	lib/AP_Menu
+	lib/AP_Math
+	lib/Filter
+	lib/RC_Channel
+	lib/
+	arch/AP_HAL
+	arch/AP_HAL_AVR
+	arch/AP_HAL_Linux
+	arch/AP_Progmem
+	arch/AP_Scheduler
+	dev/AP_ADC
+	dev/AP_ADC_AnalogSource
+	dev/AP_Baro
+	dev/AP_BattMonitor
+	dev/AP_Compass
+	dev/AP_Declination
+	dev/AP_GPS
+	dev/AP_InertialSensor
+	dev/AP_Motors
+	dev/AP_Notify
+	dev/DataFlash
+	sim/
+)
+
+#### Build - common libraries under lib/ ####
+file(GLOB_RECURSE MC_LIBS_COMMON "lib/*.cpp")
+foreach(src ${MC_LIBS_COMMON})
+	message(STATUS "${src}")
+endforeach()
+
+add_library(libs_common STATIC ${MC_LIBS_COMMON})
+target_include_directories(libs_common PUBLIC
+	ArduCopter/
+	lib/AP_Common
+	lib/AP_Curve
+	lib/AP_Menu
+	lib/AP_Math
+	lib/Filter
+	lib/RC_Channel
+	lib/
+	state/AP_AHRS
+	state/AP_InertialNav
+	state/
+	arch/AP_HAL
+	arch/AP_HAL_AVR
+	arch/AP_HAL_Linux
+	arch/AP_Progmem
+	arch/AP_Scheduler
+	dev/AP_ADC
+	dev/AP_ADC_AnalogSource
+	dev/AP_Baro
+	dev/AP_BattMonitor
+	dev/AP_Compass
+	dev/AP_Declination
+	dev/AP_GPS
+	dev/AP_InertialSensor
+	dev/AP_Motors
+	dev/AP_Notify
+	dev/DataFlash
+	control/include/controllers/AC_PID
+	control/include/controllers/
+	control/include/planners/AC_Fence
+	control/include/planners/AC_WPNav
+	control/include/planners/
+	sim/
+)
+
+#### Build - mincopter/ ####
+add_executable(mincopter
+	# TODO Change the name
+	ArduCopter/arducopter.cpp
+	ArduCopter/init.cpp
+	ArduCopter/mcinstance.cpp
+)
+target_link_libraries(mincopter
+	libs_arch
+	libs_sim
+	libs_dev
+	libs_control
+	libs_state
+	libs_common
+)
+
+target_include_directories(mincopter PUBLIC
+	ArduCopter/
+	arch/AP_HAL
+	arch/AP_HAL_AVR
+	arch/AP_HAL_Linux
+	arch/AP_Progmem
+	arch/AP_Scheduler
+	lib/AP_Common
+	lib/AP_Curve
+	lib/AP_Menu
+	lib/AP_Math
+	lib/Filter
+	lib/RC_Channel
+	lib/
+	state/AP_AHRS
+	state/AP_InertialNav
+	state/
+	dev/AP_ADC
+	dev/AP_ADC_AnalogSource
+	dev/AP_Baro
+	dev/AP_BattMonitor
+	dev/AP_Compass
+	dev/AP_Declination
+	dev/AP_GPS
+	dev/AP_InertialSensor
+	dev/AP_Motors
+	dev/AP_Notify
+	dev/DataFlash
+	control/include/controllers/AC_PID
+	control/include/controllers/
+	control/include/planners/AC_Fence
+	control/include/planners/AC_WPNav
+	control/include/planners/
+	sim/
+)
 
 #[[
 
