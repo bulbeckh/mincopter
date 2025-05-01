@@ -1,4 +1,3 @@
-<div align="center">
 <picture>
     <img src="./docs/mincopter-logo.png">
 </picture>
