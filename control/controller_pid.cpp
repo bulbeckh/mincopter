@@ -62,6 +62,9 @@ void PID_Controller::run()
 
 		run_rate_controllers();
 
+
+		// TODO The motors current get their target value from rc_*.servo_out but it should really pull
+		// directly from a set of controller parameters
     mincopter.motors.output();
 
 }
