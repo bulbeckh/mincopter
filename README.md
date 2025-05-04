@@ -101,6 +101,7 @@ Add license
 - [ ] Write script for easy log retrieval, parsing, and storage in python
 - [ ] Compare executable size and storage regions (text, data, bss) with original ac-3.2.1
 - [ ] Add simulated sensor backends in sim/ for using w AP\_HAL\_Linux
+- [ ] Integrate Gazebo simulation to for sensor interface
 - [ ] Add dockerfile for unified development environment
 - [x] Move to a single PID controller class
 - [x] Build console client (in Python)
