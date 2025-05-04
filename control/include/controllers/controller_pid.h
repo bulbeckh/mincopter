@@ -88,11 +88,6 @@ class PID_Controller : public MC_Controller
 
 	public:
 
-		// Roll/Pitch Parameters
-		
-		/* @brief Maximum rotation rate in roll/pitch axis */
-    int32_t angle_rate_max;
-
 		// Throttle Parameters
 		
 		/* @brief xx */
@@ -112,10 +107,6 @@ class PID_Controller : public MC_Controller
 		/* @brief The current climb rate. Used during call to get_throttle_rate (high-level) */
 		// TODO Where is climb rate actually set??
 		int16_t climb_rate;
-
-		/* @brief Parameters to control vertical ascent/descent speed. Set by planner */
-		int16_t max_climb_rate;
-		int16_t min_climb_rate;
 	
 		// Used for logging during run of rate controllers - can remove
 		int16_t angle_boost;
