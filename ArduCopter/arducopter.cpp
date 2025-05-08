@@ -79,6 +79,10 @@ uint16_t mainLoop_count;
 // Forward Declaration
 void sensor_update_loop();
 
+#ifdef TARGET_ARCH_LINUX
+uint32_t loop_iterations=0;
+#endif
+
 /* Core Loop - Meant to run every 10ms (10,000 microseconds) */
 void loop()
 {
@@ -112,17 +116,24 @@ void loop()
     uint32_t time_available = (timer + 10000) - micros();
 
 #ifdef TARGET_ARCH_LINUX
-		//std::cout << "loop: time_available " << time_available << "\n";
+    //std::cout << "loop: time_available " << time_available << "\n";
 #endif
     scheduler.run(time_available - 300);
 
-		uint32_t time_remaining = micros() - timer;
+    uint32_t time_elapsed = micros() - timer;
 #ifdef TARGET_ARCH_LINUX
-		std::cout << "loop: time used during sensor update and scheduler call " << time_remaining << "\n";
-#endif
-		// Delay if we have time remaining (i.e. time took less than 10000us)
-		if (time_remaining<=10e4) mincopter.hal.scheduler->delay_microseconds(10e4-time_remaining);
+    if (loop_iterations%100==0) {
+	/* Should output every 1 second */
+	std::cout << micros() << " " << timer << " " << micros()-timer << "\n";
+    	std::cout << loop_iterations << " loop: time used during sensor update and scheduler call " << time_elapsed << "\n";
+    	std::cout << "load avg " << scheduler.load_average((uint32_t)10000) << "\n";
 
+	std::cout << "delay" << 10000-(uint16_t)time_elapsed << "\n";
+    }
+    loop_iterations++;
+#endif
+    // Delay if we have time remaining (i.e. time took less than 10000us)
+    if (time_elapsed<=(uint32_t)10000) mincopter.hal.scheduler->delay_microseconds(10000-(uint16_t)time_elapsed);
 }
 
 
@@ -214,8 +225,8 @@ const AP_Scheduler::Task scheduler_tasks[] PROGMEM = {
     { read_compass,        2,     420 }, /* Sensor Update - Compass */
     { read_baro,  				 2,     250 }, /* Sensor Update - Barometer */
     { one_hz_loop,       100,     420 },
-		//{ dump_serial, 				20,     500 },
-		{ run_cli,            10,     500 },
+	//{ dump_serial, 				20,     500 },
+		//{ run_cli,            10,     500 },
     //{ throttle_loop,         2,     450 },
     //{ crash_check,          10,      20 },
     //{ read_receiver_rssi,   10,      50 }
