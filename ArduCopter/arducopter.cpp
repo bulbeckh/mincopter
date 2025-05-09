@@ -48,7 +48,9 @@
 
 
 #ifdef TARGET_ARCH_LINUX
-	#include <iostream>
+    #include <iostream>
+    #include "gz_interface.h"
+    GZ_Interface gz_interface;
 #endif
 
 // TODO Check that accessing mincopter directly without dereferencing via pointer will not mess up any virtual methods/inheritance
@@ -69,7 +71,6 @@ PID_Controller controller;
 WP_Planner planner;
 
 
-
 // NOTE Bad hack to resolve linking errors as AP_Scheduler library uses an extern hal reference as original HAL was defined globally
 const AP_HAL::HAL& hal = mincopter.hal;
 
@@ -78,6 +79,8 @@ uint16_t mainLoop_count;
 
 // Forward Declaration
 void sensor_update_loop();
+void state_update();
+void control_determination();
 
 #ifdef TARGET_ARCH_LINUX
 uint32_t loop_iterations=0;
@@ -100,10 +103,38 @@ void loop()
     // for mainloop failure monitoring
     mainLoop_count++;
 
+#ifdef TARGET_ARCH_LINUX
+    /* NOTE This is where the simulation is progressed. This loop is meant to run at 10ms
+     * but the gazebo simulation uses a step size of 1ms. The workaround is to send/receive
+     * over UDP with simulation 10 times and then execute this loop but that is not a long
+     * term solution.
+     *
+     * TODO Also, we are checking for the TARGET_ARCH_LINUX to be defined but this should really
+     * be it's own simulation architecture like TARGET_ARCH_SIM so as not to confuse simulations
+     * with linux based boards like Raspberry PI.
+     */
+
+    // Repeat 10x times
+    // 1. Setup and send control output packet (x4 motor vel)
+    // 2. Receive and parse packet (update simulated sensor readings, incl. noise if needed)
+
+    for (int ii=0;ii<10;ii++) {
+	gz_interface.send_control_output();
+	gz_interface.recv_state_input();
+    }
+
+#endif
+
     // Execute the fast loop
     // ---------------------
 
     sensor_update_loop();
+
+    // Update state
+    state_update();
+
+    // Control Determination
+    control_determination();
 
     // tell the scheduler one tick has passed
     scheduler.tick();
@@ -149,15 +180,15 @@ void loop()
 
 void state_update()
 {
-	mcstate.read_AHRS();
+    mcstate.read_AHRS();
 }
 
 void control_determination()
 {
-		/* At lower frequency than controller */
-		planner.run();
+    /* At lower frequency than controller */
+    planner.run();
 
-		controller.run();
+    controller.run();
 }
 
 // Main loop - 100hz
@@ -180,31 +211,12 @@ void sensor_update_loop()
     MC_PROFILE(readinertia,{read_inertia();})
 }
 
-// TODO move this to btree
-// throttle_loop - should be run at 50 hz
-// ---------------------------
-//void throttle_loop()
-
-
 /*
   scheduler table - all regular tasks apart from the fast_loop()
   should be listed here, along with how often they should be called
   (in 10ms units) and the maximum time they are expected to take (in
   microseconds)
  */
-
-
-/* TODO The following should be moved to the behaviour tree
-- throttle_loop
-- certain fast_loop functions
-- run_nav_updates
-- crash_check
-- the three Hz loop only contains a fence_check and that should be moved to the behaviour tree
-
-The only thing that should be scheduled like this is sensor updates
-
-// TODO Move the ins update from the AHRS into the below scheduled function
-*/
 
 // TODO Add a new (scheduled) function that checks for input (commands) from the console and asynchronously runs them
 // ensuring that enough time is provided to run them.

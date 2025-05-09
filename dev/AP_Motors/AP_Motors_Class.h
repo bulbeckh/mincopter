@@ -127,6 +127,12 @@ public:
     // Note: this must be set immediately before a step up in throttle
     void                slow_start(bool true_false);
 
+    // Get motor raw output reading
+    int16_t get_raw_motor_out(int16_t motor_num) {
+	if (motor_num>=AP_MOTORS_MAX_NUM_MOTORS) return 0;
+	return motor_out[motor_num];
+    };
+
     // structure for holding motor limit flags
     struct AP_Motors_limit {
         uint8_t roll_pitch      : 1; // we have reached roll or pitch limit

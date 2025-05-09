@@ -15,8 +15,11 @@ extern WP_Planner planner;
 #include "log.h"
 
 #ifdef TARGET_ARCH_LINUX
-	#include <iostream>
+    #include <iostream>
+    #include "gz_interface.h"
+    extern GZ_Interface gz_interface;
 #endif
+
 
 // Forward Declaration - TODO move menu.cpp code to a class and include
 void init_cli(AP_HAL::UARTDriver* port);
@@ -250,6 +253,11 @@ void init_ardupilot()
 
 #if LOGGING_ENABLED == ENABLED
     Log_Write_Startup();
+#endif
+
+#if TARGET_ARCH_LINUX
+    // In simulation so setup port
+    gz_interface.setup_sim_socket();
 #endif
 
 		/* Dump Log on start */

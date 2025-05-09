@@ -205,6 +205,7 @@ target_include_directories(libs_sim PUBLIC
 	dev/AP_Notify
 	dev/DataFlash
 	sim/
+	ArduCopter/
 )
 
 #### Build - arch/ ####
