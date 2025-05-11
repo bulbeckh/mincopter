@@ -135,7 +135,11 @@ bool GZ_Interface::recv_state_input()
 
     mc_sim_state_packet* pkt = (mc_sim_state_packet*)buffer;
 
-    std::cout << "PKT Data: " << pkt->timestamp << ", pos-x: " << pkt->pos_x << "\n";
+    // For now, just create a copy of the structure but maybe in future can have a more elegant solution
+    // like separate structs for each sensor type
+    sensor_states = *pkt;
+
+    //std::cout << "PKT Data: " << pkt->timestamp << ", pos-x: " << pkt->pos_x << "\n";
 
     return true;
 }

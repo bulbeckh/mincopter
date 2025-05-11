@@ -30,6 +30,10 @@ class GZ_Interface {
 	    double vel_z;
 	};
 
+	/* @brief The struct containing all sensor information. This is accessed by each of the sim_* 
+	 * simulated sensor classes */
+	mc_sim_state_packet sensor_states;
+
     private:
 	/* @brief Struct to hold a control input (motor speeds) packet */
 	struct servo_packet_16 {
@@ -47,6 +51,7 @@ class GZ_Interface {
 	/* @brief File descriptor for socket */
 	int sockfd;
 
+	/* @brief Holds the raw memory stream from a UDP packet */
 	char buffer[1024];
 
     public:

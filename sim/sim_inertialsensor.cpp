@@ -4,6 +4,9 @@
 
 #include "sim_inertialsensor.h"
 
+#include "gz_interface.h"
+extern GZ_Interface gz_interface;
+
 extern const AP_HAL::HAL& hal;
 
 // Needed because _gyro_scale is defined static in class method
@@ -43,13 +46,33 @@ float AP_InertialSensor_Sim::get_gyro_drift_rate()
 
 bool AP_InertialSensor_Sim::update( void )
 {
-		// Set values for _gyro and _accel
+
+    /* TODO For updates to the simulated sensors, we retrieve values from the
+     * gazebo simulation via GZ_Interface. This contains the most recently read
+     * simulation state packet.
+     */
+    
+    // Set values for _gyro and _accel
 
     _previous_accel[0] = _accel[0];
 
-    _gyro[0]  = Vector3f(_gyro_sum.x, _gyro_sum.y, _gyro_sum.z);
-    _accel[0] = Vector3f(_accel_sum.x, _accel_sum.y, _accel_sum.z);
-    _num_samples = _sum_count;
+    //_gyro[0]  = Vector3f(_gyro_sum.x, _gyro_sum.y, _gyro_sum.z);
+    //_accel[0] = Vector3f(_accel_sum.x, _accel_sum.y, _accel_sum.z);
+
+    /* NOTE TODO Double to float conversion here. Is this casting done automatically? */
+    _gyro[0] = Vector3f(gz_interface.sensor_states.imu_gyro_x,
+			gz_interface.sensor_states.imu_gyro_y,
+			gz_interface.sensor_states.imu_gyro_z);
+
+    _accel[0] = Vector3f(gz_interface.sensor_states.imu_accel_x,
+			gz_interface.sensor_states.imu_accel_y,
+			gz_interface.sensor_states.imu_accel_z);
+
+    /* NOTE I don't think this is needed for simulated environment */
+
+    //_num_samples = _sum_count;
+    _num_samples = 1;
+
     _accel_sum.zero();
     _gyro_sum.zero();
     _sum_count = 0;

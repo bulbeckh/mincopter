@@ -194,14 +194,22 @@ void control_determination()
 // Main loop - 100hz
 void sensor_update_loop()
 {
-		static uint32_t n_measure=0;
+    /* Calls all functions (perhaps indirectly) that read sensors
+     *
+     * - IMU 	   (updated via read_AHRS)
+     * - GPS 	   (scheduled)
+     * - Barometer (scheduled)
+     * - Compass   (scheduled)
+     */
+    static uint32_t n_measure=0;
 
-		// (Part of state update)
+    // (Part of state update)
+    
     // IMU DCM Algorithm
     // --------------------
     MC_PROFILE(readahrs,{mcstate.read_AHRS();})
 
-		// (Part of state update for now - long term remove this)
+    // (Part of state update for now - long term remove this)
     // reads all of the necessary trig functions for cameras, throttle, etc.
     // --------------------------------------------------------------------
     MC_PROFILE(updatetrig,{mcstate.update_trig();})
@@ -230,17 +238,17 @@ void sensor_update_loop()
  */
 const AP_Scheduler::Task scheduler_tasks[] PROGMEM = {
 /*												 TOTAL 4210 */
-    { update_GPS, 				 2,     900 }, /* Sensor Update - GPS */
+    { update_GPS, 	   2,     900 }, /* Sensor Update - GPS */
     { read_batt_compass,  10,     720 }, /* Sensor Update - Battery */
 // control_modes.cpp
-    { update_altitude,    10,    1000 }, /* Sensor Update - IMU */
+    { update_altitude,    10,    1000 }, /* Sensor Update - Barometer (read) */
     { read_compass,        2,     420 }, /* Sensor Update - Compass */
-    { read_baro,  				 2,     250 }, /* Sensor Update - Barometer */
+    { read_baro,  	   2,     250 }, /* Sensor Update - Barometer (accumulate) */
     { one_hz_loop,       100,     420 },
-	//{ dump_serial, 				20,     500 },
-		//{ run_cli,            10,     500 },
-    //{ throttle_loop,         2,     450 },
-    //{ crash_check,          10,      20 },
+    //{ dump_serial, 	  20,     500 },
+    //{ run_cli,          10,     500 },
+    //{ throttle_loop,     2,     450 },
+    //{ crash_check,      10,      20 },
     //{ read_receiver_rssi,   10,      50 }
     //{ update_notify,         2,     100 },
     //{ run_nav_updates,      10,     800 }, 	/* Planner Update - moved to planner */

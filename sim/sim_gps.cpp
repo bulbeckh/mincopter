@@ -2,6 +2,10 @@
 #include <stdint.h>
 #include <AP_HAL.h>
 
+// NOTE normally these includes should be guarded by HASH ifdef TARGET_ARCH_LINUX but this file should
+// only be included from simulated backend (TARGET_ARCH_LINUX)
+#include <iostream>
+
 extern const AP_HAL::HAL& hal;
 
 #include "sim_gps.h"
@@ -22,6 +26,9 @@ AP_GPS_Sim::init(AP_HAL::UARTDriver *s, enum GPS_Engine_Setting nav_setting)
 bool
 AP_GPS_Sim::read(void)
 {
+    //static int gps_read_counter=0;
+    //if (gps_read_counter%100==0) std::cout << "GPS read counter: " << gps_read_counter << "\n";
+
     uint8_t data;
     int16_t numc;
     bool parsed = true;
