@@ -28,6 +28,10 @@ class GZ_Interface {
 	    double vel_x;
 	    double vel_y;
 	    double vel_z;
+	    double field_x;
+	    double field_y;
+	    double field_z;
+	    double pressure;
 	};
 
 	/* @brief The struct containing all sensor information. This is accessed by each of the sim_* 
