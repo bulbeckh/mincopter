@@ -204,6 +204,14 @@ target_include_directories(libs_sim PUBLIC
 	dev/AP_Motors
 	dev/AP_Notify
 	dev/DataFlash
+	state/AP_AHRS
+	state/AP_InertialNav
+	state/
+	control/include/controllers/AC_PID
+	control/include/controllers/
+	control/include/planners/AC_Fence
+	control/include/planners/AC_WPNav
+	control/include/planners/
 	sim/
 	ArduCopter/
 )

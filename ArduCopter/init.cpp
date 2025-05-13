@@ -4,6 +4,10 @@
 #include "mcinstance.h"
 #include "mcstate.h"
 
+#ifdef TARGET_ARCH_LINUX
+    #include "simulation_logger.h"
+#endif
+
 extern MCInstance mincopter;
 extern MCState mcstate;
 
@@ -367,8 +371,6 @@ void init_ardupilot()
 		end = micros()-start_time;
 		mincopter.cliSerial->printf_P(PSTR("TEST5-%uus\n"), end);
 		*/
-
-		
 
 }
 

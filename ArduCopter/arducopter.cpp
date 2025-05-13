@@ -70,6 +70,10 @@ PID_Controller controller;
 #include "planner_waypoint.h"
 WP_Planner planner;
 
+#ifdef TARGET_ARCH_LINUX
+    #include "simulation_logger.h"
+    SimulationLogger simlog(true);
+#endif
 
 // NOTE Bad hack to resolve linking errors as AP_Scheduler library uses an extern hal reference as original HAL was defined globally
 const AP_HAL::HAL& hal = mincopter.hal;
@@ -89,6 +93,11 @@ uint32_t loop_iterations=0;
 /* Core Loop - Meant to run every 10ms (10,000 microseconds) */
 void loop()
 {
+
+#ifdef TARGET_ARCH_LINUX
+    simlog.write_iteration(loop_iterations);
+#endif
+
     // wait for an INS sample
     if (!mincopter.ins.wait_for_sample(1000)) {
         Log_Write_Error(ERROR_SUBSYSTEM_MAIN, ERROR_CODE_MAIN_INS_DELAY);
@@ -180,6 +189,10 @@ void loop()
 
 void state_update()
 {
+#ifdef TARGET_ARCH_LINUX
+    simlog.write_stest_state();
+#endif
+
     mcstate.read_AHRS();
 }
 
@@ -187,8 +200,13 @@ void control_determination()
 {
     /* At lower frequency than controller */
     planner.run();
-
     controller.run();
+
+#ifdef TARGET_ARCH_LINUX
+    simlog.write_controller_state();
+    simlog.write_planner_state();
+#endif
+
 }
 
 // Main loop - 100hz
