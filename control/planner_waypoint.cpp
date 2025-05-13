@@ -21,6 +21,10 @@ extern PID_Controller controller;
 
 void WP_Planner::run(void)
 {
+    /* When the planner is first run, it needs to wait until the sensor signals are all correct (i.e. GPS
+     * lock, correct compass, baro, and IMU readings). We should then add the waypoints to the waypoint navigation
+     * library. Then we can begin the arm process and start the planner.
+     */
 
 	/*
 	 * 1. Check failsafe and fence.
@@ -43,8 +47,8 @@ void WP_Planner::run(void)
 	update_nav_mode();
 
 	// Roll/Pitch determination
-  controller.control_roll = wp_nav.get_desired_roll();
-  controller.control_pitch = wp_nav.get_desired_pitch();
+	controller.control_roll = wp_nav.get_desired_roll();
+	controller.control_pitch = wp_nav.get_desired_pitch();
 
 	/* TODO At some point during update_nav_mode, the control_yaw will be updated. It is passed through a slew filter
 	 * to ensure it stays between a specified rate. This is moved from controller to planner and now needs to be called

@@ -30,6 +30,11 @@ class SimulationLogger
 	/* @brief Write the variables related to the current state estimation library */
 	void write_stest_state();
 
+	/* @brief Write the four motor output variables */
+	void write_motor_outputs();
+
+
+
 	/* @brief Should be called at start of mincopter 100Hz (10ms) loop to signal an iteration */
 	void write_iteration(uint32_t iter);
 
