@@ -47,15 +47,22 @@
 extern MCInstance mincopter;
 extern MCState mcstate;
 
+enum class PlannerArmState
+{
+    ARMED,
+    DISARMED
+};
+
 class MC_Planner
 {
-
 	public:
 
 		MC_Planner() :
 			fence(&mcstate.inertial_nav),
 			wp_nav(&mcstate.inertial_nav, &mcstate.ahrs)
 		{
+			// Initialised planner states
+			planner_arm_state = PlannerArmState::DISARMED;
 		}
 
 
@@ -63,7 +70,7 @@ class MC_Planner
 		 */
 		virtual void run() = 0;
 
-
+		PlannerArmState planner_arm_state;
 
 	public:
 		AP_FAILSAFE_T failsafe;
@@ -71,7 +78,6 @@ class MC_Planner
 		AC_Fence fence;
 
 		AC_WPNav wp_nav;
-
 
 };
 

@@ -19,12 +19,43 @@ extern MCState mcstate;
 #include "controller_pid.h"
 extern PID_Controller controller;
 
+#ifdef TARGET_ARCH_LINUX
+    #include <iostream>
+#endif
+
 void WP_Planner::run(void)
 {
     /* When the planner is first run, it needs to wait until the sensor signals are all correct (i.e. GPS
      * lock, correct compass, baro, and IMU readings). We should then add the waypoints to the waypoint navigation
      * library. Then we can begin the arm process and start the planner.
      */
+
+	if (planner_arm_state==PlannerArmState::DISARMED) { 
+		// Run pre_arm_checks
+		pre_arm_checks(false);
+		if (!ap.pre_arm_check) {
+			std::cout << "pre arm check failed\n";
+			return;
+		} else {
+			std::cout << "pre arm check passed\n";
+		}
+
+		// Run final checks
+		if (arm_checks(false))
+		{
+			// Attempt Arm
+			init_arm_motors();
+
+			// If the motor flag is actually set to armed then update the planner state to ARMED
+			if (mincopter.motors.armed()) {
+			planner_arm_state=PlannerArmState::ARMED;
+			} else {
+			return;
+			}
+		} else {
+			return;
+		}
+    }
 
 	/*
 	 * 1. Check failsafe and fence.
@@ -34,12 +65,10 @@ void WP_Planner::run(void)
 	 * 3. Use planner to determine control inputs/targets.
 	 */
 
-  // 1. Failsafe and fence checks
-	/* Fence Check */
+  	// 1. Failsafe and fence checks
 	fence_check();
 
 	/* Failsafe Check */
-	//failsafe_check()
 	
 	// 2. State changes
 

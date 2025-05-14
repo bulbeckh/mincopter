@@ -94,10 +94,10 @@ void SimulationLogger::write_stest_state()
 void SimulationLogger::write_motor_outputs()
 {
     simulation_out << "m"
-	<< mincopter.motors.get_raw_motor_output(0) << ","
-	<< mincopter.motors.get_raw_motor_output(1) << ","
-	<< mincopter.motors.get_raw_motor_output(2) << ","
-	<< mincopter.motors.get_raw_motor_output(3) << "\n";
+	<< mincopter.motors.get_raw_motor_out(0) << ","
+	<< mincopter.motors.get_raw_motor_out(1) << ","
+	<< mincopter.motors.get_raw_motor_out(2) << ","
+	<< mincopter.motors.get_raw_motor_out(3) << "\n";
 
 }
 

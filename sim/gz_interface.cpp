@@ -140,7 +140,7 @@ bool GZ_Interface::recv_state_input()
     sensor_states = *pkt;
 
     //std::cout << "PKT Data: " << pkt->timestamp << ", pos-x: " << pkt->pos_x << "\n";
-    std::cout << "PKT Data: " << pkt->timestamp << ", field-x: " << pkt->field_x << " baro pressure " << pkt->pressure << "\n";
+    //std::cout << "PKT Data: " << pkt->timestamp << ", field-x: " << pkt->field_x << " baro pressure " << pkt->pressure << "\n";
 
     return true;
 }

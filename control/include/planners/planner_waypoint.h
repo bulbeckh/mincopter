@@ -217,8 +217,6 @@ class WP_Planner : public MC_Planner
 
 		void get_throttle_althold_with_slew(int32_t target_alt, int16_t min_climb_rate, int16_t max_climb_rate);
 
-	public:
-		void pre_arm_rc_checks();
 	private:
 		bool pre_arm_gps_checks(bool display_failure);
 		bool arm_checks(bool display_failure);

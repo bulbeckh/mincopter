@@ -98,10 +98,7 @@ void init_rc_out()
 		*/
 
     // enable output to motors
-    planner.pre_arm_rc_checks();
-    if (planner.ap.pre_arm_rc_check) {
-        output_min();
-    }
+    output_min();
 }
 
 // output_min - enable and output lowest possible value to motors

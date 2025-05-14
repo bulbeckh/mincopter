@@ -24,6 +24,7 @@ extern PID_Controller controller;
 
 // auto_disarm_check - disarms the copter if it has been sitting on the ground in manual mode with throttle low for at least 15 seconds
 // called at 1hz
+// TODO Remove this whole function - no need for auto-disarm in autonomous modes
 void WP_Planner::auto_disarm_check()
 {
     static uint8_t auto_disarming_counter;
@@ -145,16 +146,6 @@ void WP_Planner::pre_arm_checks(bool display_failure)
     // succeed if pre arm checks are disabled
     if(mincopter.arming_check == ARMING_CHECK_NONE) {
         set_pre_arm_check(true);
-        set_pre_arm_rc_check(true);
-        return;
-    }
-
-    // pre-arm rc checks a prerequisite
-    pre_arm_rc_checks();
-    if(!ap.pre_arm_rc_check) {
-        if (display_failure) {
-            //gcs_send_text_P(SEVERITY_HIGH,PSTR("PreArm: RC not calibrated"));
-        }
         return;
     }
 
@@ -272,41 +263,6 @@ void WP_Planner::pre_arm_checks(bool display_failure)
 
     // if we've gotten this far then pre arm checks have completed
     set_pre_arm_check(true);
-}
-
-// perform pre_arm_rc_checks checks and set ap.pre_arm_rc_check flag
-void WP_Planner::pre_arm_rc_checks()
-{
-    // exit immediately if we've already successfully performed the pre-arm rc check
-    if( ap.pre_arm_rc_check ) {
-        return;
-    }
-
-    // set rc-checks to success if RC checks are disabled
-    if ((mincopter.arming_check != ARMING_CHECK_ALL) && !(mincopter.arming_check & ARMING_CHECK_RC)) {
-        set_pre_arm_rc_check(true);
-        return;
-    }
-
-    // check if radio has been calibrated
-		/*
-    if(!mincopter.rc_3.radio_min.load() && !mincopter.rc_3.radio_max.load()) {
-        return;
-    }
-		*/
-
-    // check channels 1 & 2 have min <= 1300 and max >= 1700
-    if (mincopter.rc_1.radio_min > 1300 || mincopter.rc_1.radio_max < 1700 || mincopter.rc_2.radio_min > 1300 || mincopter.rc_2.radio_max < 1700) {
-        return;
-    }
-
-    // check channels 3 & 4 have min <= 1300 and max >= 1700
-    if (mincopter.rc_3.radio_min > 1300 || mincopter.rc_3.radio_max < 1700 || mincopter.rc_4.radio_min > 1300 || mincopter.rc_4.radio_max < 1700) {
-        return;
-    }
-
-    // if we've gotten this far rc is ok
-    set_pre_arm_rc_check(true);
 }
 
 // performs pre_arm gps related checks and returns true if passed
