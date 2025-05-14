@@ -68,11 +68,11 @@ bool GZ_Interface::send_control_output()
 
     static int send_counter=0;
     for (int16_t i=0;i<4;i++) {
-	int16_t m_out = mincopter.motors.get_raw_motor_out(i);
+		int16_t m_out = mincopter.motors.get_raw_motor_out(i);
 
-	// NOTE The pkt entry is int16_t whereas m_out uint16_t
-	//control_pkt.pwm[i] = m_out;
-	control_pkt.pwm[i] = 2000;
+		// NOTE The pkt entry is int16_t whereas m_out uint16_t
+		control_pkt.pwm[i] = m_out;
+		//control_pkt.pwm[i] = 2000;
     }
 
     // Send packet
@@ -141,6 +141,12 @@ bool GZ_Interface::recv_state_input()
 
     //std::cout << "PKT Data: " << pkt->timestamp << ", pos-x: " << pkt->pos_x << "\n";
     //std::cout << "PKT Data: " << pkt->timestamp << ", field-x: " << pkt->field_x << " baro pressure " << pkt->pressure << "\n";
+
+	/* Update simulated variables */
+
+	mincopter.barometer.set_pressure(pkt->pressure);
+	// NOTE No simulated temperature yet.
+
 
     return true;
 }

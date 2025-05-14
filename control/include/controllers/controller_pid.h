@@ -95,13 +95,14 @@ class PID_Controller : public MC_Controller
 																		
 		/* @brief TODO add brief */
 		float throttle_avg;                  // throttle_cruise as a float
-    int16_t throttle_cruise;
+    	int16_t throttle_cruise;
 		
 		/* @brief Used to constrain throttle outputs from get_throttle_accel (low-level) between certain values*/
-    int16_t        throttle_min;
-    int16_t        throttle_max;
+    	int16_t        throttle_min;
+    	int16_t        throttle_max;
 
 		/* @brief The desired altitude in cm. Setup by planner */
+		// TODO Move this to the control.h abstraction (or just use the control_z state variable)
 		float controller_desired_alt;
 
 		/* @brief The current climb rate. Used during call to get_throttle_rate (high-level) */

@@ -64,6 +64,9 @@ class WP_Planner : public MC_Planner
 		WP_Planner() :
 			MC_Planner()
 		{
+		    /* Initialise planner states */
+		    nav_mode = WP_FLIGHT_STATE::FS_TAKEOFF;
+
 		}
 
 	public:
@@ -131,8 +134,8 @@ class WP_Planner : public MC_Planner
 		//uint8_t yaw_mode = STABILIZE_YAW;
 		//uint8_t roll_pitch_mode = STABILIZE_RP;
 		//uint8_t throttle_mode = STABILIZE_THR;
-
-		WP_FLIGHT_STATE nav_mode = WP_FLIGHT_STATE::FS_TAKEOFF;
+		//
+		WP_FLIGHT_STATE nav_mode;
 
 		// Throttle variables
 		int16_t desired_climb_rate;          // pilot desired climb rate - for logging purposes only

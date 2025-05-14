@@ -21,6 +21,11 @@ public:
 
     void            _calculate();
 
+#ifdef TARGET_ARCH_LINUX
+	/* Public setter methods for Barometer */
+	void set_pressure();
+#endif
+
 private:
 		// TODO Remove all of this
 		

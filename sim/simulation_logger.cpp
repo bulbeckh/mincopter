@@ -67,7 +67,15 @@ void SimulationLogger::write_iteration(uint32_t iter)
 void SimulationLogger::write_planner_state()
 {
 
-    simulation_out << "p\n";
+	/* Write loiter step */
+	Vector3f nav_target = planner.wp_nav.get_wp_nav_target();
+
+    simulation_out << "p"
+		<< (int)planner.wp_nav.get_loiter_step() << ","
+		<< nav_target.x << ","
+		<< nav_target.y << ","
+		<< nav_target.z << "\n";
+
 }
 
 void SimulationLogger::write_controller_state()
@@ -83,7 +91,8 @@ void SimulationLogger::write_controller_state()
     simulation_out << "c"
 	<< controller.control_roll << ","
 	<< controller.control_pitch << ","
-	<< controller.control_yaw << "\n";
+	<< controller.control_yaw << ","
+	<< controller.controller_desired_alt << "\n";
 }
 
 void SimulationLogger::write_stest_state()

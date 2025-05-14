@@ -4,9 +4,6 @@
 
 #include "sim_inertialsensor.h"
 
-#include "gz_interface.h"
-extern GZ_Interface gz_interface;
-
 extern const AP_HAL::HAL& hal;
 
 // Needed because _gyro_scale is defined static in class method

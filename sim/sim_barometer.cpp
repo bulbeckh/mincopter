@@ -30,3 +30,8 @@ float AP_Baro_Sim::get_temperature()
     return Temp;
 }
 
+void AP_Baro_Sim::set_pressure(double gz_pressure)
+{
+	Press = (float)gz_pressure;
+}
+

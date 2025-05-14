@@ -179,26 +179,50 @@ void WP_Planner::calc_distance_and_bearing()
 void WP_Planner::update_nav_mode()
 {
     // exit immediately if not auto_armed or inertial nav position bad
+	/*
     if (!ap.auto_armed || !mcstate.inertial_nav.position_ok()) {
         return;
-    }
+	}
+	*/
+
+	static bool firstcall=true;
 
     switch( nav_mode ) {
 
-			case WP_FLIGHT_STATE::FS_LOITER:
-            // reset target if we are still on the ground
-            if (ap.land_complete) {
-                wp_nav.init_loiter_target(mcstate.inertial_nav.get_position(),mcstate.inertial_nav.get_velocity());
-            }else{
-                // call loiter controller
-                wp_nav.update_loiter();
-            }
-            break;
+		case WP_FLIGHT_STATE::FS_LOITER:
+			// reset target if we are still on the ground
+			if (ap.land_complete) {
+				wp_nav.init_loiter_target(mcstate.inertial_nav.get_position(),mcstate.inertial_nav.get_velocity());
+			}else{
+				// call loiter controller
+				wp_nav.update_loiter();
+			}
+			break;
 
-			case WP_FLIGHT_STATE::FS_WAYPOINT:
-            // call waypoint controller
-            wp_nav.update_wpnav();
-            break;
+		case WP_FLIGHT_STATE::FS_WAYPOINT:
+			// call waypoint controller
+			wp_nav.update_wpnav();
+			break;
+
+		case WP_FLIGHT_STATE::FS_TAKEOFF:
+			if (firstcall) { 
+				Vector3f nav_current_position = mcstate.inertial_nav.get_position();
+				nav_current_position.z += 10;
+				nav_current_position.x -= 5;
+				nav_current_position.y -= 5;
+
+				// TODO Why does this take two separate calls
+				wp_nav.init_loiter_target(nav_current_position,mcstate.inertial_nav.get_velocity());
+				wp_nav.set_desired_alt(nav_current_position.z);
+
+				// TODO Fix the name (its a target, and not a current position) and fix why this is happening here
+				controller.controller_desired_alt = nav_current_position.z;
+
+				firstcall=false;
+			} else {
+				wp_nav.update_loiter();
+			}
+			break;
     }
 
 }
@@ -280,6 +304,9 @@ void WP_Planner::fence_check()
 
 		// if there is a new breach take action
 		if( new_breaches != AC_FENCE_TYPE_NONE ) {
+#ifdef TARGET_ARCH_LINUX
+			std::cout << "Fence breached\n";
+#endif
 
 				// if the user wants some kind of response and motors are armed
 				if(fence.get_action() != AC_FENCE_ACTION_REPORT_ONLY ) {

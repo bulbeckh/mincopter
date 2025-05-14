@@ -32,6 +32,12 @@ public:
     bool get_gyro_health(uint8_t instance) const { return healthy(); }
     bool get_accel_health(uint8_t instance) const { return healthy(); }
 
+#ifdef TARGET_ARCH_LINUX
+	/* Setter methods for simulated IMUs */
+	void set_imu_gyros(double imu_gyro_x, double imu_gyro_y, double imu_gyro_z);
+	void set_imu_accel(double imu_accel_x, double imu_accel_y, double imu_accel_z);
+#endif
+
 protected:
     uint16_t                    _init_sensor( Sample_rate sample_rate );
 

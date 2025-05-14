@@ -57,6 +57,11 @@ public:
     /// get_loiter_target - get loiter target as position vector (from home in cm)
     const Vector3f &get_loiter_target() const { return _target; }
 
+	/* MINCOPTER ADDS */
+	// get current loiter step 
+	uint8_t get_loiter_step() { return _loiter_step; }
+	Vector3f get_wp_nav_target() { return _target; }
+
     /// set_loiter_target in cm from home
     void set_loiter_target(const Vector3f& position);
 
