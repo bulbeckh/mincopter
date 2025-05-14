@@ -49,6 +49,8 @@ set(COMMON_FLAGS
 #]]
 	-fsigned-char
 	-march=x86-64
+	## Add debug symbols
+	-g
 )
 message("x86-64 Architecture - common flags: ${COMMON_FLAGS}")
 
