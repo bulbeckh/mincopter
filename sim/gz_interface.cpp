@@ -152,6 +152,9 @@ bool GZ_Interface::recv_state_input()
 
 	mincopter.compass.set_field(pkt->field_x, pkt->field_y, pkt->field_z);
 
+	mincopter.g_gps_driver.set_gps_vel3d(pkt->vel_east, pkt->vel_north, pkt->vel_up);
+	mincopter.g_gps_driver.set_gps_attitude(pkt->lat_deg, pkt->lng_deg, pkt->alt_met);
+
 	// sense check readings
 	if (false && frame_counter%100==0) {
 		Vector3f gyros = mincopter.ins.get_gyro();
@@ -163,8 +166,11 @@ bool GZ_Interface::recv_state_input()
 	}
 
 	if (true && frame_counter%100==0) {
-		//std::cout << pkt->pos_x << " " << pkt->pos_y << "\n";
-		std::cout << "lat long " << pkt->lat_deg << " " << pkt->lng_deg << "\n";
+		std::cout << "packet vel: " << pkt->vel_north << " " << pkt->vel_east << "\n";
+		
+		//Vector3f vel_vec = mincopter.g_gps->velocity_vector();
+		float v_north = mincopter.g_gps->velocity_north();
+		std::cout << "lat long " << v_north << " " << mincopter.g_gps->latitude << "\n";
 	}
 
 

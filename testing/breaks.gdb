@@ -1,5 +1,5 @@
 # breaks.gdb
 
 layout src
-break PID_Controller::update_roll_pitch_mode
+break update_GPS
 run > /dev/null 2>&1

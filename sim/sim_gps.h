@@ -26,6 +26,11 @@ public:
     virtual void                    init(AP_HAL::UARTDriver *s, enum GPS_Engine_Setting nav_setting = GPS_ENGINE_NONE);
     virtual bool                    read();
 
+#ifdef TARGET_ARCH_LINUX
+	void set_gps_vel3d(double vel_east, double vel_north, double vel_up);
+	void set_gps_attitude(double lat, double lng, double alt);
+#endif
+
     float       get_lag() { return 0.5; }   // ublox lag is lower than the default 1second
 
     // State machine state
