@@ -165,15 +165,13 @@ bool GZ_Interface::recv_state_input()
 			<< " " << accel.x << " " << accel.y << " " << accel.z << "\n";
 	}
 
-	if (true && frame_counter%100==0) {
+	if (false && frame_counter%100==0) {
 		std::cout << "packet vel: " << pkt->vel_north << " " << pkt->vel_east << "\n";
 		
 		//Vector3f vel_vec = mincopter.g_gps->velocity_vector();
 		float v_north = mincopter.g_gps->velocity_north();
 		std::cout << "lat long " << v_north << " " << mincopter.g_gps->latitude << "\n";
 	}
-
-
 
     return true;
 }

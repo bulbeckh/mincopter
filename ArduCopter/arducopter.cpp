@@ -225,7 +225,7 @@ void sensor_update_loop()
     
     // IMU DCM Algorithm
     // --------------------
-    MC_PROFILE(readahrs,{mcstate.read_AHRS();})
+    //MC_PROFILE(readahrs,{mcstate.read_AHRS();})
 
     // (Part of state update for now - long term remove this)
     // reads all of the necessary trig functions for cameras, throttle, etc.

@@ -18,7 +18,9 @@ AP_InertialSensor_Sim::AP_InertialSensor_Sim() :
 
 float AP_InertialSensor_Sim::get_delta_time()
 {
-		return 0.0;
+	// TODO This hardcoded method 
+	// Flight loop runs at 100hz and call is updated
+	return 0.01;
 }
 
 uint16_t AP_InertialSensor_Sim::_init_sensor( Sample_rate sample_rate )
