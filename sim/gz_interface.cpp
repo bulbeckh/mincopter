@@ -71,8 +71,8 @@ bool GZ_Interface::send_control_output()
 		int16_t m_out = mincopter.motors.get_raw_motor_out(i);
 
 		// NOTE The pkt entry is int16_t whereas m_out uint16_t
-		control_pkt.pwm[i] = m_out;
-		//control_pkt.pwm[i] = 2000;
+		//control_pkt.pwm[i] = m_out;
+		control_pkt.pwm[i] = 2000;
     }
 
     // Send packet
@@ -139,13 +139,34 @@ bool GZ_Interface::recv_state_input()
     // like separate structs for each sensor type
     sensor_states = *pkt;
 
-    //std::cout << "PKT Data: " << pkt->timestamp << ", pos-x: " << pkt->pos_x << "\n";
-    //std::cout << "PKT Data: " << pkt->timestamp << ", field-x: " << pkt->field_x << " baro pressure " << pkt->pressure << "\n";
-
 	/* Update simulated variables */
+	/* NOTE maybe it doesn't make sense to update the sensor variables directly here but rather wait until
+	 * the sensors call an interface function to retrieve them. Allows for greater timing flexibility to
+	 * when they are actually updated TODO */
 
 	mincopter.barometer.set_pressure(pkt->pressure);
 	// NOTE No simulated temperature yet.
+	
+	mincopter.ins.set_imu_gyros(pkt->imu_gyro_x, pkt->imu_gyro_y, pkt->imu_gyro_z);
+	mincopter.ins.set_imu_accel(pkt->imu_accel_x, pkt->imu_accel_y, pkt->imu_accel_z);
+
+	mincopter.compass.set_field(pkt->field_x, pkt->field_y, pkt->field_z);
+
+	// sense check readings
+	if (false && frame_counter%100==0) {
+		Vector3f gyros = mincopter.ins.get_gyro();
+		Vector3f accel = mincopter.ins.get_accel();
+
+		std::cout << "sensor vals: " << mincopter.barometer.get_pressure()
+			<< " " << gyros.x << " " << gyros.y << " " << gyros.z
+			<< " " << accel.x << " " << accel.y << " " << accel.z << "\n";
+	}
+
+	if (true && frame_counter%100==0) {
+		//std::cout << pkt->pos_x << " " << pkt->pos_y << "\n";
+		std::cout << "lat long " << pkt->lat_deg << " " << pkt->lng_deg << "\n";
+	}
+
 
 
     return true;

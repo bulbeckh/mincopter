@@ -43,20 +43,19 @@ float AP_InertialSensor_Sim::get_gyro_drift_rate()
 
 bool AP_InertialSensor_Sim::update( void )
 {
-
-    /* TODO For updates to the simulated sensors, we retrieve values from the
-     * gazebo simulation via GZ_Interface. This contains the most recently read
-     * simulation state packet.
+    /* TODO Do nothing on call to update for simulated IMU. The updates to the _accel
+	 * and _gyro vectors are done via the gz_interface.
      */
     
     // Set values for _gyro and _accel
 
-    _previous_accel[0] = _accel[0];
+    //_previous_accel[0] = _accel[0];
 
     //_gyro[0]  = Vector3f(_gyro_sum.x, _gyro_sum.y, _gyro_sum.z);
     //_accel[0] = Vector3f(_accel_sum.x, _accel_sum.y, _accel_sum.z);
 
     /* NOTE TODO Double to float conversion here. Is this casting done automatically? */
+	/*
     _gyro[0] = Vector3f(gz_interface.sensor_states.imu_gyro_x,
 			gz_interface.sensor_states.imu_gyro_y,
 			gz_interface.sensor_states.imu_gyro_z);
@@ -64,10 +63,12 @@ bool AP_InertialSensor_Sim::update( void )
     _accel[0] = Vector3f(gz_interface.sensor_states.imu_accel_x,
 			gz_interface.sensor_states.imu_accel_y,
 			gz_interface.sensor_states.imu_accel_z);
+	*/
 
     /* NOTE I don't think this is needed for simulated environment */
 
     //_num_samples = _sum_count;
+	/*
     _num_samples = 1;
 
     _accel_sum.zero();
@@ -86,7 +87,27 @@ bool AP_InertialSensor_Sim::update( void )
     _accel[0].y *= accel_scale.y;
     _accel[0].z *= accel_scale.z;
     _accel[0] -= _accel_offset[0];
+	*/
 
     return true;
+}
+
+void AP_InertialSensor_Sim::set_imu_gyros(double imu_gyro_x, double imu_gyro_y, double imu_gyro_z)
+{
+	_gyro[0].x = imu_gyro_x;
+	_gyro[0].y = imu_gyro_y;
+	_gyro[0].z = imu_gyro_z;
+
+	return;
+}
+
+
+void AP_InertialSensor_Sim::set_imu_accel(double imu_accel_x, double imu_accel_y, double imu_accel_z)
+{
+	_accel[0].x = imu_accel_x;
+	_accel[0].y = imu_accel_y;
+	_accel[0].z = imu_accel_z;
+
+	return;
 }
 

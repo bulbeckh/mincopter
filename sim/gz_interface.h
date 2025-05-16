@@ -32,6 +32,15 @@ class GZ_Interface {
 	    double field_y;
 	    double field_z;
 	    double pressure;
+
+		/* NavSat (GPS */
+		double lat_deg;
+		double lng_deg;
+		double alt_met;
+		double vel_east;
+		double vel_north;
+		double vel_up;
+
 	};
 
 	/* @brief The struct containing all sensor information. This is accessed by each of the sim_* 

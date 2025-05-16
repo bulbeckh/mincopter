@@ -19,6 +19,10 @@ public:
     bool        read(void);
     void        accumulate(void);
 
+#ifdef TARGET_ARCH_LINUX
+	void set_field(double field_x, double field_y, double field_z);
+#endif 
+
 private:
     float               calibration[3];
     bool                _initialised;

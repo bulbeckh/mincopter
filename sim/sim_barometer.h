@@ -23,7 +23,7 @@ public:
 
 #ifdef TARGET_ARCH_LINUX
 	/* Public setter methods for Barometer */
-	void set_pressure();
+	void set_pressure(double gz_pressure);
 #endif
 
 private:
