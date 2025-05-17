@@ -36,7 +36,8 @@ fsigned-char  allows char to be signed
 ]]
 
 set(COMMON_FLAGS
-	-Os
+	## TODO We have turned off optimisation here for simulation
+	-O0
 	-Wall
 	-Wshadow
 	-Wpointer-arith

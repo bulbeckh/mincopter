@@ -26,21 +26,22 @@ extern WP_Planner planner;
 
 void PID_Controller::run()
 {
-		/* 1. Run P controllers to convert desired angle into desired rate
-		 *
-		 * 2. Run rate controllers
-		 *
-		 *
-		 * 3. Output value to motors(AP_MotorsQuad)
-		 */
-		
-		// (Part of control determination)
-		// Run controllers that take body frame rate targets and convert to motor values using PID rate controllers (get_rate_{roll,pitch,yaw})
+	/* 1. Run P controllers to convert desired angle into desired rate
+	 *
+	 * 2. Run rate controllers
+	 *
+	 *
+	 * 3. Output value to motors(AP_MotorsQuad)
+	 */
+	
+	// (Part of control determination)
+	// Run controllers that take body frame rate targets and convert to motor values using PID rate controllers (get_rate_{roll,pitch,yaw})
 
-		update_yaw_mode();
-		update_roll_pitch_mode();
+	/* NOTE We don't need to run yaw controllers yet. ideally they should be kept at 0 */
+	//update_yaw_mode();
+	update_roll_pitch_mode();
 
-		/////////////////////////////////////// THROTTLE control - should run at 50Hz 
+	/////////////////////////////////////// THROTTLE control - should run at 50Hz 
 		
     // get altitude and climb rate from inertial lib
     read_inertial_altitude();
@@ -462,7 +463,7 @@ void PID_Controller::update_throttle_mode(void)
 void PID_Controller::update_yaw_mode(void)
 {
 		// TODO Remove for autonomous flight
-    int16_t pilot_yaw = mincopter.rc_4.control_in;
+    //int16_t pilot_yaw = mincopter.rc_4.control_in;
 
 		// if we are landed reset yaw target to current heading'
 		/* TODO Move the LAND checks here to planner. Planner should not even be running output to motors if we are landed.

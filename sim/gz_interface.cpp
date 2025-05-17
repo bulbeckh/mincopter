@@ -74,8 +74,8 @@ bool GZ_Interface::send_control_output()
 		int16_t m_out = mincopter.motors.get_raw_motor_out(i);
 
 		// NOTE The pkt entry is int16_t whereas m_out uint16_t
-		//control_pkt.pwm[i] = m_out;
-		control_pkt.pwm[i] = 2000;
+		control_pkt.pwm[i] = m_out;
+		//control_pkt.pwm[i] = 2000;
     }
 
     // Send packet
@@ -179,11 +179,15 @@ bool GZ_Interface::recv_state_input()
 	if (true && frame_counter%100==0) {
 		
 		Vector3f inav_pos = mcstate.inertial_nav.get_position();
+		int32_t inav_lat = mcstate.inertial_nav.get_latitude();
+		int32_t inav_lng = mcstate.inertial_nav.get_longitude();
 
 		inav_pos *= 0.01;
 	
 		std::cout << "ACTUAL: " << pkt->pos_x << " " << pkt->pos_y << " " << pkt->pos_z << "\n";
-		std::cout << "INAV: " << inav_pos.x << " " << inav_pos.y << " " << inav_pos.z << "\n";
+		std::cout << "ACTUAL_GPS: " << pkt->lat_deg << " " << pkt->lng_deg << " " << pkt->alt_met << "\n";
+		std::cout << "INAV_GPS: " << inav_lat << " " << inav_lng << " " << mcstate.inertial_nav.get_altitude() << "\n";
+		//std::cout << "INAV: " << inav_pos.x << " " << inav_pos.y << " " << inav_pos.z << "\n";
 		std::cout << "-ERROR: " << pkt->pos_x - inav_pos.x << " " << pkt->pos_y - inav_pos.y << " " << pkt->pos_z - inav_pos.z << "\n";
 
 	}

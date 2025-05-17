@@ -70,11 +70,16 @@ void SimulationLogger::write_planner_state()
 	/* Write loiter step */
 	Vector3f nav_target = planner.wp_nav.get_wp_nav_target();
 
+	int32_t d_roll = planner.wp_nav.get_desired_roll();
+	int32_t d_pitch = planner.wp_nav.get_desired_pitch();
+
     simulation_out << "p"
 		<< (int)planner.wp_nav.get_loiter_step() << ","
 		<< nav_target.x << ","
 		<< nav_target.y << ","
-		<< nav_target.z << "\n";
+		<< nav_target.z << ","
+		<< d_roll << ","
+		<< d_pitch << "\n";
 
 }
 

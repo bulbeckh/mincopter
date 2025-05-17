@@ -33,8 +33,23 @@ AP_GPS_Sim::read(void)
     int16_t numc;
     bool parsed = true;
 
-		// TODO Just move the function body here
-		return _parse_gps();
+	_new_position = true;
+
+	num_sats = 10;
+	hdop = 200;
+	
+	_last_gps_time = hal.scheduler->millis();
+
+
+	// NOTE We are not using/simulating groundspeed but are using velocity
+	_new_speed = false;
+
+    _have_raw_velocity = true;
+
+	// TODO Just move the function body here
+	//return _parse_gps();
+
+	return true;
 }
 
 // Private Methods /////////////////////////////////////////////////////////////
@@ -71,7 +86,6 @@ AP_GPS_Sim::_parse_gps(void)
     _new_speed = true;
 	*/
 
-    _have_raw_velocity = true;
 
     return true;
 }
@@ -85,6 +99,7 @@ void AP_GPS_Sim::set_gps_vel3d(double vel_east, double vel_north, double vel_up)
 
 	/* NOTE Wrong place to to do this but will fix other issues */
 	fix = Fix_Status::FIX_3D; 
+	next_fix = Fix_Status::FIX_3D; 
 
 	return;
 }

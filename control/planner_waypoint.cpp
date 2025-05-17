@@ -87,7 +87,7 @@ void WP_Planner::run(void)
 	//controller.control_yaw = get_yaw_slew(controller.control_yaw, original_wp_bearing, AUTO_YAW_SLEW_RATE);
 	
 	// Throttle determination
-  get_throttle_althold_with_slew(wp_nav.get_desired_alt(), -wp_nav.get_descent_velocity(), wp_nav.get_climb_velocity());
+  	get_throttle_althold_with_slew(wp_nav.get_desired_alt(), -wp_nav.get_descent_velocity(), wp_nav.get_climb_velocity());
  	
 }
 
@@ -208,12 +208,10 @@ void WP_Planner::update_nav_mode()
 			if (firstcall) { 
 				Vector3f nav_current_position = mcstate.inertial_nav.get_position();
 				nav_current_position.z += 10;
-				nav_current_position.x -= 5;
-				nav_current_position.y -= 5;
 
 				// TODO Why does this take two separate calls
-				wp_nav.init_loiter_target(nav_current_position,mcstate.inertial_nav.get_velocity());
-				wp_nav.set_desired_alt(nav_current_position.z);
+				//wp_nav.init_loiter_target(nav_current_position,mcstate.inertial_nav.get_velocity());
+				wp_nav.set_loiter_target(nav_current_position);
 
 				// TODO Fix the name (its a target, and not a current position) and fix why this is happening here
 				controller.controller_desired_alt = nav_current_position.z;

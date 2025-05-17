@@ -84,12 +84,10 @@ void WP_Planner::init_arm_motors()
     // --------------------
     //init_simple_bearing();
 
-    // Reset home position
+    // Set home position
     // -------------------
-    if (ap.home_is_set) {
-        init_home();
-        calc_distance_and_bearing();
-    }
+    init_home();
+    calc_distance_and_bearing();
 
     // all I terms are invalid
     // -----------------------
