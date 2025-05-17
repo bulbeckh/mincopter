@@ -13,8 +13,10 @@ bool AP_Baro_Sim::init()
 
 uint8_t AP_Baro_Sim::read()
 {
-		// Update the baro
-		Press=1.0;
+	// Update the baro
+	Press=1.0;
+
+	_last_update = hal.scheduler->millis();
 
     return 1;
 }

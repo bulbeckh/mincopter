@@ -19,6 +19,9 @@
 #include "mcinstance.h"
 extern MCInstance mincopter;
 
+#include "mcstate.h"
+extern MCState mcstate;
+
 bool GZ_Interface::setup_sim_socket()
 {
     // Initialisation
@@ -171,6 +174,18 @@ bool GZ_Interface::recv_state_input()
 		//Vector3f vel_vec = mincopter.g_gps->velocity_vector();
 		float v_north = mincopter.g_gps->velocity_north();
 		std::cout << "lat long " << v_north << " " << mincopter.g_gps->latitude << "\n";
+	}
+
+	if (true && frame_counter%100==0) {
+		
+		Vector3f inav_pos = mcstate.inertial_nav.get_position();
+
+		inav_pos *= 0.01;
+	
+		std::cout << "ACTUAL: " << pkt->pos_x << " " << pkt->pos_y << " " << pkt->pos_z << "\n";
+		std::cout << "INAV: " << inav_pos.x << " " << inav_pos.y << " " << inav_pos.z << "\n";
+		std::cout << "-ERROR: " << pkt->pos_x - inav_pos.x << " " << pkt->pos_y - inav_pos.y << " " << pkt->pos_z - inav_pos.z << "\n";
+
 	}
 
     return true;
