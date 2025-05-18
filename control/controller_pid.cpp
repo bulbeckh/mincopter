@@ -447,6 +447,11 @@ void PID_Controller::get_throttle_althold(int32_t target_alt, int16_t min_climb_
 
     // call rate based throttle controller which will update accel based throttle controller targets
     get_throttle_rate(desired_rate);
+
+#ifdef TARGET_ARCH_LINUX
+	simlog.write_pid_state("throttle_althold", target_alt, alt_error, (int32_t)desired_rate, (int32_t)max_climb_rate, (int32_t)min_climb_rate);
+#endif
+
 }
 
 

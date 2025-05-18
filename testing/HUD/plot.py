@@ -69,6 +69,8 @@ if __name__=="__main__":
     ll_pitch = PID_history('Pitch Rate')
     ll_throttle = PID_history('Accel Throttle')
 
+    throttle_althold = PID_history('Throttle Althold')
+
     for l in lines:
         splits = l.split(",")
         if splits[0]=='pid' and splits[1]=='stb_roll':
@@ -83,10 +85,12 @@ if __name__=="__main__":
             ll_pitch.parse(splits[2:])
         elif splits[0]=='pid' and splits[1]=='throttle_accel':
             ll_throttle.parse(splits[2:])
+        elif splits[0]=='pid' and splits[1]=='throttle_althold':
+            throttle_althold.parse(splits[2:])
 
     #fig, ax = plt.subplots(6,1, figsize=(14,8))
     fig = plt.figure(figsize=(14,8))
-    gs = gridspec.GridSpec(6,2, figure=fig)
+    gs = gridspec.GridSpec(8,2, figure=fig)
 
     hl_roll.plot(fig.add_subplot(gs[0,0]), fig.add_subplot(gs[1,0]))
     hl_pitch.plot(fig.add_subplot(gs[2,0]), fig.add_subplot(gs[3,0]))
@@ -95,6 +99,8 @@ if __name__=="__main__":
     ll_roll.plot(fig.add_subplot(gs[0,1]), fig.add_subplot(gs[1,1]))
     ll_pitch.plot(fig.add_subplot(gs[2,1]), fig.add_subplot(gs[3,1]))
     ll_throttle.plot(fig.add_subplot(gs[4,1]), fig.add_subplot(gs[5,1]))
+
+    throttle_althold.plot(fig.add_subplot(gs[6,0]), fig.add_subplot(gs[7,0]))
 
     plt.tight_layout()
     plt.show()
