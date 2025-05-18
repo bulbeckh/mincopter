@@ -30,7 +30,14 @@ public:
     ///
     RC_Channel(uint8_t ch_out) :
         _high(1),
-        _ch_out(ch_out) {
+        _ch_out(ch_out),
+		_reverse(1),
+		radio_min(1100),
+		radio_trim(1500),
+		radio_max(1900),
+		_dead_zone(0)
+	{
+		
 						/*
 		AP_Param::setup_object_defaults(this, var_info);
         if (ch_out < RC_MAX_CHANNELS) {
