@@ -73,7 +73,14 @@ AP_Motors::AP_Motors( RC_Channel* rc_roll, RC_Channel* rc_pitch, RC_Channel* rc_
     _min_throttle(AP_MOTORS_DEFAULT_MIN_THROTTLE),
     _max_throttle(AP_MOTORS_DEFAULT_MAX_THROTTLE),
     _hover_out(AP_MOTORS_DEFAULT_MID_THROTTLE),
-    _spin_when_armed_ramped(0)
+    _spin_when_armed_ramped(0),
+
+	/* Previously set via AP_Param */
+	_throttle_curve_enabled(1),
+	_throttle_curve_mid(52),
+	_throttle_curve_max(93),
+	_spin_when_armed(70)
+
 {
     uint8_t i;
 

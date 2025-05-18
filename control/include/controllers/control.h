@@ -13,7 +13,9 @@ class MC_Controller {
 		 */
 		MC_Controller() :
 			max_climb_rate(10000),
-			min_climb_rate(10000)
+			min_climb_rate(10000),
+			/* NOTE Hardcoded here but should probably pull from config file */
+			angle_rate_max(18000)
 		{
 		}
 

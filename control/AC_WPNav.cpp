@@ -36,9 +36,14 @@ AC_WPNav::AC_WPNav(const AP_InertialNav* inav, const AP_AHRS* ahrs)
     dist_error(0,0),
     desired_vel(0,0),
     desired_accel(0,0),
+	
+	// Previously set during AP_Param
 	_wp_speed_cms(500.0f),
 	_wp_speed_up_cms(250.0f),
 	_wp_speed_down_cms(150.0f),
+	_wp_radius_cm(200.0f),
+	_loiter_speed_cms(500.0f),
+	_wp_accel_cms(100.0f),
 
 	/* Position controller P, I, and IMAX terms */
 	_pid_pos_lat(1.0f, 0.0f, 0.0f),
