@@ -17,6 +17,10 @@ class PID_Controller : public MC_Controller
 		PID_Controller(
 		) : MC_Controller(),
 
+		/* Throttle Maximum and Minimum defaults */
+		throttle_min(130),
+		throttle_max(1000),
+
         // PID controller	      initial P	              initial I		            initial D               initial imax
         //-----------------------------------------------------------------------------------------------------
         pid_rate_roll           (RATE_ROLL_P,           RATE_ROLL_I,            RATE_ROLL_D,            RATE_ROLL_IMAX),

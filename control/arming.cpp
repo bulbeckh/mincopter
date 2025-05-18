@@ -123,10 +123,8 @@ void WP_Planner::init_arm_motors()
     }
 
     // enable output to motors
-    output_min();
-
-    // finally actually arm the motors
-    mincopter.motors.armed(true);
+	init_rc_out();
+	init_esc();
 
     // log arming to dataflash
     Log_Write_Event(DATA_ARMED);

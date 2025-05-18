@@ -185,7 +185,7 @@ void WP_Planner::update_nav_mode()
 	}
 	*/
 
-	static bool firstcall=true;
+	static int32_t firstcall=0;
 
     switch( nav_mode ) {
 
@@ -205,20 +205,24 @@ void WP_Planner::update_nav_mode()
 			break;
 
 		case WP_FLIGHT_STATE::FS_TAKEOFF:
-			if (firstcall) { 
-				Vector3f nav_current_position = mcstate.inertial_nav.get_position();
-				nav_current_position.z += 10;
+			if (firstcall<100) { 
+				/* This is the current position in cm */
+				Vector3f nav_target_position = mcstate.inertial_nav.get_position();
+
+				/* Add 10 metres to target position */
+				nav_target_position.z += 1000;
 
 				// TODO Why does this take two separate calls
 				//wp_nav.init_loiter_target(nav_current_position,mcstate.inertial_nav.get_velocity());
-				wp_nav.set_loiter_target(nav_current_position);
+				//wp_nav.set_loiter_target(nav_current_position);
+				wp_nav.set_destination(nav_target_position);
 
 				// TODO Fix the name (its a target, and not a current position) and fix why this is happening here
-				controller.controller_desired_alt = nav_current_position.z;
+				controller.controller_desired_alt = nav_target_position.z;
 
-				firstcall=false;
+				firstcall++;
 			} else {
-				wp_nav.update_loiter();
+				wp_nav.update_wpnav();
 			}
 			break;
     }

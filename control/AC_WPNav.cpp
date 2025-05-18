@@ -35,7 +35,17 @@ AC_WPNav::AC_WPNav(const AP_InertialNav* inav, const AP_AHRS* ahrs)
     _track_leash_length(0),
     dist_error(0,0),
     desired_vel(0,0),
-    desired_accel(0,0)
+    desired_accel(0,0),
+	_wp_speed_cms(500.0f),
+	_wp_speed_up_cms(250.0f),
+	_wp_speed_down_cms(150.0f),
+
+	/* Position controller P, I, and IMAX terms */
+	_pid_pos_lat(1.0f, 0.0f, 0.0f),
+	_pid_pos_lon(1.0f, 0.0f, 0.0f),
+	/* Rate controllers P, I, and IMAX terms */
+	_pid_rate_lat(1.0f, 0.5f, 400),
+	_pid_rate_lon(1.0f, 0.5f, 400)
 {
     //AP_Param::setup_object_defaults(this, var_info);
 

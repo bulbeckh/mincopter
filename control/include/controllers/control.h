@@ -11,7 +11,9 @@ class MC_Controller {
 		 * @param mcstate
 		 * @param mcinstance
 		 */
-		MC_Controller()
+		MC_Controller() :
+			max_climb_rate(10000),
+			min_climb_rate(10000)
 		{
 		}
 
