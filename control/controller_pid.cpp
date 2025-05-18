@@ -16,6 +16,11 @@
 extern MCInstance mincopter;
 extern MCState    mcstate;
 
+#ifdef TARGET_ARCH_LINUX
+    #include "simulation_logger.h"
+    extern SimulationLogger simlog;
+#endif
+
 /* TODO Change these extern references to defines that expand to the planner configuration being used
  *
  * For example, it would have something like
@@ -74,31 +79,41 @@ void PID_Controller::run()
 void PID_Controller::get_stabilize_roll(int32_t target_angle)
 {
     // angle error
-    target_angle = wrap_180_cd(target_angle - mcstate.ahrs.roll_sensor);
+    int32_t target_error = wrap_180_cd(target_angle - mcstate.ahrs.roll_sensor);
 
     // convert to desired rate
-    int32_t target_rate = pi_stabilize_roll.kP() * target_angle;
+    int32_t target_rate = pi_stabilize_roll.kP() * target_error;
 
     // constrain the target rate
     target_rate = constrain_int32(target_rate, -angle_rate_max, angle_rate_max);
 
     // set targets for rate controller
-		roll_rate_target_ef = target_rate;
+	roll_rate_target_ef = target_rate;
+
+#ifdef TARGET_ARCH_LINUX
+	simlog.write_pid_state("stb_roll", target_angle, target_error, target_rate, angle_rate_max, -angle_rate_max);
+#endif
+
 }
 
 void PID_Controller::get_stabilize_pitch(int32_t target_angle)
 {
     // angle error
-    target_angle            = wrap_180_cd(target_angle - mcstate.ahrs.pitch_sensor);
+    int32_t target_error = wrap_180_cd(target_angle - mcstate.ahrs.pitch_sensor);
 
     // convert to desired rate
-    int32_t target_rate = pi_stabilize_pitch.kP() * target_angle;
+    int32_t target_rate = pi_stabilize_pitch.kP() * target_error;
 
-		// constrain target
+	// constrain target
     target_rate = constrain_int32(target_rate, -angle_rate_max, angle_rate_max);
 
     // set targets for rate controller
-		pitch_rate_target_ef = target_rate;
+	pitch_rate_target_ef = target_rate;
+
+#ifdef TARGET_ARCH_LINUX
+	simlog.write_pid_state("stb_pitch", target_angle, target_error, target_rate, angle_rate_max, -angle_rate_max);
+#endif
+
 }
 
 void PID_Controller::get_stabilize_yaw(int32_t target_angle)
@@ -116,7 +131,11 @@ void PID_Controller::get_stabilize_yaw(int32_t target_angle)
     target_rate = pi_stabilize_yaw.kP() * angle_error;
 
     // set targets for rate controller
-		yaw_rate_target_ef = target_rate;
+	yaw_rate_target_ef = target_rate;
+
+#ifdef TARGET_ARCH_LINUX
+	simlog.write_pid_state("stb_yaw", target_angle, angle_error, target_rate, 0, 0);
+#endif
 }
 
 void PID_Controller::update_rate_controller_targets()
@@ -170,6 +189,10 @@ int16_t PID_Controller::get_rate_roll(int32_t target_rate)
     // constrain output
     output = constrain_int32(output, -5000, 5000);
 
+#ifdef TARGET_ARCH_LINUX
+	simlog.write_pid_state("rate_roll", target_rate, rate_error, output, 5000, -5000);
+#endif
+
     // output control
     return output;
 }
@@ -201,6 +224,10 @@ int16_t PID_Controller::get_rate_pitch(int32_t target_rate)
 
     // constrain output
     output = constrain_int32(output, -5000, 5000);
+
+#ifdef TARGET_ARCH_LINUX
+	simlog.write_pid_state("rate_pitch", target_rate, rate_error, output, 5000, -5000);
+#endif
 
     // output control
     return output;
@@ -331,6 +358,10 @@ int16_t PID_Controller::get_throttle_accel(int16_t z_target_accel)
 
     output =  constrain_float(p+i+d+throttle_cruise, throttle_min, throttle_max);
 
+#ifdef TARGET_ARCH_LINUX
+	simlog.write_pid_state("throttle_accel", (int32_t)z_target_accel, (int32_t)z_accel_error, (int32_t)output, throttle_max, -throttle_min);
+#endif
+
     return output;
 }
 
@@ -379,6 +410,11 @@ void PID_Controller::get_throttle_rate(float z_target_speed)
     if( z_target_speed == 0 ) {
         update_throttle_cruise(mincopter.rc_3.servo_out);
     }
+
+#ifdef TARGET_ARCH_LINUX
+	simlog.write_pid_state("throttle_rate", (int32_t)z_target_speed, (int32_t)z_rate_error, output, 32000, -32000);
+#endif
+
 }
 
 // get_throttle_althold - hold at the desired altitude in cm

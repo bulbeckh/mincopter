@@ -115,4 +115,14 @@ void SimulationLogger::write_motor_outputs()
 
 }
 
+void SimulationLogger::write_pid_state(const char* pid_name, int32_t target, int32_t error, int32_t out, int32_t out_max, int32_t out_min)
+{
+	simulation_out << "pid,"
+		<< pid_name << ","
+		<< target << ","
+		<< error << ","
+		<< out << ","
+		<< out_max << ","
+		<< out_min << "\n";
+}
 

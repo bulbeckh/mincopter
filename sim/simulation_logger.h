@@ -33,6 +33,9 @@ class SimulationLogger
 	/* @brief Write the four motor output variables */
 	void write_motor_outputs();
 
+	/* @brief Write a PID controllers target, error, output */
+	void write_pid_state(const char* pid_name, int32_t target, int32_t error, int32_t out, int32_t out_max, int32_t out_min);
+
 
 
 	/* @brief Should be called at start of mincopter 100Hz (10ms) loop to signal an iteration */
