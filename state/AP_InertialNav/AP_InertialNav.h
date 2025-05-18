@@ -44,7 +44,9 @@ public:
         _historic_xy_counter(0),
         _baro_last_update(0),
         _glitch_detector(gps_glitch),
-        _error_count(0)
+        _error_count(0),
+		_time_constant_xy(AP_INTERTIALNAV_TC_XY),
+		_time_constant_z(AP_INTERTIALNAV_TC_Z)
         {
             //AP_Param::setup_object_defaults(this, var_info);
         }

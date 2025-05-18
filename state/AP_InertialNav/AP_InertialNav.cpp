@@ -4,6 +4,10 @@
 
 extern const AP_HAL::HAL& hal;
 
+#ifdef TARGET_ARCH_LINUX
+#include <iostream>
+#endif
+
 // table of user settable parameters
 /*
 const AP_Param::GroupInfo AP_InertialNav::var_info[] PROGMEM = {
@@ -36,6 +40,18 @@ void AP_InertialNav::init()
 // update - updates velocities and positions using latest info from ahrs and barometer if new data is available;
 void AP_InertialNav::update(float dt)
 {
+
+#ifdef TARGET_ARCH_LINUX
+	static int32_t inav_update_counter=0;
+
+	if (false && inav_update_counter%100==0) {
+		std::cout << "PRE " << inav_update_counter << "("
+			<< _position_base.x << ", "
+			<< _position_base.y << ", "
+			<< _position_base.z << ")\n";
+	}
+#endif
+
     // discard samples where dt is too large
     if( dt > 0.1f ) {
         return;
@@ -51,6 +67,15 @@ void AP_InertialNav::update(float dt)
 
     // check if new gps readings have arrived and use them to correct position estimates
     check_gps();
+
+#ifdef TARGET_ARCH_LINUX
+	if (false && inav_update_counter%100==0) {
+		std::cout << "ERR " << inav_update_counter << "("
+				<< _position_error.x << ", "
+				<< _position_error.y << ", "
+				<< _position_error.z << ")\n";
+	}
+#endif
 
     Vector3f accel_ef = _ahrs->get_accel_ef();
 
@@ -111,6 +136,16 @@ void AP_InertialNav::update(float dt)
         //_hist_position_estimate_x.push_back(_position_base.x);
         //_hist_position_estimate_y.push_back(_position_base.y);
     }
+
+#ifdef TARGET_ARCH_LINUX
+	if (false && inav_update_counter%100==0) {
+		std::cout << "COR " << inav_update_counter << " ("
+			<< _position.x << ", "
+			<< _position.y << ", "
+			<< _position.z << ")\n";
+	}
+	inav_update_counter++;
+#endif
 }
 
 //
