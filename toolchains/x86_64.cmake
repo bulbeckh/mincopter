@@ -52,6 +52,11 @@ set(COMMON_FLAGS
 	-march=x86-64
 	## Add debug symbols
 	-g
+	## Add profiling information 
+	-pg
+	-no-pie
+	-fno-builtin
+	
 )
 message("x86-64 Architecture - common flags: ${COMMON_FLAGS}")
 

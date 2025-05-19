@@ -390,11 +390,13 @@ void AP_InertialNav::correct_with_baro(float baro_alt, float dt)
     // 3rd order samples (i.e. position from baro) are delayed by 150ms (15 iterations at 100hz)
     // so we should calculate error using historical estimates
     float hist_position_base_z;
+	/*
     if( _hist_pos_z_index==AP_INAV_MAX_Z_POS_ESTIMATE ) {
         hist_position_base_z = _hist_position_estimate_z[0];
     }else{
+	*/
         hist_position_base_z = _position_base.z;
-    }
+    //}
 
     // calculate error in position from baro with our estimate
     _position_error.z = baro_alt - (hist_position_base_z + _position_correction.z);
