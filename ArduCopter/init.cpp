@@ -188,14 +188,6 @@ void init_ardupilot()
 
     init_compass();
 
-		/*
-    // init the optical flow sensor
-    if(g.optflow_enabled) {
-        init_optflow();
-    }
-		*/
-
-    // initialise inertial nav
     mcstate.inertial_nav.init();
 
 

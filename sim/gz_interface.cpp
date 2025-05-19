@@ -169,6 +169,10 @@ bool GZ_Interface::recv_state_input()
 	}
 
 	if (false && frame_counter%100==0) {
+		std::cout << "baro: " << pkt->pressure << "\n";
+	}
+
+	if (false && frame_counter%100==0) {
 		std::cout << "packet vel: " << pkt->vel_north << " " << pkt->vel_east << "\n";
 		
 		//Vector3f vel_vec = mincopter.g_gps->velocity_vector();
@@ -179,16 +183,20 @@ bool GZ_Interface::recv_state_input()
 	if (true && frame_counter%100==0) {
 		
 		Vector3f inav_pos = mcstate.inertial_nav.get_position();
+
 		int32_t inav_lat = mcstate.inertial_nav.get_latitude();
 		int32_t inav_lng = mcstate.inertial_nav.get_longitude();
 
+
 		inav_pos *= 0.01;
-	
-		std::cout << "ACTUAL: " << pkt->pos_x << " " << pkt->pos_y << " " << pkt->pos_z << "\n";
-		std::cout << "ACTUAL_GPS: " << pkt->lat_deg << " " << pkt->lng_deg << " " << pkt->alt_met << "\n";
-		std::cout << "INAV_GPS: " << inav_lat << " " << inav_lng << " " << mcstate.inertial_nav.get_altitude() << "\n";
-		//std::cout << "INAV: " << inav_pos.x << " " << inav_pos.y << " " << inav_pos.z << "\n";
-		std::cout << "-ERROR: " << pkt->pos_x - inav_pos.x << " " << pkt->pos_y - inav_pos.y << " " << pkt->pos_z - inav_pos.z << "\n";
+
+		std::cout << "-- ROUND " << frame_counter << " --\n";
+		std::cout << "ACTUAL POS: " << pkt->pos_x << " " << pkt->pos_y << " " << pkt->pos_z << "\n";
+		std::cout << "INAV   POS: " << inav_pos.x << " " << inav_pos.y << " " << inav_pos.z << "\n";
+		std::cout << "ERROR     : " << pkt->pos_x - inav_pos.x << " " << pkt->pos_y - inav_pos.y << " " << pkt->pos_z - inav_pos.z << "\n";
+		std::cout << "----------:\n";
+		std::cout << "ACTUAL GPS: " << (1e7)*pkt->lat_deg << " " << (1e7)*pkt->lng_deg << " " << (100)*pkt->alt_met << "\n";
+		std::cout << "INAV   GPS: " << inav_lat << " " << inav_lng << " " << mcstate.inertial_nav.get_altitude() << "\n";
 
 	}
 

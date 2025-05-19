@@ -354,7 +354,7 @@ void init_home()
     mcstate.home.id         = 0; //previously MAV_CMD_NAV_WAYPOINT
     mcstate.home.lng        = mincopter.g_gps->longitude;                                 // Lon * 10**7
     mcstate.home.lat        = mincopter.g_gps->latitude;                                  // Lat * 10**7
-    mcstate.home.alt        = 0;                                                        // Home is always 0
+    mcstate.home.alt        = mincopter.g_gps->altitude_cm;                                                        // Home is always 0
 
     // Save Home to EEPROM
     // -------------------

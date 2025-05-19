@@ -52,6 +52,8 @@ bool AP_Compass_Sim::read()
 
 void AP_Compass_Sim::set_field(double field_x, double field_y, double field_z)
 {
+	/* The simulated field readings are in Tesla (T) */
+
 	// NOTE do we need to explicitly cast to float here?
 	_field[0].x = field_x;
 	_field[0].y = field_y;

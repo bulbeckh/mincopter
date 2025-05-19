@@ -91,7 +91,11 @@ uint32_t loop_iterations=0;
 #endif
 
 /* Core Loop - Meant to run every 10ms (10,000 microseconds) */
+#ifdef TARGET_ARCH_LINUX
+bool loop()
+#else
 void loop()
+#endif
 {
 
 #ifdef TARGET_ARCH_LINUX
@@ -101,7 +105,7 @@ void loop()
     // wait for an INS sample
     if (!mincopter.ins.wait_for_sample(1000)) {
         Log_Write_Error(ERROR_SUBSYSTEM_MAIN, ERROR_CODE_MAIN_INS_DELAY);
-        return;
+        return false;
     }
     uint32_t timer = micros();
 
@@ -174,6 +178,17 @@ void loop()
 #endif
     // Delay if we have time remaining (i.e. time took less than 10000us)
     if (time_elapsed<=(uint32_t)10000) mincopter.hal.scheduler->delay_microseconds(10000-(uint16_t)time_elapsed);
+
+#ifdef TARGET_ARCH_LINUX
+	static uint32_t exit_count=0;
+	if (exit_count>=500) {
+		return true;
+	}
+	// NOTE Uncomment to ensure exit for gprof
+	//exit_count++;
+#endif
+
+	return false;
 }
 
 
@@ -300,7 +315,15 @@ extern "C" {
 		mincopter.hal.init(0, NULL);
     setup();
     mincopter.hal.scheduler->system_initialized();
+#ifdef TARGET_ARCH_LINUX
+	// For simulation purposes, have ability to exit early
+	bool early_return=false;
+	while (!early_return) {
+		early_return = loop();
+	}
+#else
     for(;;) loop();
+#endif
     return 0;
 	}
 }

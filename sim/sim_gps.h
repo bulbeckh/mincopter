@@ -31,7 +31,7 @@ public:
 	void set_gps_attitude(double lat, double lng, double alt);
 #endif
 
-    float       get_lag() { return 0.5; }   // ublox lag is lower than the default 1second
+    float       get_lag() { return 0.0f; }   // No lag for simulated GPS
 
     // State machine state
     uint8_t         _step;

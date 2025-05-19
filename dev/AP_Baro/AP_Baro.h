@@ -12,7 +12,11 @@ class AP_Baro
 public:
     bool                    healthy;
 
-    AP_Baro() {
+    AP_Baro() :
+		_ground_pressure(0),
+		_ground_temperature(0),
+		_alt_offset(0)
+	{
 		//AP_Param::setup_object_defaults(this, var_info);
     }
 

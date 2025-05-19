@@ -114,7 +114,12 @@ const AP_Param::GroupInfo Compass::var_info[] PROGMEM = {
 //
 Compass::Compass(void) :
     product_id(AP_COMPASS_TYPE_UNKNOWN),
-    _null_init_done(false)
+    _null_init_done(false),
+	_learn(1),
+	_use_for_yaw(1),
+	_auto_declination(1),
+	_motor_comp_type(AP_COMPASS_MOT_COMP_DISABLED),
+	_orientation(ROTATION_NONE)
 {
     //AP_Param::setup_object_defaults(this, var_info);
 }
