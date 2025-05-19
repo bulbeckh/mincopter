@@ -126,3 +126,15 @@ void SimulationLogger::write_pid_state(const char* pid_name, int32_t target, int
 		<< out_min << "\n";
 }
 
+void SimulationLogger::write_barometer_state(float temperature, float pressure, float altitude_calculated)
+{
+	simulation_out << "baro,"
+		<< temperature << ","
+		<< pressure << ","
+		<< altitude_calculated <<"\n";
+
+}
+
+
+
+

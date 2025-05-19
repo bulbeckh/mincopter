@@ -10,11 +10,11 @@
 class AP_Baro
 {
 public:
-    bool                    healthy;
+	bool                    healthy;
 
     AP_Baro() :
 		_ground_pressure(0),
-		_ground_temperature(0),
+		_ground_temperature(29), // Initialise ground temperature at 29 degrees celsius
 		_alt_offset(0)
 	{
 		//AP_Param::setup_object_defaults(this, var_info);

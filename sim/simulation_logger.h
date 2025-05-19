@@ -36,6 +36,11 @@ class SimulationLogger
 	/* @brief Write a PID controllers target, error, output */
 	void write_pid_state(const char* pid_name, int32_t target, int32_t error, int32_t out, int32_t out_max, int32_t out_min);
 
+	/* **Sensor Logging Methods** */
+
+	/* @brief Write a barometer reading */
+	void write_barometer_state(float temperature, float pressure, float altitude_calculated);
+
 
 
 	/* @brief Should be called at start of mincopter 100Hz (10ms) loop to signal an iteration */

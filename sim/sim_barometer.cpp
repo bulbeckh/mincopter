@@ -10,36 +10,35 @@ bool AP_Baro_Sim::init()
     healthy = true;
 	
 	/* Non-zero starting pressure so that the calibrate routine doesn't trigger an error */
-	Press=1.0;
+	pressure_pa = 1.0;
 
     return true;
 }
 
 uint8_t AP_Baro_Sim::read()
 {
-	// Update the baro
-	//Press=1.0;
 
 	_last_update = hal.scheduler->millis();
-	healthy=true;
+
+	/* TODO Retrieve pressure here from the gz_interface object */
+	temperature_degc = 26;
 
     return 1;
 }
 
 float AP_Baro_Sim::get_pressure()
 {
-    return Press;
+    return pressure_pa;
 }
 
 float AP_Baro_Sim::get_temperature()
 {
-    // temperature in degrees C units
-    return Temp;
+    return temperature_degc;
 }
 
 void AP_Baro_Sim::set_pressure(double gz_pressure)
 {
 	/* **gz_pressure** is the simulated pressure in Pascals */
-	Press = (float)gz_pressure;
+	pressure_pa = (float)gz_pressure;
 }
 
