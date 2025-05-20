@@ -76,8 +76,5 @@ public:
 	/* @brief Accumulation readings from compass. Called at 50Hz */
     void accumulate(void) override;
 
-	/* @brief Setter function to update field readings directly */
-	void set_field(double field_x, double field_y, double field_z);
-
 };
 #endif

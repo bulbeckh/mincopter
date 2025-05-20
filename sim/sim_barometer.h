@@ -60,11 +60,6 @@ public:
 	/* @brief Return temperature in degrees celsius */
     float get_temperature() override;
 
-#ifdef TARGET_ARCH_LINUX
-	/* Public setter methods for Barometer */
-	void set_pressure(double gz_pressure);
-#endif
-
 private:
 
 	/* @brief temperature reading in degrees celsius */

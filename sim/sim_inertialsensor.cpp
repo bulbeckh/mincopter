@@ -4,6 +4,9 @@
 
 #include "sim_inertialsensor.h"
 
+#include "gz_interface.h"
+extern GZ_Interface gz_interface;
+
 extern const AP_HAL::HAL& hal;
 
 AP_InertialSensor_Sim::AP_InertialSensor_Sim() : 
@@ -32,27 +35,12 @@ float AP_InertialSensor_Sim::get_gyro_drift_rate()
 
 bool AP_InertialSensor_Sim::update( void )
 {
+	gz_interface.get_imu_gyro_readings(_gyro[0]);
+	gz_interface.get_imu_accel_readings(_accel[0]);
+
     return true;
 }
 
-void AP_InertialSensor_Sim::set_imu_gyros(double imu_gyro_x, double imu_gyro_y, double imu_gyro_z)
-{
-	_gyro[0].x = imu_gyro_x;
-	_gyro[0].y = imu_gyro_y;
-	_gyro[0].z = imu_gyro_z;
-
-	return;
-}
-
-
-void AP_InertialSensor_Sim::set_imu_accel(double imu_accel_x, double imu_accel_y, double imu_accel_z)
-{
-	_accel[0].x = imu_accel_x;
-	_accel[0].y = imu_accel_y;
-	_accel[0].z = imu_accel_z;
-
-	return;
-}
 
 uint16_t AP_InertialSensor_Sim::_init_sensor( Sample_rate sample_rate )
 {

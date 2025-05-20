@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <netinet/in.h>
+#include <AP_Math.h>
 
 class GZ_Interface {
     public:
@@ -68,15 +69,39 @@ class GZ_Interface {
 	char buffer[1024];
 
     public:
+		/* @brief Set up UDP socket between this and GZ server process */
+		bool setup_sim_socket();
 
-	bool setup_sim_socket();
+		/* @brief Send a motor control output PWM */
+		bool send_control_output();
 
-	bool send_control_output();
+		/* @brief Receive, parse, and store a GZ simulation state packet */
+		bool recv_state_input();
 
-	bool recv_state_input();
-    
-    private:
-	uint32_t parse_sensors(const char *json);
+	public:
+		/* @brief Get barometer pressure */
+		void get_barometer_pressure(float& pressure);
+
+		/* @brief Get magnetic field readings */
+		void get_compass_field(Vector3f& field);
+
+		/* @brief Get IMU gyro rates */
+		void get_imu_gyro_readings(Vector3f gyro_rate);
+
+		/* @brief Get IMU accelerometer readings */
+		void get_imu_accel_readings(Vector3f accel);
+
+		/* @brief Update GPS position x3 */
+		void update_gps_position(int32_t& latitude, int32_t& longitude, int32_t& altitude);
+		
+		/* @brief Update GPS velocity x3 */
+		void update_gps_velocities(int32_t& vel_north, int32_t vel_east, int32_t vel_down);
+
+
+
+
+
+		
 
 };
 

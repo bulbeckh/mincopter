@@ -3,6 +3,9 @@
 
 #include "sim_barometer.h"
 
+#include "gz_interface.h"
+extern GZ_Interface gz_interface;
+
 extern const AP_HAL::HAL& hal;
 
 bool AP_Baro_Sim::init()
@@ -20,7 +23,8 @@ uint8_t AP_Baro_Sim::read()
 
 	_last_update = hal.scheduler->millis();
 
-	/* TODO Retrieve pressure here from the gz_interface object */
+	gz_interface.get_barometer_pressure(pressure_pa);
+
 	temperature_degc = 26;
 
     return 1;
@@ -34,11 +38,5 @@ float AP_Baro_Sim::get_pressure()
 float AP_Baro_Sim::get_temperature()
 {
     return temperature_degc;
-}
-
-void AP_Baro_Sim::set_pressure(double gz_pressure)
-{
-	/* **gz_pressure** is the simulated pressure in Pascals */
-	pressure_pa = (float)gz_pressure;
 }
 

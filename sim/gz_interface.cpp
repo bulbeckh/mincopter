@@ -147,9 +147,10 @@ bool GZ_Interface::recv_state_input()
 	 * the sensors call an interface function to retrieve them. Allows for greater timing flexibility to
 	 * when they are actually updated TODO */
 
-	mincopter.barometer.set_pressure(pkt->pressure);
+	//mincopter.barometer.set_pressure(pkt->pressure);
 	// NOTE No simulated temperature yet.
 	
+	/*
 	mincopter.ins.set_imu_gyros(pkt->imu_gyro_x, pkt->imu_gyro_y, pkt->imu_gyro_z);
 	mincopter.ins.set_imu_accel(pkt->imu_accel_x, pkt->imu_accel_y, pkt->imu_accel_z);
 
@@ -157,6 +158,7 @@ bool GZ_Interface::recv_state_input()
 
 	mincopter.g_gps_driver.set_gps_vel3d(pkt->vel_east, pkt->vel_north, pkt->vel_up);
 	mincopter.g_gps_driver.set_gps_attitude(pkt->lat_deg, pkt->lng_deg, pkt->alt_met);
+	*/
 
 	// sense check readings
 	if (false && frame_counter%100==0) {
@@ -203,3 +205,58 @@ bool GZ_Interface::recv_state_input()
     return true;
 }
 
+void GZ_Interface::get_barometer_pressure(float& pressure)
+{
+	/* Both in Pascals so no need for unit conversion */
+
+	// NOTE During barometer calibration, it checks for a non-zero pressure reading from the sensor
+	// and will trigger a HAL panic if it doesn't get one. Sometimes in the early stage of the simulation
+	// the pressure will be 0 before it has started so we need to catch this and fake a ground pressure reading.
+	if (sensor_states.pressure==0.0f) { 
+		pressure = 1.0f;
+	} else {
+		pressure = (float)sensor_states.pressure;
+	}
+}
+
+void GZ_Interface::get_compass_field(Vector3f& field)
+{
+	/* Both fields are in Tesla */
+	field.x = (float)sensor_states.field_x;
+	field.y = (float)sensor_states.field_y;
+	field.z = (float)sensor_states.field_z;
+}
+
+void GZ_Interface::get_imu_gyro_readings(Vector3f gyro_rate)
+{
+	gyro_rate.x = (float)sensor_states.imu_gyro_x;
+	gyro_rate.y = (float)sensor_states.imu_gyro_y;
+	gyro_rate.z = (float)sensor_states.imu_gyro_z;
+}
+
+void GZ_Interface::get_imu_accel_readings(Vector3f accel)
+{
+	accel.x = (float)sensor_states.imu_accel_x;
+	accel.y = (float)sensor_states.imu_accel_y;
+	accel.z = (float)sensor_states.imu_accel_z;
+}
+
+void GZ_Interface::update_gps_position(int32_t& latitude, int32_t& longitude, int32_t& altitude)
+{
+	double intermediate_lat = 1e7*sensor_states.lat_deg;
+	double intermediate_lng = 1e7*sensor_states.lng_deg;
+
+	latitude = (int32_t)(intermediate_lat);
+	longitude = (int32_t)(intermediate_lng);
+
+	/* Simulation altitude is in m but we store in cm */
+	altitude = (int32_t)(100*sensor_states.alt_met);
+
+}
+
+void GZ_Interface::update_gps_velocities(int32_t& vel_north, int32_t vel_east, int32_t vel_down)
+{
+	vel_east = (int32_t)(sensor_states.vel_east*100.0f);
+	vel_north = (int32_t)(sensor_states.vel_north*100.0f);
+	vel_down = (int32_t)(-100.0f*sensor_states.vel_up);
+}

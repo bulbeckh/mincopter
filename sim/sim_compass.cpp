@@ -5,6 +5,9 @@
 
 #include "sim_compass.h"
 
+#include "gz_interface.h"
+extern GZ_Interface gz_interface;
+
 extern const AP_HAL::HAL& hal;
 
 void AP_Compass_Sim::accumulate(void)
@@ -27,22 +30,9 @@ bool AP_Compass_Sim::read()
 {
 	last_update = hal.scheduler->micros();
 
-	// TODO Change this to a call to the gz_interface to retrieve magnetometer readings
+	gz_interface.get_compass_field(_field[0]);
 
     return true;
 }
-
-void AP_Compass_Sim::set_field(double field_x, double field_y, double field_z)
-{
-	/* The simulated field readings are in Tesla (T) */
-
-	// NOTE do we need to explicitly cast to float here?
-	_field[0].x = field_x;
-	_field[0].y = field_y;
-	_field[0].z = field_z;
-
-	return;
-}
-
 
 

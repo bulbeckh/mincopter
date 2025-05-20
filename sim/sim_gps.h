@@ -96,11 +96,6 @@ public:
 	/* @brief Read a measurement from the simulated sensor */
     virtual bool read() override;
 
-#ifdef TARGET_ARCH_LINUX
-	void set_gps_vel3d(double vel_east, double vel_north, double vel_up);
-	void set_gps_attitude(double lat, double lng, double alt);
-#endif
-
 	/* @brief Get GPS lag for simulated GPS. No lag for simulated GPS */
     float get_lag() override { return 0.0f; }
 
