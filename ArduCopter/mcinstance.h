@@ -232,10 +232,6 @@ class MCInstance {
 		// TODO Move this to the control folder as I believe it's the only place its used
 		float G_Dt = 0.02;
 
-
-	public:
-		// TODO remove the call to ins.update() from the ahrs library and add the sensor update here
-
 };
 
 

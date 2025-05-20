@@ -115,50 +115,12 @@ bool GZ_Interface::recv_state_input()
     frame_counter += 1;
 
     // Unpack received data
-
-    /* Example JSON pack
-     *
-     * {
-     *  'timestamp': xx,
-     * 	'imu' : {
-     * 		'gyro' : [x,y,z],
-     * 		'accel_body : [x,y,z],
-     * 		},
-     * 	'position' : [x,y,z],
-     * 	'quaternion' : [a,b,c,d],
-     * 	'velocity' : [x,y,z]
-     * }
-     * 		
-     * TODO Add the following sensors to the mincopter sdf model:
-     * - Barometer
-     * - Compass
-     * - GPS
-     *
-     */
-
     mc_sim_state_packet* pkt = (mc_sim_state_packet*)buffer;
 
     // For now, just create a copy of the structure but maybe in future can have a more elegant solution
     // like separate structs for each sensor type
     sensor_states = *pkt;
 
-	/* Update simulated variables */
-	/* NOTE maybe it doesn't make sense to update the sensor variables directly here but rather wait until
-	 * the sensors call an interface function to retrieve them. Allows for greater timing flexibility to
-	 * when they are actually updated TODO */
-
-	//mincopter.barometer.set_pressure(pkt->pressure);
-	// NOTE No simulated temperature yet.
-	
-	/*
-	mincopter.ins.set_imu_gyros(pkt->imu_gyro_x, pkt->imu_gyro_y, pkt->imu_gyro_z);
-	mincopter.ins.set_imu_accel(pkt->imu_accel_x, pkt->imu_accel_y, pkt->imu_accel_z);
-
-	mincopter.compass.set_field(pkt->field_x, pkt->field_y, pkt->field_z);
-
-	mincopter.g_gps_driver.set_gps_vel3d(pkt->vel_east, pkt->vel_north, pkt->vel_up);
-	mincopter.g_gps_driver.set_gps_attitude(pkt->lat_deg, pkt->lng_deg, pkt->alt_met);
-	*/
 
 	// sense check readings
 	if (false && frame_counter%100==0) {
@@ -197,8 +159,8 @@ bool GZ_Interface::recv_state_input()
 		std::cout << "INAV   POS: " << inav_pos.x << " " << inav_pos.y << " " << inav_pos.z << "\n";
 		std::cout << "ERROR     : " << pkt->pos_x - inav_pos.x << " " << pkt->pos_y - inav_pos.y << " " << pkt->pos_z - inav_pos.z << "\n";
 		std::cout << "----------:\n";
-		std::cout << "ACTUAL GPS: " << (1e7)*pkt->lat_deg << " " << (1e7)*pkt->lng_deg << " " << (100)*pkt->alt_met << "\n";
-		std::cout << "INAV   GPS: " << inav_lat << " " << inav_lng << " " << mcstate.inertial_nav.get_altitude() << "\n";
+		std::cout << "ACTUAL GPS (deg*1e7, ded*1e7, cm): " << (1e7)*pkt->lat_deg << " " << (1e7)*pkt->lng_deg << " " << (100)*pkt->alt_met << "\n";
+		std::cout << "INAV   GPS: 						 " << inav_lat << " " << inav_lng << " " << mcstate.inertial_nav.get_altitude() << "\n";
 
 	}
 
@@ -213,7 +175,7 @@ void GZ_Interface::get_barometer_pressure(float& pressure)
 	// and will trigger a HAL panic if it doesn't get one. Sometimes in the early stage of the simulation
 	// the pressure will be 0 before it has started so we need to catch this and fake a ground pressure reading.
 	if (sensor_states.pressure==0.0f) { 
-		pressure = 1.0f;
+		pressure = 101322.6f;
 	} else {
 		pressure = (float)sensor_states.pressure;
 	}

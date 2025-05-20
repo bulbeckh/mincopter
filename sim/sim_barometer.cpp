@@ -12,8 +12,9 @@ bool AP_Baro_Sim::init()
 {
     healthy = true;
 	
-	/* Non-zero starting pressure so that the calibrate routine doesn't trigger an error */
-	pressure_pa = 1.0;
+	/* Non-zero starting pressure so that the calibrate routine doesn't trigger an error.
+	 * This is the simulated pressure as reported by the GZ sensor barometer. */
+	pressure_pa = 101322.6;
 
     return true;
 }
