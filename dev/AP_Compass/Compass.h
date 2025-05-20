@@ -198,8 +198,6 @@ public:
         }
     }
 
-    //static const struct AP_Param::GroupInfo var_info[];
-
     // settable parameters
     int8_t _learn;                             ///<enable calibration learning
 

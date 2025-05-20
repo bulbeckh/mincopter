@@ -7,7 +7,7 @@ set print pretty on
 #break AP_InertialNav::correct_with_baro
 #break AP_InertialNav::check_gps
 #break AP_InertialNav::check_baro
-break AP_InertialNav::update
+#break AP_InertialNav::update
 #break WP_Planner::run
 #break WP_Planner::update_nav_mode
 #break AC_WPNav::update_wpnav
@@ -16,6 +16,7 @@ break AP_InertialNav::update
 #break AP_Baro_Sim::read
 #break AP_Baro::calibrate
 #break AP_Baro_Sim::calibrate
+break GPS::update
 
 run > /dev/null 2>&1
 

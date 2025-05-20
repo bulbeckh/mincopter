@@ -9,48 +9,75 @@
 
 #include "Compass.h"
 
+/* **Compass Interface**
+ *
+ * Time (in us) since last call to ::read
+ * `uint32_t last_update`
+ *
+ * Enables calibration learning
+ * `int8_t _learn`
+ *
+ * Identifies if compass reading can be trusted
+ * `bool _healthy[COMPASS_MAX_INSTANCES]`
+ *
+ * 3-axis compass readings TODO Confirm that units here are Tesla or Gauss
+ * `Vector3f _field[COMPASS_MAX_INSTANCES]
+ *
+ * Orientation of the compass relative to the board. Default is NED
+ * `int8_t _orientation`
+ *
+ * Orientation from AHRS
+ * `enum Rotation _board_orientation
+ *
+ * Compass offsets to compensate for metal in frame
+ * `Vector3f _offset[COMPASS_MAX_INSTANCES]`
+ *
+ * Compass declination (in radians)
+ * `float _declination`
+ *
+ * Flag for whether to use compass readings for yaw calculations
+ * `int8_t _use_for_yaw`
+ *
+ * Enables automatic declination code
+ * `int8_t _auto_declination`
+ *
+ * Flag for whether an external compass is used
+ * `int8_t _external`
+ *
+ * Sentinel for first call to null_offsets
+ * `bool _null_init_done
+ *
+ * Used in offset correction and calculation
+ * `static const uint8_t _mag_history_size = 20;
+ * `uint8_t _mag_history_index[COMPASS_MAX_INSTANCES];
+ * `Vector3i _mag_history[COMPASS_MAX_INSTANCES][_mag_history_size];
+ *
+ * Compensates field readings for magnetic field change during large throttles (or high motor currents)
+ * `int8_t _motor_comp_type;               // 0 = disabled, 1 = enabled for throttle, 2 = enabled for current
+ * `Vector3f _motor_compensation[COMPASS_MAX_INSTANCES]; // factors multiplied by throttle and added to compass outputs
+ * `Vector3f _motor_offset[COMPASS_MAX_INSTANCES]; // latest compensation added to compass
+ * `float _thr_or_curr;                   // throttle expressed as a percentage from 0 ~ 1.0 or current expressed in amps
+ *
+ */
+
 class AP_Compass_Sim : public Compass
 {
 
 public:
     AP_Compass_Sim() : Compass() {
     }
-    bool        init(void);
-    bool        read(void);
-    void        accumulate(void);
-
-#ifdef TARGET_ARCH_LINUX
-	void set_field(double field_x, double field_y, double field_z);
-#endif 
-
-private:
-    float               calibration[3];
-    bool                _initialised;
-    uint8_t             _base_config;
-		
-		/*
-    bool                read_register(uint8_t address, uint8_t *value);
-    bool                write_register(uint8_t address, uint8_t value);
-		*/
-
-    uint32_t            _retry_time; // when unhealthy the millis() value to retry at
-    AP_HAL::Semaphore*  _i2c_sem;
-
-		// TODO Remove a bunch of this - not necessary for simulated compass readings
 	
-		// These contain raw readings
-    int16_t			    _mag_x;
-    int16_t			    _mag_y;
-    int16_t			    _mag_z;
+	/* @brief Compass Initialisation */
+    bool init(void) override;
 
-		// These contain accumulated (summed) readings to be averaged later by division by _accum_count
-    int16_t             _mag_x_accum;
-    int16_t             _mag_y_accum;
-    int16_t             _mag_z_accum;
-    uint8_t			    _accum_count;
+	/* @brief Update field measurements. Called at 10hz */
+    bool read(void) override;
 
-    uint32_t            _last_accum_time;
+	/* @brief Accumulation readings from compass. Called at 50Hz */
+    void accumulate(void) override;
 
+	/* @brief Setter function to update field readings directly */
+	void set_field(double field_x, double field_y, double field_z);
 
 };
 #endif

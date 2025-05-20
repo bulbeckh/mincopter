@@ -10,6 +10,29 @@
 
 #include "AP_InertialSensor.h"
 
+/* **AP_InertialSensor** Interface
+ *
+ * Accelerometers values (in m/s^2)
+ * `Vector3f _accel[INS_MAX_INSTANCES]`
+ *
+ * Accelerometer value from previous call to ::update
+ * `Vector3f _previous_accel[INS_MAX_INSTANCES]`
+ *
+ * Gyrometer rates (in rad/s)
+ * `Vector3f _gyro[INS_MAX_INSTANCES]`
+ *
+ * Accelerometer scaling factor calculated during calibrate routine
+ * `Vector3f _accel_scale[INS_MAX_INSTANCES]`
+ * `Vector3f _accel_offset[INS_MAX_INSTANCES]`
+ * `Vector3f _gyro_offset[INS_MAX_INSTANCES]`
+ *
+ * Not used TODO Why is this at the interface level
+ * `int8_t _mpu6000_filter`
+ *
+ * Orientation of the IMU
+ * `enum Rotation _board_orientation`
+ *
+ */
 
 class AP_InertialSensor_Sim : public AP_InertialSensor
 {
@@ -17,64 +40,40 @@ public:
 
     AP_InertialSensor_Sim();
 
-    /* Concrete implementation of AP_InertialSensor functions: */
-    bool            update();
-    float               get_gyro_drift_rate();
+	/* @brief IMU update method. Called at 100Hz */
+    bool update() override;
 
-    // wait for a sample to be available, with timeout in milliseconds
-    bool                wait_for_sample(uint16_t timeout_ms);
+	/* @brief Returns gyro drift rate. Have used the MPU6000 gyro drift rate for reference */
+    float get_gyro_drift_rate() override;
 
-    // get_delta_time returns the time period in seconds overwhich the sensor data was collected
-    float            	get_delta_time();
+	/* @brief Waits for a sample from the IMU */
+    bool wait_for_sample(uint16_t timeout_ms) override;
+	
+	/* @brief Return time in seconds since last call to update. NOTE This has been hardcoded for simulation */
+    float get_delta_time() override;
 
-    uint16_t error_count(void) const { return _error_count; }
-    bool healthy(void) const { return _error_count <= 4; }
-    bool get_gyro_health(uint8_t instance) const { return healthy(); }
-    bool get_accel_health(uint8_t instance) const { return healthy(); }
+	// The following methods are also virtualised */
+	
+	/* @brief Retrieve number of errors in INS measurement */
+    uint16_t error_count(void) const { return 0; }
+
+	/* @brief Check if IMU readings are accurate */
+    bool healthy(void) const { return true; }
+
+	/* @brief Get Gyro health. Always true for simulation */
+    bool get_gyro_health(uint8_t instance) const { return true; }
+
+	/* @brief Get accel health. Always true for simulation */
+    bool get_accel_health(uint8_t instance) const { return true; }
+
+	/* @brief Initialise sensor. Does nothing for simulated IMU */
+	uint16_t _init_sensor( Sample_rate sample_rate ) override;
 
 #ifdef TARGET_ARCH_LINUX
 	/* Setter methods for simulated IMUs */
 	void set_imu_gyros(double imu_gyro_x, double imu_gyro_y, double imu_gyro_z);
 	void set_imu_accel(double imu_accel_x, double imu_accel_y, double imu_accel_z);
 #endif
-
-protected:
-    uint16_t                    _init_sensor( Sample_rate sample_rate );
-
-private:
-    AP_HAL::DigitalSource *_drdy_pin;
-
-    bool                 _sample_available();
-    void                 _read_data_transaction();
-    bool                 _data_ready();
-    void                 _poll_data(void);
-    uint8_t              _register_read( uint8_t reg );
-    void                 _register_write( uint8_t reg, uint8_t val );
-    bool                 _hardware_init(Sample_rate sample_rate);
-
-    uint16_t					_num_samples;
-    static const float          _gyro_scale;
-
-    uint32_t _last_sample_time_micros;
-
-    // ensure we can't initialise twice
-    bool                        _initialised;
-
-    // how many hardware samples before we report a sample to the caller
-    uint8_t _sample_shift;
-
-    // support for updating filter at runtime
-    uint8_t _last_filter_hz;
-
-    void _set_filter_register(uint8_t filter_hz, uint8_t default_filter);
-
-    uint16_t _error_count;
-
-    // accumulation in timer - must be read with timer disabled
-    // the sum of the values since last read
-    Vector3l _accel_sum;
-    Vector3l _gyro_sum;
-    volatile int16_t _sum_count;
 
 };
 

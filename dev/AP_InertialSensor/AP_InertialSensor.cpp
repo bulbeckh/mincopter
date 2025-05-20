@@ -44,7 +44,6 @@ const AP_Param::GroupInfo AP_InertialSensor::var_info[] PROGMEM = {
     // @Param: ACCOFFS_X
     // @DisplayName: Accelerometer offsets of X axis
     // @Description: Accelerometer offsets of X axis. This is setup using the acceleration calibration or level operations
-    // @Units: m/s/s
     // @Range: -300 300
     // @User: Advanced
 

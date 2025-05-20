@@ -132,8 +132,8 @@ void loop()
     // 2. Receive and parse packet (update simulated sensor readings, incl. noise if needed)
 
     for (int ii=0;ii<10;ii++) {
-	gz_interface.send_control_output();
-	gz_interface.recv_state_input();
+		gz_interface.send_control_output();
+		gz_interface.recv_state_input();
     }
 
 #endif
