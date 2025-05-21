@@ -59,7 +59,7 @@ SimulationLogger::SimulationLogger(bool overwrite)
 
 void SimulationLogger::write_iteration(uint32_t iter)
 {
-	if (lines_written<max_lines) return;
+	if (lines_written>max_lines) return;
 
     /* Every 100 iterations (or roughly 1 second) we flush the log buffers */
     if (iter%100==0) {
@@ -73,7 +73,7 @@ void SimulationLogger::write_iteration(uint32_t iter)
 
 void SimulationLogger::write_planner_state()
 {
-	if (lines_written<max_lines) return;
+	if (lines_written>max_lines) return;
 
 	/* Write loiter step */
 	Vector3f nav_target = planner.wp_nav.get_wp_nav_target();
@@ -102,7 +102,7 @@ void SimulationLogger::write_controller_state()
      *
      */
 
-	if (lines_written<max_lines) return;
+	if (lines_written>max_lines) return;
 
     simulation_out << "c"
 	<< controller.control_roll << ","
@@ -115,12 +115,12 @@ void SimulationLogger::write_controller_state()
 
 void SimulationLogger::write_ahrs_state()
 {
-	if (lines_written<max_lines) return;
+	if (lines_written>max_lines) return;
 
 	float error_rp = mcstate.ahrs.get_error_rp();
 	float error_yaw = mcstate.ahrs.get_error_yaw();
 		
-	simulation_out << "ah"
+	simulation_out << "ah,"
 		<< mcstate.ahrs.roll << ","
 		<< mcstate.ahrs.pitch << ","
 		<< mcstate.ahrs.yaw << ","
@@ -138,7 +138,7 @@ void SimulationLogger::write_ahrs_state()
 
 void SimulationLogger::write_motor_outputs()
 {
-	if (lines_written<max_lines) return;
+	if (lines_written>max_lines) return;
 
     simulation_out << "m"
 	<< mincopter.motors.get_raw_motor_out(0) << ","
@@ -151,7 +151,7 @@ void SimulationLogger::write_motor_outputs()
 
 void SimulationLogger::write_pid_state(const char* pid_name, int32_t target, int32_t error, int32_t out, int32_t out_max, int32_t out_min)
 {
-	if (lines_written<max_lines) return;
+	if (lines_written>max_lines) return;
 
 	simulation_out << "pid,"
 		<< pid_name << ","
@@ -166,7 +166,7 @@ void SimulationLogger::write_pid_state(const char* pid_name, int32_t target, int
 
 void SimulationLogger::write_barometer_state(float temperature, float pressure, float altitude_calculated)
 {
-	if (lines_written<max_lines) return;
+	if (lines_written>max_lines) return;
 
 	simulation_out << "baro,"
 		<< temperature << ","

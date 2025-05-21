@@ -40,11 +40,20 @@ extern const AP_HAL::HAL& hal;
 // http://gentlenav.googlecode.com/files/fastRotations.pdf
 #define SPIN_RATE_LIMIT 20
 
+#ifdef TARGET_ARCH_LINUX
+#include "simulation_logger.h"
+extern SimulationLogger simlog;
+#endif
 
 // run a full DCM update round
 void
 AP_AHRS_DCM::update(void)
 {
+
+#ifdef TARGET_ARCH_LINUX
+	simlog.write_ahrs_state();
+#endif
+
     float delta_t;
 
     // tell the IMU to grab some data
