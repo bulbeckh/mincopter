@@ -86,10 +86,10 @@ class GZ_Interface {
 		void get_compass_field(Vector3f& field);
 
 		/* @brief Get IMU gyro rates */
-		void get_imu_gyro_readings(Vector3f gyro_rate);
+		void get_imu_gyro_readings(Vector3f& gyro_rate);
 
 		/* @brief Get IMU accelerometer readings */
-		void get_imu_accel_readings(Vector3f accel);
+		void get_imu_accel_readings(Vector3f& accel);
 
 		/* @brief Update GPS position x3 */
 		void update_gps_position(int32_t& latitude, int32_t& longitude, int32_t& altitude);

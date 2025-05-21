@@ -189,14 +189,14 @@ void GZ_Interface::get_compass_field(Vector3f& field)
 	field.z = (float)sensor_states.field_z;
 }
 
-void GZ_Interface::get_imu_gyro_readings(Vector3f gyro_rate)
+void GZ_Interface::get_imu_gyro_readings(Vector3f& gyro_rate)
 {
 	gyro_rate.x = (float)sensor_states.imu_gyro_x;
 	gyro_rate.y = (float)sensor_states.imu_gyro_y;
 	gyro_rate.z = (float)sensor_states.imu_gyro_z;
 }
 
-void GZ_Interface::get_imu_accel_readings(Vector3f accel)
+void GZ_Interface::get_imu_accel_readings(Vector3f& accel)
 {
 	accel.x = (float)sensor_states.imu_accel_x;
 	accel.y = (float)sensor_states.imu_accel_y;
