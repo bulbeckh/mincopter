@@ -13,6 +13,13 @@ class SimulationLogger
 	std::ofstream simulation_out;
 
     public:
+	/* @brief Number of lines we have written to the log file. Currently used to limit the file to 100k lines
+	 * so that we don't leave it running accidentally. */
+	uint32_t lines_written;
+
+	/* @brief Maximum number of lines we want to log */
+	uint32_t max_lines;
+
 	/* @brief Simulation logging object to write state of controller, planner, state estimation, and other relevant parameters"
 	 * @param bool overwrite : Whether to use a generic name for the log file that gets overwritten or use a name based on date and time of simulation start
 	 */
@@ -27,8 +34,8 @@ class SimulationLogger
 	/* @brief Write the variables related to the current controller library */
 	void write_controller_state();
 
-	/* @brief Write the variables related to the current state estimation library */
-	void write_stest_state();
+	/* @brief Write the ahrs state including main public variables */
+	void write_ahrs_state();
 
 	/* @brief Write the four motor output variables */
 	void write_motor_outputs();

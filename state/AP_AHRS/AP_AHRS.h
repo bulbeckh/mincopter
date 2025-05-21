@@ -39,7 +39,18 @@ public:
     AP_AHRS(AP_InertialSensor &ins, GPS *&gps) :
         _compass(NULL),
         _ins(ins),
-        _gps(gps)
+        _gps(gps),
+		/* Initialised from AP_PARAM */
+		gps_gain(1.0f),
+		_gps_use(1),
+		_kp_yaw(0.2f),
+		_kp(0.2f),
+		_wind_max(0.0f),
+		_board_orientation(0),
+		beta(0.1f),
+		_gps_minsats(6),
+		_gps_delay(0)
+
     {
         // load default values from var_info table
         //AP_Param::setup_object_defaults(this, var_info);

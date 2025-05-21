@@ -30,6 +30,14 @@ void WP_Planner::run(void)
      * library. Then we can begin the arm process and start the planner.
      */
 
+	/* TODO Fix this NOTE In the simulated sensors, we need to wait for a at least 20ms (2 iterations) for the
+	 * simulated GPS to be called and a signal to be read. Since this planner runs at 100Hz, we should wait 5
+	 * iterations before actually arming successfully (and hence calling the *init_home* method which sets
+	 * the home reference location) */
+#ifdef TARGET_ARCH_LINUX
+	static int arm_delay_counter=0;
+#endif
+
 	if (planner_arm_state==PlannerArmState::DISARMED) { 
 		// Run pre_arm_checks
 		pre_arm_checks(false);
@@ -44,6 +52,12 @@ void WP_Planner::run(void)
 		if (arm_checks(false))
 		{
 			// Attempt Arm
+#ifdef TARGET_ARCH_LINUX
+			if (arm_delay_counter<5) {
+				arm_delay_counter++;
+				return;
+			}
+#endif
 			init_arm_motors();
 
 			// If the motor flag is actually set to armed then update the planner state to ARMED

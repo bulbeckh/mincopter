@@ -1,29 +1,42 @@
-AP\_AHRS overview
-
-## Key methods
-
-init()
-update()
+## `AP\_AHRS overview
 
 
-## Key fields
 
-float roll, pitch, yaw;
-int32\_t roll\_sensor, pitch\_sensor, yaw\_sensor;
-
+Euler angles (radians)
 ```c
-Vector3f _omega_P;                          // accel Omega proportional correction
-Vector3f _omega_yaw_P;                      // proportional yaw correction
-Vector3f _omega_I;                          // Omega Integrator correction
-Vector3f _omega;                            // Corrected Gyro_Vector data
+float roll;
+float pitch;
+float yaw;
 ```
 
+integer Euler angles (Degrees * 100)
+```c
+int32_t roll_sensor;
+int32_t pitch_sensor;
+int32_t yaw_sensor;
+```
 
-The only thing really used by the rest of mincopter is the three yaw_sensor, pitch_sensor, and roll_sensor variables.
+How often our attitude representation has gone out of range
+`uint8_t renorm_range_count`
 
-Also ahrs.get_accel_ef().
+How often our attitude representation has blown up completely
+`uint8_t renorm_blowup_count`
 
-The flight loop will call ahrs.update() periodically to update state.
+`float _kp_yaw`
+`float _kp`
+`float gps_gain`
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 ## AHRS Update loop

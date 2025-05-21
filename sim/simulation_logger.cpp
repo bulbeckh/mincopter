@@ -1,6 +1,8 @@
 
 #include "simulation_logger.h"
 
+#include <AP_Math.h>
+
 #include "mcinstance.h"
 extern MCInstance mincopter;
 
@@ -21,7 +23,9 @@ SimulationLogger::~SimulationLogger() {
 }
 
 SimulationLogger::SimulationLogger(bool overwrite)
-    : simulation_out()
+    : simulation_out(),
+	lines_written(0),
+	max_lines(100000)
 {
     /* Get current time */
     time_t rawtime;
@@ -55,6 +59,8 @@ SimulationLogger::SimulationLogger(bool overwrite)
 
 void SimulationLogger::write_iteration(uint32_t iter)
 {
+	if (lines_written<max_lines) return;
+
     /* Every 100 iterations (or roughly 1 second) we flush the log buffers */
     if (iter%100==0) {
 	simulation_out.flush();
@@ -62,10 +68,12 @@ void SimulationLogger::write_iteration(uint32_t iter)
 
     simulation_out << "i" << iter << "\n";
 
+	lines_written++;
 }
 
 void SimulationLogger::write_planner_state()
 {
+	if (lines_written<max_lines) return;
 
 	/* Write loiter step */
 	Vector3f nav_target = planner.wp_nav.get_wp_nav_target();
@@ -81,6 +89,7 @@ void SimulationLogger::write_planner_state()
 		<< d_roll << ","
 		<< d_pitch << "\n";
 
+	lines_written++;
 }
 
 void SimulationLogger::write_controller_state()
@@ -93,30 +102,57 @@ void SimulationLogger::write_controller_state()
      *
      */
 
+	if (lines_written<max_lines) return;
+
     simulation_out << "c"
 	<< controller.control_roll << ","
 	<< controller.control_pitch << ","
 	<< controller.control_yaw << ","
 	<< controller.controller_desired_alt << "\n";
+
+	lines_written++;
 }
 
-void SimulationLogger::write_stest_state()
+void SimulationLogger::write_ahrs_state()
 {
-    simulation_out << "s\n";
+	if (lines_written<max_lines) return;
+
+	float error_rp = mcstate.ahrs.get_error_rp();
+	float error_yaw = mcstate.ahrs.get_error_yaw();
+		
+	simulation_out << "ah"
+		<< mcstate.ahrs.roll << ","
+		<< mcstate.ahrs.pitch << ","
+		<< mcstate.ahrs.yaw << ","
+		<< error_rp << ","
+		<< error_yaw << "\n";
+
+	/*
+	Matrix3f dcm = mcstate.ahrs.get_dcm_matrix();
+
+	simulation_out << "ah-dcm"
+	*/
+
+	lines_written++;
 }
 
 void SimulationLogger::write_motor_outputs()
 {
+	if (lines_written<max_lines) return;
+
     simulation_out << "m"
 	<< mincopter.motors.get_raw_motor_out(0) << ","
 	<< mincopter.motors.get_raw_motor_out(1) << ","
 	<< mincopter.motors.get_raw_motor_out(2) << ","
 	<< mincopter.motors.get_raw_motor_out(3) << "\n";
 
+	lines_written++;
 }
 
 void SimulationLogger::write_pid_state(const char* pid_name, int32_t target, int32_t error, int32_t out, int32_t out_max, int32_t out_min)
 {
+	if (lines_written<max_lines) return;
+
 	simulation_out << "pid,"
 		<< pid_name << ","
 		<< target << ","
@@ -124,15 +160,20 @@ void SimulationLogger::write_pid_state(const char* pid_name, int32_t target, int
 		<< out << ","
 		<< out_max << ","
 		<< out_min << "\n";
+
+	lines_written++;
 }
 
 void SimulationLogger::write_barometer_state(float temperature, float pressure, float altitude_calculated)
 {
+	if (lines_written<max_lines) return;
+
 	simulation_out << "baro,"
 		<< temperature << ","
 		<< pressure << ","
 		<< altitude_calculated <<"\n";
 
+	lines_written++;
 }
 
 

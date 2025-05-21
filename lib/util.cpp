@@ -363,6 +363,8 @@ void init_home()
     //set_cmd_with_index(home, 0);
 
     // set inertial nav's home position
+	
+	// NOTE During the simulation, the simulated values may be set to zero when this is called
     mcstate.inertial_nav.set_home_position(mincopter.g_gps->longitude, mincopter.g_gps->latitude);
 
     if (mincopter.log_bitmask & MASK_LOG_CMD)

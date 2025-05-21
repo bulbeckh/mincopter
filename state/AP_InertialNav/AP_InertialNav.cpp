@@ -382,7 +382,14 @@ void AP_InertialNav::correct_with_baro(float baro_alt, float dt)
     }
 
     // discard first 10 reads but perform some initialisation
+
+	/* NOTE In the simulation, the barometer starts with no reading for the first 10 iterations (because
+	 * it gets called at 10Hz) so we need to wait for 20 readings to discard */
+#ifdef TARGET_ARCH_LINUX
+    if( first_reads <= 20 ) {
+#else
     if( first_reads <= 10 ) {
+#endif
         set_altitude(baro_alt);
         first_reads++;
     }

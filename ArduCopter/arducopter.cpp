@@ -204,10 +204,6 @@ void loop()
 
 void state_update()
 {
-#ifdef TARGET_ARCH_LINUX
-    simlog.write_stest_state();
-#endif
-
     mcstate.read_AHRS();
 }
 

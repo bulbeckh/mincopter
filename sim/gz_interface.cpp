@@ -145,22 +145,37 @@ bool GZ_Interface::recv_state_input()
 	}
 
 	if (true && frame_counter%100==0) {
+		/* pkt->pos_<x,y,z> is the simulated position in metres
+		 *
+		 *
+		 *
+		 */
 		
+		/* The inertial nav retrieves position in cm so we multiply by 0.01 to get in m. This
+		 * is a position **estimate** by the inav relative to the home location. The home location
+		 * is set during a call to mcstate.inertial_nav.set_home_position during the init_home function
+		 * which is called during arming. In the simulation, this should be the (0,0,0) position. */
 		Vector3f inav_pos = mcstate.inertial_nav.get_position();
+		inav_pos *= 0.01;
 
 		int32_t inav_lat = mcstate.inertial_nav.get_latitude();
 		int32_t inav_lng = mcstate.inertial_nav.get_longitude();
+		int32_t inav_alt = mcstate.inertial_nav.get_altitude();
 
+		std::cout << "---------- ROUND " << frame_counter << " ----\n";
+		std::cout << "(sim/inav) Position X (m): " << pkt->pos_x << " " << inav_pos.x << "\n";
+		std::cout << "(sim/inav) Position Y (m): " << pkt->pos_y << " " << inav_pos.y << "\n";
+		std::cout << "(sim/inav) Position Z (m): " << pkt->pos_z << " " << inav_pos.z << "\n";
+		std::cout << "(sim/inav) Latitude (deg*1e7): " << (1e7)*pkt->lat_deg << " " << inav_lat << "\n";
+		std::cout << "(sim/inav) Longitude(deg*1e7): " << (1e7)*pkt->lng_deg << " " << inav_lng << "\n";
+		std::cout << "(sim/inav) Altitude (cm): " << (100)*pkt->alt_met << " " <<  inav_alt << "\n";
 
-		inav_pos *= 0.01;
-
-		std::cout << "-- ROUND " << frame_counter << " --\n";
-		std::cout << "ACTUAL POS: " << pkt->pos_x << " " << pkt->pos_y << " " << pkt->pos_z << "\n";
+		/*
 		std::cout << "INAV   POS: " << inav_pos.x << " " << inav_pos.y << " " << inav_pos.z << "\n";
 		std::cout << "ERROR     : " << pkt->pos_x - inav_pos.x << " " << pkt->pos_y - inav_pos.y << " " << pkt->pos_z - inav_pos.z << "\n";
-		std::cout << "----------:\n";
 		std::cout << "ACTUAL GPS (deg*1e7, ded*1e7, cm): " << (1e7)*pkt->lat_deg << " " << (1e7)*pkt->lng_deg << " " << (100)*pkt->alt_met << "\n";
 		std::cout << "INAV   GPS: 						 " << inav_lat << " " << inav_lng << " " << mcstate.inertial_nav.get_altitude() << "\n";
+		*/
 
 	}
 
@@ -216,9 +231,16 @@ void GZ_Interface::update_gps_position(int32_t& latitude, int32_t& longitude, in
 
 }
 
-void GZ_Interface::update_gps_velocities(int32_t& vel_north, int32_t vel_east, int32_t vel_down)
+void GZ_Interface::update_gps_velocities(int32_t& vel_north, int32_t& vel_east, int32_t& vel_down)
 {
 	vel_east = (int32_t)(sensor_states.vel_east*100.0f);
 	vel_north = (int32_t)(sensor_states.vel_north*100.0f);
 	vel_down = (int32_t)(-100.0f*sensor_states.vel_up);
+
+	static int i=0;
+	if (i%100==0) {
+		std::cout << "VEL " << vel_east << " " << vel_north << " " << vel_down << " - " << sensor_states.vel_east << "  " << sensor_states.vel_north << " " << sensor_states.vel_up << "\n";
+		i==0;
+	}
+	i++;
 }

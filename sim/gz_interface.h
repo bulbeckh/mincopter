@@ -95,7 +95,7 @@ class GZ_Interface {
 		void update_gps_position(int32_t& latitude, int32_t& longitude, int32_t& altitude);
 		
 		/* @brief Update GPS velocity x3 */
-		void update_gps_velocities(int32_t& vel_north, int32_t vel_east, int32_t vel_down);
+		void update_gps_velocities(int32_t& vel_north, int32_t& vel_east, int32_t& vel_down);
 
 
 
