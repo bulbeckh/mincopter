@@ -185,7 +185,7 @@ void loop()
 		return true;
 	}
 	// NOTE Uncomment to ensure exit for gprof
-	exit_count++;
+	//exit_count++;
 #endif
 
 	return false;

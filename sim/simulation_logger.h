@@ -81,7 +81,7 @@ class SimulationLogger
 	void write_inav_state(Vector3f position, Vector3f velocity);
 	
 	/* @brief Write an inertial navigation correction state */
-	void write_inav_correction(Vector3f pos_correction, Vector3f pos_error);
+	void write_inav_correction(Vector3f pos_correction, Vector3f pos_error, Vector3f accel_correction);
 
 	/* **Sensor Logging Methods**
 	 *

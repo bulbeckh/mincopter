@@ -170,9 +170,9 @@ bool GZ_Interface::recv_state_input()
 		std::cout << "(sim/inav) Position X (m): " << pkt->pos_x << " " << inav_pos.x << "\n";
 		std::cout << "(sim/inav) Position Y (m): " << pkt->pos_y << " " << inav_pos.y << "\n";
 		std::cout << "(sim/inav) Position Z (m): " << pkt->pos_z << " " << inav_pos.z << "\n";
-		std::cout << "(sim/inav) Latitude (deg*1e7): " << (1e7)*pkt->lat_deg << " " << inav_lat << "\n";
-		std::cout << "(sim/inav) Longitude(deg*1e7): " << (1e7)*pkt->lng_deg << " " << inav_lng << "\n";
-		std::cout << "(sim/inav) Altitude (cm): " << (100)*pkt->alt_met << " " <<  inav_alt << "\n";
+		std::cout << "(sim/inav) Latitude (deg*1e7): " << (int32_t)((1e7)*pkt->lat_deg) << " " << inav_lat << "\n";
+		std::cout << "(sim/inav) Longitude(deg*1e7): " << (int32_t)((1e7)*pkt->lng_deg) << " " << inav_lng << "\n";
+		std::cout << "(sim/inav) Altitude (cm): " << (int32_t)((100)*pkt->alt_met) << " " <<  inav_alt << "\n";
 
 		/*
 		std::cout << "INAV   POS: " << inav_pos.x << " " << inav_pos.y << " " << inav_pos.z << "\n";

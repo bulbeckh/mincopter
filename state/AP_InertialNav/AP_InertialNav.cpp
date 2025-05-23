@@ -82,8 +82,10 @@ void AP_InertialNav::update(float dt)
 
     Vector3f accel_ef = _ahrs->get_accel_ef();
 
+	// TODO The simulated sensor IMU readings are in north-east-down already (i.e. positive GRAVITY value)
+	
     // remove influence of gravity
-    accel_ef.z += GRAVITY_MSS;
+    accel_ef.z -= GRAVITY_MSS;
     accel_ef *= 100;
 
     // remove xy if not enabled
@@ -94,7 +96,6 @@ void AP_InertialNav::update(float dt)
 
     //Convert North-East-Down to North-East-Up
     accel_ef.z = -accel_ef.z;
-
     float tmp = _k3_xy * dt;
     accel_correction_ef.x += _position_error.x * tmp;
     accel_correction_ef.y += _position_error.y * tmp;
@@ -126,16 +127,24 @@ void AP_InertialNav::update(float dt)
 
     // store 3rd order estimate (i.e. estimated vertical position) for future use
     //_hist_position_estimate_z.push_back(_position_base.z);
-		_hist_position_estimate_z[_hist_pos_z_index % AP_INAV_MAX_Z_POS_ESTIMATE] = _position_base.z;
-		_hist_pos_z_index++;
+	_hist_position_estimate_z[_hist_pos_z_index] = _position_base.z;
+	_hist_pos_z_index++;
+	_hist_pos_z_index %= AP_INAV_MAX_Z_POS_ESTIMATE;
 
     // store 3rd order estimate (i.e. horizontal position) for future use at 10hz
     _historic_xy_counter++;
     if( _historic_xy_counter >= AP_INTERTIALNAV_SAVE_POS_AFTER_ITERATIONS ) {
         _historic_xy_counter = 0;
 
-				_hist_position_estimate_x[_hist_pos_x_index % AP_INAV_MAX_XY_POS_ESTIMATE];
-				_hist_position_estimate_y[_hist_pos_y_index % AP_INAV_MAX_XY_POS_ESTIMATE];
+		_hist_position_estimate_x[_hist_pos_x_index % AP_INAV_MAX_XY_POS_ESTIMATE] = _position_base.x;
+		_hist_position_estimate_y[_hist_pos_y_index % AP_INAV_MAX_XY_POS_ESTIMATE] = _position_base.y;
+
+		_hist_pos_x_index++;
+		_hist_pos_y_index++;
+
+		_hist_pos_x_index %= AP_INAV_MAX_XY_POS_ESTIMATE;
+		_hist_pos_y_index %= AP_INAV_MAX_XY_POS_ESTIMATE;
+
         //_hist_position_estimate_x.push_back(_position_base.x);
         //_hist_position_estimate_y.push_back(_position_base.y);
     }
@@ -150,7 +159,9 @@ void AP_InertialNav::update(float dt)
 	inav_update_counter++;
 
 	simlog.write_inav_state(_position, _velocity);
-	simlog.write_inav_correction(_position_correction, _position_error);
+	simlog.write_inav_correction(_position_correction,
+			_position_error,
+			accel_correction_ef);
 #endif
 }
 
@@ -238,13 +249,17 @@ void AP_InertialNav::correct_with_gps(uint32_t now, int32_t lon, int32_t lat)
             // ublox gps positions are delayed by 400ms
             // we store historical position at 10hz so 4 iterations ago
             //if( _hist_position_estimate_x.is_full()) {
-						if( _hist_pos_x_index==AP_INAV_MAX_XY_POS_ESTIMATE ) {
+			/*
+			if( _hist_pos_x_index==AP_INAV_MAX_XY_POS_ESTIMATE ) {
                 hist_position_base_x = _hist_position_estimate_x[0];
                 hist_position_base_y = _hist_position_estimate_y[0];
             }else{
+			*/
+			// NOTE I believe this code is mean't to account for GPS lag to inav but we have no lag for simulated GPS
+			// TODO Re-add this back in for non-simulated GPS
                 hist_position_base_x = _position_base.x;
                 hist_position_base_y = _position_base.y;
-            }
+            //}
 
             // calculate error in position from gps with our historical estimate
             _position_error.x = x - (hist_position_base_x + _position_correction.x);

@@ -28,12 +28,12 @@ class IMUSensor:
         if len(vals)<6:
             return
 
-        self.accel_x.append(float(vals[0]))
-        self.accel_y.append(float(vals[1]))
-        self.accel_z.append(float(vals[2]))
-        self.gyro_x.append(float(vals[3]))
-        self.gyro_y.append(float(vals[4]))
-        self.gyro_z.append(float(vals[5]))
+        self.gyro_x.append(float(vals[0]))
+        self.gyro_y.append(float(vals[1]))
+        self.gyro_z.append(float(vals[2]))
+        self.accel_x.append(float(vals[3]))
+        self.accel_y.append(float(vals[4]))
+        self.accel_z.append(float(vals[5]))
 
         self.parsed += 1
 
@@ -123,9 +123,11 @@ if __name__=="__main__":
     fig = plt.figure(figsize=(14,8))
     gs = gridspec.GridSpec(6,1, figure=fig)
 
-    #baro.plot(fig.add_subplot(gs[0,0]),
-              #fig.add_subplot(gs[1,0]),
-              #fig.add_subplot(gs[2,0]))
+    '''
+    baro.plot(fig.add_subplot(gs[0,0]),
+              fig.add_subplot(gs[1,0]),
+              fig.add_subplot(gs[2,0]))
+    '''
 
     imu.plot(fig.add_subplot(gs[0,0]),
              fig.add_subplot(gs[1,0]),

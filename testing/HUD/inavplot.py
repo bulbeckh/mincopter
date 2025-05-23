@@ -11,92 +11,105 @@ def read_log(path):
 
     return tgt
 
-class IMUSensor:
-    def __init__(self, title):
-        self.title = title
-        self.parsed = 0
+def plot(title, series, ax, fmt):
+    ax.plot(range(0,len(series)), series, **fmt)
+    ax.set_title(title)
+    return
 
-        self.accel_x = []
-        self.accel_y = []
-        self.accel_z = []
+class INav:
+    def __init__(self):
+        self.pos_x = []
+        self.pos_y = []
+        self.pos_z = []
 
-        self.gyro_x = []
-        self.gyro_y = []
-        self.gyro_z = []
+        self.vel_x = []
+        self.vel_y = []
+        self.vel_z = []
 
-    def parse(self, vals):
+        self.pos_corr_x = []
+        self.pos_corr_y = []
+        self.pos_corr_z = []
+
+        self.pos_err_x = []
+        self.pos_err_y = []
+        self.pos_err_z = []
+
+        self.accel_corr_x = []
+        self.accel_corr_y = []
+        self.accel_corr_z = []
+
+    def parse_inav(self, vals):
         if len(vals)<6:
             return
 
-        self.accel_x.append(float(vals[0]))
-        self.accel_y.append(float(vals[1]))
-        self.accel_z.append(float(vals[2]))
-        self.gyro_x.append(float(vals[3]))
-        self.gyro_y.append(float(vals[4]))
-        self.gyro_z.append(float(vals[5]))
+        self.pos_x.append(float(vals[0]))
+        self.pos_y.append(float(vals[1]))
+        self.pos_z.append(float(vals[2]))
+        self.vel_x.append(float(vals[3]))
+        self.vel_y.append(float(vals[4]))
+        self.vel_z.append(float(vals[5]))
 
-        self.parsed += 1
+    def parse_inavc(self, vals):
+        if (len(vals)<9):
+            return
+        
+        self.pos_corr_x.append(float(vals[0]))
+        self.pos_corr_y.append(float(vals[1]))
+        self.pos_corr_z.append(float(vals[2]))
+        self.pos_err_x.append(float(vals[3]))
+        self.pos_err_y.append(float(vals[4]))
+        self.pos_err_z.append(float(vals[5]))
+        self.accel_corr_x.append(float(vals[6]))
+        self.accel_corr_y.append(float(vals[7]))
+        self.accel_corr_z.append(float(vals[8]))
 
-    def plot(self, accel_x, accel_y, accel_z, gyro_x, gyro_y, gyro_z):
-
-        accel_x.plot(range(0,self.parsed), self.accel_x, color='blue', linestyle='--')
-        accel_x.set_title(f'Target ({self.title})')
-        accel_x.legend()
-        accel_x.grid(True)
-
-        accel_y.plot(range(0,self.parsed), self.accel_y, color='blue', linestyle='--')
-        accel_y.set_title(f'Target ({self.title})')
-        accel_y.legend()
-        accel_y.grid(True)
-
-        accel_z.plot(range(0,self.parsed), self.accel_z, color='blue', linestyle='--')
-        accel_z.set_title(f'Target ({self.title})')
-        accel_z.legend()
-        accel_z.grid(True)
-
-        gyro_x.plot(range(0,self.parsed), self.gyro_x, color='blue', linestyle='--')
-        gyro_x.set_title(f'Target ({self.title})')
-        gyro_x.legend()
-        gyro_x.grid(True)
-
-        gyro_y.plot(range(0,self.parsed), self.gyro_y, color='blue', linestyle='--')
-        gyro_y.set_title(f'Target ({self.title})')
-        gyro_y.legend()
-        gyro_y.grid(True)
-
-        gyro_z.plot(range(0,self.parsed), self.gyro_z, color='blue', linestyle='--')
-        gyro_z.set_title(f'Target ({self.title})')
-        gyro_z.legend()
-        gyro_z.grid(True)
 
 if __name__=="__main__":
 
     lines = read_log("../../build/standard.mcsimlog")
 
-    imu = IMUSensor('IMU')
+    inav = INav()
 
-    ## NOTE We are re-using the imu variable names but this is really for inav
     for l in lines:
         splits = l.split(",")
         if splits[0]=='inav':
-            imu.parse(splits[1:])
+            inav.parse_inav(splits[1:])
+        elif splits[0]=='inavc':
+            inav.parse_inavc(splits[1:])
 
     #fig, ax = plt.subplots(6,1, figsize=(14,8))
     fig = plt.figure(figsize=(14,8))
-    gs = gridspec.GridSpec(6,1, figure=fig)
+    gs = gridspec.GridSpec(12,1, figure=fig)
 
     #baro.plot(fig.add_subplot(gs[0,0]),
               #fig.add_subplot(gs[1,0]),
               #fig.add_subplot(gs[2,0]))
+    
+    fmt = { 'color': 'blue', 'linestyle':'--'}
+    plot('pos_x (cm)', inav.pos_x, fig.add_subplot(gs[0,0]), fmt)
+    plot('pos_y (cm)', inav.pos_y, fig.add_subplot(gs[1,0]), fmt)
+    plot('pos_z (cm)', inav.pos_z, fig.add_subplot(gs[2,0]), fmt)
+    plot('vel_x (cm/s)', inav.vel_x, fig.add_subplot(gs[3,0]), fmt)
+    plot('vel_y (cm/s)', inav.vel_y, fig.add_subplot(gs[4,0]), fmt)
+    plot('vel_z (cm/s)', inav.vel_z, fig.add_subplot(gs[5,0]), fmt)
 
+    plot('pos_err_x (cm)', inav.pos_err_x, fig.add_subplot(gs[6,0]), fmt)
+    plot('pos_err_y (cm)', inav.pos_err_y, fig.add_subplot(gs[7,0]), fmt)
+    plot('pos_err_z (cm)', inav.pos_err_z, fig.add_subplot(gs[8,0]), fmt)
+    plot('pos_corr_x (cm)', inav.pos_corr_x, fig.add_subplot(gs[9,0]), fmt)
+    plot('pos_corr_y (cm)', inav.pos_corr_y, fig.add_subplot(gs[10,0]), fmt)
+    plot('pos_corr_z (cm)', inav.pos_corr_z, fig.add_subplot(gs[11,0]), fmt)
+
+    '''
     imu.plot(fig.add_subplot(gs[0,0]),
              fig.add_subplot(gs[1,0]),
              fig.add_subplot(gs[2,0]),
              fig.add_subplot(gs[3,0]),
              fig.add_subplot(gs[4,0]),
              fig.add_subplot(gs[5,0]))
+    '''
 
-    plt.tight_layout()
+    #plt.tight_layout()
     plt.show()
 
 

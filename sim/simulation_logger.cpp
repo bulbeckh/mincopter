@@ -131,11 +131,16 @@ void SimulationLogger::write_ahrs_state()
 
 	float error_rp = mcstate.ahrs.get_error_rp();
 	float error_yaw = mcstate.ahrs.get_error_yaw();
+
+	Vector3f accel_ef = mcstate.ahrs.get_accel_ef();
 		
 	simulation_out << "ah,"
 		<< mcstate.ahrs.roll << ","
 		<< mcstate.ahrs.pitch << ","
 		<< mcstate.ahrs.yaw << ","
+		<< accel_ef.x << ","
+		<< accel_ef.y << ","
+		<< accel_ef.z << ","
 		<< error_rp << ","
 		<< error_yaw << "\n";
 
@@ -227,7 +232,7 @@ void SimulationLogger::write_inav_state(Vector3f position, Vector3f velocity)
 
 }
 
-void SimulationLogger::write_inav_correction(Vector3f pos_correction, Vector3f pos_error)
+void SimulationLogger::write_inav_correction(Vector3f pos_correction, Vector3f pos_error, Vector3f accel_correction)
 {
 	if (lines_written>max_lines) return;
 
@@ -237,7 +242,10 @@ void SimulationLogger::write_inav_correction(Vector3f pos_correction, Vector3f p
 		<< pos_correction.z << ","
 		<< pos_error.x << ","
 		<< pos_error.y << ","
-		<< pos_error.z << "\n";
+		<< pos_error.z << ","
+		<< accel_correction.x << ","
+		<< accel_correction.y << ","
+		<< accel_correction.z << "\n";
 
 }
 
