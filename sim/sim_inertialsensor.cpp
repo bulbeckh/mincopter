@@ -8,6 +8,9 @@
 #include "gz_interface.h"
 extern GZ_Interface gz_interface;
 
+#include "simulation_logger.h"
+extern SimulationLogger simlog;
+
 extern const AP_HAL::HAL& hal;
 
 AP_InertialSensor_Sim::AP_InertialSensor_Sim() : 
@@ -38,6 +41,8 @@ bool AP_InertialSensor_Sim::update( void )
 {
 	gz_interface.get_imu_gyro_readings(_gyro[0]);
 	gz_interface.get_imu_accel_readings(_accel[0]);
+
+	simlog.write_imu_state(_gyro[0], _accel[0]);
 
     return true;
 }

@@ -5,6 +5,9 @@
 #include <netinet/in.h>
 #include <AP_Math.h>
 
+/* @brief The buffer length used to buffer readings from the simulation */
+#define GZ_INTERFACE_STATE_BUFFER_LENGTH 50
+
 class GZ_Interface {
     public:
 	
@@ -46,7 +49,13 @@ class GZ_Interface {
 
 	/* @brief The struct containing all sensor information. This is accessed by each of the sim_* 
 	 * simulated sensor classes */
-	mc_sim_state_packet sensor_states;
+	mc_sim_state_packet sensor_states[GZ_INTERFACE_STATE_BUFFER_LENGTH];
+
+	mc_sim_state_packet last_sensor_state;
+
+	/* @brief The index in the buffer that we will next read sensor states to */
+	uint8_t state_buffer_index=0;
+
 
     private:
 	/* @brief Struct to hold a control input (motor speeds) packet */

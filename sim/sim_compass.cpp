@@ -5,6 +5,9 @@
 
 #include "sim_compass.h"
 
+#include "simulation_logger.h"
+extern SimulationLogger simlog; 
+
 #include "gz_interface.h"
 extern GZ_Interface gz_interface;
 
@@ -31,6 +34,8 @@ bool AP_Compass_Sim::read()
 	last_update = hal.scheduler->micros();
 
 	gz_interface.get_compass_field(_field[0]);
+
+	simlog.write_compass_state(_field[0].x, _field[0].y, _field[0].z);
 
     return true;
 }

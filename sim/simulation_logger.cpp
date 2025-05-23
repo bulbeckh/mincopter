@@ -55,6 +55,18 @@ SimulationLogger::SimulationLogger(bool overwrite)
 
     if (!simulation_out.good()) std::cout << "ERROR OPENING SIMULATION FILE FOR WRITING\n";
 
+	// Log all sensors by default
+	simlog_flags.log_iteration = true;
+	simlog_flags.log_planner = true;
+	simlog_flags.log_controller = true;
+	simlog_flags.log_ahrs = true;
+	simlog_flags.log_motors = true;
+	simlog_flags.log_pids = true;
+	simlog_flags.log_barometer = true;
+	simlog_flags.log_compass = true;
+	simlog_flags.log_imu = true;
+	simlog_flags.log_gps = true;
+
 }
 
 void SimulationLogger::write_iteration(uint32_t iter)
@@ -174,6 +186,59 @@ void SimulationLogger::write_barometer_state(float temperature, float pressure, 
 		<< altitude_calculated <<"\n";
 
 	lines_written++;
+}
+
+void SimulationLogger::write_compass_state(float field_x, float field_y, float field_z)
+{
+	if (lines_written>max_lines) return;
+
+	simulation_out << "comp,"
+		<< field_x << ","
+		<< field_y << ","
+		<< field_z << "\n"; 
+
+}
+
+void SimulationLogger::write_imu_state(Vector3f gyro, Vector3f accel)
+{
+	if (lines_written>max_lines) return;
+
+	simulation_out << "imu,"
+		<< gyro.x << ","
+		<< gyro.y << ","
+		<< gyro.z << ","
+		<< accel.x << ","
+		<< accel.y << ","
+		<< accel.z << "\n";
+
+}
+
+void SimulationLogger::write_inav_state(Vector3f position, Vector3f velocity)
+{
+	if (lines_written>max_lines) return;
+
+	simulation_out << "inav,"
+		<< position.x << ","
+		<< position.y << ","
+		<< position.z << ","
+		<< velocity.x << ","
+		<< velocity.y << ","
+		<< velocity.z << "\n";
+
+}
+
+void SimulationLogger::write_inav_correction(Vector3f pos_correction, Vector3f pos_error)
+{
+	if (lines_written>max_lines) return;
+
+	simulation_out << "inavc,"
+		<< pos_correction.x << ","
+		<< pos_correction.y << ","
+		<< pos_correction.z << ","
+		<< pos_error.x << ","
+		<< pos_error.y << ","
+		<< pos_error.z << "\n";
+
 }
 
 

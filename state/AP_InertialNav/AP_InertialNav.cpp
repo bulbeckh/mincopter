@@ -6,6 +6,9 @@ extern const AP_HAL::HAL& hal;
 
 #ifdef TARGET_ARCH_LINUX
 #include <iostream>
+
+#include "simulation_logger.h"
+extern SimulationLogger simlog;
 #endif
 
 // table of user settable parameters
@@ -145,6 +148,9 @@ void AP_InertialNav::update(float dt)
 			<< _position.z << ")\n";
 	}
 	inav_update_counter++;
+
+	simlog.write_inav_state(_position, _velocity);
+	simlog.write_inav_correction(_position_correction, _position_error);
 #endif
 }
 

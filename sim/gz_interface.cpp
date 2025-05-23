@@ -119,7 +119,11 @@ bool GZ_Interface::recv_state_input()
 
     // For now, just create a copy of the structure but maybe in future can have a more elegant solution
     // like separate structs for each sensor type
-    sensor_states = *pkt;
+    sensor_states[state_buffer_index] = *pkt;
+	state_buffer_index += 1;
+	state_buffer_index %= GZ_INTERFACE_STATE_BUFFER_LENGTH;
+
+	last_sensor_state = *pkt;
 
 
 	// sense check readings
@@ -189,58 +193,72 @@ void GZ_Interface::get_barometer_pressure(float& pressure)
 	// NOTE During barometer calibration, it checks for a non-zero pressure reading from the sensor
 	// and will trigger a HAL panic if it doesn't get one. Sometimes in the early stage of the simulation
 	// the pressure will be 0 before it has started so we need to catch this and fake a ground pressure reading.
-	if (sensor_states.pressure==0.0f) { 
+	if (last_sensor_state.pressure==0.0f) { 
 		pressure = 101322.6f;
 	} else {
-		pressure = (float)sensor_states.pressure;
+		pressure = (float)(last_sensor_state.pressure);
 	}
 }
 
 void GZ_Interface::get_compass_field(Vector3f& field)
 {
 	/* Both fields are in Tesla */
-	field.x = (float)sensor_states.field_x;
-	field.y = (float)sensor_states.field_y;
-	field.z = (float)sensor_states.field_z;
+	field.x = (float)last_sensor_state.field_x;
+	field.y = (float)last_sensor_state.field_y;
+	field.z = (float)last_sensor_state.field_z;
 }
 
 void GZ_Interface::get_imu_gyro_readings(Vector3f& gyro_rate)
 {
-	gyro_rate.x = (float)sensor_states.imu_gyro_x;
-	gyro_rate.y = (float)sensor_states.imu_gyro_y;
-	gyro_rate.z = (float)sensor_states.imu_gyro_z;
+	// We average the IMU and gyro readings
+	
+	double avg_imu_gyro_x=0;
+	double avg_imu_gyro_y=0;
+	double avg_imu_gyro_z=0;
+	for (int i=0;i<GZ_INTERFACE_STATE_BUFFER_LENGTH;i++) {
+		avg_imu_gyro_x += sensor_states[i].imu_gyro_x;
+		avg_imu_gyro_y += sensor_states[i].imu_gyro_y;
+		avg_imu_gyro_z += sensor_states[i].imu_gyro_z;
+	}
+
+	gyro_rate.x = (float)(avg_imu_gyro_x / GZ_INTERFACE_STATE_BUFFER_LENGTH);
+	gyro_rate.y = (float)(avg_imu_gyro_y / GZ_INTERFACE_STATE_BUFFER_LENGTH);
+	gyro_rate.z = (float)(avg_imu_gyro_z / GZ_INTERFACE_STATE_BUFFER_LENGTH);
 }
 
 void GZ_Interface::get_imu_accel_readings(Vector3f& accel)
 {
-	accel.x = (float)sensor_states.imu_accel_x;
-	accel.y = (float)sensor_states.imu_accel_y;
-	accel.z = (float)sensor_states.imu_accel_z;
+	double avg_imu_accel_x=0;
+	double avg_imu_accel_y=0;
+	double avg_imu_accel_z=0;
+	for (int i=0;i<GZ_INTERFACE_STATE_BUFFER_LENGTH;i++) {
+		avg_imu_accel_x += sensor_states[i].imu_accel_x;
+		avg_imu_accel_y += sensor_states[i].imu_accel_y;
+		avg_imu_accel_z += sensor_states[i].imu_accel_z;
+	}
+
+	accel.x = (float)(avg_imu_accel_x / GZ_INTERFACE_STATE_BUFFER_LENGTH);
+	accel.y = (float)(avg_imu_accel_y / GZ_INTERFACE_STATE_BUFFER_LENGTH);
+	accel.z = (float)(avg_imu_accel_z / GZ_INTERFACE_STATE_BUFFER_LENGTH);
 }
 
 void GZ_Interface::update_gps_position(int32_t& latitude, int32_t& longitude, int32_t& altitude)
 {
-	double intermediate_lat = 1e7*sensor_states.lat_deg;
-	double intermediate_lng = 1e7*sensor_states.lng_deg;
+	double intermediate_lat = 1e7*last_sensor_state.lat_deg;
+	double intermediate_lng = 1e7*last_sensor_state.lng_deg;
 
 	latitude = (int32_t)(intermediate_lat);
 	longitude = (int32_t)(intermediate_lng);
 
 	/* Simulation altitude is in m but we store in cm */
-	altitude = (int32_t)(100*sensor_states.alt_met);
+	altitude = (int32_t)(100*last_sensor_state.alt_met);
 
 }
 
 void GZ_Interface::update_gps_velocities(int32_t& vel_north, int32_t& vel_east, int32_t& vel_down)
 {
-	vel_east = (int32_t)(sensor_states.vel_east*100.0f);
-	vel_north = (int32_t)(sensor_states.vel_north*100.0f);
-	vel_down = (int32_t)(-100.0f*sensor_states.vel_up);
+	vel_east = (int32_t)(last_sensor_state.vel_east*100.0f);
+	vel_north = (int32_t)(last_sensor_state.vel_north*100.0f);
+	vel_down = (int32_t)(-100.0f*last_sensor_state.vel_up);
 
-	static int i=0;
-	if (i%100==0) {
-		std::cout << "VEL " << vel_east << " " << vel_north << " " << vel_down << " - " << sensor_states.vel_east << "  " << sensor_states.vel_north << " " << sensor_states.vel_up << "\n";
-		i==0;
-	}
-	i++;
 }

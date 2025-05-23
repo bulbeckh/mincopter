@@ -6,6 +6,12 @@
 #include "gz_interface.h"
 extern GZ_Interface gz_interface;
 
+#include "simulation_logger.h"
+extern SimulationLogger simlog;
+
+#include "mcinstance.h"
+extern MCInstance mincopter;
+
 extern const AP_HAL::HAL& hal;
 
 bool AP_Baro_Sim::init()
@@ -27,6 +33,10 @@ uint8_t AP_Baro_Sim::read()
 	gz_interface.get_barometer_pressure(pressure_pa);
 
 	temperature_degc = 26;
+
+	// Log read value
+	float baro_alt = mincopter.barometer.get_altitude();
+	simlog.write_barometer_state(temperature_degc, pressure_pa, baro_alt);
 
     return 1;
 }

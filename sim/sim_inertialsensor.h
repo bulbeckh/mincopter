@@ -34,6 +34,10 @@
  *
  */
 
+// TODO Add DLPF (Digital Low Pass filter) for IMU readings
+// y[n] = a*x[n] + (1-a)*y[n-1]
+// 
+
 class AP_InertialSensor_Sim : public AP_InertialSensor
 {
 public:
