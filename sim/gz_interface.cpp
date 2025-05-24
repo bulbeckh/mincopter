@@ -94,9 +94,9 @@ bool GZ_Interface::send_control_output()
 
     if (send_counter%100==0) {
 	for (int i=0;i<4;i++) {
-	    std::cout << "Motor " << i << ": " << mincopter.motors.get_raw_motor_out(i) << ", ";
+	    //std::cout << "Motor " << i << ": " << mincopter.motors.get_raw_motor_out(i) << ", ";
 	}
-	std::cout << "\n";
+	//std::cout << "\n";
 	send_counter=0;
     }
 
@@ -127,28 +127,43 @@ bool GZ_Interface::recv_state_input()
 
 
 	// sense check readings
-	if (false && frame_counter%100==0) {
-		Vector3f gyros = mincopter.ins.get_gyro();
-		Vector3f accel = mincopter.ins.get_accel();
+	if (false && frame_counter%1000==0) {
+		std::cout << " Timestamp (s): " << pkt->timestamp << " ********************************\n";
 
-		std::cout << "sensor vals: " << mincopter.barometer.get_pressure()
-			<< " " << gyros.x << " " << gyros.y << " " << gyros.z
-			<< " " << accel.x << " " << accel.y << " " << accel.z << "\n";
+		std::cout << "IMU Gyro x/y/z : "
+			<< pkt->imu_gyro_x << " "
+			<< pkt->imu_gyro_y << " "
+			<< pkt->imu_gyro_z << "\n";
+		std::cout << "IMU Accel x/y/z/ : "
+			<< pkt->imu_accel_x << " "
+			<< pkt->imu_accel_y << " "
+			<< pkt->imu_accel_z << "\n";
 	}
 
-	if (false && frame_counter%100==0) {
-		std::cout << "baro: " << pkt->pressure << "\n";
+	if (false && frame_counter%1000==0) {
+		std::cout << "COMP Field x/y/z : "
+			<< pkt->field_x << " "
+			<< pkt->field_y << " "
+			<< pkt->field_z << "\n";
 	}
 
-	if (false && frame_counter%100==0) {
-		std::cout << "packet vel: " << pkt->vel_north << " " << pkt->vel_east << "\n";
-		
-		//Vector3f vel_vec = mincopter.g_gps->velocity_vector();
-		float v_north = mincopter.g_gps->velocity_north();
-		std::cout << "lat long " << v_north << " " << mincopter.g_gps->latitude << "\n";
+	if (false && frame_counter%1000==0) {
+		// TODO Add Temperature sensor to SDF
+		std::cout << "BARO Pressure (Pa) : " << pkt->pressure << "\n";
 	}
 
-	if (true && frame_counter%100==0) {
+	if (false && frame_counter%1000==0) {
+		std::cout << "GPS Vel North / Vel East / Vel Up: " << pkt->vel_north << " "
+			<< pkt->vel_east << " "
+			<< pkt->vel_up << "\n";
+	
+		std::cout << "GPS Lat / Lng / Alt (m) : " 
+			<< pkt->lat_deg << " "
+			<< pkt->lng_deg << " "
+			<< pkt->alt_met << "\n";
+	}
+
+	if (true && frame_counter%1000==0) {
 		/* pkt->pos_<x,y,z> is the simulated position in metres
 		 *
 		 *

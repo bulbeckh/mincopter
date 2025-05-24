@@ -22,7 +22,9 @@ float AP_InertialSensor_Sim::get_delta_time()
 {
 	// TODO This hardcoded method 
 	// Flight loop runs at 100hz and call is updated
-	return 0.01;
+	//return 0.01;
+	
+    return _delta_time_usec * 1.0e-6;
 }
 
 bool AP_InertialSensor_Sim::wait_for_sample(uint16_t timeout_ms)
@@ -39,6 +41,10 @@ float AP_InertialSensor_Sim::get_gyro_drift_rate()
 
 bool AP_InertialSensor_Sim::update( void )
 {
+    uint32_t now = hal.scheduler->millis();
+    _delta_time_usec = (now - _last_update_ms) * 1000;
+    _last_update_ms = now;
+
 	gz_interface.get_imu_gyro_readings(_gyro[0]);
 	gz_interface.get_imu_accel_readings(_accel[0]);
 

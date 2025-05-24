@@ -1,4 +1,7 @@
 
+GPS -> 
+
+
 ## List of sensors
 
 | Sensor Type | Class Name | Backends |

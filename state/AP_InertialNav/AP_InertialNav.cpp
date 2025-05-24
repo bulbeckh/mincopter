@@ -85,7 +85,7 @@ void AP_InertialNav::update(float dt)
 	// TODO The simulated sensor IMU readings are in north-east-down already (i.e. positive GRAVITY value)
 	
     // remove influence of gravity
-    accel_ef.z -= GRAVITY_MSS;
+    accel_ef.z += GRAVITY_MSS;
     accel_ef *= 100;
 
     // remove xy if not enabled

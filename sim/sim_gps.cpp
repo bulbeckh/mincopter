@@ -13,6 +13,7 @@ extern const AP_HAL::HAL& hal;
 
 #include "sim_gps.h"
 
+
 extern const AP_HAL::HAL& hal;
 
 void AP_GPS_Sim::init(AP_HAL::UARTDriver *s, enum GPS_Engine_Setting nav_setting)

@@ -73,6 +73,9 @@ public:
 	/* @brief Initialise sensor. Does nothing for simulated IMU */
 	uint16_t _init_sensor( Sample_rate sample_rate ) override;
 
+	uint32_t _delta_time_usec;
+	uint32_t _last_update_ms;
+
 };
 
 #endif

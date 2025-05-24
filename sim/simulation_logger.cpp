@@ -249,6 +249,19 @@ void SimulationLogger::write_inav_correction(Vector3f pos_correction, Vector3f p
 
 }
 
+void SimulationLogger::write_gps_state(int32_t lat, int32_t lng, int32_t alt_cm, float vel_north, float vel_east, float vel_down)
+{
+	if (lines_written>max_lines) return;
+
+	simulation_out << "gps,"
+		<< lat << ","
+		<< lng << ","
+		<< alt_cm << ","
+		<< vel_north << ","
+		<< vel_east << ","
+		<< vel_down << "\n";
+
+}
 
 
 

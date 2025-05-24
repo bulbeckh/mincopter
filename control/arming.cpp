@@ -89,6 +89,8 @@ void WP_Planner::init_arm_motors()
     init_home();
     calc_distance_and_bearing();
 
+	mincopter.compass.set_initial_location(mincopter.g_gps->latitude, mincopter.g_gps->longitude);
+
     // all I terms are invalid
     // -----------------------
     controller.reset_I_all();

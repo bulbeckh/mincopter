@@ -98,7 +98,14 @@ class SimulationLogger
 	/* @brief Write an IMU reading */
 	void write_imu_state(Vector3f gyro, Vector3f accel);
 	
-	// TODO GPS State
+	/* @brief Write a GPS state reading
+	 * @param lat Latitude
+	 * @param lng Longitude
+	 * @param alt_cm Altitude in cm
+	 * @param vel_north, vel_east, vel_down GPS velocities in m/s
+	 *
+	 * */
+	void write_gps_state(int32_t lat, int32_t lng, int32_t alt_cm, float vel_north, float vel_east, float vel_down);
 	
 
 

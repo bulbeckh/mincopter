@@ -18,6 +18,8 @@ extern PID_Controller controller;
 
 #ifdef TARGET_ARCH_LINUX
 	#include <iostream>
+	#include "simulation_logger.h"
+	extern SimulationLogger simlog;
 #endif
 
 #include "defines.h"
@@ -49,6 +51,16 @@ void update_GPS(void)
 		bool report_gps_glitch;
 
 		mincopter.g_gps->update();
+
+#ifdef TARGET_ARCH_LINUX
+		Vector3f vgps = mincopter.g_gps->velocity_vector();
+		simlog.write_gps_state(mincopter.g_gps->latitude,
+				mincopter.g_gps->longitude,
+				mincopter.g_gps->altitude_cm,
+				vgps.x,
+				vgps.y,
+				vgps.z);
+#endif
 
 		// logging and glitch protection run after every gps message
 		if (mincopter.g_gps->last_message_time_ms() != last_gps_reading) {

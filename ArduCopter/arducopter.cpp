@@ -168,11 +168,11 @@ void loop()
 #ifdef TARGET_ARCH_LINUX
     if (loop_iterations%100==0) {
 	/* Should output every 1 second */
-	std::cout << micros() << " " << timer << " " << micros()-timer << "\n";
-    	std::cout << loop_iterations << " loop: time used during sensor update and scheduler call " << time_elapsed << "\n";
-    	std::cout << "load avg " << scheduler.load_average((uint32_t)10000) << "\n";
+	//std::cout << micros() << " " << timer << " " << micros()-timer << "\n";
+    	//std::cout << loop_iterations << " loop: time used during sensor update and scheduler call " << time_elapsed << "\n";
+    	//std::cout << "load avg " << scheduler.load_average((uint32_t)10000) << "\n";
 
-	std::cout << "delay" << 10000-(uint16_t)time_elapsed << "\n";
+	//std::cout << "delay" << 10000-(uint16_t)time_elapsed << "\n";
     }
     loop_iterations++;
 #endif
