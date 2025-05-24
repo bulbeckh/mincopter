@@ -42,10 +42,10 @@ class PID_history:
         self.parsed += 1
 
     def plot(self, control_ax, error_ax):
-        control_ax.plot(range(0,self.parsed), self.target, color='blue', linestyle='--')
-        control_ax.plot(range(0,self.parsed), self.out)
-        control_ax.plot(range(0,self.parsed), self.pid_min, color='purple', linestyle=':')
-        control_ax.plot(range(0,self.parsed), self.pid_max, color='purple', linestyle=':')
+        control_ax.plot(range(0,self.parsed), self.target, color='blue', linestyle='--', label='target')
+        control_ax.plot(range(0,self.parsed), self.out, label='output')
+        control_ax.plot(range(0,self.parsed), self.pid_min, color='purple', linestyle=':', label='min')
+        control_ax.plot(range(0,self.parsed), self.pid_max, color='purple', linestyle=':', label='max')
         control_ax.set_title(f'Target ({self.title})')
         control_ax.legend()
         control_ax.grid(True)

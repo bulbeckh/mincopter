@@ -62,7 +62,7 @@ void WP_Planner::run(void)
 
 			// If the motor flag is actually set to armed then update the planner state to ARMED
 			if (mincopter.motors.armed()) {
-			planner_arm_state=PlannerArmState::ARMED;
+				planner_arm_state=PlannerArmState::ARMED;
 			} else {
 			return;
 			}
@@ -101,6 +101,8 @@ void WP_Planner::run(void)
 	//controller.control_yaw = get_yaw_slew(controller.control_yaw, original_wp_bearing, AUTO_YAW_SLEW_RATE);
 	
 	// Throttle determination
+	// TODO VERY TEMPORARY - REMOVE THIS
+	wp_nav.set_desired_alt(1000.0f);
   	get_throttle_althold_with_slew(wp_nav.get_desired_alt(), -wp_nav.get_descent_velocity(), wp_nav.get_climb_velocity());
  	
 }

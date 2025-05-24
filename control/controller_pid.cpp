@@ -454,7 +454,6 @@ void PID_Controller::get_throttle_althold(int32_t target_alt, int16_t min_climb_
 
 }
 
-
 // reset all I integrators
 void PID_Controller::reset_I_all(void)
 {
