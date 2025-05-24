@@ -4,6 +4,19 @@
 
 **MinCopter** is a modular end-to-end UAV quadrotor flight system, optimized for speed and size. Designed to work across multiple backend architectures, **MinCopter** contains high-performance planners, controllers, and state estimation libraries. **MinCopter** uses multiple abstraction layers, allowing users to easily switch between controller, planner, and state estimation implementations. Through use of a hardware abstraction layer, both the physical sensors and the underlying MCU are decoupled from the flight software.
 
+## Examples
+TODO
+
+## Performance
+TODO
+
+| Backend | Size | CPU Utilisation |
+| -- | -- | -- |
+| simulation (linux) | xx | xx |
+| AVR | xx | xx |
+| ARM | xx | xx |
+
+
 ## Dependencies
 TODO - Add each of the backend compilers (gcc-libc, avr-gcc, gcc-arm-none-eabi)
 
