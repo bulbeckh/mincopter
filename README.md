@@ -7,6 +7,11 @@
 ## Examples
 TODO
 
+## mistakes/learnings
+- wrong frame for sensors
+- incorrect sensor refresh frequency
+- not initialising reference setpoints (temperature, pressure, lat/lng)
+
 ## Performance
 TODO
 
