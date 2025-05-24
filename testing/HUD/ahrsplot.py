@@ -81,22 +81,23 @@ if __name__=="__main__":
 
     axr = fig.add_subplot(gs[0,0])
     axr.plot(range(0,pcount), ah_roll, color='blue', linestyle='--')
-    axr.set_title(f'AHRS Roll (rad)')
+    axr.set_title(f'AHRS Roll (deg*100)')
     axr.legend()
     axr.grid(True)
 
     axp = fig.add_subplot(gs[1,0])
     axp.plot(range(0,pcount), ah_pitch, color='blue', linestyle='--')
-    axp.set_title(f'AHRS Pitch (rad)')
+    axp.set_title(f'AHRS Pitch (deg*100)')
     axp.legend()
     axp.grid(True)
 
     axp = fig.add_subplot(gs[2,0])
     axp.plot(range(0,pcount), ah_yaw, color='blue', linestyle='--')
-    axp.set_title(f'AHRS Yaw (rad)')
+    axp.set_title(f'AHRS Yaw (deg*100)')
     axp.legend()
     axp.grid(True)
 
+    '''
     axp = fig.add_subplot(gs[3,0])
     axp.plot(range(0,pcount), ah_error_rp, color='blue', linestyle='--')
     axp.set_title(f'AHRS Error RP (rad)')
@@ -108,6 +109,7 @@ if __name__=="__main__":
     axp.set_title(f'AHRS Error Y (rad)')
     axp.legend()
     axp.grid(True)
+    '''
 
 
     plt.tight_layout()

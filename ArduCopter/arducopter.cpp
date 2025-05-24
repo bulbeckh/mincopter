@@ -107,14 +107,6 @@ void loop()
         Log_Write_Error(ERROR_SUBSYSTEM_MAIN, ERROR_CODE_MAIN_INS_DELAY);
         return false;
     }
-    uint32_t timer = micros();
-
-    // used by PI Loops
-    mincopter.G_Dt                    = (float)(timer - fast_loopTimer) / 1000000.f;
-    fast_loopTimer          = timer;
-
-    // for mainloop failure monitoring
-    mainLoop_count++;
 
 #ifdef TARGET_ARCH_LINUX
     /* NOTE This is where the simulation is progressed. This loop is meant to run at 10ms
@@ -137,6 +129,15 @@ void loop()
     }
 
 #endif
+
+    uint32_t timer = micros();
+
+    // used by PI Loops
+    mincopter.G_Dt                    = (float)(timer - fast_loopTimer) / 1000000.f;
+    fast_loopTimer          = timer;
+
+    // for mainloop failure monitoring
+    mainLoop_count++;
 
     // Execute the fast loop
     // ---------------------

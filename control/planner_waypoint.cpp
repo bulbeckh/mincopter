@@ -98,7 +98,9 @@ void WP_Planner::run(void)
 	 */
 
 	// Yaw determination
+	// NOTE For now we set yaw to zero
 	//controller.control_yaw = get_yaw_slew(controller.control_yaw, original_wp_bearing, AUTO_YAW_SLEW_RATE);
+	controller.control_yaw = get_yaw_slew(controller.control_yaw, 0, AUTO_YAW_SLEW_RATE);
 	
 	// Throttle determination
 	// TODO VERY TEMPORARY - REMOVE THIS

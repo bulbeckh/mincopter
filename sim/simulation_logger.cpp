@@ -135,9 +135,9 @@ void SimulationLogger::write_ahrs_state()
 	Vector3f accel_ef = mcstate.ahrs.get_accel_ef();
 		
 	simulation_out << "ah,"
-		<< mcstate.ahrs.roll << ","
-		<< mcstate.ahrs.pitch << ","
-		<< mcstate.ahrs.yaw << ","
+		<< mcstate.ahrs.roll_sensor << ","
+		<< mcstate.ahrs.pitch_sensor << ","
+		<< mcstate.ahrs.yaw_sensor << ","
 		<< accel_ef.x << ","
 		<< accel_ef.y << ","
 		<< accel_ef.z << ","

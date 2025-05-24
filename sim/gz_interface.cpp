@@ -70,6 +70,7 @@ bool GZ_Interface::send_control_output()
     control_pkt.frame_rate  = 1001;
 
     static int send_counter=0;
+	/*
     for (int16_t i=0;i<4;i++) {
 		int16_t m_out = mincopter.motors.get_raw_motor_out(i);
 
@@ -77,6 +78,13 @@ bool GZ_Interface::send_control_output()
 		control_pkt.pwm[i] = m_out;
 		//control_pkt.pwm[i] = 2000;
     }
+	*/
+
+	control_pkt.pwm[0] = mincopter.motors.get_raw_motor_out(0);
+	control_pkt.pwm[1] = mincopter.motors.get_raw_motor_out(1);
+	// TODO Temporarily switch the last two motors
+	control_pkt.pwm[2] = mincopter.motors.get_raw_motor_out(2);
+	control_pkt.pwm[3] = mincopter.motors.get_raw_motor_out(3);
 
     // Send packet
     struct sockaddr_in cliaddr;

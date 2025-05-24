@@ -43,7 +43,7 @@ void PID_Controller::run()
 	// Run controllers that take body frame rate targets and convert to motor values using PID rate controllers (get_rate_{roll,pitch,yaw})
 
 	/* NOTE We don't need to run yaw controllers yet. ideally they should be kept at 0 */
-	//update_yaw_mode();
+	update_yaw_mode();
 	update_roll_pitch_mode();
 
 	/////////////////////////////////////// THROTTLE control - should run at 50Hz 
@@ -258,6 +258,10 @@ int16_t PID_Controller::get_rate_yaw(int32_t target_rate)
 
     output  = p+i+d;
     output = constrain_int32(output, -4500, 4500);
+
+#ifdef TARGET_ARCH_LINUX
+	simlog.write_pid_state("rate_yaw", target_rate, rate_error, output, 4500, -4500);
+#endif
 
     // constrain output
     return output;

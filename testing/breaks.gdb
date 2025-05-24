@@ -3,13 +3,15 @@
 layout src
 set print pretty on
 
-break AP_InertialNav::update
+#break AP_InertialNav::update
 #break GZ_Interface::update_gps_position
 #break AP_InertialNav::correct_with_baro
 #break AP_InertialNav::check_gps
 #break AP_InertialNav::check_baro
 #break AP_InertialNav::update
 #break AP_InertialNav::set_home_position
+#break Compass::set_initial_location
+#break update_GPS
 #break AP_AHRS_DCM::update
 #break AP_InertialSensor_Sim::update
 #break AP_AHRS_DCM::drift_correction
@@ -31,6 +33,10 @@ break AP_InertialNav::update
 #break AP_Baro.cpp:95
 #break AP_Baro.cpp:112
 #break AP_Baro.cpp:119
+
+#break WP_Planner::run
+#break PID_Controller::run
+break AP_Motors::output
 
 run > /dev/null 2>&1
 
