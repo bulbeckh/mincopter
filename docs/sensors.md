@@ -1,5 +1,23 @@
 
-GPS -> 
+**Barometer**
+- Accumulate (scheduled - read_baro) at 20ms (50Hz)
+- Read (scheduled - update_altitude) at 100ms (10Hz)
+- NOTE accumulate is optional - some backends don't use it
+
+**IMU**
+- Update (AP_AHRS::update) at 10ms (100Hz)
+- update method will return an average of all samples taken since last call
+- Data will be received from the chip at a much higher sampling frequency (max 1000Hz for simulated IMUs)
+
+**Compass**
+- Accumulate (scheduled - read_compass) at 20ms (50Hz)
+- Read (scheduled - read_batt_compass) at 100ms (10Hz)
+
+**GPS**
+- Update (scheduled - update_GPS) at 20ms (50Hz)
+- Read (called during Update method but ::read is overridden) effectively at 20ms (50Hz)
+
+
 
 
 ## List of sensors

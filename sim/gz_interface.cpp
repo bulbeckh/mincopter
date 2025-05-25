@@ -225,6 +225,8 @@ void GZ_Interface::get_barometer_pressure(float& pressure)
 
 void GZ_Interface::get_compass_field(Vector3f& field)
 {
+	// We average the compass reads
+	
 	/* Both fields are in Tesla */
 	field.x = (float)last_sensor_state.field_x;
 	field.y = (float)last_sensor_state.field_y;

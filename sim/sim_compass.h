@@ -64,7 +64,10 @@ class AP_Compass_Sim : public Compass
 {
 
 public:
-    AP_Compass_Sim() : Compass() {
+    AP_Compass_Sim() :
+		Compass(),
+		acc_samples(0)
+	{
     }
 	
 	/* @brief Compass Initialisation */
@@ -75,6 +78,11 @@ public:
 
 	/* @brief Accumulation readings from compass. Called at 50Hz */
     void accumulate(void) override;
+
+private:
+	
+	Vector3f acc_field;
+	uint16_t acc_samples;
 
 };
 #endif

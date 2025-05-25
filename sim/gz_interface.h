@@ -6,7 +6,7 @@
 #include <AP_Math.h>
 
 /* @brief The buffer length used to buffer readings from the simulation */
-#define GZ_INTERFACE_STATE_BUFFER_LENGTH 50
+#define GZ_INTERFACE_STATE_BUFFER_LENGTH 10
 
 class GZ_Interface {
     public:
