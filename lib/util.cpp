@@ -397,12 +397,9 @@ void update_auto_armed()
             set_auto_armed(false);
             return;
         }
-
     }else{
-        // arm checks
-        
         // if motors are armed and throttle is above zero auto_armed should be true
-        if(mincopter.motors.armed() && mincopter.rc_3.control_in != 0) {
+        if(mincopter.motors.armed()) {
             set_auto_armed(true);
         }
     }

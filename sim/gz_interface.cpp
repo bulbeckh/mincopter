@@ -82,8 +82,9 @@ bool GZ_Interface::send_control_output()
 
 	control_pkt.pwm[0] = mincopter.motors.get_raw_motor_out(0);
 	control_pkt.pwm[1] = mincopter.motors.get_raw_motor_out(1);
-	control_pkt.pwm[2] = mincopter.motors.get_raw_motor_out(2);
-	control_pkt.pwm[3] = mincopter.motors.get_raw_motor_out(3);
+	// NOTE This has been changed in order to align with the new motor orientation as per AP_MotorsQuad
+	control_pkt.pwm[2] = mincopter.motors.get_raw_motor_out(3);
+	control_pkt.pwm[3] = mincopter.motors.get_raw_motor_out(2);
 
 	/*
 	control_pkt.pwm[0] = 1200;
