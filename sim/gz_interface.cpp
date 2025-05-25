@@ -70,21 +70,27 @@ bool GZ_Interface::send_control_output()
     control_pkt.frame_rate  = 1001;
 
     static int send_counter=0;
-	/*
-    for (int16_t i=0;i<4;i++) {
+
+    for (int16_t i=0;i<16;i++) {
 		int16_t m_out = mincopter.motors.get_raw_motor_out(i);
 
 		// NOTE The pkt entry is int16_t whereas m_out uint16_t
-		control_pkt.pwm[i] = m_out;
-		//control_pkt.pwm[i] = 2000;
+		//control_pkt.pwm[i] = m_out;
+		// Send minimum
+		control_pkt.pwm[i] = 0;
     }
-	*/
 
 	control_pkt.pwm[0] = mincopter.motors.get_raw_motor_out(0);
 	control_pkt.pwm[1] = mincopter.motors.get_raw_motor_out(1);
-	// TODO Temporarily switch the last two motors
 	control_pkt.pwm[2] = mincopter.motors.get_raw_motor_out(2);
 	control_pkt.pwm[3] = mincopter.motors.get_raw_motor_out(3);
+
+	/*
+	control_pkt.pwm[0] = 1200;
+	control_pkt.pwm[1] = 0;
+	control_pkt.pwm[2] = 0;
+	control_pkt.pwm[3] = 0;
+	*/
 
     // Send packet
     struct sockaddr_in cliaddr;
@@ -128,6 +134,23 @@ bool GZ_Interface::recv_state_input()
     // For now, just create a copy of the structure but maybe in future can have a more elegant solution
     // like separate structs for each sensor type
     sensor_states[state_buffer_index] = *pkt;
+	
+	// For the IMU sensor, we need to simulate the DLPF by updating a proportion of the previous filter reading
+	uint8_t temp_idx=0;
+	if (state_buffer_index==0) {
+		temp_idx=GZ_INTERFACE_STATE_BUFFER_LENGTH-1;
+	} else {
+		temp_idx = state_buffer_index-1;
+	}
+	float alpha=0.5;
+	sensor_states[state_buffer_index].imu_gyro_x = sensor_states[temp_idx].imu_gyro_x*alpha + sensor_states[state_buffer_index].imu_gyro_x*(1.0f-alpha);
+	sensor_states[state_buffer_index].imu_gyro_y = sensor_states[temp_idx].imu_gyro_y*alpha + sensor_states[state_buffer_index].imu_gyro_y*(1.0f-alpha);
+	sensor_states[state_buffer_index].imu_gyro_z = sensor_states[temp_idx].imu_gyro_z*alpha + sensor_states[state_buffer_index].imu_gyro_z*(1.0f-alpha);
+
+	sensor_states[state_buffer_index].imu_accel_x = sensor_states[temp_idx].imu_accel_x*alpha + sensor_states[state_buffer_index].imu_accel_x*(1.0f-alpha);
+	sensor_states[state_buffer_index].imu_accel_y = sensor_states[temp_idx].imu_accel_y*alpha + sensor_states[state_buffer_index].imu_accel_y*(1.0f-alpha);
+	sensor_states[state_buffer_index].imu_accel_z = sensor_states[temp_idx].imu_accel_z*alpha + sensor_states[state_buffer_index].imu_accel_z*(1.0f-alpha);
+
 	state_buffer_index += 1;
 	state_buffer_index %= GZ_INTERFACE_STATE_BUFFER_LENGTH;
 

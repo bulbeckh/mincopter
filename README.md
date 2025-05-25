@@ -11,6 +11,7 @@ TODO
 - wrong frame for sensors
 - incorrect sensor refresh frequency
 - not initialising reference setpoints (temperature, pressure, lat/lng)
+- did not zero out all PWM channels before sending packet leading to large gimbal/camera joint velocities which caused instability
 
 ## Performance
 TODO

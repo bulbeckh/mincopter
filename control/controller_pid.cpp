@@ -73,6 +73,10 @@ void PID_Controller::run()
 		// directly from a set of controller parameters
     mincopter.motors.output();
 
+#ifdef TARGET_ARCH_LINUX
+	simlog.write_motor_outputs();
+#endif
+
 }
 
 

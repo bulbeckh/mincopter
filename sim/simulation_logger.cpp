@@ -157,7 +157,7 @@ void SimulationLogger::write_motor_outputs()
 {
 	if (lines_written>max_lines) return;
 
-    simulation_out << "m"
+    simulation_out << "m,"
 	<< mincopter.motors.get_raw_motor_out(0) << ","
 	<< mincopter.motors.get_raw_motor_out(1) << ","
 	<< mincopter.motors.get_raw_motor_out(2) << ","
