@@ -367,7 +367,7 @@ int16_t PID_Controller::get_throttle_accel(int16_t z_target_accel)
     output =  constrain_float(p+i+d+throttle_cruise, throttle_min, throttle_max);
 
 #ifdef TARGET_ARCH_LINUX
-	simlog.write_pid_state("throttle_accel", (int32_t)z_target_accel, (int32_t)z_accel_error, (int32_t)output, throttle_max, -throttle_min);
+	simlog.write_pid_state("throttle_accel", (int32_t)z_target_accel, (int32_t)z_accel_error, (int32_t)output, throttle_max, throttle_min);
 #endif
 
     return output;

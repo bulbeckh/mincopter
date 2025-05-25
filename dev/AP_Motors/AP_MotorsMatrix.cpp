@@ -401,7 +401,7 @@ void AP_MotorsMatrix::add_motor(int8_t motor_num, float angle_degrees, float yaw
         cosf(radians(angle_degrees)),                    // pitch factor
 		*/
 		// TODO have temmporarily changed this
-		-1*cosf(radians(angle_degrees)),
+		-1.0*cosf(radians(angle_degrees)),
 		sinf(radians(angle_degrees)),
         yaw_factor,                                      // yaw factor
         testing_order);

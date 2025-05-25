@@ -82,7 +82,6 @@ uint32_t fast_loopTimer;
 uint16_t mainLoop_count;
 
 // Forward Declaration
-void sensor_update_loop();
 void state_update();
 void control_determination();
 
@@ -139,10 +138,7 @@ void loop()
     // for mainloop failure monitoring
     mainLoop_count++;
 
-    // Execute the fast loop
-    // ---------------------
-
-    sensor_update_loop();
+	// Sensor Updates are scheduled functions
 
     // Update state
     state_update();
@@ -206,6 +202,10 @@ void loop()
 void state_update()
 {
     mcstate.read_AHRS();
+
+    read_inertia();
+
+    mcstate.update_trig();
 }
 
 void control_determination()
@@ -221,33 +221,6 @@ void control_determination()
 
 }
 
-// Main loop - 100hz
-void sensor_update_loop()
-{
-    /* Calls all functions (perhaps indirectly) that read sensors
-     *
-     * - IMU 	   (updated via read_AHRS)
-     * - GPS 	   (scheduled)
-     * - Barometer (scheduled)
-     * - Compass   (scheduled)
-     */
-    static uint32_t n_measure=0;
-
-    // (Part of state update)
-    
-    // IMU DCM Algorithm
-    // --------------------
-    //MC_PROFILE(readahrs,{mcstate.read_AHRS();})
-
-    // (Part of state update for now - long term remove this)
-    // reads all of the necessary trig functions for cameras, throttle, etc.
-    // --------------------------------------------------------------------
-    MC_PROFILE(updatetrig,{mcstate.update_trig();})
-
-
-		// (Part of state update)
-    MC_PROFILE(readinertia,{read_inertia();})
-}
 
 /*
   scheduler table - all regular tasks apart from the fast_loop()

@@ -68,7 +68,17 @@ void init_rc_out()
 		*/
 
     // we want the input to be scaled correctly
-    mincopter.rc_3.set_range_out(0,1000);
+	mincopter.rc_1.set_angle(ROLL_PITCH_INPUT_MAX);
+	mincopter.rc_2.set_angle(ROLL_PITCH_INPUT_MAX);
+	// TODO Remove this hardcode
+	mincopter.rc_4.set_angle(4500);
+	mincopter.rc_3.set_range(130,1000);
+
+	mincopter.rc_1.set_type(RC_CHANNEL_TYPE_ANGLE_RAW);
+	mincopter.rc_2.set_type(RC_CHANNEL_TYPE_ANGLE_RAW);
+	mincopter.rc_4.set_type(RC_CHANNEL_TYPE_ANGLE_RAW);
+
+	//mincopter.rc_3.set_range_out(0,1000);
 
     // full throttle means to enter ESC calibration
 		// NOTE Skip in autonomous flight - need to perform ESC calibration separately

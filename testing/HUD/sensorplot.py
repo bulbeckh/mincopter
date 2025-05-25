@@ -1,19 +1,9 @@
 
-import time
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 
-
-def read_log(path):
-    tgt = None
-    with open(path, 'r') as rfile:
-        tgt = rfile.readlines()
-
-    return tgt
-
 class IMUSensor:
     def __init__(self, title):
-        self.title = title
         self.parsed = 0
 
         self.accel_x = []
@@ -25,6 +15,9 @@ class IMUSensor:
         self.gyro_z = []
 
     def parse(self, vals):
+        ''' Example IMU format is "imu,<gyro_x>,<gyro_y>,<gyro_z>,<accel_x>,<accel_y>,<accel_z>"
+        '''
+
         if len(vals)<6:
             return
 
@@ -37,35 +30,43 @@ class IMUSensor:
 
         self.parsed += 1
 
-    def plot(self, accel_x, accel_y, accel_z, gyro_x, gyro_y, gyro_z):
+    def plot(self):
+        fig = plt.figure(figsize=(6,1))
+        gs = gridspec.GridSpec(6,1, figure=fig)
 
+        accel_x = fig.add_subplot(gs[0,0])
         accel_x.plot(range(0,self.parsed), self.accel_x, color='blue', linestyle='--')
-        accel_x.set_title(f'Target ({self.title})')
+        accel_x.set_title(f'Accel X (m/s^2)')
         accel_x.legend()
         accel_x.grid(True)
 
+        accel_y = fig.add_subplot(gs[1,0])
         accel_y.plot(range(0,self.parsed), self.accel_y, color='blue', linestyle='--')
-        accel_y.set_title(f'Target ({self.title})')
+        accel_y.set_title(f'Accel Y (m/s^2)')
         accel_y.legend()
         accel_y.grid(True)
 
+        accel_z = fig.add_subplot(gs[2,0])
         accel_z.plot(range(0,self.parsed), self.accel_z, color='blue', linestyle='--')
-        accel_z.set_title(f'Target ({self.title})')
+        accel_z.set_title(f'Accel Z (m/s^2)')
         accel_z.legend()
         accel_z.grid(True)
 
+        gyro_x = fig.add_subplot(gs[3,0])
         gyro_x.plot(range(0,self.parsed), self.gyro_x, color='blue', linestyle='--')
-        gyro_x.set_title(f'Target ({self.title})')
+        gyro_x.set_title(f'Gyro X (rad/s)')
         gyro_x.legend()
         gyro_x.grid(True)
 
+        gyro_y = fig.add_subplot(gs[4,0])
         gyro_y.plot(range(0,self.parsed), self.gyro_y, color='blue', linestyle='--')
-        gyro_y.set_title(f'Target ({self.title})')
+        gyro_y.set_title(f'Gyro Y (rad/s)')
         gyro_y.legend()
         gyro_y.grid(True)
 
+        gyro_z = fig.add_subplot(gs[5,0])
         gyro_z.plot(range(0,self.parsed), self.gyro_z, color='blue', linestyle='--')
-        gyro_z.set_title(f'Target ({self.title})')
+        gyro_z.set_title(f'Gyro Z (rad/s)')
         gyro_z.legend()
         gyro_z.grid(True)
 
@@ -103,41 +104,5 @@ class BaroSensor:
         alt_ax.set_title(f'Target ({self.title})')
         alt_ax.legend()
         alt_ax.grid(True)
-
-if __name__=="__main__":
-
-    lines = read_log("../../build/standard.mcsimlog")
-
-    baro = BaroSensor('Barometer')
-
-    imu = IMUSensor('IMU')
-
-    for l in lines:
-        splits = l.split(",")
-        if splits[0]=='baro':
-            baro.parse(splits[1:])
-        if splits[0]=='imu':
-            imu.parse(splits[1:])
-
-    #fig, ax = plt.subplots(6,1, figsize=(14,8))
-    fig = plt.figure(figsize=(14,8))
-    gs = gridspec.GridSpec(6,1, figure=fig)
-
-    '''
-    baro.plot(fig.add_subplot(gs[0,0]),
-              fig.add_subplot(gs[1,0]),
-              fig.add_subplot(gs[2,0]))
-    '''
-
-    imu.plot(fig.add_subplot(gs[0,0]),
-             fig.add_subplot(gs[1,0]),
-             fig.add_subplot(gs[2,0]),
-             fig.add_subplot(gs[3,0]),
-             fig.add_subplot(gs[4,0]),
-             fig.add_subplot(gs[5,0]))
-
-    plt.tight_layout()
-    plt.show()
-
 
 
