@@ -91,10 +91,10 @@ void WP_Planner::run(void)
 	update_nav_mode();
 
 	// Roll/Pitch determination
-	//controller.control_roll = wp_nav.get_desired_roll();
-	//controller.control_pitch = wp_nav.get_desired_pitch();
-	controller.control_roll = 0;
-	controller.control_pitch = 0;
+	controller.control_roll = wp_nav.get_desired_roll();
+	controller.control_pitch = wp_nav.get_desired_pitch();
+	//controller.control_roll = 0;
+	//controller.control_pitch = 0;
 
 	/* TODO At some point during update_nav_mode, the control_yaw will be updated. It is passed through a slew filter
 	 * to ensure it stays between a specified rate. This is moved from controller to planner and now needs to be called
@@ -102,12 +102,12 @@ void WP_Planner::run(void)
 
 	// Yaw determination
 	// NOTE For now we set yaw to zero
-	//controller.control_yaw = get_yaw_slew(controller.control_yaw, original_wp_bearing, AUTO_YAW_SLEW_RATE);
-	controller.control_yaw = get_yaw_slew(controller.control_yaw, mcstate.ahrs.yaw_sensor, AUTO_YAW_SLEW_RATE);
+	controller.control_yaw = get_yaw_slew(controller.control_yaw, original_wp_bearing, AUTO_YAW_SLEW_RATE);
+	//controller.control_yaw = get_yaw_slew(controller.control_yaw, mcstate.ahrs.yaw_sensor, AUTO_YAW_SLEW_RATE);
 	
 	// Throttle determination
 	// TODO VERY TEMPORARY - REMOVE THIS
-	wp_nav.set_desired_alt(1000.0f);
+	//wp_nav.set_desired_alt(1000.0f);
   	get_throttle_althold_with_slew(wp_nav.get_desired_alt(), -wp_nav.get_descent_velocity(), wp_nav.get_climb_velocity());
  	
 }
