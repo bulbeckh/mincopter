@@ -52,7 +52,7 @@ set(COMMON_FLAGS
 	-march=x86-64
 	## Add debug symbols
 	-g
-	## Add profiling information 
+	## Add profiling information  - REMOVED
 	-pg
 	-no-pie
 	-fno-builtin

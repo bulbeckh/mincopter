@@ -96,6 +96,7 @@ bool loop()
 void loop()
 #endif
 {
+    uint32_t timer = micros();
 
 #ifdef TARGET_ARCH_LINUX
     simlog.write_iteration(loop_iterations);
@@ -106,6 +107,7 @@ void loop()
         Log_Write_Error(ERROR_SUBSYSTEM_MAIN, ERROR_CODE_MAIN_INS_DELAY);
         return false;
     }
+
 
 #ifdef TARGET_ARCH_LINUX
     /* NOTE This is where the simulation is progressed. This loop is meant to run at 10ms
@@ -122,14 +124,29 @@ void loop()
     // 1. Setup and send control output packet (x4 motor vel)
     // 2. Receive and parse packet (update simulated sensor readings, incl. noise if needed)
 
+	// NOTE This is taking ~10ms to send/receive 10 times
+	uint32_t st = micros();
     for (int ii=0;ii<10;ii++) {
 		gz_interface.send_control_output();
 		gz_interface.recv_state_input();
     }
+	uint32_t gz_elapsed = micros()-st;
 
 #endif
 
-    uint32_t timer = micros();
+#ifdef TARGET_ARCH_LINUX
+    if (loop_iterations%100==0) {
+	/* Should output every 1 second */
+		std::cout << "TIMING (should be 10ms): " << (1.0e-3)*(micros()-fast_loopTimer) << "ms \n";
+		std::cout << "GZ (should be <<10ms): " << (1.0e-3)*(gz_elapsed) << "ms \n";
+    	//std::cout << loop_iterations << " loop: time used during sensor update and scheduler call " << time_elapsed << "\n";
+    	//std::cout << "load avg " << scheduler.load_average((uint32_t)10000) << "\n";
+
+	//std::cout << "delay" << 10000-(uint16_t)time_elapsed << "\n";
+    }
+    loop_iterations++;
+#endif
+
 
     // used by PI Loops
     mincopter.G_Dt                    = (float)(timer - fast_loopTimer) / 1000000.f;
@@ -157,24 +174,24 @@ void loop()
     uint32_t time_available = (timer + 10000) - micros();
 
 #ifdef TARGET_ARCH_LINUX
-    //std::cout << "loop: time_available " << time_available << "\n";
-#endif
+	/* NOTE In the simulated environment, the round of 10 GZ sensor updates takes about 10ms
+	 * so we run the scheduled run to account for this */
+	uint32_t runtime = gz_elapsed>(uint32_t)10000 ? 300 : (uint32_t)(10000-gz_elapsed);
+	// Run whatever has more time available. Will likely be the runtime because gz_time normally takes >10ms
+	scheduler.run(runtime);
+	if (loop_iterations%100==0) std::cout << "RUNTIME: " << runtime << "\n";
+#else
     scheduler.run(time_available - 300);
+#endif
 
     uint32_t time_elapsed = micros() - timer;
-#ifdef TARGET_ARCH_LINUX
-    if (loop_iterations%100==0) {
-	/* Should output every 1 second */
-	//std::cout << micros() << " " << timer << " " << micros()-timer << "\n";
-    	//std::cout << loop_iterations << " loop: time used during sensor update and scheduler call " << time_elapsed << "\n";
-    	//std::cout << "load avg " << scheduler.load_average((uint32_t)10000) << "\n";
-
-	//std::cout << "delay" << 10000-(uint16_t)time_elapsed << "\n";
-    }
-    loop_iterations++;
-#endif
     // Delay if we have time remaining (i.e. time took less than 10000us)
-    if (time_elapsed<=(uint32_t)10000) mincopter.hal.scheduler->delay_microseconds(10000-(uint16_t)time_elapsed);
+	
+#ifdef TARGET_ARCH_LINUX
+	if (loop_iterations%100==0) std::cout << "TIME LEFT AFTER SCHEDULER RUN us: " << time_elapsed << "\n";
+#endif
+
+    //if (time_elapsed<=(uint32_t)10000) mincopter.hal.scheduler->delay_microseconds(10000-(uint16_t)time_elapsed);
 
 #ifdef TARGET_ARCH_LINUX
 	static uint32_t exit_count=0;
@@ -183,6 +200,8 @@ void loop()
 	}
 	// NOTE Uncomment to ensure exit for gprof
 	//exit_count++;
+	
+	if (loop_iterations%100==0) std::cout << "FINAL TIME us : " << micros()-timer << "\n";
 #endif
 
 	return false;

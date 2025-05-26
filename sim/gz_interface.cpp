@@ -87,10 +87,10 @@ bool GZ_Interface::send_control_output()
 	control_pkt.pwm[3] = mincopter.motors.get_raw_motor_out(2);
 
 	/*
-	control_pkt.pwm[0] = 1200;
-	control_pkt.pwm[1] = 0;
-	control_pkt.pwm[2] = 0;
-	control_pkt.pwm[3] = 0;
+	control_pkt.pwm[0] = 1900;
+	control_pkt.pwm[1] = 1900;
+	control_pkt.pwm[2] = 1900;
+	control_pkt.pwm[3] = 1900;
 	*/
 
     // Send packet
@@ -195,7 +195,7 @@ bool GZ_Interface::recv_state_input()
 			<< pkt->alt_met << "\n";
 	}
 
-	if (true && frame_counter%1000==0) {
+	if (false && frame_counter%1000==0) {
 		/* pkt->pos_<x,y,z> is the simulated position in metres
 		 *
 		 *
