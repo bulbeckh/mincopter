@@ -53,7 +53,8 @@ void WP_Planner::run(void)
 		{
 			// Attempt Arm
 #ifdef TARGET_ARCH_LINUX
-			if (arm_delay_counter<5) {
+			// Wait 1sec until we arm
+			if (arm_delay_counter<100) {
 				arm_delay_counter++;
 				return;
 			}
@@ -102,7 +103,7 @@ void WP_Planner::run(void)
 	// Yaw determination
 	// NOTE For now we set yaw to zero
 	//controller.control_yaw = get_yaw_slew(controller.control_yaw, original_wp_bearing, AUTO_YAW_SLEW_RATE);
-	controller.control_yaw = get_yaw_slew(controller.control_yaw, 4000, AUTO_YAW_SLEW_RATE);
+	controller.control_yaw = get_yaw_slew(controller.control_yaw, mcstate.ahrs.yaw_sensor, AUTO_YAW_SLEW_RATE);
 	
 	// Throttle determination
 	// TODO VERY TEMPORARY - REMOVE THIS

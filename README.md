@@ -12,6 +12,7 @@ TODO
 - incorrect sensor refresh frequency
 - not initialising reference setpoints (temperature, pressure, lat/lng)
 - did not zero out all PWM channels before sending packet leading to large gimbal/camera joint velocities which caused instability
+- did not include simulation send/receive x10 time in fastloop timer
 
 ## Performance
 TODO

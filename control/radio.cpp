@@ -56,7 +56,9 @@ void init_esc()
 void init_rc_out()
 {
     mincopter.motors.set_update_rate(mincopter.rc_speed);
-    mincopter.motors.set_frame_orientation(mincopter.frame_orientation);
+    //mincopter.motors.set_frame_orientation(mincopter.frame_orientation);
+	// NOTE TODO This is hardcoded to 1 which is the X orientation frame
+    mincopter.motors.set_frame_orientation(1);
     mincopter.motors.Init();                                              // motor initialisation
     mincopter.motors.set_min_throttle(controller.throttle_min);
 
@@ -72,6 +74,9 @@ void init_rc_out()
 	mincopter.rc_2.set_angle(ROLL_PITCH_INPUT_MAX);
 	// TODO Remove this hardcode
 	mincopter.rc_4.set_angle(4500);
+
+	// This is the max and minimum for the output of the throttle accel controller
+	// This is currently [130,1000]
 	mincopter.rc_3.set_range(130,1000);
 
 	mincopter.rc_1.set_type(RC_CHANNEL_TYPE_ANGLE_RAW);
