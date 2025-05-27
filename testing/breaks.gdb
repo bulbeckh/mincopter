@@ -34,9 +34,9 @@ set print pretty on
 #break AP_Baro.cpp:112
 #break AP_Baro.cpp:119
 
-#break WP_Planner::run
+break WP_Planner::run
 #break PID_Controller::run
-break AP_Motors::output
+#break AP_Motors::output
 
 #break GZ_Interface::send_control_output
 

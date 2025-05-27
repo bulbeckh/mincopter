@@ -195,7 +195,7 @@ bool GZ_Interface::recv_state_input()
 			<< pkt->alt_met << "\n";
 	}
 
-	if (false && frame_counter%1000==0) {
+	if (true && frame_counter%1000==0) {
 		/* pkt->pos_<x,y,z> is the simulated position in metres
 		 *
 		 *

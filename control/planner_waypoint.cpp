@@ -91,10 +91,10 @@ void WP_Planner::run(void)
 	update_nav_mode();
 
 	// Roll/Pitch determination
-	controller.control_roll = wp_nav.get_desired_roll();
-	controller.control_pitch = wp_nav.get_desired_pitch();
-	//controller.control_roll = 0;
-	//controller.control_pitch = 0;
+	//controller.control_roll = wp_nav.get_desired_roll();
+	//controller.control_pitch = wp_nav.get_desired_pitch();
+	controller.control_roll = 0;
+	controller.control_pitch = 0;
 
 	/* TODO At some point during update_nav_mode, the control_yaw will be updated. It is passed through a slew filter
 	 * to ensure it stays between a specified rate. This is moved from controller to planner and now needs to be called
@@ -102,15 +102,37 @@ void WP_Planner::run(void)
 
 	// Yaw determination
 	// NOTE For now we set yaw to zero
-	controller.control_yaw = get_yaw_slew(controller.control_yaw, original_wp_bearing, AUTO_YAW_SLEW_RATE);
-	//controller.control_yaw = get_yaw_slew(controller.control_yaw, mcstate.ahrs.yaw_sensor, AUTO_YAW_SLEW_RATE);
+	//controller.control_yaw = get_yaw_slew(controller.control_yaw, original_wp_bearing, AUTO_YAW_SLEW_RATE);
+	controller.control_yaw = get_yaw_slew(controller.control_yaw, mcstate.ahrs.yaw_sensor, AUTO_YAW_SLEW_RATE);
 	
 	// Throttle determination
 	// TODO VERY TEMPORARY - REMOVE THIS
-	//wp_nav.set_desired_alt(1000.0f);
+	wp_nav.set_desired_alt(1000.0f);
   	get_throttle_althold_with_slew(wp_nav.get_desired_alt(), -wp_nav.get_descent_velocity(), wp_nav.get_climb_velocity());
  	
 }
+#fce4ec
+void WP_Planner::get_origin_roll_pitch(int16_t& c_roll, int16_t& c_pitch)
+{
+	/* This function should compute the pitch and roll mixture required to drive to drive the UAV to the origin */
+
+	int32_t roll = ahrs.roll_sensor;
+
+	Vector3f current_position = mcstate.ahrs.get_position();
+
+	// What about signs of each??
+	float sum_xy = current_position.x + current_position.y;
+
+	float x_angle_ratio = current_position.x / sum_xy;
+	float y_angle_ratio = current_position.y / sum_xy;
+
+	// Let's assume that we decrease the maximum angle proportionally to zero from 50m (5000cm) out from origin
+	float scale_factor = ap_min(1,pythagorous2(current_position.x,current_position.y)/5000.0f);
+	
+	if (x_angle_ratio < y_angle_ratio);
+
+}
+
 
 // get_throttle_althold_with_slew - altitude controller with slew to avoid step changes in altitude target
 // calls normal althold controller which updates accel based throttle controller targets
