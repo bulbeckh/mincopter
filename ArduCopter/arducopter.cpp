@@ -259,14 +259,25 @@ void control_determination()
  * it overran.
  */
 const AP_Scheduler::Task scheduler_tasks[] PROGMEM = {
-/*												 TOTAL 4210 */
+//												 TOTAL 4210
+#ifdef TARGET_ARCH_LINUX
+	/* For simulation, we reduce the maximum runtime for each to 1us in order to ensure they all run
+	 * within a single scheduler call */
+    { update_GPS, 	   2,     1 }, /* Sensor Update - GPS */
+    { read_batt_compass,  10,  1 }, /* Sensor Update - Battery */
+    { update_altitude,    10,  1 }, /* Sensor Update - Barometer (read) */
+    { read_compass,        2,  1 }, /* Sensor Update - Compass */
+    { read_baro,  	   2,     1 }, /* Sensor Update - Barometer (accumulate) */
+    { one_hz_loop,       100,  1 },
+#else
     { update_GPS, 	   2,     900 }, /* Sensor Update - GPS */
     { read_batt_compass,  10,     720 }, /* Sensor Update - Battery */
-// control_modes.cpp
     { update_altitude,    10,    1000 }, /* Sensor Update - Barometer (read) */
     { read_compass,        2,     420 }, /* Sensor Update - Compass */
     { read_baro,  	   2,     250 }, /* Sensor Update - Barometer (accumulate) */
     { one_hz_loop,       100,     420 },
+#endif
+
     //{ dump_serial, 	  20,     500 },
     //{ run_cli,          10,     500 },
     //{ throttle_loop,     2,     450 },
