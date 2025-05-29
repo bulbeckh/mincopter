@@ -89,20 +89,24 @@ class BaroSensor:
         self.altitude_calc.append(float(vals[2]))
         self.parsed += 1
 
-    def plot(self, temp_ax, pressure_ax, alt_ax):
-        temp_ax.plot(range(0,self.parsed), self.temperature, color='blue', linestyle='--')
-        temp_ax.set_title(f'Target ({self.title})')
-        temp_ax.legend()
-        temp_ax.grid(True)
+    def plot(self):
+        fig = plt.figure(figsize=(3,1))
+        gs = gridspec.GridSpec(3,1, figure=fig)
 
-        pressure_ax.plot(range(0,self.parsed), self.pressure, color='blue', linestyle='--')
-        pressure_ax.set_title(f'Target ({self.title})')
-        pressure_ax.legend()
-        pressure_ax.grid(True)
+        rs_ax = fig.add_subplot(gs[0,0])
+        rs_ax.plot(range(0,self.parsed), self.temperature, color='blue', linestyle='--')
+        rs_ax.set_title(f'Temperature (??)')
+        rs_ax.legend()
+        rs_ax.grid(True)
 
-        alt_ax.plot(range(0,self.parsed), self.altitude_calc, color='blue', linestyle='--')
-        alt_ax.set_title(f'Target ({self.title})')
-        alt_ax.legend()
-        alt_ax.grid(True)
+        rs_ax = fig.add_subplot(gs[1,0])
+        rs_ax.plot(range(0,self.parsed), self.pressure, color='blue', linestyle='--')
+        rs_ax.set_title(f'Pressure (??)')
+        rs_ax.legend()
+        rs_ax.grid(True)
 
-
+        rs_ax = fig.add_subplot(gs[2,0])
+        rs_ax.plot(range(0,self.parsed), self.altitude_calc, color='blue', linestyle='--')
+        rs_ax.set_title(f'Altitude calculated (??)')
+        rs_ax.legend()
+        rs_ax.grid(True)

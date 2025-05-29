@@ -3,21 +3,8 @@ import time
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 
-
-def read_log(path):
-    tgt = None
-    with open(path, 'r') as rfile:
-        tgt = rfile.readlines()
-
-    return tgt
-
-def plot(title, series, ax, fmt):
-    ax.plot(range(0,len(series)), series, **fmt)
-    ax.set_title(title)
-    return
-
 class INav:
-    def __init__(self):
+    def __init__(self, title):
         self.pos_x = []
         self.pos_y = []
         self.pos_z = []
@@ -38,21 +25,20 @@ class INav:
         self.accel_corr_y = []
         self.accel_corr_z = []
 
-    def parse_inav(self, vals):
-        if len(vals)<6:
-            return
+        self.parsed_inav=0
+        self.parsed_inavc=0
 
+    def parse_inav(self, vals):
         self.pos_x.append(float(vals[0]))
         self.pos_y.append(float(vals[1]))
         self.pos_z.append(float(vals[2]))
         self.vel_x.append(float(vals[3]))
         self.vel_y.append(float(vals[4]))
         self.vel_z.append(float(vals[5]))
+        
+        self.parsed_inav += 1
 
     def parse_inavc(self, vals):
-        if (len(vals)<9):
-            return
-        
         self.pos_corr_x.append(float(vals[0]))
         self.pos_corr_y.append(float(vals[1]))
         self.pos_corr_z.append(float(vals[2]))
@@ -63,54 +49,56 @@ class INav:
         self.accel_corr_y.append(float(vals[7]))
         self.accel_corr_z.append(float(vals[8]))
 
+        self.parsed_inavc += 1
 
-if __name__=="__main__":
+    def parse(self, vals):
+        ## TODO There should be a better way to direct which inav line type we are on
+        if len(vals)==9:
+            self.parse_inavc(vals)
+        elif len(vals)==6:
+            self.parse_inav(vals)
+        else:
+            print("INAV: line found with not enough fields")
+            return
 
-    lines = read_log("../../build/standard.mcsimlog")
+    def plot(self):
+        fig = plt.figure(figsize=(6,1))
+        gs = gridspec.GridSpec(6,1, figure=fig)
 
-    inav = INav()
+        ## INav Position and Velocities
+        rs_ax = fig.add_subplot(gs[0,0])
+        rs_ax.plot(range(0,self.parsed_inav), self.pos_x, color='blue', linestyle='--')
+        rs_ax.set_title(f'INav pos x (??)')
+        rs_ax.legend()
+        rs_ax.grid(True)
 
-    for l in lines:
-        splits = l.split(",")
-        if splits[0]=='inav':
-            inav.parse_inav(splits[1:])
-        elif splits[0]=='inavc':
-            inav.parse_inavc(splits[1:])
+        ps_ax = fig.add_subplot(gs[1,0])
+        ps_ax.plot(range(0,self.parsed_inav), self.pos_y, color='blue', linestyle='--')
+        ps_ax.set_title(f'INav pos y (??)')
+        ps_ax.legend()
+        ps_ax.grid(True)
 
-    #fig, ax = plt.subplots(6,1, figsize=(14,8))
-    fig = plt.figure(figsize=(14,8))
-    gs = gridspec.GridSpec(12,1, figure=fig)
+        ys_ax = fig.add_subplot(gs[2,0])
+        ys_ax.plot(range(0,self.parsed_inav), self.pos_z, color='blue', linestyle='--')
+        ys_ax.set_title(f'INav pos z (??)')
+        ys_ax.legend()
+        ys_ax.grid(True)
 
-    #baro.plot(fig.add_subplot(gs[0,0]),
-              #fig.add_subplot(gs[1,0]),
-              #fig.add_subplot(gs[2,0]))
-    
-    fmt = { 'color': 'blue', 'linestyle':'--'}
-    plot('pos_x (cm)', inav.pos_x, fig.add_subplot(gs[0,0]), fmt)
-    plot('pos_y (cm)', inav.pos_y, fig.add_subplot(gs[1,0]), fmt)
-    plot('pos_z (cm)', inav.pos_z, fig.add_subplot(gs[2,0]), fmt)
-    plot('vel_x (cm/s)', inav.vel_x, fig.add_subplot(gs[3,0]), fmt)
-    plot('vel_y (cm/s)', inav.vel_y, fig.add_subplot(gs[4,0]), fmt)
-    plot('vel_z (cm/s)', inav.vel_z, fig.add_subplot(gs[5,0]), fmt)
+        ys_ax = fig.add_subplot(gs[3,0])
+        ys_ax.plot(range(0,self.parsed_inav), self.vel_x, color='blue', linestyle='--')
+        ys_ax.set_title(f'INav vel x (??)')
+        ys_ax.legend()
+        ys_ax.grid(True)
 
-    plot('pos_err_x (cm)', inav.pos_err_x, fig.add_subplot(gs[6,0]), fmt)
-    plot('pos_err_y (cm)', inav.pos_err_y, fig.add_subplot(gs[7,0]), fmt)
-    plot('pos_err_z (cm)', inav.pos_err_z, fig.add_subplot(gs[8,0]), fmt)
-    plot('pos_corr_x (cm)', inav.pos_corr_x, fig.add_subplot(gs[9,0]), fmt)
-    plot('pos_corr_y (cm)', inav.pos_corr_y, fig.add_subplot(gs[10,0]), fmt)
-    plot('pos_corr_z (cm)', inav.pos_corr_z, fig.add_subplot(gs[11,0]), fmt)
+        ys_ax = fig.add_subplot(gs[4,0])
+        ys_ax.plot(range(0,self.parsed_inav), self.vel_y, color='blue', linestyle='--')
+        ys_ax.set_title(f'INav vel y (??)')
+        ys_ax.legend()
+        ys_ax.grid(True)
 
-    '''
-    imu.plot(fig.add_subplot(gs[0,0]),
-             fig.add_subplot(gs[1,0]),
-             fig.add_subplot(gs[2,0]),
-             fig.add_subplot(gs[3,0]),
-             fig.add_subplot(gs[4,0]),
-             fig.add_subplot(gs[5,0]))
-    '''
-
-    #plt.tight_layout()
-    plt.show()
-
-
+        ys_ax = fig.add_subplot(gs[5,0])
+        ys_ax.plot(range(0,self.parsed_inav), self.vel_z, color='blue', linestyle='--')
+        ys_ax.set_title(f'INav vel z (??)')
+        ys_ax.legend()
+        ys_ax.grid(True)
 

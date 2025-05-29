@@ -111,10 +111,11 @@ void WP_Planner::run(void)
   	get_throttle_althold_with_slew(wp_nav.get_desired_alt(), -wp_nav.get_descent_velocity(), wp_nav.get_climb_velocity());
  	
 }
-#fce4ec
+
+/*
 void WP_Planner::get_origin_roll_pitch(int16_t& c_roll, int16_t& c_pitch)
 {
-	/* This function should compute the pitch and roll mixture required to drive to drive the UAV to the origin */
+	// This function should compute the pitch and roll mixture required to drive to drive the UAV to the origin
 
 	int32_t roll = ahrs.roll_sensor;
 
@@ -132,7 +133,7 @@ void WP_Planner::get_origin_roll_pitch(int16_t& c_roll, int16_t& c_pitch)
 	if (x_angle_ratio < y_angle_ratio);
 
 }
-
+*/
 
 // get_throttle_althold_with_slew - altitude controller with slew to avoid step changes in altitude target
 // calls normal althold controller which updates accel based throttle controller targets

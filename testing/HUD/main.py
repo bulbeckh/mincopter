@@ -2,8 +2,17 @@
 import sys
 import time
 
-from sensorplot import IMUSensor
+""" These are each of the sensor classes. Each class should define an __init__, parse, and plot method
+
+def __init(self, title)
+def parse(self, vals)
+def plot()
+
+"""
+from sensorplot import IMUSensor, BaroSensor
 from ahrsplot import AHRS
+from inavplot import INav
+## TODO Add in inavc graphs
 
 import matplotlib.pyplot as plt
 
@@ -21,14 +30,15 @@ if __name__=="__main__":
     ## List of all potential objects that this library can plot
     ## The value of this dict is a tuple where first is instantiated type (only instantiated if value is
     ## passed as commnd line argument) and the second is the class object that is used to instantiate
-    objlist ={
+    objlist = {
         'ahrs': [None, AHRS],
-        'inav': [None, None],
+        'inav': [None, INav],
         'pid': [None, None],
         'imu': [None, IMUSensor],
-        'baro': [None, None],
+        'baro': [None, BaroSensor],
         'gps': [None, None],
-        'compass': [None, None]
+        'compass': [None, None],
+        'motor' : [None, None]
     }
 
     for arg in sys.argv:
@@ -51,6 +61,8 @@ if __name__=="__main__":
             objlist['gps'][0].parse(splits[1:])
         if splits[0]=='ah' and objlist['ahrs'][0] is not None:
             objlist['ahrs'][0].parse(splits[1:])
+        if (splits[0]=='inav' or splits[0]=='inavc') and objlist['inav'][0] is not None:
+            objlist['inav'][0].parse(splits[1:])
 
     for k,v in objlist.items():
         if v[0] is not None:
