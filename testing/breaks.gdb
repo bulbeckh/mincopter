@@ -12,7 +12,7 @@ set print pretty on
 #break AP_InertialNav::set_home_position
 #break Compass::set_initial_location
 #break update_GPS
-#break AP_AHRS_DCM::update
+break AP_AHRS_DCM::update
 #break AP_InertialSensor_Sim::update
 #break AP_AHRS_DCM::drift_correction
 #break WP_Planner::run
@@ -34,7 +34,7 @@ set print pretty on
 #break AP_Baro.cpp:112
 #break AP_Baro.cpp:119
 
-break WP_Planner::run
+#break WP_Planner::run
 #break PID_Controller::run
 #break AP_Motors::output
 

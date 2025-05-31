@@ -110,3 +110,44 @@ class BaroSensor:
         rs_ax.set_title(f'Altitude calculated (??)')
         rs_ax.legend()
         rs_ax.grid(True)
+
+class CompassSensor:
+    def __init__(self, title):
+        self.title = title
+
+        self.field_x = []
+        self.field_y = []
+        self.field_z = []
+
+        self.parsed = 0
+    
+    def parse(self, vals):
+        if len(vals)<3:
+            return
+
+        self.field_x.append(float(vals[0]))
+        self.field_y.append(float(vals[1]))
+        self.field_z.append(float(vals[2]))
+        self.parsed += 1
+
+    def plot(self):
+        fig = plt.figure(figsize=(3,1))
+        gs = gridspec.GridSpec(3,1, figure=fig)
+
+        rs_ax = fig.add_subplot(gs[0,0])
+        rs_ax.plot(range(0,self.parsed), self.field_x, color='blue', linestyle='--')
+        rs_ax.set_title(f'Field X (??)')
+        rs_ax.legend()
+        rs_ax.grid(True)
+
+        rs_ax = fig.add_subplot(gs[1,0])
+        rs_ax.plot(range(0,self.parsed), self.field_y, color='blue', linestyle='--')
+        rs_ax.set_title(f'Field Y (??)')
+        rs_ax.legend()
+        rs_ax.grid(True)
+
+        rs_ax = fig.add_subplot(gs[2,0])
+        rs_ax.plot(range(0,self.parsed), self.field_z, color='blue', linestyle='--')
+        rs_ax.set_title(f'Field Z (??)')
+        rs_ax.legend()
+        rs_ax.grid(True)

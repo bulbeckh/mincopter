@@ -219,6 +219,12 @@ class WP_Planner : public MC_Planner
 		int32_t get_yaw_slew(int32_t current_yaw, int32_t desired_yaw, int16_t deg_per_sec);
 
 		void get_throttle_althold_with_slew(int32_t target_alt, int16_t min_climb_rate, int16_t max_climb_rate);
+		
+		/* @brief Simple controller to determine roll and pitch to navigate to origin
+		 * @param c_roll Reference to controller roll
+		 * @param c_pitch Reference to controller pitch
+		 */
+		void get_origin_roll_pitch(int16_t& c_roll, int16_t& c_pitch);
 
 	private:
 		bool pre_arm_gps_checks(bool display_failure);

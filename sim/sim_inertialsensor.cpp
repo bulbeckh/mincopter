@@ -56,7 +56,7 @@ bool AP_InertialSensor_Sim::update( void )
 
 uint16_t AP_InertialSensor_Sim::_init_sensor( Sample_rate sample_rate )
 {
-	//set_board_orientation(Rotation::ROTATION_ROLL_180);
+	set_board_orientation(Rotation::ROTATION_NONE);
 	// NOTE This is meant to return the product_id of the IMU sensor
 	return AP_PRODUCT_ID_NONE;
 }

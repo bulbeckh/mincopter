@@ -29,6 +29,11 @@ class GZ_Interface {
 	    double pos_x;
 	    double pos_y;
 	    double pos_z;
+
+		double wldAbdyA_eul_x; // Roll
+		double wldAbdyA_eul_y; // Pitch
+		double wldAbdyA_eul_z; // Yaw
+
 	    double vel_x;
 	    double vel_y;
 	    double vel_z;

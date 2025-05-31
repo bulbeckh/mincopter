@@ -39,6 +39,9 @@ void WP_Planner::run(void)
 #endif
 
 	if (planner_arm_state==PlannerArmState::DISARMED) { 
+		// TODO Only temporaru
+		return;
+
 		// Run pre_arm_checks
 		pre_arm_checks(false);
 		if (!ap.pre_arm_check) {
@@ -93,8 +96,9 @@ void WP_Planner::run(void)
 	// Roll/Pitch determination
 	//controller.control_roll = wp_nav.get_desired_roll();
 	//controller.control_pitch = wp_nav.get_desired_pitch();
-	controller.control_roll = 0;
-	controller.control_pitch = 0;
+	//controller.control_roll = 0;
+	//controller.control_pitch = 0;
+	get_origin_roll_pitch(controller.control_roll, controller.control_pitch);
 
 	/* TODO At some point during update_nav_mode, the control_yaw will be updated. It is passed through a slew filter
 	 * to ensure it stays between a specified rate. This is moved from controller to planner and now needs to be called
@@ -112,28 +116,50 @@ void WP_Planner::run(void)
  	
 }
 
-/*
 void WP_Planner::get_origin_roll_pitch(int16_t& c_roll, int16_t& c_pitch)
 {
 	// This function should compute the pitch and roll mixture required to drive to drive the UAV to the origin
 
-	int32_t roll = ahrs.roll_sensor;
+	// Current yaw in deg*100
+	//int32_t current_yaw = mcstate.ahrs.yaw_sensor;
 
-	Vector3f current_position = mcstate.ahrs.get_position();
+	// Extract yaw vector from dcm_matrix
+	Matrix3f dcm = mcstate.ahrs.get_dcm_matrix();
 
-	// What about signs of each??
-	float sum_xy = current_position.x + current_position.y;
+	float norm = safe_sqrt(dcm.a.x*dcm.a.x + dcm.b.x*dcm.b.x);
+	float ax = dcm.a.x / norm;
 
-	float x_angle_ratio = current_position.x / sum_xy;
-	float y_angle_ratio = current_position.y / sum_xy;
+	// Heading in radians (rotate by 180deg if we have a negative y heading vector)
+	float yaw_heading_deg = acos(ax);
+	if (dcm.b.x<0.0f) yaw_heading_deg += M_PI_F;
+
+	// Conversion to centi-degrees
+	int32_t current_yaw = (int32_t)(degrees(yaw_heading_deg)*100.0f);
+
+#ifdef TARGET_ARCH_LINUX
+	static int32_t origin_counter=0;
+	if (origin_counter%100==0) std::cout << "YAW READING (cd): " << current_yaw << "\n";
+	origin_counter+=1;
+#endif
+
+	// Part 2.
+
+	Vector3f current_position = mcstate.inertial_nav.get_position();
 
 	// Let's assume that we decrease the maximum angle proportionally to zero from 50m (5000cm) out from origin
-	float scale_factor = ap_min(1,pythagorous2(current_position.x,current_position.y)/5000.0f);
-	
-	if (x_angle_ratio < y_angle_ratio);
+	float scale_factor = 0.1f*ap_min(1,pythagorous2(current_position.x,current_position.y)/5000.0f);
 
+	// Body frame 2d vector to origin
+	float origin_bf_vector_x = (-1*current_position.x)*cos(radians(0.01f*current_yaw))
+		+ (-1*current_position.y)*sin(radians(0.01f*current_yaw));
+	float origin_bf_vector_y = (current_position.x)*sin(radians(0.01f*current_yaw))
+		+ (-1*current_position.y)*cos(radians(0.01f*current_yaw));
+
+	// Set desired roll and pitch in proportion to how far away from origin we are
+	c_roll = (origin_bf_vector_x > 0 ? -4500 : 4500)*scale_factor;
+	c_pitch = (origin_bf_vector_y > 0 ? -4500 : 4500)*scale_factor;
+	
 }
-*/
 
 // get_throttle_althold_with_slew - altitude controller with slew to avoid step changes in altitude target
 // calls normal althold controller which updates accel based throttle controller targets

@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 
 import sys
 import time
@@ -9,7 +10,7 @@ def parse(self, vals)
 def plot()
 
 """
-from sensorplot import IMUSensor, BaroSensor
+from sensorplot import IMUSensor, BaroSensor, CompassSensor
 from ahrsplot import AHRS
 from inavplot import INav
 ## TODO Add in inavc graphs
@@ -25,6 +26,14 @@ def read_log(path):
 
 if __name__=="__main__":
 
+    if sys.argv[1]=='--help':
+        print(""" man page
+
+
+
+        """)
+        exit()
+
     lines = read_log("../../build/standard.mcsimlog")
 
     ## List of all potential objects that this library can plot
@@ -37,7 +46,7 @@ if __name__=="__main__":
         'imu': [None, IMUSensor],
         'baro': [None, BaroSensor],
         'gps': [None, None],
-        'compass': [None, None],
+        'compass': [None, CompassSensor],
         'motor' : [None, None]
     }
 
@@ -55,7 +64,7 @@ if __name__=="__main__":
             objlist['baro'][0].parse(splits[1:])
         if splits[0]=='imu' and objlist['imu'][0] is not None:
             objlist['imu'][0].parse(splits[1:])
-        if splits[0]=='compass' and objlist['compass'][0] is not None:
+        if splits[0]=='comp' and objlist['compass'][0] is not None:
             objlist['compass'][0].parse(splits[1:])
         if splits[0]=='gps' and objlist['gps'][0] is not None:
             objlist['gps'][0].parse(splits[1:])

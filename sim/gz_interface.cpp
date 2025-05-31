@@ -16,6 +16,8 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 
+#include <AP_Math.h>
+
 #include "mcinstance.h"
 extern MCInstance mincopter;
 
@@ -143,7 +145,10 @@ bool GZ_Interface::recv_state_input()
 	} else {
 		temp_idx = state_buffer_index-1;
 	}
-	float alpha=0.6;
+
+	// **alpha** is a number between 0 and 1 that controls how much of the previous value we use. Essentially a digital low pass filter
+	//float alpha=0.6;
+	float alpha=0.0;
 	sensor_states[state_buffer_index].imu_gyro_x = sensor_states[temp_idx].imu_gyro_x*alpha + sensor_states[state_buffer_index].imu_gyro_x*(1.0f-alpha);
 	sensor_states[state_buffer_index].imu_gyro_y = sensor_states[temp_idx].imu_gyro_y*alpha + sensor_states[state_buffer_index].imu_gyro_y*(1.0f-alpha);
 	sensor_states[state_buffer_index].imu_gyro_z = sensor_states[temp_idx].imu_gyro_z*alpha + sensor_states[state_buffer_index].imu_gyro_z*(1.0f-alpha);
@@ -172,7 +177,7 @@ bool GZ_Interface::recv_state_input()
 			<< pkt->imu_accel_z << "\n";
 	}
 
-	if (false && frame_counter%1000==0) {
+	if (true && frame_counter%1000==0) {
 		std::cout << "COMP Field x/y/z : "
 			<< pkt->field_x << " "
 			<< pkt->field_y << " "
@@ -213,10 +218,16 @@ bool GZ_Interface::recv_state_input()
 		int32_t inav_lng = mcstate.inertial_nav.get_longitude();
 		int32_t inav_alt = mcstate.inertial_nav.get_altitude();
 
-		std::cout << "---------- ROUND " << frame_counter << " ----\n";
+		float c_heading = degrees(mincopter.compass.calculate_heading(mcstate.ahrs.get_dcm_matrix()));
+
+		std::cout << "---------- ITERATION " << frame_counter << " ----\n";
 		std::cout << "(sim/inav) Position X (m): " << pkt->pos_x << " " << inav_pos.x << "\n";
 		std::cout << "(sim/inav) Position Y (m): " << pkt->pos_y << " " << inav_pos.y << "\n";
 		std::cout << "(sim/inav) Position Z (m): " << pkt->pos_z << " " << inav_pos.z << "\n";
+		std::cout << "(sim/ahrs) Rotation (Roll) (deg): " << degrees(pkt->wldAbdyA_eul_x) << " " << 0.01f*mcstate.ahrs.roll_sensor << "\n";
+		std::cout << "(sim/ahrs) Rotation (Pitch) (deg): " << degrees(pkt->wldAbdyA_eul_y) << " " << 0.01f*mcstate.ahrs.pitch_sensor << "\n";
+		std::cout << "(sim/ahrs) Rotation (Yaw) (deg): " << degrees(pkt->wldAbdyA_eul_z) << " " << 0.01f*wrap_360_cd(mcstate.ahrs.yaw_sensor) << "\n";
+		std::cout << "(compass)  Heading (deg)       : " << c_heading << "\n";
 		std::cout << "(sim/inav) Latitude (deg*1e7): " << (int32_t)((1e7)*pkt->lat_deg) << " " << inav_lat << "\n";
 		std::cout << "(sim/inav) Longitude(deg*1e7): " << (int32_t)((1e7)*pkt->lng_deg) << " " << inav_lng << "\n";
 		std::cout << "(sim/inav) Altitude (cm): " << (int32_t)((100)*pkt->alt_met) << " " <<  inav_alt << "\n";
