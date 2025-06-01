@@ -40,7 +40,7 @@ void WP_Planner::run(void)
 
 	if (planner_arm_state==PlannerArmState::DISARMED) { 
 		// TODO Only temporaru
-		return;
+		//return;
 
 		// Run pre_arm_checks
 		pre_arm_checks(false);
@@ -120,10 +120,16 @@ void WP_Planner::get_origin_roll_pitch(int16_t& c_roll, int16_t& c_pitch)
 {
 	// This function should compute the pitch and roll mixture required to drive to drive the UAV to the origin
 
+	// Part 1. Get current heading
+	
+	// Current heading in radians
+	float curr_heading_rad = mincopter.compass.calculate_heading(mcstate.ahrs.get_dcm_matrix());
+
 	// Current yaw in deg*100
 	//int32_t current_yaw = mcstate.ahrs.yaw_sensor;
 
 	// Extract yaw vector from dcm_matrix
+	/*
 	Matrix3f dcm = mcstate.ahrs.get_dcm_matrix();
 
 	float norm = safe_sqrt(dcm.a.x*dcm.a.x + dcm.b.x*dcm.b.x);
@@ -135,29 +141,44 @@ void WP_Planner::get_origin_roll_pitch(int16_t& c_roll, int16_t& c_pitch)
 
 	// Conversion to centi-degrees
 	int32_t current_yaw = (int32_t)(degrees(yaw_heading_deg)*100.0f);
+	*/
 
-#ifdef TARGET_ARCH_LINUX
-	static int32_t origin_counter=0;
-	if (origin_counter%100==0) std::cout << "YAW READING (cd): " << current_yaw << "\n";
-	origin_counter+=1;
-#endif
-
-	// Part 2.
-
+	// TODO Convert all this to the Vector2f library - there's definitely existing functions to do this
+	// Part 2. Determine vector to origin and calculate angle w true north
+	
 	Vector3f current_position = mcstate.inertial_nav.get_position();
 
-	// Let's assume that we decrease the maximum angle proportionally to zero from 50m (5000cm) out from origin
-	float scale_factor = 0.1f*ap_min(1,pythagorous2(current_position.x,current_position.y)/5000.0f);
+	/* Vector to origin (in 2D) is now [-current_position.x, -current_position.y]
+	 *
+	 * We need to normalise this then get arccos of the dot product between this and north vector [1 0]
+	 *
+	 */
 
-	// Body frame 2d vector to origin
-	float origin_bf_vector_x = (-1*current_position.x)*cos(radians(0.01f*current_yaw))
-		+ (-1*current_position.y)*sin(radians(0.01f*current_yaw));
-	float origin_bf_vector_y = (current_position.x)*sin(radians(0.01f*current_yaw))
-		+ (-1*current_position.y)*cos(radians(0.01f*current_yaw));
+	float v_og_x = -current_position.x;
+	float v_og_y = -current_position.y;
+	
+	float v_norm = safe_sqrt(v_og_x*v_og_x + v_og_y*v_og_y);
 
-	// Set desired roll and pitch in proportion to how far away from origin we are
-	c_roll = (origin_bf_vector_x > 0 ? -4500 : 4500)*scale_factor;
-	c_pitch = (origin_bf_vector_y > 0 ? -4500 : 4500)*scale_factor;
+	// Normalise
+	v_og_x /= v_norm;
+	v_og_y /= v_norm;
+
+	// Angle from north [1 0] to the origin vector
+	float origin_vector_rad = acos(v_og_x);
+
+	// Swap the sign if we are on the right side of the cartesian axes
+	if (current_position.y>0.0f) origin_vector_rad *= -1.0f;
+
+	// Part 3. Decompose the origin vector into the respective components
+	float norm_x = cos(origin_vector_rad-curr_heading_rad);
+	float norm_y = sin(origin_vector_rad-curr_heading_rad);
+
+	// Part 4. Assign the corresponding roll/pitch
+	int16_t rp_max=200; // 10 degrees
+	c_roll = (int16_t)(rp_max*norm_y);
+	c_pitch = (int16_t)(-rp_max*norm_x);
+
+	return;
 	
 }
 
