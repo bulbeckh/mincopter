@@ -98,7 +98,15 @@ void WP_Planner::run(void)
 	//controller.control_pitch = wp_nav.get_desired_pitch();
 	//controller.control_roll = 0;
 	//controller.control_pitch = 0;
-	get_origin_roll_pitch(controller.control_roll, controller.control_pitch);
+	static int og_count=0;
+	if (og_count%10==0) {
+		// run every 10 iterations (10Hz)
+		get_origin_roll_pitch(controller.control_roll, controller.control_pitch);
+		og_count==0;
+	} else {
+		og_count++;
+	}
+		
 
 	/* TODO At some point during update_nav_mode, the control_yaw will be updated. It is passed through a slew filter
 	 * to ensure it stays between a specified rate. This is moved from controller to planner and now needs to be called
@@ -174,10 +182,13 @@ void WP_Planner::get_origin_roll_pitch(int16_t& c_roll, int16_t& c_pitch)
 	float norm_x = cos(origin_vector_rad-curr_heading_rad);
 	float norm_y = sin(origin_vector_rad-curr_heading_rad);
 
-	// Part 4. Assign the corresponding roll/pitch
-	int16_t rp_max=1000; // 10 degrees
-	c_roll = (int16_t)(rp_max*norm_y);
-	c_pitch = (int16_t)(-rp_max*norm_x);
+	// Part 4. Assign the corresponding roll/pitch with a scale for distance from origin
+	float origin_distance_cm = safe_sqrt(current_position.x*current_position.x+current_position.y*current_position.y);
+
+	// Start to scale down from 10 metres out
+	int16_t rp_max=3000; // 10 degrees
+	c_roll = (int16_t)(rp_max*norm_y*origin_distance_cm/1000.0f);
+	c_pitch = (int16_t)(-rp_max*norm_x*origin_distance_cm/1000.0f);
 
 	return;
 	

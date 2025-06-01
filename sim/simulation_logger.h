@@ -26,22 +26,24 @@ class SimulationLogger
 	/* @brief Maximum number of lines we want to log */
 	uint32_t max_lines;
 
-	/* @brief Whether we choose to log every n'th call to each of the log functions. NOTE separate value for each
-	 * log type */
-	bool reduce_log_factor;
-
-	/* @brief Structuring holding flags of whether to log each module */
+	/* @brief Structure holding the number of iterations to log for each type of log
+	 *
+	 * For example, to log every n'th planner, we set the log_planner entry to n
+	 *
+	 */
 	struct {
-		bool log_iteration;
-		bool log_planner;
-		bool log_controller;
-		bool log_ahrs;
-		bool log_motors;
-		bool log_pids;
-		bool log_barometer;
-		bool log_compass;
-		bool log_imu;
-		bool log_gps;
+		uint16_t log_iteration = 0;
+		uint16_t log_planner = 0;
+		uint16_t log_controller = 0;
+		uint16_t log_ahrs = 0;
+		uint16_t log_motors = 0;
+		uint16_t log_pids = 0;
+		uint16_t log_inav = 0;
+		uint16_t log_inavc = 0;
+		uint16_t log_barometer = 0;
+		uint16_t log_compass = 0;
+		uint16_t log_imu = 0;
+		uint16_t log_gps = 0;
 	} simlog_flags;
 
 	// TODO Add a setter method for these flags
@@ -63,8 +65,6 @@ class SimulationLogger
 	/* @brief Write the variables related to the current controller library */
 	void write_controller_state();
 
-	/* @brief Write the ahrs state including main public variables */
-	void write_ahrs_state();
 
 	/* @brief Write the four motor output variables */
 	void write_motor_outputs();
@@ -72,10 +72,13 @@ class SimulationLogger
 	/* @brief Write a PID controllers target, error, output */
 	void write_pid_state(const char* pid_name, int32_t target, int32_t error, int32_t out, int32_t out_max, int32_t out_min);
 
-	/* **Inertial Navigation**
+	/* **State Estimation**
 	 *
 	 *
 	 */
+
+	/* @brief Write the ahrs state including main public variables */
+	void write_ahrs_state();
 
 	/* @brief Write an inertial navigation state */
 	void write_inav_state(Vector3f position, Vector3f velocity);
@@ -83,7 +86,7 @@ class SimulationLogger
 	/* @brief Write an inertial navigation correction state */
 	void write_inav_correction(Vector3f pos_correction, Vector3f pos_error, Vector3f accel_correction);
 
-	/* **Sensor Logging Methods**
+	/* **Sensors**
 	 *
 	 * These are normally called during each sensors **read** or **update** method, meaning that they will log 
 	 * at a frequency equivalent to the sensor update frequency.

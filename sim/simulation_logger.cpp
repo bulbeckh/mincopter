@@ -55,23 +55,25 @@ SimulationLogger::SimulationLogger(bool overwrite)
 
     if (!simulation_out.good()) std::cout << "ERROR OPENING SIMULATION FILE FOR WRITING\n";
 
-	// Log all sensors by default
-	simlog_flags.log_iteration = true;
-	simlog_flags.log_planner = true;
-	simlog_flags.log_controller = true;
-	simlog_flags.log_ahrs = true;
-	simlog_flags.log_motors = true;
-	simlog_flags.log_pids = true;
-	simlog_flags.log_barometer = true;
-	simlog_flags.log_compass = true;
-	simlog_flags.log_imu = true;
-	simlog_flags.log_gps = true;
+	// Uncomment any of these to update their log frequency
+	simlog_flags.log_iteration = 1;
+	simlog_flags.log_planner = 1;
+	simlog_flags.log_controller = 1;
+	simlog_flags.log_ahrs = 1;
+	simlog_flags.log_motors = 1;
+	simlog_flags.log_inav = 1;
+	simlog_flags.log_inavc = 1;
+	simlog_flags.log_pids = 1;
+	simlog_flags.log_barometer = 1;
+	simlog_flags.log_compass = 1;
+	simlog_flags.log_imu = 1;
+	simlog_flags.log_gps = 1;
 
 }
 
 void SimulationLogger::write_iteration(uint32_t iter)
 {
-	if (lines_written>max_lines) return;
+	if (!simlog_flags.log_iteration || lines_written>max_lines) return;
 
     /* Every 100 iterations (or roughly 1 second) we flush the log buffers */
     if (iter%100==0) {
@@ -85,7 +87,7 @@ void SimulationLogger::write_iteration(uint32_t iter)
 
 void SimulationLogger::write_planner_state()
 {
-	if (lines_written>max_lines) return;
+	if (!simlog_flags.log_planner || lines_written>max_lines) return;
 
 	/* Write loiter step */
 	Vector3f nav_target = planner.wp_nav.get_wp_nav_target();
@@ -114,7 +116,7 @@ void SimulationLogger::write_controller_state()
      *
      */
 
-	if (lines_written>max_lines) return;
+	if (!simlog_flags.log_controller || lines_written>max_lines) return;
 
     simulation_out << "c"
 	<< controller.control_roll << ","
@@ -127,7 +129,7 @@ void SimulationLogger::write_controller_state()
 
 void SimulationLogger::write_ahrs_state()
 {
-	if (lines_written>max_lines) return;
+	if (!simlog_flags.log_ahrs || lines_written>max_lines) return;
 
 	float error_rp = mcstate.ahrs.get_error_rp();
 	float error_yaw = mcstate.ahrs.get_error_yaw();
@@ -155,7 +157,7 @@ void SimulationLogger::write_ahrs_state()
 
 void SimulationLogger::write_motor_outputs()
 {
-	if (lines_written>max_lines) return;
+	if (!simlog_flags.log_motors || lines_written>max_lines) return;
 
     simulation_out << "m,"
 	<< mincopter.motors.get_raw_motor_out(0) << ","
@@ -168,7 +170,7 @@ void SimulationLogger::write_motor_outputs()
 
 void SimulationLogger::write_pid_state(const char* pid_name, int32_t target, int32_t error, int32_t out, int32_t out_max, int32_t out_min)
 {
-	if (lines_written>max_lines) return;
+	if (!simlog_flags.log_pids || lines_written>max_lines) return;
 
 	simulation_out << "pid,"
 		<< pid_name << ","
@@ -183,7 +185,7 @@ void SimulationLogger::write_pid_state(const char* pid_name, int32_t target, int
 
 void SimulationLogger::write_barometer_state(float temperature, float pressure, float altitude_calculated)
 {
-	if (lines_written>max_lines) return;
+	if (!simlog_flags.log_barometer || lines_written>max_lines) return;
 
 	simulation_out << "baro,"
 		<< temperature << ","
@@ -195,18 +197,19 @@ void SimulationLogger::write_barometer_state(float temperature, float pressure, 
 
 void SimulationLogger::write_compass_state(float field_x, float field_y, float field_z)
 {
-	if (lines_written>max_lines) return;
+	if (!simlog_flags.log_compass || lines_written>max_lines) return;
 
 	simulation_out << "comp,"
 		<< field_x << ","
 		<< field_y << ","
 		<< field_z << "\n"; 
 
+	lines_written++;
 }
 
 void SimulationLogger::write_imu_state(Vector3f gyro, Vector3f accel)
 {
-	if (lines_written>max_lines) return;
+	if (!simlog_flags.log_imu || lines_written>max_lines) return;
 
 	simulation_out << "imu,"
 		<< gyro.x << ","
@@ -216,11 +219,12 @@ void SimulationLogger::write_imu_state(Vector3f gyro, Vector3f accel)
 		<< accel.y << ","
 		<< accel.z << "\n";
 
+	lines_written++;
 }
 
 void SimulationLogger::write_inav_state(Vector3f position, Vector3f velocity)
 {
-	if (lines_written>max_lines) return;
+	if (!simlog_flags.log_inav || lines_written>max_lines) return;
 
 	simulation_out << "inav,"
 		<< position.x << ","
@@ -229,12 +233,13 @@ void SimulationLogger::write_inav_state(Vector3f position, Vector3f velocity)
 		<< velocity.x << ","
 		<< velocity.y << ","
 		<< velocity.z << "\n";
-
+	
+	lines_written++;
 }
 
 void SimulationLogger::write_inav_correction(Vector3f pos_correction, Vector3f pos_error, Vector3f accel_correction)
 {
-	if (lines_written>max_lines) return;
+	if (!simlog_flags.log_inavc || lines_written>max_lines) return;
 
 	simulation_out << "inavc,"
 		<< pos_correction.x << ","
@@ -247,11 +252,12 @@ void SimulationLogger::write_inav_correction(Vector3f pos_correction, Vector3f p
 		<< accel_correction.y << ","
 		<< accel_correction.z << "\n";
 
+	lines_written++;
 }
 
 void SimulationLogger::write_gps_state(int32_t lat, int32_t lng, int32_t alt_cm, float vel_north, float vel_east, float vel_down)
 {
-	if (lines_written>max_lines) return;
+	if (!simlog_flags.log_gps || lines_written>max_lines) return;
 
 	simulation_out << "gps,"
 		<< lat << ","
@@ -261,6 +267,7 @@ void SimulationLogger::write_gps_state(int32_t lat, int32_t lng, int32_t alt_cm,
 		<< vel_east << ","
 		<< vel_down << "\n";
 
+	lines_written++;
 }
 
 

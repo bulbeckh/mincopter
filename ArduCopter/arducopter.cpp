@@ -28,6 +28,17 @@
 *
 */
 
+/* There should be strictly three components to the flight loop
+ *
+ * 1. Sensor updates
+ * 2. State updates
+ * 3. Control determination
+ *
+ * + things like logging/comms
+ *
+ */
+
+
 #include <AP_Scheduler.h>       // main loop scheduler
 
 #include "compat.h"
@@ -53,15 +64,22 @@
     GZ_Interface gz_interface;
 #endif
 
-// TODO Check that accessing mincopter directly without dereferencing via pointer will not mess up any virtual methods/inheritance
+/* @brief Interface to the object storing each sensor and other hardware abstraction (DataFlash, Battery, ..) */
 MCInstance mincopter;
 
+/* @brief Interface to the scheduler which runs sensor updates and other non-HAL, non-interrupt functions */
 AP_Scheduler scheduler;
 
+/* @brief Interface to the state estimation module */
 MCState mcstate;
 
-// TODO Define controllers and planners here (and pass mincopter/mcstate as args)
-
+/* ### CONTROLLER & PLANNER ###
+ * We instantiate our chosen controller here so that it can be referenced in other translation units with
+ * extern. The interface is a 'soft interface' as there a no compile time checks that we are not breaking
+ * the abstraction by using a derived class method (for example a method exposed by PID_Controller but
+ * not by MC_Controller). This is the trade-off we make to avoid using a virtual table and extra cycle/cycles
+ * for dereferencing the pointer.
+ */
 #include "control.h"
 #include "controller_pid.h"
 PID_Controller controller;
@@ -70,6 +88,11 @@ PID_Controller controller;
 #include "planner_waypoint.h"
 WP_Planner planner;
 
+/* ### SIMULATION LOGGER ###
+ * In the simulation, we often want to log certain states of function variables and class variables.
+ * Like the planner and the controller, we instantiate an object here an call it's methods when we want
+ * to log.
+ */
 #ifdef TARGET_ARCH_LINUX
     #include "simulation_logger.h"
     SimulationLogger simlog(true);
@@ -79,18 +102,9 @@ WP_Planner planner;
 const AP_HAL::HAL& hal = mincopter.hal;
 
 uint32_t fast_loopTimer;
-uint16_t mainLoop_count;
 
-/* There should be strictly three components to the flight loop
- *
- * 1. Sensor updates
- * 2. State updates
- * 3. Control determination
- *
- * + things like logging/comms
- *
+/* @brief The state update routine. Will update the AHRS, the Inertial Navigation, and some sensors
  */
-
 void state_update()
 {
     mcstate.read_AHRS();
@@ -100,6 +114,8 @@ void state_update()
     mcstate.update_trig();
 }
 
+/* @brief The control update routine. Runs the planner and then the controller.
+ */
 void control_determination()
 {
     /* At lower frequency than controller */
@@ -180,11 +196,6 @@ void loop()
     mincopter.G_Dt                    = (float)(timer - fast_loopTimer) / 1000000.f;
     fast_loopTimer          = timer;
 
-    // for mainloop failure monitoring
-    mainLoop_count++;
-
-	// Sensor Updates are scheduled functions
-
     // Update state
     state_update();
 
@@ -218,8 +229,6 @@ void loop()
 #ifdef TARGET_ARCH_LINUX
 	if (loop_iterations%100==0) std::cout << "TIME LEFT AFTER SCHEDULER RUN us: " << time_elapsed << "\n";
 #endif
-
-    //if (time_elapsed<=(uint32_t)10000) mincopter.hal.scheduler->delay_microseconds(10000-(uint16_t)time_elapsed);
 
 #ifdef TARGET_ARCH_LINUX
 	static uint32_t exit_count=0;
@@ -292,10 +301,11 @@ const AP_Scheduler::Task scheduler_tasks[] PROGMEM = {
 * It should then 'tick' the behaviour tree which runs control libraries.
 */
 
-// Called by HAL
+/* TODO Remove this - this is an artefact from the old Arduino setup/loop format of code. Can reducing bloat
+ * here by moving to a single main function */
 void setup() 
 {
-		// NOTE cliSerial is an alias for mincopter.hal.console
+	// NOTE cliSerial is an alias for mincopter.hal.console
     mincopter.cliSerial = mincopter.hal.console;
 
     init_ardupilot();
