@@ -81,9 +81,37 @@ const AP_HAL::HAL& hal = mincopter.hal;
 uint32_t fast_loopTimer;
 uint16_t mainLoop_count;
 
-// Forward Declaration
-void state_update();
-void control_determination();
+/* There should be strictly three components to the flight loop
+ *
+ * 1. Sensor updates
+ * 2. State updates
+ * 3. Control determination
+ *
+ * + things like logging/comms
+ *
+ */
+
+void state_update()
+{
+    mcstate.read_AHRS();
+
+    read_inertia();
+
+    mcstate.update_trig();
+}
+
+void control_determination()
+{
+    /* At lower frequency than controller */
+    planner.run();
+    controller.run();
+
+#ifdef TARGET_ARCH_LINUX
+    simlog.write_controller_state();
+    simlog.write_planner_state();
+#endif
+
+}
 
 #ifdef TARGET_ARCH_LINUX
 uint32_t loop_iterations=0;
@@ -208,37 +236,6 @@ void loop()
 }
 
 
-/* There should be strictly three components to the flight loop
- *
- * 1. Sensor updates
- * 2. State updates
- * 3. Control determination
- *
- * + things like logging/comms
- *
- */
-
-void state_update()
-{
-    mcstate.read_AHRS();
-
-    read_inertia();
-
-    mcstate.update_trig();
-}
-
-void control_determination()
-{
-    /* At lower frequency than controller */
-    planner.run();
-    controller.run();
-
-#ifdef TARGET_ARCH_LINUX
-    simlog.write_controller_state();
-    simlog.write_planner_state();
-#endif
-
-}
 
 
 /*

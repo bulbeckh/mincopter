@@ -107,7 +107,8 @@ void WP_Planner::run(void)
 	// Yaw determination
 	// NOTE For now we set yaw to zero
 	//controller.control_yaw = get_yaw_slew(controller.control_yaw, original_wp_bearing, AUTO_YAW_SLEW_RATE);
-	controller.control_yaw = get_yaw_slew(controller.control_yaw, mcstate.ahrs.yaw_sensor, AUTO_YAW_SLEW_RATE);
+	//controller.control_yaw = get_yaw_slew(controller.control_yaw, mcstate.ahrs.yaw_sensor, AUTO_YAW_SLEW_RATE);
+	controller.control_yaw = get_yaw_slew(controller.control_yaw, 0, AUTO_YAW_SLEW_RATE);
 	
 	// Throttle determination
 	// TODO VERY TEMPORARY - REMOVE THIS
@@ -174,7 +175,7 @@ void WP_Planner::get_origin_roll_pitch(int16_t& c_roll, int16_t& c_pitch)
 	float norm_y = sin(origin_vector_rad-curr_heading_rad);
 
 	// Part 4. Assign the corresponding roll/pitch
-	int16_t rp_max=200; // 10 degrees
+	int16_t rp_max=1000; // 10 degrees
 	c_roll = (int16_t)(rp_max*norm_y);
 	c_pitch = (int16_t)(-rp_max*norm_x);
 
