@@ -39,7 +39,8 @@ class MPC_Controller : public MC_Controller
 	 * In simulation, we run the planner at 100Hz and take the next control update.
 	 *
 	 * **Libraries**
-	 * We use 
+	 * We use OSQP to solve the control problem at each iteration.
+	 *
 	 */
 
 	public:
@@ -49,7 +50,6 @@ class MPC_Controller : public MC_Controller
 	private:
 
 		// MPC Vars
-
 
 	private:
 
