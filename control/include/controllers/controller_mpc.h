@@ -6,7 +6,7 @@
 #include "control.h"
 
 #ifdef TARGET_ARCH_LINUX
-	#include "osqp.h"
+	// HASH include "osqp.h"
 #endif
 
 class MPC_Controller : public MC_Controller

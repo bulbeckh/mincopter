@@ -45,10 +45,14 @@ void WP_Planner::run(void)
 		// Run pre_arm_checks
 		pre_arm_checks(false);
 		if (!ap.pre_arm_check) {
+#ifdef TARGET_ARCH_LINUX
 			std::cout << "pre arm check failed\n";
+#endif
 			return;
 		} else {
+#ifdef TARGET_ARCH_LINUX
 			std::cout << "pre arm check passed\n";
+#endif
 		}
 
 		// Run final checks

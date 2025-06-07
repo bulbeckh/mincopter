@@ -41,13 +41,11 @@
 
 #include <AP_Scheduler.h>       // main loop scheduler
 
-#include "compat.h"
-
 #include "defines.h"
 #include "config.h"
 
 // Local modules
-#include "compat.h"
+// HASHinclude "compat.h"
 #include "log.h"
 #include "init.h"
 #include "util.h"

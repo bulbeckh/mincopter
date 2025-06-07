@@ -63,7 +63,7 @@ add_library(libs_control STATIC ${MC_LIBS_CONTROL})
 
 ## Temporary fix
 target_include_directories(libs_control PUBLIC
-	ArduCopter/
+	mincopter/
 	arch/AP_HAL
 	arch/AP_HAL_AVR
 	arch/AP_HAL_Linux
@@ -110,7 +110,7 @@ endforeach()
 
 add_library(libs_state STATIC ${MC_LIBS_STATE})
 target_include_directories(libs_state PUBLIC
-	ArduCopter/
+	mincopter/
 	arch/AP_HAL
 	arch/AP_HAL_AVR
 	arch/AP_HAL_Linux
@@ -213,7 +213,7 @@ target_include_directories(libs_sim PUBLIC
 	control/include/planners/AC_WPNav
 	control/include/planners/
 	sim/
-	ArduCopter/
+	mincopter/
 )
 
 #### Build - arch/ ####
@@ -278,7 +278,7 @@ endforeach()
 
 add_library(libs_common STATIC ${MC_LIBS_COMMON})
 target_include_directories(libs_common PUBLIC
-	ArduCopter/
+	mincopter/
 	lib/AP_Common
 	lib/AP_Curve
 	lib/AP_Menu
@@ -316,9 +316,9 @@ target_include_directories(libs_common PUBLIC
 #### Build - mincopter/ ####
 add_executable(mincopter
 	# TODO Change the name
-	ArduCopter/arducopter.cpp
-	ArduCopter/init.cpp
-	ArduCopter/mcinstance.cpp
+	mincopter/mincopter.cpp
+	mincopter/init.cpp
+	mincopter/mcinstance.cpp
 )
 
 target_link_libraries(mincopter
@@ -331,7 +331,7 @@ target_link_libraries(mincopter
 )
 
 target_include_directories(mincopter PUBLIC
-	ArduCopter/
+	mincopter/
 	arch/AP_HAL
 	arch/AP_HAL_AVR
 	arch/AP_HAL_Linux
