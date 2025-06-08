@@ -9,6 +9,9 @@
 	// HASH include "osqp.h"
 #endif
 
+
+// TODO Fix this - bad way to do it
+
 class MPC_Controller : public MC_Controller
 {
 	public:
@@ -43,15 +46,47 @@ class MPC_Controller : public MC_Controller
 	 *
 	 */
 
+	/* A note on the OSQP code generation
+	 *
+	 * In our python script in control/design, we use OSQP to generate the boilerplate for our QP. This generates 
+	 * three files that is specific to this problem: emosqp.c, workspace.h, and workspace.c .
+	 *
+	 */
+
 	public:
 
 		void run() override;
 
 	private:
 
-		// MPC Vars
+		OSQPInt exitflag;
+
+		/* Aside from the variables that need to be changed, the full definitions of each of these should
+		 * reside in something akin to the OSQP 'workspace.c' file where they are defined static to that TU
+		 */
+
+		OSQPFloat lower_constraint[240];
+		OSQPFloat upper_constraint[240];
+
+		OSQPFloat q_constraint[160];
+
+		OSQPFloat linearised_A[144];
+
+		// NOTE This is now defined in the generated workspace.c file and externed
+		//OSQPSolver solver;
 
 	private:
+
+		/* @brief Buffer containing the full 12-state reference trajectory over the next 10 steps */
+		OSQPFloat state_reference[120];
+
+		/* @brief Keeps track of where in our buffer the state starts from */
+		uint32_t state_reference_idx=0;
+
+	public:
+
+		void update_state_reference();
+
 
 
 };
