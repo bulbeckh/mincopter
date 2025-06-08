@@ -79,8 +79,10 @@ MCState mcstate;
  * for dereferencing the pointer.
  */
 #include "control.h"
-#include "controller_pid.h"
-PID_Controller controller;
+// HASH include "controller_pid.h"
+//PID_Controller controller;
+#include "controller_mpc.h"
+MPC_Controller controller;
 
 #include "planner.h"
 #include "planner_waypoint.h"

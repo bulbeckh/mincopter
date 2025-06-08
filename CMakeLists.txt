@@ -59,7 +59,14 @@ foreach(src ${MC_LIBS_CONTROL})
 	message(STATUS "${src}")
 endforeach()
 
-add_library(libs_control STATIC ${MC_LIBS_CONTROL})
+add_library(libs_control STATIC ${MC_LIBS_CONTROL}
+	control/design/src/RapidQuadrocopterTrajectories/cgen/workspace.c
+)
+
+target_link_libraries(libs_control
+	## OSQP Libraries
+	${CMAKE_SOURCE_DIR}/control/design/src/RapidQuadrocopterTrajectories/cgen/build/libosqpstatic.a
+)
 
 ## Temporary fix
 target_include_directories(libs_control PUBLIC
@@ -96,6 +103,11 @@ target_include_directories(libs_control PUBLIC
 	control/include/planners/AC_WPNav
 	control/include/planners/
 	sim/
+
+	## OSQP Headers
+	control/design/src/RapidQuadrocopterTrajectories/cgen/inc/private
+	control/design/src/RapidQuadrocopterTrajectories/cgen/inc/public
+	control/design/src/RapidQuadrocopterTrajectories/cgen/
 )
 
 get_target_property(dirs libs_control INCLUDE_DIRECTORIES)
