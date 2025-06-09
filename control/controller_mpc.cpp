@@ -17,7 +17,7 @@ extern "C" {
 	extern OSQPSolver solver;
 }
 
-
+// NOTE Move this constructor into it's own translation unit
 MPC_Controller::MPC_Controller()
 	: MC_Controller(),
   	linearised_A{
@@ -797,11 +797,65 @@ void MPC_Controller::run()
 	iter++;
 #endif
 	
-
-
-
-
-
+	// TODO For now, use a mixer function embedded into the MPC to convert to a PWM signal but later move mixer to own class
+	
+	mixer_generate_pwm(control_vector[0], control_vector[1], control_vector[2], control_vector[3]);
 
 }
+
+void MPC_Controller::mixer_generate_pwm(float thrust, float roll, float pitch, float yaw)
+{
+	// Generate allocation for each motor
+	// Conversion from motor force to velocity (using quadratic model)
+	// Call the GZ_interface directly to update (don't use AP_Motors)
+
+	float allocation[4];
+	float rotor_speed[4]; // rad/s
+
+	// TODO To be updated
+	allocation[0] = 1*thrust + -1*roll + -1*pitch + 1*yaw;
+	allocation[1] = 1*thrust + 1*roll + -1*pitch + -1*yaw;
+	allocation[2] = 1*thrust + -1*roll + 1*pitch + 1*yaw;
+	allocation[3] = 1*thrust + 1*roll + 1*pitch + -1*yaw;
+
+
+	/* Using standard model quadratic model for rotor thrust: F = k_{t}\omega^{2}
+	 *
+	 * \omega = sqrt(F/k_{t})
+	 *
+	 */
+
+	float kt = 1e-5;
+
+	for (int i=0;i<4;i++) {
+		allocation[i] = ap_max(0.0f, allocation[i]);
+		rotor_speed[i] = sqrt(allocation[i]/kt);
+	}
+
+	/* Scaling
+	 *
+	 * Simulated motors have a PWM range of [1100,1900]
+	 *
+	 * Max rotor_speed is 838 RPM ~= 87.7 rad/s
+	 *
+	 */
+
+	uint32_t pwm[4];
+
+	for (int i=0;i<4;i++) pwm[i] = 1100 + uint32_t((rotor_speed[i]/87.7f)*800);
+
+#ifdef TARGET_ARCH_LINUX
+	static uint32_t iter2=0;
+	if (iter2%100==0) {
+		std::cout << "RS: " << rotor_speed[0] << " " << rotor_speed[1] << " " << rotor_speed[2] << " " << rotor_speed[3] << "\n";
+		std::cout << "PWM: " << pwm[0] << "  " << pwm[1] << " " << pwm[2] << " " << pwm[4] << "\n";
+		iter2=0;
+	}
+	iter2++;
+#endif
+
+}
+
+
+
 

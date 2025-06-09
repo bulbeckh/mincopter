@@ -83,6 +83,14 @@ class MPC_Controller : public MC_Controller
 
 		void update_state_reference();
 
+	private:
+		/* @brief Mixer algorithm to generate PWM signals from control vector
+		 * @param thrust The desired total thrust (in Newtons) from the four motors
+		 * @param roll The desired roll torque (in newton-metres)
+		 * @param pitch The desired pitch torque (in newton-metres)
+		 * @param yaw The desired yaw torque (in newton-metres)
+		 */
+		void mixer_generate_pwm(float thrust, float roll, float pitch, float yaw);
 
 
 };
