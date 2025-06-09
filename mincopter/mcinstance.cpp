@@ -13,8 +13,6 @@ extern MCState mcstate;
 extern WP_Planner planner;
 
 #include "control.h"
-#include "controller_pid.h"
-extern PID_Controller controller;
 
 #ifdef TARGET_ARCH_LINUX
 	#include <iostream>

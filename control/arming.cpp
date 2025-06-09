@@ -10,12 +10,11 @@
 #include "mcinstance.h"
 #include "mcstate.h"
 
-#include "controller_pid.h"
+#include "control.h"
 
 extern MCInstance mincopter;
 extern MCState mcstate;
 
-extern PID_Controller controller;
 
 #include "log.h"
 #include "init.h"

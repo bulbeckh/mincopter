@@ -15,12 +15,8 @@ extern MCState mcstate;
  * Either the planner should set controller control variables directly like 'controller_desired_altitude' or the controller should request
  * the variables from the planner.
  */
+
 #include "control.h"
-#include "controller_pid.h"
-//extern PID_Controller controller;
-// TODO Now we are running into issues between controllers and controller interface
-#include "controller_mpc.h"
-extern MPC_Controller controller;
 
 #ifdef TARGET_ARCH_LINUX
     #include <iostream>

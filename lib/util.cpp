@@ -15,8 +15,6 @@ extern MCState mcstate;
 extern WP_Planner planner;
 
 #include "control.h"
-#include "controller_pid.h"
-extern PID_Controller controller;
 
 // ap_state.pde
 void set_home_is_set(bool b)

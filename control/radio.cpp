@@ -14,8 +14,7 @@ extern MCState mcstate;
 #include "planner_waypoint.h"
 extern WP_Planner planner;
 
-#include "controller_pid.h"
-extern PID_Controller controller;
+#include "control.h"
 
 #include "util.h"
 

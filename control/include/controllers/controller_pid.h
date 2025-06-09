@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-#include "control.h"
+#include "controller_interface.h"
 #include "mcinstance.h"
 #include "mcstate.h"
 

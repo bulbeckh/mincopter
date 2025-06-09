@@ -10,8 +10,6 @@ extern MCInstance mincopter;
 extern MCState state;
 
 #include "control.h"
-#include "controller_pid.h"
-extern PID_Controller controller;
 
 #include "planner.h"
 #include "planner_waypoint.h"

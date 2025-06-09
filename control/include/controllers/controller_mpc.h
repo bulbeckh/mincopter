@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-#include "control.h"
+#include "controller_interface.h"
 
 #ifdef TARGET_ARCH_LINUX
 	#include "osqp.h"
