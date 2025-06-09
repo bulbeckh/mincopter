@@ -68,7 +68,7 @@ SimulationLogger::SimulationLogger(bool overwrite)
 	simlog_flags.log_compass = 1;
 	simlog_flags.log_imu = 1;
 	simlog_flags.log_gps = 1;
-
+	simlog_flags.log_mpc = 1;
 }
 
 void SimulationLogger::write_iteration(uint32_t iter)
@@ -270,5 +270,15 @@ void SimulationLogger::write_gps_state(int32_t lat, int32_t lng, int32_t alt_cm,
 	lines_written++;
 }
 
+void SimulationLogger::write_mpc_control_output(float total_thrust, float roll_torque, float pitch_torque, float yaw_torque)
+{
+	if (!simlog_flags.log_mpc || lines_written>max_lines) return;
+
+	simulation_out << "mpc,"
+		<< total_thrust << ","
+		<< roll_torque << ","
+		<< pitch_torque << ","
+		<< yaw_torque << "\n";
+}
 
 

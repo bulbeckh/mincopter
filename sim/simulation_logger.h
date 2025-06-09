@@ -44,6 +44,7 @@ class SimulationLogger
 		uint16_t log_compass = 0;
 		uint16_t log_imu = 0;
 		uint16_t log_gps = 0;
+		uint16_t log_mpc = 0;
 	} simlog_flags;
 
 	// TODO Add a setter method for these flags
@@ -110,7 +111,13 @@ class SimulationLogger
 	 * */
 	void write_gps_state(int32_t lat, int32_t lng, int32_t alt_cm, float vel_north, float vel_east, float vel_down);
 	
-
+	/* @brief Write an MPC control output
+	 * @param total_thrust Output thurst
+	 * @param roll_torque Output roll torque
+	 * @param pitch_torque Output pitch torque
+	 * @param yaw_torque Output yaw torque
+	 */
+	void write_mpc_control_output(float total_thrust, float roll_torque, float pitch_torque, float yaw_torque);
 
 
 

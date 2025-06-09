@@ -82,6 +82,10 @@ class GZ_Interface {
 	/* @brief Holds the raw memory stream from a UDP packet */
 	char buffer[1024];
 
+	public:
+		/* @brief Holds the control PWM signals when using direct updates rather than via AP_Motors */
+		uint16_t control_pwm[4];
+
     public:
 		/* @brief Set up UDP socket between this and GZ server process */
 		bool setup_sim_socket();

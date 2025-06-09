@@ -4,6 +4,12 @@
 
 #ifdef TARGET_ARCH_LINUX
 	#include <iostream>
+
+	#include "gz_interface.h"
+	extern GZ_Interface gz_interface;
+
+	#include "simulation_logger.h"
+	extern SimulationLogger simlog;
 #endif
 
 #include "mcstate.h"
@@ -813,9 +819,9 @@ void MPC_Controller::mixer_generate_pwm(float thrust, float roll, float pitch, f
 	float rotor_speed[4]; // rad/s
 
 	// TODO To be updated
-	allocation[0] = 1*thrust + -1*roll + -1*pitch + 1*yaw;
-	allocation[1] = 1*thrust + 1*roll + -1*pitch + -1*yaw;
-	allocation[2] = 1*thrust + -1*roll + 1*pitch + 1*yaw;
+	allocation[0] = 1*thrust + -1*roll + 1*pitch + 1*yaw;
+	allocation[1] = 1*thrust + 1*roll + -1*pitch + 1*yaw;
+	allocation[2] = 1*thrust + -1*roll + -1*pitch + -1*yaw;
 	allocation[3] = 1*thrust + 1*roll + 1*pitch + -1*yaw;
 
 
@@ -825,7 +831,7 @@ void MPC_Controller::mixer_generate_pwm(float thrust, float roll, float pitch, f
 	 *
 	 */
 
-	float kt = 1e-5;
+	float kt = 1.5e-6;
 
 	for (int i=0;i<4;i++) {
 		allocation[i] = ap_max(0.0f, allocation[i]);
@@ -842,13 +848,18 @@ void MPC_Controller::mixer_generate_pwm(float thrust, float roll, float pitch, f
 
 	uint32_t pwm[4];
 
-	for (int i=0;i<4;i++) pwm[i] = 1100 + uint32_t((rotor_speed[i]/87.7f)*800);
+	for (int i=0;i<4;i++) pwm[i] = ap_min(1100 + uint32_t((rotor_speed[i]/87.7f)*800), 1900);
 
 #ifdef TARGET_ARCH_LINUX
+	simlog.write_mpc_control_output(thrust, roll, pitch, yaw);
+
+	// Assign control to signal
+	for (int i=0;i<4;i++) gz_interface.control_pwm[i] = pwm[i];
+
 	static uint32_t iter2=0;
 	if (iter2%100==0) {
 		std::cout << "RS: " << rotor_speed[0] << " " << rotor_speed[1] << " " << rotor_speed[2] << " " << rotor_speed[3] << "\n";
-		std::cout << "PWM: " << pwm[0] << "  " << pwm[1] << " " << pwm[2] << " " << pwm[4] << "\n";
+		std::cout << "PWM: " << pwm[0] << "  " << pwm[1] << " " << pwm[2] << " " << pwm[3] << "\n";
 		iter2=0;
 	}
 	iter2++;
