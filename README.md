@@ -23,6 +23,19 @@ TODO
 | AVR | xx | xx |
 | ARM | xx | xx |
 
+## Baseline against other open source flight controllers
+| Project |
+| -- |
+| ArduPilot |
+| PX4 |
+| Betaflight |
+| iNav |
+| Papparazzi UAV |
+
+What about AutoQuad, 3DR, .. - these are hardware vendors no?
+
+Look at dronecode.org for more partners of the drone software ecosystem
+
 
 ## Dependencies
 TODO - Add each of the backend compilers (gcc-libc, avr-gcc, gcc-arm-none-eabi)
