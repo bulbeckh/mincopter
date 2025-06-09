@@ -5,7 +5,7 @@
 #define AUTO_TRIM_DELAY         100 // called at 10hz so 10 seconds
 #define AUTO_DISARMING_DELAY    15  // called at 1hz so 15 seconds
 
-#include "planner_waypoint.h"
+#include "planner.h"
 
 #include "mcinstance.h"
 #include "mcstate.h"

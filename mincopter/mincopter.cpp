@@ -79,10 +79,7 @@ MCState mcstate;
  * for dereferencing the pointer.
  */
 #include "control.h"
-
 #include "planner.h"
-#include "planner_waypoint.h"
-WP_Planner planner;
 
 /* ### SIMULATION LOGGER ###
  * In the simulation, we often want to log certain states of function variables and class variables.

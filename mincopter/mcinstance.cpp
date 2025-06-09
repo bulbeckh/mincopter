@@ -9,9 +9,6 @@ extern MCInstance mincopter;
 extern MCState mcstate;
 
 #include "planner.h"
-#include "planner_waypoint.h"
-extern WP_Planner planner;
-
 #include "control.h"
 
 #ifdef TARGET_ARCH_LINUX

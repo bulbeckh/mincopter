@@ -11,9 +11,6 @@ extern MCInstance mincopter;
 extern MCState mcstate;
 
 #include "planner.h"
-#include "planner_waypoint.h"
-extern WP_Planner planner;
-
 #include "control.h"
 
 // ap_state.pde

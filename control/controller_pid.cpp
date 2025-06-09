@@ -8,10 +8,10 @@
 
 #include "mcinstance.h"
 #include "mcstate.h"
+
+// TODO Why is a planner being reference in a controller class??
 #include "planner.h"
 
-// TODO Move this directly to the planner,h file
-#include "planner_waypoint.h"
 
 extern MCInstance mincopter;
 extern MCState    mcstate;
@@ -20,14 +20,6 @@ extern MCState    mcstate;
     #include "simulation_logger.h"
     extern SimulationLogger simlog;
 #endif
-
-/* TODO Change these extern references to defines that expand to the planner configuration being used
- *
- * For example, it would have something like
- *
- * `extern PLANNER_TYPE planner;` which would expand to `extern WP_Planner planner;`
- */
-extern WP_Planner planner;
 
 void PID_Controller::run()
 {

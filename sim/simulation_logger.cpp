@@ -12,9 +12,6 @@ extern MCState state;
 #include "control.h"
 
 #include "planner.h"
-#include "planner_waypoint.h"
-extern WP_Planner planner;
-
 
 SimulationLogger::~SimulationLogger() {
     simulation_out.close();

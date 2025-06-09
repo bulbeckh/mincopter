@@ -46,7 +46,7 @@
  *
  */
 
-#include "planner.h"
+#include "planner_interface.h"
 #include "config.h"
 
 enum class WP_FLIGHT_STATE
