@@ -43,18 +43,34 @@ TODO - Add each of the backend compilers (gcc-libc, avr-gcc, gcc-arm-none-eabi)
 testing update
 
 ## Building (see docs)
-1. Navigate to build/
+1. To use the MPC controller, we need to additionally running the MPC design notebook in control/design/src/RapidQuadrocopterTrajectories/combined-osqp.ipynb
+```bash
+cd control/design/src/RapidQuadrocopterTrajectories/
+jupyter notebook
+## Run the combined-osqp.ipynb which will generate the code in cgen/ as well as generate the controller_mpc_constructor.cpp file in control/
+```
+
+2. Then build the generated C code and the static OSQP library
+```bash
+cd cgen/
+mkdir build
+cd build
+cmake ..
+make
+```
+3. Navigate to build/
 ```bash
 cd ./build
 ```
 
-2. Run CMake, specifying the target architecture. A full list is in ./xx
+4. Run CMake, specifying the target architecture. A full list is in ./xx
 ```bash
 cmake .. -DTARGET_ARCH=<target_architecture>
 ```
 
-3. Run Make
+5. Run Make from project build directory
 ```bash
+cd build
 make -j4
 ```
 

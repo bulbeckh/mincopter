@@ -80,8 +80,11 @@ class MPC_Controller : public MC_Controller
 		uint32_t state_reference_idx=0;
 
 	public:
+		/* @brief Updates the controller state reference with a full 10 step horizon 12-state vector */
+		void update_state_reference(float* ref_array);
 
-		void update_state_reference();
+		/* @brief Updates the controller state reference with a constant 12-state horizon */
+		void update_constant_state_reference(float* ref_array);
 
 	private:
 		/* @brief Mixer algorithm to generate PWM signals from control vector

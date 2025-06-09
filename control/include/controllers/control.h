@@ -71,6 +71,13 @@ class MC_Controller {
 		int16_t max_climb_rate;
 		int16_t min_climb_rate;
 
+		/* @brief The current climb rate. Used during call to get_throttle_rate (high-level) */
+		// TODO Where is climb rate actually set??
+		int16_t climb_rate;
+
+		// NOTE TODO Duplicate with state vector
+		/* @brief The desired altitude in cm. Setup by planner */
+		float controller_desired_alt;
 
 };
 

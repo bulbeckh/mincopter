@@ -17,7 +17,10 @@ extern MCState mcstate;
  */
 #include "control.h"
 #include "controller_pid.h"
-extern PID_Controller controller;
+//extern PID_Controller controller;
+// TODO Now we are running into issues between controllers and controller interface
+#include "controller_mpc.h"
+extern MPC_Controller controller;
 
 #ifdef TARGET_ARCH_LINUX
     #include <iostream>
@@ -78,6 +81,14 @@ void WP_Planner::run(void)
 			return;
 		}
     }
+
+	// On the first iteration of the planner, we initialise the controller with a reference trajectory
+	static uint8_t state_ref_call=0;
+	if (!state_ref_call) {
+		float ref[12] = {4, 7, -10, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+		controller.update_constant_state_reference(ref);
+		state_ref_call=1;
+	}
 
 	/*
 	 * 1. Check failsafe and fence.
@@ -357,6 +368,7 @@ void WP_Planner::reset_land_detector()
 }
 
 // get_initial_alt_hold - get new target altitude based on current altitude and climb rate
+/*
 int32_t WP_Planner::get_initial_alt_hold( int32_t alt_cm, int16_t climb_rate_cms)
 {
     int32_t target_alt;
@@ -384,15 +396,15 @@ bool WP_Planner::init_throttle( uint8_t new_throttle_mode )
     wp_nav.set_desired_alt(controller.controller_desired_alt);                                 // same as above but for loiter controller
     throttle_initialised = true;
 
-		/* LANDING case
-            reset_land_detector();  // initialise land detector
-            mincopter.controller_desired_alt = get_initial_alt_hold(mcstate.current_loc.alt, mincopter.climb_rate);   // reset controller desired altitude to current altitude
-            throttle_initialised = true;
-            break;
-		*/
+		// LANDING case
+            //reset_land_detector();  // initialise land detector
+            //mincopter.controller_desired_alt = get_initial_alt_hold(mcstate.current_loc.alt, mincopter.climb_rate);   // reset controller desired altitude to current altitude
+            //throttle_initialised = true;
+            //break;
 
     return throttle_initialised;
 }
+*/
 
 
 void WP_Planner::fence_check()

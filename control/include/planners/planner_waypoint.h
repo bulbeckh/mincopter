@@ -186,12 +186,15 @@ class WP_Planner : public MC_Planner
 		*/
 		void reset_land_detector();
 
+		// TODO NOTE init_throttle and get_initial_alt_hold use PI controllers that are outside of the controller abstraction. These PI
+		// controllers may even be better moved to the planner
+
 		/* @brief Sets throttle mode
 		*/
-		bool init_throttle( uint8_t new_throttle_mode );
+		//bool init_throttle( uint8_t new_throttle_mode );
 
 		/* This is called during set_throttle_mode to get the initial alt hold desired altitude */
-		int32_t get_initial_alt_hold( int32_t alt_cm, int16_t climb_rate_cms);
+		//int32_t get_initial_alt_hold( int32_t alt_cm, int16_t climb_rate_cms);
 
 		/****** Arming Functions ******/
 

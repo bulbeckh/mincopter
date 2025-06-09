@@ -107,13 +107,8 @@ class PID_Controller : public MC_Controller
     	int16_t        throttle_min;
     	int16_t        throttle_max;
 
-		/* @brief The desired altitude in cm. Setup by planner */
-		// TODO Move this to the control.h abstraction (or just use the control_z state variable)
-		float controller_desired_alt;
+		
 
-		/* @brief The current climb rate. Used during call to get_throttle_rate (high-level) */
-		// TODO Where is climb rate actually set??
-		int16_t climb_rate;
 	
 		// Used for logging during run of rate controllers - can remove
 		int16_t angle_boost;
