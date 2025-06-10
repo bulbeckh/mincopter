@@ -105,8 +105,8 @@ target_include_directories(libs_control PUBLIC
 	sim/
 
 	## OSQP Headers
-	control/design/src/RapidQuadrocopterTrajectories/cgen/inc/private
-	control/design/src/RapidQuadrocopterTrajectories/cgen/inc/public
+	control/design/src/RapidQuadrocopterTrajectories/cgen/inc/private/
+	control/design/src/RapidQuadrocopterTrajectories/cgen/inc/public/
 	control/design/src/RapidQuadrocopterTrajectories/cgen/
 )
 
@@ -227,6 +227,7 @@ target_include_directories(libs_sim PUBLIC
 	sim/
 	mincopter/
 )
+target_link_libraries(libs_sim PUBLIC libs_control)
 
 #### Build - arch/ ####
 ## This is dependent on the target architecture.
@@ -324,6 +325,7 @@ target_include_directories(libs_common PUBLIC
 	control/include/planners/
 	sim/
 )
+target_link_libraries(libs_common PUBLIC libs_control)
 
 #### Build - mincopter/ ####
 add_executable(mincopter

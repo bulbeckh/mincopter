@@ -23,6 +23,9 @@ extern "C" {
 	extern OSQPSolver solver;
 }
 
+/* Instantiate MPC_Controller here */
+MPC_Controller controller;
+
 void MPC_Controller::run()
 {
 	// NOTE This is called at 100Hz currently but our linearised system is at 10Hz so we should actually update the MPC every 10 iterations

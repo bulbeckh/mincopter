@@ -22,6 +22,9 @@ extern MCState mcstate;
     #include <iostream>
 #endif
 
+/* Instantiate WP_Planner here */
+WP_Planner planner;
+
 void WP_Planner::run(void)
 {
     /* When the planner is first run, it needs to wait until the sensor signals are all correct (i.e. GPS

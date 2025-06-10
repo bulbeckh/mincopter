@@ -57,7 +57,10 @@ void init_rc_out()
 	// NOTE TODO This is hardcoded to 1 which is the X orientation frame
     mincopter.motors.set_frame_orientation(1);
     mincopter.motors.Init();                                              // motor initialisation
+
+#ifdef CONTROLLER_PID
     mincopter.motors.set_min_throttle(controller.throttle_min);
+#endif
 
 		/*
     for(uint8_t i = 0; i < 5; i++) {

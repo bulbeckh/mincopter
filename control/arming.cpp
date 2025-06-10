@@ -92,7 +92,9 @@ void WP_Planner::init_arm_motors()
 
     // all I terms are invalid
     // -----------------------
+#if CONTROLLER_PID
     controller.reset_I_all();
+#endif
 
 		// TODO Removed because startup_ground function missing/removed. Investigate further
 		/*
@@ -118,10 +120,14 @@ void WP_Planner::init_arm_motors()
 
     // Cancel arming if throttle is raised too high so that copter does not suddenly take off
     //read_radio();
+	
+	// TODO This breaks the controller abstraction - need to fix. For now just adding a directive as workaround
+#if CONTROLLER_PID
     if (mincopter.rc_3.control_in > controller.throttle_cruise && controller.throttle_cruise > 100) {
         mincopter.motors.output_min();
         return;
     }
+#endif
 
     // enable output to motors
 	init_rc_out();

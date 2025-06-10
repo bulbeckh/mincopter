@@ -288,7 +288,7 @@ void Log_Write_Control_Tuning()
         LOG_PACKET_HEADER_INIT(LOG_CONTROL_TUNING_MSG),
         time_ms             : mincopter.hal.scheduler->millis(),
         throttle_in         : mincopter.rc_3.control_in,
-        angle_boost         : controller.angle_boost,
+        angle_boost         : 0.0, /*controller.angle_boost, */
         throttle_out        : mincopter.rc_3.servo_out,
         desired_alt         : 0.0, // NOTE rmeoved the following function: get_target_alt_for_reporting() / 100.0f,
         inav_alt            : mcstate.current_loc.alt / 100.0f,
@@ -459,7 +459,7 @@ void Log_Write_Mode(uint8_t mode)
     struct log_Mode pkt = {
         LOG_PACKET_HEADER_INIT(LOG_MODE_MSG),
         mode            : mode,
-        throttle_cruise : controller.throttle_cruise,
+        throttle_cruise : 0.0f /*controller.throttle_cruise, */
     };
     mincopter.DataFlash.WriteBlock(&pkt, sizeof(pkt));
 }

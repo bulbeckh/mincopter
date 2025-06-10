@@ -171,7 +171,7 @@ void one_hz_loop()
 
 		// TODO Move these to btree
 		// pass latest alt hold kP value to navigation controller
-		planner.wp_nav.set_althold_kP(controller.pi_alt_hold.kP());
+		/* planner.wp_nav.set_althold_kP(controller.pi_alt_hold.kP()); */
 
 		// update latest lean angle to navigation controller
 		planner.wp_nav.set_lean_angle_max(planner.angle_max);
