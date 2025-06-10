@@ -47,7 +47,7 @@
 // Local modules
 // HASHinclude "compat.h"
 #include "log.h"
-#include "init.h"
+// HASH include "init.h" // Replaced with forward declaration
 #include "util.h"
 
 #include "profiler.h"
@@ -95,6 +95,9 @@ MCState mcstate;
 const AP_HAL::HAL& hal = mincopter.hal;
 
 uint32_t fast_loopTimer;
+
+/* @brief Initialises the ardupilot. Defined in init.cpp */
+void init_ardupilot();
 
 /* @brief The state update routine. Will update the AHRS, the Inertial Navigation, and some sensors
  */

@@ -20,7 +20,6 @@ extern MCState mcstate;
 #include "defines.h"
 #include "util.h"
 #include "log.h"
-#include "init.h"
 
 void read_compass(void) {
 	mincopter.compass.accumulate();

@@ -17,7 +17,6 @@ extern MCState mcstate;
 
 
 #include "log.h"
-#include "init.h"
 #include "radio.h"
 #include "util.h"
 

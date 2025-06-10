@@ -1,6 +1,4 @@
 
-#include "init.h"
-
 #include "mcinstance.h"
 #include "mcstate.h"
 
