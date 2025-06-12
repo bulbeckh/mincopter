@@ -126,10 +126,11 @@ void MPC_Controller::run()
 		iter=0;
 	}
 	iter++;
+
+	simlog.write_mpc_control_output(control_vector[0], control_vector[1], control_vector[2], control_vector[3]);
 #endif
 	
 	// TODO For now, use a mixer function embedded into the MPC to convert to a PWM signal but later move mixer to own class
-	
 	mixer_generate_pwm(control_vector[0], control_vector[1], control_vector[2], control_vector[3]);
 
 }
@@ -143,12 +144,7 @@ void MPC_Controller::mixer_generate_pwm(float thrust, float roll, float pitch, f
 	float allocation[4];
 	float rotor_speed[4]; // rad/s
 
-	// TODO To be updated
-	allocation[0] = 1*thrust + -1*roll + 1*pitch + 1*yaw;
-	allocation[1] = 1*thrust + 1*roll + -1*pitch + 1*yaw;
-	allocation[2] = 1*thrust + -1*roll + -1*pitch + -1*yaw;
-	allocation[3] = 1*thrust + 1*roll + 1*pitch + -1*yaw;
-
+	/* This allocation matrix has been pre-calculated in the MixerSolution ipynb */
 
 	/* Using standard model quadratic model for rotor thrust: F = k_{t}\omega^{2}
 	 *
@@ -156,11 +152,14 @@ void MPC_Controller::mixer_generate_pwm(float thrust, float roll, float pitch, f
 	 *
 	 */
 
-	float kt = 1.5e-6;
+	allocation[0] = 83333.333*thrust - 1282051.282*roll + 83333.333*pitch + 83333.333*yaw;
+	allocation[1] = 83333.333*thrust + 1282051.282*roll - 83333.333*pitch + 83333.333*yaw;
+	allocation[2] = 83333.333*thrust - 1282051.282*roll - 83333.333*pitch + 83333.333*yaw;
+	allocation[3] = 83333.333*thrust + 1282051.282*roll + 83333.333*pitch + 83333.333*yaw;
 
 	for (int i=0;i<4;i++) {
 		allocation[i] = ap_max(0.0f, allocation[i]);
-		rotor_speed[i] = sqrt(allocation[i]/kt);
+		rotor_speed[i] = sqrt(allocation[i]);
 	}
 
 	/* Scaling
@@ -173,10 +172,14 @@ void MPC_Controller::mixer_generate_pwm(float thrust, float roll, float pitch, f
 
 	uint32_t pwm[4];
 
-	for (int i=0;i<4;i++) pwm[i] = ap_min(1100 + uint32_t((rotor_speed[i]/87.7f)*800), 1900);
+	for (int i=0;i<4;i++) {
+		//float calc_max = 2157.55f;
+		float calc_max = 1500;
+		float rs_limit = ap_min(rotor_speed[i], calc_max);
+		pwm[i] = ap_min(1100 + uint32_t((rs_limit/calc_max)*800), 1900);
+	}
 
 #ifdef TARGET_ARCH_LINUX
-	simlog.write_mpc_control_output(thrust, roll, pitch, yaw);
 
 	// Assign control to signal
 	for (int i=0;i<4;i++) gz_interface.control_pwm[i] = pwm[i];

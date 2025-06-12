@@ -89,19 +89,20 @@ bool GZ_Interface::send_control_output()
 		control_pkt.pwm[2] = control_pwm[3];
 		control_pkt.pwm[3] = control_pwm[2];
 	} else {
+		/*
 		control_pkt.pwm[0] = mincopter.motors.get_raw_motor_out(0);
 		control_pkt.pwm[1] = mincopter.motors.get_raw_motor_out(1);
 		// NOTE This has been changed in order to align with the new motor orientation as per AP_MotorsQuad
 		control_pkt.pwm[2] = mincopter.motors.get_raw_motor_out(3);
 		control_pkt.pwm[3] = mincopter.motors.get_raw_motor_out(2);
+		*/
+		// NOTE Temporarily sending max servo to determine the acceleration rate
+		control_pkt.pwm[0] = 1900;
+		control_pkt.pwm[1] = 1900;
+		control_pkt.pwm[2] = 1900;
+		control_pkt.pwm[3] = 1900;
 	}
 
-	/*
-	control_pkt.pwm[0] = 1900;
-	control_pkt.pwm[1] = 1900;
-	control_pkt.pwm[2] = 1900;
-	control_pkt.pwm[3] = 1900;
-	*/
 
     // Send packet
     struct sockaddr_in cliaddr;
