@@ -115,6 +115,10 @@ void MPC_Controller::run()
 		control_vector[i] = solver.solution->x[120+i];
 	}
 
+	/* The MPC solution was linearised around [9.8, 0, 0, 0] which was a change of variables. We need to add back 9.8 to our first
+	 * control vector to get the actual required force */
+	control_vector[0] += 9.8f;
+
 #ifdef TARGET_ARCH_LINUX
 	static uint32_t iter=0;
 	if (iter%10==0) {
