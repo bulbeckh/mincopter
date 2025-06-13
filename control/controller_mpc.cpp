@@ -18,6 +18,8 @@ extern MCState mcstate;
 #include "mcinstance.h"
 extern MCInstance mincopter;
 
+#include "AP_Math.h"
+
 // NOTE The solver is defined in the generated **workspace.c** file
 extern "C" {
 	extern OSQPSolver solver;
@@ -152,15 +154,21 @@ void MPC_Controller::mixer_generate_pwm(float thrust, float roll, float pitch, f
 	 *
 	 */
 
-	allocation[0] = 83333.333*thrust - 1282051.282*roll + 83333.333*pitch + 83333.333*yaw;
-	allocation[1] = 83333.333*thrust + 1282051.282*roll - 83333.333*pitch + 83333.333*yaw;
-	allocation[2] = 83333.333*thrust - 1282051.282*roll - 83333.333*pitch + 83333.333*yaw;
-	allocation[3] = 83333.333*thrust + 1282051.282*roll + 83333.333*pitch + 83333.333*yaw;
+	float g0 = 121429.013;
+	float g1 = 936283.447;
+	float g2 = 608584.241;
+	float g3 = 5911.982;
+	allocation[0] = g0*thrust - g1*roll + g2*pitch + g3*yaw;
+	allocation[1] = g0*thrust + g1*roll - g2*pitch + g3*yaw;
+	allocation[2] = g0*thrust - g1*roll - g2*pitch + g3*yaw;
+	allocation[3] = g0*thrust + g1*roll + g2*pitch + g3*yaw;
 
+	/*
 	for (int i=0;i<4;i++) {
 		allocation[i] = ap_max(0.0f, allocation[i]);
 		rotor_speed[i] = sqrt(allocation[i]);
 	}
+	*/
 
 	/* Scaling
 	 *
@@ -173,10 +181,9 @@ void MPC_Controller::mixer_generate_pwm(float thrust, float roll, float pitch, f
 	uint32_t pwm[4];
 
 	for (int i=0;i<4;i++) {
-		//float calc_max = 2157.55f;
-		float calc_max = 1500;
-		float rs_limit = ap_min(rotor_speed[i], calc_max);
-		pwm[i] = ap_min(1100 + uint32_t((rs_limit/calc_max)*800), 1900);
+		float mspeed = allocation[i]>0 ? sqrt(allocation[i]) : 0;
+		mspeed = constrain_float(mspeed, 1100.0, 1900.0);
+		pwm[i] = mspeed;
 	}
 
 #ifdef TARGET_ARCH_LINUX
