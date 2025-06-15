@@ -187,7 +187,7 @@ bool GZ_Interface::recv_state_input()
 			<< pkt->imu_accel_z << "\n";
 	}
 
-	if (true && frame_counter%1000==0) {
+	if (false && frame_counter%1000==0) {
 		std::cout << "COMP Field x/y/z : "
 			<< pkt->field_x << " "
 			<< pkt->field_y << " "
@@ -241,6 +241,7 @@ bool GZ_Interface::recv_state_input()
 		std::cout << "(sim/inav) Latitude (deg*1e7): " << (int32_t)((1e7)*pkt->lat_deg) << " " << inav_lat << "\n";
 		std::cout << "(sim/inav) Longitude(deg*1e7): " << (int32_t)((1e7)*pkt->lng_deg) << " " << inav_lng << "\n";
 		std::cout << "(sim/inav) Altitude (cm): " << (int32_t)((100)*pkt->alt_met) << " " <<  inav_alt << "\n";
+		std::cout << "timestamp " << pkt->timestamp << "\n";
 
 		/*
 		std::cout << "INAV   POS: " << inav_pos.x << " " << inav_pos.y << " " << inav_pos.z << "\n";

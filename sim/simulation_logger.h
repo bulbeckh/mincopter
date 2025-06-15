@@ -26,6 +26,9 @@ class SimulationLogger
 	/* @brief Maximum number of lines we want to log */
 	uint32_t max_lines;
 
+	/* @brief Number of iterations (in 10ms intervals) since simulation start */
+	uint32_t iteration_count;
+
 	/* @brief Structure holding the number of iterations to log for each type of log
 	 *
 	 * For example, to log every n'th planner, we set the log_planner entry to n
@@ -57,8 +60,9 @@ class SimulationLogger
 	~SimulationLogger();
 
     public:
+
 	/* @brief Should be called at start of mincopter 100Hz (10ms) loop to signal an iteration */
-	void write_iteration(uint32_t iter);
+	void set_iteration(uint32_t iter);
 
 	/* @brief Write the variables related to the current planner library */
 	void write_planner_state();

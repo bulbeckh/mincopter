@@ -20,7 +20,8 @@ SimulationLogger::~SimulationLogger() {
 SimulationLogger::SimulationLogger(bool overwrite)
     : simulation_out(),
 	lines_written(0),
-	max_lines(100000)
+	max_lines(100000),
+	iteration_count(0)
 {
     /* Get current time */
     time_t rawtime;
@@ -66,18 +67,9 @@ SimulationLogger::SimulationLogger(bool overwrite)
 	simlog_flags.log_mpc = 1;
 }
 
-void SimulationLogger::write_iteration(uint32_t iter)
+void SimulationLogger::set_iteration(uint32_t iter)
 {
-	if (!simlog_flags.log_iteration || lines_written>max_lines) return;
-
-    /* Every 100 iterations (or roughly 1 second) we flush the log buffers */
-    if (iter%100==0) {
-	simulation_out.flush();
-    }
-
-    simulation_out << "i" << iter << "\n";
-
-	lines_written++;
+	iteration_count += 1;
 }
 
 void SimulationLogger::write_planner_state()

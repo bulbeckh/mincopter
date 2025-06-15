@@ -142,7 +142,7 @@ void loop()
     uint32_t timer = micros();
 
 #ifdef TARGET_ARCH_LINUX
-    simlog.write_iteration(loop_iterations);
+    simlog.set_iteration(loop_iterations);
 #endif
 
     // wait for an INS sample

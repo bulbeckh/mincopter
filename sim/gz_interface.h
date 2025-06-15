@@ -20,12 +20,15 @@ class GZ_Interface {
     public:
 	struct mc_sim_state_packet {
 	    double timestamp;
+
+		/* IMU */
 	    double imu_gyro_x;
 	    double imu_gyro_y;
 	    double imu_gyro_z;
 	    double imu_accel_x;
 	    double imu_accel_y;
 	    double imu_accel_z;
+
 	    double pos_x;
 	    double pos_y;
 	    double pos_z;
@@ -37,12 +40,16 @@ class GZ_Interface {
 	    double vel_x;
 	    double vel_y;
 	    double vel_z;
+
+		/* Magnetometer */
 	    double field_x;
 	    double field_y;
 	    double field_z;
+
+		/* Barometer */
 	    double pressure;
 
-		/* NavSat (GPS */
+		/* NavSat (GPS) */
 		double lat_deg;
 		double lng_deg;
 		double alt_met;
