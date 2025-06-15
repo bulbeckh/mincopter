@@ -117,7 +117,7 @@ class SimulationLogger
 	 * @param pitch_torque Output pitch torque
 	 * @param yaw_torque Output yaw torque
 	 */
-	void write_mpc_control_output(float total_thrust, float roll_torque, float pitch_torque, float yaw_torque);
+	void write_mpc_control_output(float total_thrust, float roll_torque, float pitch_torque, float yaw_torque, uint32_t c0, uint32_t c1, uint32_t c2, uint32_t c3);
 
 
 

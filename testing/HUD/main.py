@@ -13,6 +13,7 @@ def plot()
 from sensorplot import IMUSensor, BaroSensor, CompassSensor
 from ahrsplot import AHRS
 from inavplot import INav
+from mpcplot import MPC
 ## TODO Add in inavc graphs
 
 import matplotlib.pyplot as plt
@@ -47,7 +48,8 @@ if __name__=="__main__":
         'baro': [None, BaroSensor],
         'gps': [None, None],
         'compass': [None, CompassSensor],
-        'motor' : [None, None]
+        'motor' : [None, None],
+        'mpc' : [None, MPC]
     }
 
     for arg in sys.argv:
@@ -72,6 +74,8 @@ if __name__=="__main__":
             objlist['ahrs'][0].parse(splits[1:])
         if (splits[0]=='inav' or splits[0]=='inavc') and objlist['inav'][0] is not None:
             objlist['inav'][0].parse(splits[1:])
+        if splits[0]=='mpc' and objlist['mpc'][0] is not None:
+            objlist['mpc'][0].parse(splits[1:])
 
     for k,v in objlist.items():
         if v[0] is not None:

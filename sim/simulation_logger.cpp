@@ -265,7 +265,7 @@ void SimulationLogger::write_gps_state(int32_t lat, int32_t lng, int32_t alt_cm,
 	lines_written++;
 }
 
-void SimulationLogger::write_mpc_control_output(float total_thrust, float roll_torque, float pitch_torque, float yaw_torque)
+void SimulationLogger::write_mpc_control_output(float total_thrust, float roll_torque, float pitch_torque, float yaw_torque, uint32_t c0, uint32_t c1, uint32_t c2, uint32_t c3)
 {
 	if (!simlog_flags.log_mpc || lines_written>max_lines) return;
 
@@ -273,7 +273,11 @@ void SimulationLogger::write_mpc_control_output(float total_thrust, float roll_t
 		<< total_thrust << ","
 		<< roll_torque << ","
 		<< pitch_torque << ","
-		<< yaw_torque << "\n";
+		<< yaw_torque << ","
+		<< c0 << ","
+		<< c1 << ","
+		<< c2 << ","
+		<< c3 << "\n";
 }
 
 

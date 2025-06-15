@@ -70,6 +70,11 @@ class MPC_Controller : public MC_Controller
 
 		// NOTE This is now defined in the generated workspace.c file and externed
 		//OSQPSolver solver;
+		
+		/* @brief This is the diagonals of the p-matrix. Because OSQP uses a csc-format, we cannot directly
+		 * index the p-matrix so we instead store a copy and use that when updating the q-matrix. This should
+		 * really be 160 length but there is no reference tracking/penalty for the inputs so we keep as 120 */
+		OSQPFloat penalty_vector[120];
 
 	private:
 

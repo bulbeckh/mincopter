@@ -97,7 +97,7 @@ bool GZ_Interface::send_control_output()
 		control_pkt.pwm[3] = mincopter.motors.get_raw_motor_out(2);
 		*/
 		// NOTE Temporarily sending max servo to determine the acceleration rate
-		uint32_t send_pwm=1900;
+		uint32_t send_pwm=1632;
 		control_pkt.pwm[0] = send_pwm;
 		control_pkt.pwm[1] = send_pwm;
 		control_pkt.pwm[2] = send_pwm;

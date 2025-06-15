@@ -31,6 +31,7 @@ MPC_Controller controller;
 void MPC_Controller::run()
 {
 	// NOTE This is called at 100Hz currently but our linearised system is at 10Hz so we should actually update the MPC every 10 iterations
+	/*
 	static uint8_t mpc_iteration=0;
 	if (mpc_iteration==9) {
 		// 10th iteration
@@ -39,6 +40,7 @@ void MPC_Controller::run()
 		mpc_iteration+=1;
 		return;
 	}
+	*/
 
 	/* **Part 1.** Retrieve current state dynamics and update l and u vectors with (linearised) dynamics (from A matrix)
 	 * States 0:3 (the position in inertial frame) will come from inertial nav. States 3:6 (attitude) will come from the AHRS roll,pitch,yaw sensors
@@ -98,7 +100,8 @@ void MPC_Controller::run()
 	for (int i=0;i<10;i++) {
 		for (int j=0;j<12;j++) {
 			// TODO This equation assumes an identity P matrix for the MPC problem. The correct formulation is q = -1*x_ref^{T}@P
-			q_constraint[i*12+j] = -1*state_reference[i*12+j];
+			// NOTE We only update the first 120 rows as there is no reference tracking/penalty for the input
+			q_constraint[i*12+j] = -1*state_reference[i*12+j]*penalty_vector[i*12+j];
 		}
 	}
 
@@ -117,9 +120,10 @@ void MPC_Controller::run()
 		control_vector[i] = solver.solution->x[120+i];
 	}
 
-	/* The MPC solution was linearised around [9.8, 0, 0, 0] which was a change of variables. We need to add back 9.8 to our first
+	/* The MPC solution was linearised around [9.8*m, 0, 0, 0] which was a change of variables. We need to add back 9.8*m to our first
 	 * control vector to get the actual required force */
-	control_vector[0] += 9.8f;
+	float mass=2.23;
+	control_vector[0] += mass*9.8f;
 
 #ifdef TARGET_ARCH_LINUX
 	static uint32_t iter=0;
@@ -129,7 +133,6 @@ void MPC_Controller::run()
 	}
 	iter++;
 
-	simlog.write_mpc_control_output(control_vector[0], control_vector[1], control_vector[2], control_vector[3]);
 #endif
 	
 	// TODO For now, use a mixer function embedded into the MPC to convert to a PWM signal but later move mixer to own class
@@ -144,6 +147,8 @@ void MPC_Controller::mixer_generate_pwm(float thrust, float roll, float pitch, f
 	// Call the GZ_interface directly to update (don't use AP_Motors)
 
 	float allocation[4];
+
+	// TODO Remove
 	float rotor_speed[4]; // rad/s
 
 	/* This allocation matrix has been pre-calculated in the MixerSolution ipynb */
@@ -154,10 +159,10 @@ void MPC_Controller::mixer_generate_pwm(float thrust, float roll, float pitch, f
 	 *
 	 */
 
-	float g0 = 121429.013;
-	float g1 = 936283.447;
-	float g2 = 608584.241;
-	float g3 = 5911.982;
+	float g0 = 121939.0f;
+	float g1 = 938086.9f;
+	float g2 = 609756.0f;
+	float g3 = 1219.0f;
 	allocation[0] = g0*thrust - g1*roll + g2*pitch + g3*yaw;
 	allocation[1] = g0*thrust + g1*roll - g2*pitch + g3*yaw;
 	allocation[2] = g0*thrust - g1*roll - g2*pitch + g3*yaw;
@@ -183,13 +188,21 @@ void MPC_Controller::mixer_generate_pwm(float thrust, float roll, float pitch, f
 	for (int i=0;i<4;i++) {
 		float mspeed = allocation[i]>0 ? sqrt(allocation[i]) : 0;
 		mspeed = constrain_float(mspeed, 1100.0, 1900.0);
-		pwm[i] = mspeed;
+		pwm[i] = (uint32_t)mspeed;
 	}
 
 #ifdef TARGET_ARCH_LINUX
+	simlog.write_mpc_control_output(thrust, roll, pitch, yaw, pwm[0], pwm[1], pwm[2], pwm[3]);
 
 	// Assign control to signal
-	for (int i=0;i<4;i++) gz_interface.control_pwm[i] = pwm[i];
+	// NOTE For the first 2 seconds, just wait until initialisation is complete and send min thrust
+	static uint8_t generate_calls=0;
+	if (generate_calls<50) {
+		generate_calls++;
+		for (int i=0;i<4;i++) gz_interface.control_pwm[i] = 1400;
+	} else {
+		for (int i=0;i<4;i++) gz_interface.control_pwm[i] = pwm[i];
+	}
 
 	static uint32_t iter2=0;
 	if (iter2%10==0) {
