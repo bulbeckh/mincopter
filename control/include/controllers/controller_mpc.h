@@ -97,8 +97,9 @@ class MPC_Controller : public MC_Controller
 		 * @param roll The desired roll torque (in newton-metres)
 		 * @param pitch The desired pitch torque (in newton-metres)
 		 * @param yaw The desired yaw torque (in newton-metres)
+		 * @param exitflag The status output of the OQSP solver
 		 */
-		void mixer_generate_pwm(float thrust, float roll, float pitch, float yaw);
+		void mixer_generate_pwm(float thrust, float roll, float pitch, float yaw, uint16_t ef);
 
 
 };

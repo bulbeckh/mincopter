@@ -136,11 +136,11 @@ void MPC_Controller::run()
 #endif
 	
 	// TODO For now, use a mixer function embedded into the MPC to convert to a PWM signal but later move mixer to own class
-	mixer_generate_pwm(control_vector[0], control_vector[1], control_vector[2], control_vector[3]);
+	mixer_generate_pwm(control_vector[0], control_vector[1], control_vector[2], control_vector[3], exitflag);
 
 }
 
-void MPC_Controller::mixer_generate_pwm(float thrust, float roll, float pitch, float yaw)
+void MPC_Controller::mixer_generate_pwm(float thrust, float roll, float pitch, float yaw, uint16_t exitflag)
 {
 	// Generate allocation for each motor
 	// Conversion from motor force to velocity (using quadratic model)
@@ -159,14 +159,14 @@ void MPC_Controller::mixer_generate_pwm(float thrust, float roll, float pitch, f
 	 *
 	 */
 
-	float g0 = 121939.0f;
+	float g0 = 121951.0f;
 	float g1 = 938086.9f;
 	float g2 = 609756.0f;
-	float g3 = 1219.0f;
+	float g3 = 6097560.0f;
 	allocation[0] = g0*thrust - g1*roll + g2*pitch + g3*yaw;
 	allocation[1] = g0*thrust + g1*roll - g2*pitch + g3*yaw;
-	allocation[2] = g0*thrust - g1*roll - g2*pitch + g3*yaw;
-	allocation[3] = g0*thrust + g1*roll + g2*pitch + g3*yaw;
+	allocation[2] = g0*thrust - g1*roll - g2*pitch - g3*yaw;
+	allocation[3] = g0*thrust + g1*roll + g2*pitch - g3*yaw;
 
 	/*
 	for (int i=0;i<4;i++) {
@@ -192,7 +192,11 @@ void MPC_Controller::mixer_generate_pwm(float thrust, float roll, float pitch, f
 	}
 
 #ifdef TARGET_ARCH_LINUX
-	simlog.write_mpc_control_output(thrust, roll, pitch, yaw, pwm[0], pwm[1], pwm[2], pwm[3]);
+	if (!exitflag) {
+		simlog.write_mpc_control_output(thrust, roll, pitch, yaw, pwm[0], pwm[1], pwm[2], pwm[3]);
+	} else {
+		simlog.write_mpc_control_output(thrust, roll, pitch, yaw, 1200, 1200, 1200, 1200);
+	}
 
 	// Assign control to signal
 	// NOTE For the first 2 seconds, just wait until initialisation is complete and send min thrust
