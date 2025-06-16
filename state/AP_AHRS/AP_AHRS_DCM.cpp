@@ -51,7 +51,9 @@ AP_AHRS_DCM::update(void)
 {
 
 #ifdef TARGET_ARCH_LINUX
-	simlog.write_ahrs_state();
+	float error_rp = get_error_rp();
+	float error_yaw = get_error_yaw();
+	simlog.write_ahrs_state(roll_sensor, pitch_sensor, yaw_sensor, _accel_ef.x, _accel_ef.y, _accel_ef.z, error_rp, error_yaw);
 #endif
 
     float delta_t;

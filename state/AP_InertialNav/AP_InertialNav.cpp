@@ -82,10 +82,8 @@ void AP_InertialNav::update(float dt)
 
     Vector3f accel_ef = _ahrs->get_accel_ef();
 
-	// TODO The simulated sensor IMU readings are in north-east-down already (i.e. positive GRAVITY value)
-	
     // remove influence of gravity
-    accel_ef.z += GRAVITY_MSS;
+    accel_ef.z -= GRAVITY_MSS;
     accel_ef *= 100;
 
     // remove xy if not enabled
@@ -96,6 +94,7 @@ void AP_InertialNav::update(float dt)
 
     //Convert North-East-Down to North-East-Up
     accel_ef.z = -accel_ef.z;
+
     float tmp = _k3_xy * dt;
     accel_correction_ef.x += _position_error.x * tmp;
     accel_correction_ef.y += _position_error.y * tmp;

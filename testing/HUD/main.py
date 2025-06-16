@@ -11,7 +11,7 @@ def plot()
 
 """
 from sensorplot import IMUSensor, BaroSensor, CompassSensor
-from ahrsplot import AHRS
+from ahrs import AHRS
 from inavplot import INav
 from mpcplot import MPC
 ## TODO Add in inavc graphs
