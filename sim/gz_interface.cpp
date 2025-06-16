@@ -82,7 +82,7 @@ bool GZ_Interface::send_control_output()
 		control_pkt.pwm[i] = 0;
     }
 
-	if (true /* Use assigned PWM signals directly from MPC mixer*/ ) {
+	if (false /* Use assigned PWM signals directly from MPC mixer*/ ) {
 		control_pkt.pwm[0] = control_pwm[0];
 		control_pkt.pwm[1] = control_pwm[1];
 		// NOTE Deliberately switched
@@ -97,7 +97,7 @@ bool GZ_Interface::send_control_output()
 		control_pkt.pwm[3] = mincopter.motors.get_raw_motor_out(2);
 		*/
 		// NOTE Temporarily sending max servo to determine the acceleration rate
-		uint32_t send_pwm=1632;
+		uint32_t send_pwm=1900;
 		control_pkt.pwm[0] = send_pwm;
 		control_pkt.pwm[1] = send_pwm;
 		control_pkt.pwm[2] = send_pwm;

@@ -93,7 +93,7 @@ void AP_InertialNav::update(float dt)
     }
 
     //Convert North-East-Down to North-East-Up
-    accel_ef.z = -accel_ef.z;
+    //accel_ef.z = -accel_ef.z;
 
     float tmp = _k3_xy * dt;
     accel_correction_ef.x += _position_error.x * tmp;
@@ -385,7 +385,8 @@ void AP_InertialNav::check_baro()
     if( baro_update_time != _baro_last_update ) {
         const float dt = (float)(baro_update_time - _baro_last_update) * 0.001f; // in seconds
         // call correction method
-        correct_with_baro(_baro->get_altitude()*100, dt);
+		// NOTE TODO Have updated this with negative altitude, given our body frame is NED
+        correct_with_baro(-1*_baro->get_altitude()*100, dt);
         _baro_last_update = baro_update_time;
     }
 }
