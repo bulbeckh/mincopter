@@ -6,12 +6,12 @@
 #include "mcinstance.h"
 extern MCInstance mincopter;
 
-#include "mcstate.h"
-extern MCState state;
-
 #include "control.h"
 
 #include "planner.h"
+
+#include "gz_interface.h"
+extern GZ_Interface gz_interface;
 
 SimulationLogger::~SimulationLogger() {
     simulation_out.close();
@@ -114,30 +114,25 @@ void SimulationLogger::write_controller_state()
 	lines_written++;
 }
 
-void SimulationLogger::write_ahrs_state()
+void SimulationLogger::write_ahrs_state(int32_t roll_sensor, int32_t pitch_sensor, int32_t yaw_sensor, float accel_ef_x, float accel_ef_y, float accel_ef_z, float error_rp, float error_yaw)
 {
 	if (!simlog_flags.log_ahrs || lines_written>max_lines) return;
 
-	float error_rp = mcstate.ahrs.get_error_rp();
-	float error_yaw = mcstate.ahrs.get_error_yaw();
+	/* Augment with simulation readings */
 
-	Vector3f accel_ef = mcstate.ahrs.get_accel_ef();
-		
 	simulation_out << "ah,"
-		<< mcstate.ahrs.roll_sensor << ","
-		<< mcstate.ahrs.pitch_sensor << ","
-		<< mcstate.ahrs.yaw_sensor << ","
-		<< accel_ef.x << ","
-		<< accel_ef.y << ","
-		<< accel_ef.z << ","
+		<< roll_sensor*1e-2*M_PI_F/180.0f << ","
+		<< pitch_sensor*1e-2*M_PI_F/180.0f << ","
+		<< yaw_sensor*1e-2*M_PI_F/180.0f << ","
+		<< accel_ef_x << ","
+		<< accel_ef_y << ","
+		<< accel_ef_z << ","
 		<< error_rp << ","
-		<< error_yaw << "\n";
-
-	/*
-	Matrix3f dcm = mcstate.ahrs.get_dcm_matrix();
-
-	simulation_out << "ah-dcm"
-	*/
+		<< error_yaw << ","
+		/* simulation readings */
+		<< gz_interface.last_sensor_state.wldAbdyA_eul_x << ","
+		<< gz_interface.last_sensor_state.wldAbdyA_eul_y << ","
+		<< gz_interface.last_sensor_state.wldAbdyA_eul_z << "\n";
 
 	lines_written++;
 }
@@ -213,13 +208,22 @@ void SimulationLogger::write_inav_state(Vector3f position, Vector3f velocity)
 {
 	if (!simlog_flags.log_inav || lines_written>max_lines) return;
 
+	/* Augment with simulation readings */
+	
+	// Convert INAV postions and velocities from cm to m
 	simulation_out << "inav,"
-		<< position.x << ","
-		<< position.y << ","
-		<< position.z << ","
-		<< velocity.x << ","
-		<< velocity.y << ","
-		<< velocity.z << "\n";
+		<< position.x*1e-2 << ","
+		<< position.y*1e-2 << ","
+		<< position.z*1e-2 << ","
+		<< gz_interface.last_sensor_state.pos_x << ","
+		<< gz_interface.last_sensor_state.pos_y << ","
+		<< gz_interface.last_sensor_state.pos_z << ","
+		<< velocity.x*1e-2 << ","
+		<< velocity.y*1e-2 << ","
+		<< velocity.z*1e-2 << ","
+		<< gz_interface.last_sensor_state.vel_x << ","
+		<< gz_interface.last_sensor_state.vel_y << ","
+		<< gz_interface.last_sensor_state.vel_z << "\n";
 	
 	lines_written++;
 }

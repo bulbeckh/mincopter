@@ -174,7 +174,7 @@ bool GZ_Interface::recv_state_input()
 
 
 	// sense check readings
-	if (false && frame_counter%1000==0) {
+	if (true && frame_counter%1000==0) {
 		std::cout << " Timestamp (s): " << pkt->timestamp << " ********************************\n";
 
 		std::cout << "IMU Gyro x/y/z : "

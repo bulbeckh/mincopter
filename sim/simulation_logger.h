@@ -64,6 +64,10 @@ class SimulationLogger
 	/* @brief Should be called at start of mincopter 100Hz (10ms) loop to signal an iteration */
 	void set_iteration(uint32_t iter);
 
+	public:
+	
+	// **** LOGGING FUNCTIONS **** //
+	
 	/* @brief Write the variables related to the current planner library */
 	void write_planner_state();
 
@@ -83,7 +87,7 @@ class SimulationLogger
 	 */
 
 	/* @brief Write the ahrs state including main public variables */
-	void write_ahrs_state();
+	void write_ahrs_state(int32_t roll_sensor, int32_t pitch_sensor, int32_t yaw_sensor, float accel_ef_x, float accel_ef_y, float accel_ef_z, float error_rp, float error_yaw);
 
 	/* @brief Write an inertial navigation state */
 	void write_inav_state(Vector3f position, Vector3f velocity);
