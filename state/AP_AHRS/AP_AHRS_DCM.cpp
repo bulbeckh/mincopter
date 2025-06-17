@@ -600,7 +600,8 @@ AP_AHRS_DCM::drift_correction(float deltat)
     // equation 9: get the corrected acceleration vector in earth frame. Units
     // are m/s/s
     Vector3f GA_e;
-    GA_e = Vector3f(0, 0, -1.0f);
+    //GA_e = Vector3f(0, 0, -1.0f);
+    GA_e = Vector3f(0, 0, 1.0f);
 
     bool using_gps_corrections = false;
     if (_flags.correct_centrifugal && (_have_gps_lock || _flags.fly_forward)) {

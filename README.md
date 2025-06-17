@@ -8,6 +8,9 @@
 ## Examples
 TODO
 
+## Planning
+- [ ] KF/EKF Theory and Implementation with linearised model
+
 ## mistakes/learnings
 - wrong frame for sensors
 - incorrect sensor refresh frequency
