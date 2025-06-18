@@ -1,4 +1,6 @@
 
+#pragma once
+
 /* Interface for Inertial Nav */
 
 
@@ -24,22 +26,22 @@ class MC_InertialNav_Sim /* : InertialNav Base Class */
 		void update(float dt);
 
 		/* @brief Checks if position reading is valid. Always true for simulation. */
-		bool position_ok() {
+		bool position_ok() const {
 			return true;
 		}
 
 		/* @brief Returns latitude in deg*1e7  (*10,000,000) */
-		int32_t get_latitude() {
+		int32_t get_latitude() const {
 			return inav_lat;
 		}
 
 		/* @brief Returns longitude in deg*1e7  (*10,000,000) */
-		int32_t get_longitude() {
+		int32_t get_longitude() const {
 			return inav_lng;
 		}
 
 		/* @brief Returns altitude in cm. NOTE Even though the earth frame is NED, this will return a positive altitude */
-		float get_altitude() {
+		float get_altitude() const {
 			return inav_alt;
 		}
 
@@ -48,17 +50,17 @@ class MC_InertialNav_Sim /* : InertialNav Base Class */
 		void set_altitude(float new_alt);
 
 		/* @brief Get position in earth frame (NED) */
-		const Vector3f get_position() {
+		const Vector3f get_position() const {
 			return inav_pos;
 		}
 
 		/* @brief Get velocity in earth frame (NED) */
-		const Vector3f get_velocity() {
+		const Vector3f get_velocity() const {
 			return inav_vel;
 		}
 
 		/* @brief Get z-component of velocity in earth frame (NED) which is the vertical climb rate */
-		float get_velocity_z() {
+		float get_velocity_z() const {
 			return inav_vel.z;
 		}
 

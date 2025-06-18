@@ -10,6 +10,8 @@
 // HASH include <APM_PI.h>             // PID library
 #include <AP_InertialNav.h>     // Inertial Navigation library
 
+#include "inav_interface.h"
+
 // loiter maximum velocities and accelerations
 #define WPNAV_ACCELERATION              100.0f      // defines the default velocity vs distant curve.  maximum acceleration in cm/s/s that position controller asks for from acceleration controller
 #define WPNAV_ACCELERATION_MIN           50.0f      // minimum acceleration in cm/s/s - used for sanity checking _wp_accel parameter
@@ -39,8 +41,13 @@ class AC_WPNav
 {
 public:
 
-    /// Constructor
+	// TODO Fix this
+
+#ifdef TARGET_ARCH_LINUX
+	AC_WPNav(const MC_InertialNav_Sim* inav,
+#else
     AC_WPNav(const AP_InertialNav* inav,
+#endif
 				const AP_AHRS* ahrs
 				/*
 				AC_PID* pid_pos_lat,
@@ -200,7 +207,11 @@ protected:
     void calculate_wp_leash_length(bool climb);
 
     // references to inertial nav and ahrs libraries
+#ifdef TARGET_ARCH_LINUX
+	const MC_InertialNav_Sim* const _inav;
+#else
     const AP_InertialNav* const _inav;
+#endif
     const AP_AHRS*        const _ahrs;
 
     // pid controllers

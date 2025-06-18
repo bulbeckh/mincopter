@@ -57,7 +57,13 @@ const AP_Param::GroupInfo AC_Fence::var_info[] PROGMEM = {
 */
 
 /// Default constructor.
+
+// TODO Fix this
+#ifdef TARGET_ARCH_LINUX
+AC_Fence::AC_Fence(const MC_InertialNav_Sim* inav) :
+#else
 AC_Fence::AC_Fence(const AP_InertialNav* inav) :
+#endif
     _inav(inav),
     _alt_max_backup(0),
     _circle_radius_backup(0),

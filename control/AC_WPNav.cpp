@@ -8,7 +8,12 @@ extern const AP_HAL::HAL& hal;
 // Note that the Vector/Matrix constructors already implicitly zero
 // their values.
 //
+
+#ifdef TARGET_ARCH_LINUX
+AC_WPNav::AC_WPNav(const MC_InertialNav_Sim* inav, const AP_AHRS* ahrs)
+#else
 AC_WPNav::AC_WPNav(const AP_InertialNav* inav, const AP_AHRS* ahrs)
+#endif
 	:
     _inav(inav),
     _ahrs(ahrs),

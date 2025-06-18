@@ -34,19 +34,24 @@ public:
     // reset the current attitude, used on new IMU calibration
     void reset_attitude(const float &roll, const float &pitch, const float &yaw);
 
-    // dead-reckoning support
-    bool get_position(struct Location &loc);
-
     // status reporting
-    float           get_error_rp(void);
-    float           get_error_yaw(void);
+    float get_error_rp(void) {
+		return 0.0f;
+	}
+
+    float get_error_yaw(void) {
+		return 0.0f;
+	}
 
     // return a wind estimation vector, in m/s
     Vector3f wind_estimate(void) {
         return Vector3f(0,0,0);
     }
 
-    bool            use_compass(void);
+	// TODO What does this do? Not used anywhere so REMOVE
+    bool use_compass(void) {
+		return true;
+	}
 
 	private:
 		Matrix3f _body_dcm_matrix;

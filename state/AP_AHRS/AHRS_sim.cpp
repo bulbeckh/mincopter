@@ -1,8 +1,9 @@
 
 #include "AHRS_sim.h"
+
 #include "AP_Math.h"
 
-#include "gz_interface.cpp"
+#include "gz_interface.h"
 extern GZ_Interface gz_interface;
 
 #include "mcinstance.h"
@@ -43,3 +44,13 @@ const Vector3f AHRS_sim::get_gyro(void) const
 {
 	return mincopter.ins.get_gyro();
 }
+
+void AHRS_sim::reset_attitude(const float &roll, const float &pitch, const float &yaw)
+{
+	roll_sensor = (int32_t)(degrees(roll)*100.0f);
+	pitch_sensor = (int32_t)(degrees(pitch)*100.0f);
+	yaw_sensor = (int32_t)(degrees(yaw)*100.0f);
+
+	return;
+}
+
