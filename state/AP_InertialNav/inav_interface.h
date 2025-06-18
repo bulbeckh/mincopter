@@ -1,0 +1,82 @@
+
+/* Interface for Inertial Nav */
+
+
+#include <AP_Baro.h>
+#include <AP_AHRS.h>
+#include <AP_GPS_Glitch.h>              // GPS Glitch detection library
+#include <AP_InertialSensor.h>          // ArduPilot Mega IMU Library
+
+#include <AP_Math.h>
+
+class MC_InertialNav_Sim /* : InertialNav Base Class */
+{
+
+	public:
+    	MC_InertialNav_Sim(const AP_AHRS* ahrs, AP_Baro* baro, GPS*& gps, GPS_Glitch& gps_glitch )
+		{
+		}
+
+		/* @brief Initialise the inertial navigation */
+		void init();
+
+		/* @brief Update the inertial navigation. Called via xx TODO */
+		void update(float dt);
+
+		/* @brief Checks if position reading is valid. Always true for simulation. */
+		bool position_ok() {
+			return true;
+		}
+
+		/* @brief Returns latitude in deg*1e7  (*10,000,000) */
+		int32_t get_latitude() {
+			return inav_lat;
+		}
+
+		/* @brief Returns longitude in deg*1e7  (*10,000,000) */
+		int32_t get_longitude() {
+			return inav_lng;
+		}
+
+		/* @brief Returns altitude in cm. NOTE Even though the earth frame is NED, this will return a positive altitude */
+		float get_altitude() {
+			return inav_alt;
+		}
+
+		/* @brief Set altitude of inertial nav.
+		 * @param new_alt float New altitude in cm */
+		void set_altitude(float new_alt);
+
+		/* @brief Get position in earth frame (NED) */
+		const Vector3f get_position() {
+			return inav_pos;
+		}
+
+		/* @brief Get velocity in earth frame (NED) */
+		const Vector3f get_velocity() {
+			return inav_vel;
+		}
+
+		/* @brief Get z-component of velocity in earth frame (NED) which is the vertical climb rate */
+		float get_velocity_z() {
+			return inav_vel.z;
+		}
+
+		/* @brief Set home position via latitude and longitude (in deg*1e7)
+		 * @param lat int32t Latitude in degrees*1e7
+		 * @param lng int32t Longitude in degrees*1e7 */
+		void set_home_position(int32_t lat, int32_t lng);
+
+	private:
+
+		int32_t inav_lat;
+		int32_t inav_lng;
+
+		Vector3f inav_pos;
+		Vector3f inav_vel;
+
+		float inav_alt;
+
+};
+
+

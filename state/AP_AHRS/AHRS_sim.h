@@ -12,13 +12,10 @@ public:
     AHRS_sim(AP_InertialSensor &ins, GPS *&gps) :
         AP_AHRS(ins, gps)
     {
-		_wind=0;
     }
 
     // return the smoothed gyro vector corrected for drift
-    const Vector3f get_gyro(void) const {
-        return _omega + _omega_P + _omega_yaw_P;
-    }
+    const Vector3f get_gyro(void) const;
 
     // return rotation matrix representing rotaton from body to earth axes
     const Matrix3f &get_dcm_matrix(void) const {
@@ -46,7 +43,7 @@ public:
 
     // return a wind estimation vector, in m/s
     Vector3f wind_estimate(void) {
-        return _wind;
+        return Vector3f(0,0,0);
     }
 
     bool            use_compass(void);

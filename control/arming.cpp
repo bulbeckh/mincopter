@@ -56,7 +56,7 @@ void WP_Planner::init_arm_motors()
     static bool did_ground_start = false;
 
     // disable inertial nav errors temporarily
-    mcstate.inertial_nav.ignore_next_error();
+    //mcstate.inertial_nav.ignore_next_error();
 
 #if LOGGING_ENABLED == ENABLED
     // start dataflash
@@ -366,7 +366,7 @@ void WP_Planner::init_disarm_motors()
     mincopter.motors.armed(false);
 
     // disable inertial nav errors temporarily
-    mcstate.inertial_nav.ignore_next_error();
+    //mcstate.inertial_nav.ignore_next_error();
 
     // we are not in the air
     set_takeoff_complete(false);

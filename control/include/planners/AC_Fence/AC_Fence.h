@@ -7,6 +7,7 @@
 
 #include <AP_Math.h>
 #include <AP_InertialNav.h>     // Inertial Navigation library
+#include "inav_interface.h"
 
 // bit masks for enabled fence types.  Used for TYPE parameter
 #define AC_FENCE_TYPE_NONE                          0       // fence disabled
@@ -32,7 +33,13 @@ class AC_Fence
 public:
 
     /// Constructor
+
+	// TODO Fix this - bad way to do this
+#ifdef TARGET_ARCH_LINUX
+    AC_Fence(const MC_InertialNav_Sim* inav);
+#else
     AC_Fence(const AP_InertialNav* inav);
+#endif
 
     /// enable - allows fence to be enabled/disabled.  Note: this does not update the eeprom saved value
     void enable(bool true_false) { _enabled = true_false; }
@@ -89,7 +96,11 @@ private:
     void clear_breach(uint8_t fence_type);
 
     // pointers to other objects we depend upon
-    const AP_InertialNav *const _inav;
+#ifdef TARGET_ARCH_LINUX
+	const MC_InertialNav_Sim* const _inav;
+#else
+    const AP_InertialNav *const _inav;S
+#endif
 
     // parameters
     int8_t         _enabled;               // top level enable/disable control

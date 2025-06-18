@@ -5,6 +5,9 @@
 #include "gz_interface.cpp"
 extern GZ_Interface gz_interface;
 
+#include "mcinstance.h"
+extern MCInstance mincopter;
+
 void AHRS_sim::update()
 {
 	/* Update the <roll,pitch,yaw>_sensor variables as well as the _accel_ef variable */
@@ -34,4 +37,9 @@ void AHRS_sim::update()
 void AHRS_sim::reset(bool recover_eulers)
 {
 	return;
+}
+
+const Vector3f AHRS_sim::get_gyro(void) const
+{
+	return mincopter.ins.get_gyro();
 }
