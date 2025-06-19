@@ -75,7 +75,7 @@ cmake .. -DTARGET_ARCH=<target_architecture>
 5. Run Make from project build directory
 ```bash
 cd build
-make -j4
+make -j4 <target>
 ```
 
 To upload: flashing board via wsl
