@@ -3,14 +3,23 @@
 
 #include "AP_Math.h"
 
+#include "mcinstance.h"
+extern MCInstance mincopter;
+
 #include "gz_interface.h"
 extern GZ_Interface gz_interface;
+
+#include "simulation_logger.h"
+extern SimulationLogger simlog;
 
 #include "mcinstance.h"
 extern MCInstance mincopter;
 
 void AHRS_sim::update()
 {
+	// Call the ins.update method otherwise it won't measure state
+	mincopter.ins.update();
+
 	/* Update the <roll,pitch,yaw>_sensor variables as well as the _accel_ef variable */
 
 	// Update angle variables in deg*100
@@ -31,6 +40,12 @@ void AHRS_sim::update()
 
 	// After rotation, we assign
 	_accel_ef = accel_temp;
+
+#ifdef TARGET_ARCH_LINUX
+	float error_rp = get_error_rp();
+	float error_yaw = get_error_yaw();
+	simlog.write_ahrs_state(roll_sensor, pitch_sensor, yaw_sensor, _accel_ef.x, _accel_ef.y, _accel_ef.z, error_rp, error_yaw);
+#endif
 
 	return;
 }

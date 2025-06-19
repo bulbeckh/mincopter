@@ -82,7 +82,7 @@ bool GZ_Interface::send_control_output()
 		control_pkt.pwm[i] = 0;
     }
 
-	if (false /* Use assigned PWM signals directly from MPC mixer*/ ) {
+	if (true /* Use assigned PWM signals directly from MPC mixer*/ ) {
 		control_pkt.pwm[0] = control_pwm[0];
 		control_pkt.pwm[1] = control_pwm[1];
 		// NOTE Deliberately switched

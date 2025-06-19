@@ -4,14 +4,14 @@
 gz sim -v4 -r iris_runway.sdf > /dev/null 2>&1 &
 
 # Run mincopter
-#gdb ./build/mincopter -x ./testing/breaks.gdb
+#gdb ./build/mincopter -x ./docs/breaks.gdb
 
 if [ "$1" == "gdb" ]; then
 
 	if [ -f "mincopter" ]; then
-		gdb ./mincopter  -x ../testing/breaks.gdb
+		gdb ./mincopter  -x ../docs/breaks.gdb
 	else
-		./build/mincopter -x ./testing/breaks.gdb
+		./build/mincopter -x ./docs/breaks.gdb
 	fi
 
 else
