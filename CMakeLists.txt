@@ -48,15 +48,46 @@ message(STATUS "CXX Compiler: ${CMAKE_CXX_COMPILER}")
 
 ]]
 
-#### Build - control/ ####
-
 list(APPEND MC_INCLUDE_DIRS
-	control/include
+	${CMAKE_SOURCE_DIR}/mincopter/
+	${CMAKE_SOURCE_DIR}/arch/AP_HAL
+	${CMAKE_SOURCE_DIR}/arch/AP_HAL_AVR
+	${CMAKE_SOURCE_DIR}/arch/AP_HAL_Linux
+	${CMAKE_SOURCE_DIR}/arch/AP_Progmem
+	${CMAKE_SOURCE_DIR}/arch/AP_Scheduler
+	${CMAKE_SOURCE_DIR}/lib/AP_Common
+	${CMAKE_SOURCE_DIR}/lib/AP_Curve
+	${CMAKE_SOURCE_DIR}/lib/AP_Menu
+	${CMAKE_SOURCE_DIR}/lib/AP_Math
+	${CMAKE_SOURCE_DIR}/lib/Filter
+	${CMAKE_SOURCE_DIR}/lib/RC_Channel
+	${CMAKE_SOURCE_DIR}/lib/
+	${CMAKE_SOURCE_DIR}/state/AP_AHRS
+	${CMAKE_SOURCE_DIR}/state/AP_InertialNav
+	${CMAKE_SOURCE_DIR}/state/
+	${CMAKE_SOURCE_DIR}/dev/AP_ADC
+	${CMAKE_SOURCE_DIR}/dev/AP_ADC_AnalogSource
+	${CMAKE_SOURCE_DIR}/dev/AP_Baro
+	${CMAKE_SOURCE_DIR}/dev/AP_BattMonitor
+	${CMAKE_SOURCE_DIR}/dev/AP_Compass
+	${CMAKE_SOURCE_DIR}/dev/AP_Declination
+	${CMAKE_SOURCE_DIR}/dev/AP_GPS
+	${CMAKE_SOURCE_DIR}/dev/AP_InertialSensor
+	${CMAKE_SOURCE_DIR}/dev/AP_Motors
+	${CMAKE_SOURCE_DIR}/dev/AP_Notify
+	${CMAKE_SOURCE_DIR}/dev/DataFlash
+	${CMAKE_SOURCE_DIR}/control/include/controllers/AC_PID
+	${CMAKE_SOURCE_DIR}/control/include/controllers/
+	${CMAKE_SOURCE_DIR}/control/include/planners/AC_Fence
+	${CMAKE_SOURCE_DIR}/control/include/planners/AC_WPNav
+	${CMAKE_SOURCE_DIR}/control/include/planners/
+	${CMAKE_SOURCE_DIR}/sim/
 )
 
+#### Build - control/ ####
 file(GLOB MC_LIBS_CONTROL "control/*.cpp")
 foreach(src ${MC_LIBS_CONTROL})
-	message(STATUS "${src}")
+	message(VERBOSE "${src}")
 endforeach()
 
 add_library(libs_control STATIC ${MC_LIBS_CONTROL}
@@ -68,42 +99,8 @@ target_link_libraries(libs_control
 	${CMAKE_SOURCE_DIR}/control/design/src/RapidQuadrocopterTrajectories/cgen/build/libosqpstatic.a
 )
 
-## Temporary fix
 target_include_directories(libs_control PUBLIC
-	mincopter/
-	arch/AP_HAL
-	arch/AP_HAL_AVR
-	arch/AP_HAL_Linux
-	arch/AP_Progmem
-	arch/AP_Scheduler
-	lib/AP_Common
-	lib/AP_Curve
-	lib/AP_Menu
-	lib/AP_Math
-	lib/Filter
-	lib/RC_Channel
-	lib/
-	state/AP_AHRS
-	state/AP_InertialNav
-	state/
-	dev/AP_ADC
-	dev/AP_ADC_AnalogSource
-	dev/AP_Baro
-	dev/AP_BattMonitor
-	dev/AP_Compass
-	dev/AP_Declination
-	dev/AP_GPS
-	dev/AP_InertialSensor
-	dev/AP_Motors
-	dev/AP_Notify
-	dev/DataFlash
-	control/include/controllers/AC_PID
-	control/include/controllers/
-	control/include/planners/AC_Fence
-	control/include/planners/AC_WPNav
-	control/include/planners/
-	sim/
-
+	${MC_INCLUDE_DIRS}
 	## OSQP Headers
 	control/design/src/RapidQuadrocopterTrajectories/cgen/inc/private/
 	control/design/src/RapidQuadrocopterTrajectories/cgen/inc/public/
@@ -111,122 +108,43 @@ target_include_directories(libs_control PUBLIC
 )
 
 get_target_property(dirs libs_control INCLUDE_DIRECTORIES)
-message(STATUS "include for libs_control: ${dirs}")
+message(VERBOSE "include for libs_control: ${dirs}")
 
 #### Build - state/ ####
-
 file(GLOB_RECURSE MC_LIBS_STATE "state/*.cpp")
 foreach(src ${MC_LIBS_STATE})
-	message(STATUS "${src}")
+	message(VERBOSE "${src}")
 endforeach()
 
 add_library(libs_state STATIC ${MC_LIBS_STATE})
+
 target_include_directories(libs_state PUBLIC
-	mincopter/
-	arch/AP_HAL
-	arch/AP_HAL_AVR
-	arch/AP_HAL_Linux
-	arch/AP_Progmem
-	arch/AP_Scheduler
-	lib/AP_Common
-	lib/AP_Curve
-	lib/AP_Menu
-	lib/AP_Math
-	lib/Filter
-	lib/RC_Channel
-	lib/
-	state/AP_AHRS
-	state/AP_InertialNav
-	state/
-	dev/AP_ADC
-	dev/AP_ADC_AnalogSource
-	dev/AP_Baro
-	dev/AP_BattMonitor
-	dev/AP_Compass
-	dev/AP_Declination
-	dev/AP_GPS
-	dev/AP_InertialSensor
-	dev/AP_Motors
-	dev/AP_Notify
-	dev/DataFlash
-	sim/
+	${MC_INCLUDE_DIRS}
 )
 
 #### Build - dev/ and sim/ ####
 file(GLOB_RECURSE MC_LIBS_DEV "dev/*.cpp")
 foreach(src ${MC_LIBS_DEV})
-	message(STATUS "${src}")
+	message(VERBOSE "${src}")
 endforeach()
 
 add_library(libs_dev STATIC ${MC_LIBS_DEV})
+
 target_include_directories(libs_dev PUBLIC
-	arch/AP_HAL
-	arch/AP_HAL_AVR
-	arch/AP_HAL_Linux
-	arch/AP_Progmem
-	arch/AP_Scheduler
-	lib/AP_Common
-	lib/AP_Curve
-	lib/AP_Menu
-	lib/AP_Math
-	lib/Filter
-	lib/RC_Channel
-	lib/
-	dev/AP_ADC
-	dev/AP_ADC_AnalogSource
-	dev/AP_Baro
-	dev/AP_BattMonitor
-	dev/AP_Compass
-	dev/AP_Declination
-	dev/AP_GPS
-	dev/AP_InertialSensor
-	dev/AP_Motors
-	dev/AP_Notify
-	dev/DataFlash
-	sim/
+	${MC_INCLUDE_DIRS}
 )
 
 file(GLOB MC_LIBS_SIM "sim/*.cpp")
 foreach(src ${MC_LIBS_SIM})
-	message(STATUS "${src}")
+	message(VERBOSE "${src}")
 endforeach()
 
 add_library(libs_sim STATIC ${MC_LIBS_SIM})
+
 target_include_directories(libs_sim PUBLIC
-	arch/AP_HAL
-	arch/AP_HAL_AVR
-	arch/AP_HAL_Linux
-	arch/AP_Progmem
-	arch/AP_Scheduler
-	lib/AP_Common
-	lib/AP_Curve
-	lib/AP_Menu
-	lib/AP_Math
-	lib/Filter
-	lib/RC_Channel
-	lib/
-	dev/AP_ADC
-	dev/AP_ADC_AnalogSource
-	dev/AP_Baro
-	dev/AP_BattMonitor
-	dev/AP_Compass
-	dev/AP_Declination
-	dev/AP_GPS
-	dev/AP_InertialSensor
-	dev/AP_Motors
-	dev/AP_Notify
-	dev/DataFlash
-	state/AP_AHRS
-	state/AP_InertialNav
-	state/
-	control/include/controllers/AC_PID
-	control/include/controllers/
-	control/include/planners/AC_Fence
-	control/include/planners/AC_WPNav
-	control/include/planners/
-	sim/
-	mincopter/
+	${MC_INCLUDE_DIRS}
 )
+
 target_link_libraries(libs_sim PUBLIC libs_control)
 
 #### Build - arch/ ####
@@ -252,79 +170,27 @@ elseif(${TARGET_ARCH} STREQUAL "x86_64")
 endif()
 
 foreach(src ${MC_LIBS_ARCH})
-	message(STATUS "${src}")
+	message(VERBOSE "${src}")
 endforeach()
 
 add_library(libs_arch STATIC ${MC_LIBS_ARCH})
+
 target_include_directories(libs_arch PUBLIC
-	lib/AP_Common
-	lib/AP_Curve
-	lib/AP_Menu
-	lib/AP_Math
-	lib/Filter
-	lib/RC_Channel
-	lib/
-	arch/AP_HAL
-	arch/AP_HAL_AVR
-	arch/AP_HAL_Linux
-	arch/AP_Progmem
-	arch/AP_Scheduler
-	dev/AP_ADC
-	dev/AP_ADC_AnalogSource
-	dev/AP_Baro
-	dev/AP_BattMonitor
-	dev/AP_Compass
-	dev/AP_Declination
-	dev/AP_GPS
-	dev/AP_InertialSensor
-	dev/AP_Motors
-	dev/AP_Notify
-	dev/DataFlash
-	sim/
+	${MC_INCLUDE_DIRS}
 )
 
 #### Build - common libraries under lib/ ####
 file(GLOB_RECURSE MC_LIBS_COMMON "lib/*.cpp")
 foreach(src ${MC_LIBS_COMMON})
-	message(STATUS "${src}")
+	message(VERBOSE "${src}")
 endforeach()
 
 add_library(libs_common STATIC ${MC_LIBS_COMMON})
+
 target_include_directories(libs_common PUBLIC
-	mincopter/
-	lib/AP_Common
-	lib/AP_Curve
-	lib/AP_Menu
-	lib/AP_Math
-	lib/Filter
-	lib/RC_Channel
-	lib/
-	state/AP_AHRS
-	state/AP_InertialNav
-	state/
-	arch/AP_HAL
-	arch/AP_HAL_AVR
-	arch/AP_HAL_Linux
-	arch/AP_Progmem
-	arch/AP_Scheduler
-	dev/AP_ADC
-	dev/AP_ADC_AnalogSource
-	dev/AP_Baro
-	dev/AP_BattMonitor
-	dev/AP_Compass
-	dev/AP_Declination
-	dev/AP_GPS
-	dev/AP_InertialSensor
-	dev/AP_Motors
-	dev/AP_Notify
-	dev/DataFlash
-	control/include/controllers/AC_PID
-	control/include/controllers/
-	control/include/planners/AC_Fence
-	control/include/planners/AC_WPNav
-	control/include/planners/
-	sim/
+	${MC_INCLUDE_DIRS}
 )
+
 target_link_libraries(libs_common PUBLIC libs_control)
 
 #### Build - mincopter/ ####
@@ -345,44 +211,13 @@ target_link_libraries(mincopter
 )
 
 target_include_directories(mincopter PUBLIC
-	mincopter/
-	arch/AP_HAL
-	arch/AP_HAL_AVR
-	arch/AP_HAL_Linux
-	arch/AP_Progmem
-	arch/AP_Scheduler
-	lib/AP_Common
-	lib/AP_Curve
-	lib/AP_Menu
-	lib/AP_Math
-	lib/Filter
-	lib/RC_Channel
-	lib/
-	state/AP_AHRS
-	state/AP_InertialNav
-	state/
-	dev/AP_ADC
-	dev/AP_ADC_AnalogSource
-	dev/AP_Baro
-	dev/AP_BattMonitor
-	dev/AP_Compass
-	dev/AP_Declination
-	dev/AP_GPS
-	dev/AP_InertialSensor
-	dev/AP_Motors
-	dev/AP_Notify
-	dev/DataFlash
-	control/include/controllers/AC_PID
-	control/include/controllers/
-	control/include/planners/AC_Fence
-	control/include/planners/AC_WPNav
-	control/include/planners/
-	sim/
+	## TODO Need to separate private and public include directories (e.g. backend and interface)
+	${MC_INCLUDE_DIRS}
 )
 
 
 ## OSQP Testing
-find_package(osqp REQUIRED)
+##find_package(osqp REQUIRED)
 
 # For sim, can link with shared version but need static for embedded if this lib is used
 ## target_link_libraries(mytarget PRIVATE osqp::osqp)
