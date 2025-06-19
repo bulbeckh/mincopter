@@ -33,7 +33,7 @@ endif()
 
 include(${TOOLCHAIN_FILE})
 
-message("TOOLCHAIN FILE: ${TOOLCHAIN_FILE}")
+message(STATUS "TOOLCHAIN FILE: ${TOOLCHAIN_FILE}")
 message(STATUS "C Compiler: ${CMAKE_C_COMPILER}")
 message(STATUS "CXX Compiler: ${CMAKE_CXX_COMPILER}")
 
@@ -84,68 +84,17 @@ list(APPEND MC_INCLUDE_DIRS
 	${CMAKE_SOURCE_DIR}/sim/
 )
 
-#### Build - control/ ####
-file(GLOB MC_LIBS_CONTROL "control/*.cpp")
-foreach(src ${MC_LIBS_CONTROL})
-	message(VERBOSE "${src}")
-endforeach()
+## Control
+add_subdirectory( ${CMAKE_SOURCE_DIR}/control )
 
-add_library(libs_control STATIC ${MC_LIBS_CONTROL}
-	control/design/src/RapidQuadrocopterTrajectories/cgen/workspace.c
-)
+## State
+add_subdirectory( ${CMAKE_SOURCE_DIR}/state )
 
-target_link_libraries(libs_control
-	## OSQP Libraries
-	${CMAKE_SOURCE_DIR}/control/design/src/RapidQuadrocopterTrajectories/cgen/build/libosqpstatic.a
-)
+## Dev
+add_subdirectory( ${CMAKE_SOURCE_DIR}/dev )
 
-target_include_directories(libs_control PUBLIC
-	${MC_INCLUDE_DIRS}
-	## OSQP Headers
-	control/design/src/RapidQuadrocopterTrajectories/cgen/inc/private/
-	control/design/src/RapidQuadrocopterTrajectories/cgen/inc/public/
-	control/design/src/RapidQuadrocopterTrajectories/cgen/
-)
-
-get_target_property(dirs libs_control INCLUDE_DIRECTORIES)
-message(VERBOSE "include for libs_control: ${dirs}")
-
-#### Build - state/ ####
-file(GLOB_RECURSE MC_LIBS_STATE "state/*.cpp")
-foreach(src ${MC_LIBS_STATE})
-	message(VERBOSE "${src}")
-endforeach()
-
-add_library(libs_state STATIC ${MC_LIBS_STATE})
-
-target_include_directories(libs_state PUBLIC
-	${MC_INCLUDE_DIRS}
-)
-
-#### Build - dev/ and sim/ ####
-file(GLOB_RECURSE MC_LIBS_DEV "dev/*.cpp")
-foreach(src ${MC_LIBS_DEV})
-	message(VERBOSE "${src}")
-endforeach()
-
-add_library(libs_dev STATIC ${MC_LIBS_DEV})
-
-target_include_directories(libs_dev PUBLIC
-	${MC_INCLUDE_DIRS}
-)
-
-file(GLOB MC_LIBS_SIM "sim/*.cpp")
-foreach(src ${MC_LIBS_SIM})
-	message(VERBOSE "${src}")
-endforeach()
-
-add_library(libs_sim STATIC ${MC_LIBS_SIM})
-
-target_include_directories(libs_sim PUBLIC
-	${MC_INCLUDE_DIRS}
-)
-
-target_link_libraries(libs_sim PUBLIC libs_control)
+## Sim
+add_subdirectory( ${CMAKE_SOURCE_DIR}/sim )
 
 #### Build - arch/ ####
 ## This is dependent on the target architecture.
@@ -179,19 +128,8 @@ target_include_directories(libs_arch PUBLIC
 	${MC_INCLUDE_DIRS}
 )
 
-#### Build - common libraries under lib/ ####
-file(GLOB_RECURSE MC_LIBS_COMMON "lib/*.cpp")
-foreach(src ${MC_LIBS_COMMON})
-	message(VERBOSE "${src}")
-endforeach()
-
-add_library(libs_common STATIC ${MC_LIBS_COMMON})
-
-target_include_directories(libs_common PUBLIC
-	${MC_INCLUDE_DIRS}
-)
-
-target_link_libraries(libs_common PUBLIC libs_control)
+## Common (lib/)
+add_subdirectory( ${CMAKE_SOURCE_DIR}/lib )
 
 #### Build - mincopter/ ####
 add_executable(mincopter
