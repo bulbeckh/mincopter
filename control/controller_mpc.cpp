@@ -32,6 +32,7 @@ void MPC_Controller::run()
 {
 	// NOTE This is called at 100Hz currently but our linearised system is at 10Hz so we should actually update the MPC every 10 iterations
 	static uint8_t mpc_iteration=0;
+	/*
 	if (mpc_iteration==9) {
 		// 10th iteration
 		mpc_iteration=0;
@@ -39,6 +40,7 @@ void MPC_Controller::run()
 		mpc_iteration+=1;
 		return;
 	}
+	*/
 
 	/* **Part 1.** Retrieve current state dynamics and update l and u vectors with (linearised) dynamics (from A matrix)
 	 * States 0:3 (the position in inertial frame) will come from inertial nav. States 3:6 (attitude) will come from the AHRS roll,pitch,yaw sensors
@@ -202,9 +204,14 @@ void MPC_Controller::mixer_generate_pwm(float thrust, float roll, float pitch, f
 	if (generate_calls<50) {
 		generate_calls++;
 		for (int i=0;i<4;i++) gz_interface.control_pwm[i] = 1400;
+	} else if (generate_calls<200 ) {
+		// Max thrust to get off ground
+		generate_calls++;
+		for (int i=0;i<4;i++) gz_interface.control_pwm[i] = 1900;
 	} else {
 		for (int i=0;i<4;i++) gz_interface.control_pwm[i] = pwm[i];
 	}
+	
 
 	static uint32_t iter2=0;
 	if (iter2%10==0) {

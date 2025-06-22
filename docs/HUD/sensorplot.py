@@ -6,30 +6,6 @@ class IMUSensor:
     def __init__(self, title):
         self.parsed = 0
 
-        self.accel_x = []
-        self.accel_y = []
-        self.accel_z = []
-
-        self.gyro_x = []
-        self.gyro_y = []
-        self.gyro_z = []
-
-    def parse(self, vals):
-        ''' Example IMU format is "imu,<gyro_x>,<gyro_y>,<gyro_z>,<accel_x>,<accel_y>,<accel_z>"
-        '''
-
-        if len(vals)<6:
-            return
-
-        self.gyro_x.append(float(vals[0]))
-        self.gyro_y.append(float(vals[1]))
-        self.gyro_z.append(float(vals[2]))
-        self.accel_x.append(float(vals[3]))
-        self.accel_y.append(float(vals[4]))
-        self.accel_z.append(float(vals[5]))
-
-        self.parsed += 1
-
     def plot(self):
         fig = plt.figure(figsize=(6,1))
         gs = gridspec.GridSpec(6,1, figure=fig)
@@ -74,20 +50,8 @@ class BaroSensor:
     def __init__(self, title):
         self.title = title
 
-        self.temperature = []
-        self.pressure = []
-        self.altitude_calc = []
-
         self.parsed = 0
     
-    def parse(self, vals):
-        if len(vals)<3:
-            return
-
-        self.temperature.append(float(vals[0]))
-        self.pressure.append(float(vals[1]))
-        self.altitude_calc.append(float(vals[2]))
-        self.parsed += 1
 
     def plot(self):
         fig = plt.figure(figsize=(3,1))
@@ -115,20 +79,10 @@ class CompassSensor:
     def __init__(self, title):
         self.title = title
 
-        self.field_x = []
-        self.field_y = []
-        self.field_z = []
 
         self.parsed = 0
     
     def parse(self, vals):
-        if len(vals)<3:
-            return
-
-        self.field_x.append(float(vals[0]))
-        self.field_y.append(float(vals[1]))
-        self.field_z.append(float(vals[2]))
-        self.parsed += 1
 
     def plot(self):
         fig = plt.figure(figsize=(3,1))

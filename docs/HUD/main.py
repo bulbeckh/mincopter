@@ -10,6 +10,9 @@ def parse(self, vals)
 def plot()
 
 """
+
+## TODO Rewrite this as a store of sensor/state/control data and then create plots based on that information - i.e. for MPC, fused xx and xx plots
+
 from sensorplot import IMUSensor, BaroSensor, CompassSensor
 from ahrs import AHRS
 from inavplot import INav
