@@ -67,7 +67,7 @@ SimulationLogger::SimulationLogger(bool overwrite)
 	simlog_flags.log_mpc = 1;
 }
 
-void SimulationLogger::set_iteration(uint32_t iter)
+void SimulationLogger::increase_iteration()
 {
 	iteration_count += 1;
 }
@@ -82,7 +82,8 @@ void SimulationLogger::write_planner_state()
 	int32_t d_roll = planner.wp_nav.get_desired_roll();
 	int32_t d_pitch = planner.wp_nav.get_desired_pitch();
 
-    simulation_out << "p"
+    simulation_out << "p,"
+		<< iteration_count << ","
 		<< (int)planner.wp_nav.get_loiter_step() << ","
 		<< nav_target.x << ","
 		<< nav_target.y << ","
@@ -105,11 +106,12 @@ void SimulationLogger::write_controller_state()
 
 	if (!simlog_flags.log_controller || lines_written>max_lines) return;
 
-    simulation_out << "c"
-	<< controller.control_roll << ","
-	<< controller.control_pitch << ","
-	<< controller.control_yaw << ","
-	<< controller.controller_desired_alt << "\n";
+    simulation_out << "c,"
+		<< iteration_count << ","
+		<< controller.control_roll << ","
+		<< controller.control_pitch << ","
+		<< controller.control_yaw << ","
+		<< controller.controller_desired_alt << "\n";
 
 	lines_written++;
 }
@@ -121,6 +123,7 @@ void SimulationLogger::write_ahrs_state(int32_t roll_sensor, int32_t pitch_senso
 	/* Augment with simulation readings */
 
 	simulation_out << "ah,"
+		<< iteration_count << ","
 		<< roll_sensor*1e-2*M_PI_F/180.0f << ","
 		<< pitch_sensor*1e-2*M_PI_F/180.0f << ","
 		<< yaw_sensor*1e-2*M_PI_F/180.0f << ","
@@ -142,10 +145,11 @@ void SimulationLogger::write_motor_outputs()
 	if (!simlog_flags.log_motors || lines_written>max_lines) return;
 
     simulation_out << "m,"
-	<< mincopter.motors.get_raw_motor_out(0) << ","
-	<< mincopter.motors.get_raw_motor_out(1) << ","
-	<< mincopter.motors.get_raw_motor_out(2) << ","
-	<< mincopter.motors.get_raw_motor_out(3) << "\n";
+		<< iteration_count << ","
+		<< mincopter.motors.get_raw_motor_out(0) << ","
+		<< mincopter.motors.get_raw_motor_out(1) << ","
+		<< mincopter.motors.get_raw_motor_out(2) << ","
+		<< mincopter.motors.get_raw_motor_out(3) << "\n";
 
 	lines_written++;
 }
@@ -155,6 +159,7 @@ void SimulationLogger::write_pid_state(const char* pid_name, int32_t target, int
 	if (!simlog_flags.log_pids || lines_written>max_lines) return;
 
 	simulation_out << "pid,"
+		<< iteration_count << ","
 		<< pid_name << ","
 		<< target << ","
 		<< error << ","
@@ -170,6 +175,7 @@ void SimulationLogger::write_barometer_state(float temperature, float pressure, 
 	if (!simlog_flags.log_barometer || lines_written>max_lines) return;
 
 	simulation_out << "baro,"
+		<< iteration_count << ","
 		<< temperature << ","
 		<< pressure << ","
 		<< altitude_calculated <<"\n";
@@ -182,6 +188,7 @@ void SimulationLogger::write_compass_state(float field_x, float field_y, float f
 	if (!simlog_flags.log_compass || lines_written>max_lines) return;
 
 	simulation_out << "comp,"
+		<< iteration_count << ","
 		<< field_x << ","
 		<< field_y << ","
 		<< field_z << "\n"; 
@@ -194,6 +201,7 @@ void SimulationLogger::write_imu_state(Vector3f gyro, Vector3f accel)
 	if (!simlog_flags.log_imu || lines_written>max_lines) return;
 
 	simulation_out << "imu,"
+		<< iteration_count << ","
 		<< gyro.x << ","
 		<< gyro.y << ","
 		<< gyro.z << ","
@@ -212,6 +220,7 @@ void SimulationLogger::write_inav_state(Vector3f position, Vector3f velocity)
 	
 	// Convert INAV postions and velocities from cm to m
 	simulation_out << "inav,"
+		<< iteration_count << ","
 		<< position.x*1e-2 << ","
 		<< position.y*1e-2 << ","
 		<< position.z*1e-2 << ","
@@ -233,6 +242,7 @@ void SimulationLogger::write_inav_correction(Vector3f pos_correction, Vector3f p
 	if (!simlog_flags.log_inavc || lines_written>max_lines) return;
 
 	simulation_out << "inavc,"
+		<< iteration_count << ","
 		<< pos_correction.x << ","
 		<< pos_correction.y << ","
 		<< pos_correction.z << ","
@@ -251,6 +261,7 @@ void SimulationLogger::write_gps_state(int32_t lat, int32_t lng, int32_t alt_cm,
 	if (!simlog_flags.log_gps || lines_written>max_lines) return;
 
 	simulation_out << "gps,"
+		<< iteration_count << ","
 		<< lat << ","
 		<< lng << ","
 		<< alt_cm << ","
@@ -266,6 +277,7 @@ void SimulationLogger::write_mpc_control_output(float total_thrust, float roll_t
 	if (!simlog_flags.log_mpc || lines_written>max_lines) return;
 
 	simulation_out << "mpc,"
+		<< iteration_count << ","
 		<< total_thrust << ","
 		<< roll_torque << ","
 		<< pitch_torque << ","

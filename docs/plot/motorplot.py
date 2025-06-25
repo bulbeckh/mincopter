@@ -15,24 +15,9 @@ class MotorHistory:
     def __init__(self, title, units):
         self.units = units
 
-        self.mot1 = []
-        self.mot2 = []
-        self.mot3 = []
-        self.mot4 = []
 
         self.parsed=0
 
-    def parse(self, vals):
-        ## line should have format: target, error, out, max, min
-
-        ## Return if we don't have enough values
-        if len(vals)<4:
-            return
-
-        self.mot1.append(int(vals[0]))
-        self.mot2.append(int(vals[1]))
-        self.mot3.append(int(vals[2]))
-        self.mot4.append(int(vals[3]))
         self.parsed += 1
 
     def plot(self, m_ax, title):

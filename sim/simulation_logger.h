@@ -62,7 +62,7 @@ class SimulationLogger
     public:
 
 	/* @brief Should be called at start of mincopter 100Hz (10ms) loop to signal an iteration */
-	void set_iteration(uint32_t iter);
+	void increase_iteration();
 
 	public:
 	

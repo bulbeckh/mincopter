@@ -5,29 +5,9 @@ import matplotlib.gridspec as gridspec
 
 class MPC:
     def __init__(self, title):
-        self.control_thrust = []
-        self.control_rollt = []
-        self.control_pitcht = []
-        self.control_yawt = []
-
-        ## PWM Signals
-        self.p0 = []
-        self.p1 = []
-        self.p2 = []
-        self.p3 = []
 
         self.parsed_mpc=0
 
-    def parse_mpc(self, vals):
-        self.control_thrust.append(float(vals[0]))
-        self.control_rollt.append(float(vals[1]))
-        self.control_pitcht.append(float(vals[2]))
-        self.control_yawt.append(float(vals[3]))
-
-        self.p0.append(float(vals[4]))
-        self.p1.append(float(vals[5]))
-        self.p2.append(float(vals[6]))
-        self.p3.append(float(vals[7]))
         
         self.parsed_mpc += 1
 

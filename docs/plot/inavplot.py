@@ -5,49 +5,9 @@ import matplotlib.gridspec as gridspec
 
 class INav:
     def __init__(self, title):
-        self.pos_x = []
-        self.pos_y = []
-        self.pos_z = []
-        self.vel_x = []
-        self.vel_y = []
-        self.vel_z = []
-
-        self.sim_px = []
-        self.sim_py = []
-        self.sim_pz = []
-        self.sim_vx = []
-        self.sim_vy = []
-        self.sim_vz = []
-
-        self.pos_corr_x = []
-        self.pos_corr_y = []
-        self.pos_corr_z = []
-
-        self.pos_err_x = []
-        self.pos_err_y = []
-        self.pos_err_z = []
-
-        self.accel_corr_x = []
-        self.accel_corr_y = []
-        self.accel_corr_z = []
-
         self.parsed_inav=0
         self.parsed_inavc=0
 
-    def parse_inav(self, vals):
-        self.pos_x.append(float(vals[0]))
-        self.pos_y.append(float(vals[1]))
-        self.pos_z.append(float(vals[2]))
-        self.sim_px.append(float(vals[3]))
-        self.sim_py.append(float(vals[4]))
-        self.sim_pz.append(float(vals[5]))
-
-        self.vel_x.append(float(vals[6]))
-        self.vel_y.append(float(vals[7]))
-        self.vel_z.append(float(vals[8]))
-        self.sim_vx.append(float(vals[9]))
-        self.sim_vy.append(float(vals[10]))
-        self.sim_vz.append(float(vals[11]))
         
         self.parsed_inav += 1
 
