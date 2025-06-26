@@ -3,78 +3,68 @@ import time
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 
-class MPC:
-    def __init__(self, title):
+''' MPC Plot
 
-        self.parsed_mpc=0
+Should plot each of the state vectors and then the corresponding MPC output 
 
-        
-        self.parsed_mpc += 1
+'''
 
-    def parse(self, vals):
-        ## TODO There should be a better way to direct which inav line type we are on
-        if len(vals)==8:
-            self.parse_mpc(vals)
-        else:
-            print("MPC: line found with not enough fields")
-            return
+def plot_mpc(mc):
+    fig = plt.figure(figsize=(8,1))
+    gs = gridspec.GridSpec(8,1, figure=fig)
 
-    def plot(self):
-        fig = plt.figure(figsize=(8,1))
-        gs = gridspec.GridSpec(8,1, figure=fig)
+    ## MPC Thrust and Torques
+    ax = fig.add_subplot(gs[0,0])
+    ax.plot(list([e[0] for e in mc.control_thrust]), list([e[1] for e in mc.control_thrust]), color='blue', linestyle='--', label='Thrust')
+    ax.set_title(f'Total Thrust (N)')
+    ax.set_ylim(0,50)
+    ax.legend()
+    ax.grid(True)
 
-        ## MPC Thrust and Torques
-        rs_ax = fig.add_subplot(gs[0,0])
-        rs_ax.plot(range(0,self.parsed_mpc), self.control_thrust, color='blue', linestyle='--')
-        rs_ax.set_title(f'Total Thrust (N)')
-        rs_ax.set_ylim(0,50)
-        rs_ax.legend()
-        rs_ax.grid(True)
+    ax = fig.add_subplot(gs[1,0])
+    ax.plot(list([e[0] for e in mc.control_rollt]), list([e[1] for e in mc.control_rollt]), color='blue', linestyle='--', label='Roll Torque')
+    ax.set_title(f'Roll Torque(??)')
+    ax.set_ylim(-2,2)
+    ax.legend()
+    ax.grid(True)
 
-        ps_ax = fig.add_subplot(gs[1,0])
-        ps_ax.plot(range(0,self.parsed_mpc), self.control_rollt, color='blue', linestyle='--')
-        ps_ax.set_title(f'Roll Torque(??)')
-        ps_ax.set_ylim(-2,2)
-        ps_ax.legend()
-        ps_ax.grid(True)
+    ax = fig.add_subplot(gs[2,0])
+    ax.plot(list([e[0] for e in mc.control_pitcht]), list([e[1] for e in mc.control_pitcht]), color='blue', linestyle='--', label='Pitch Torque')
+    ax.set_title(f'Pitch Torque(??)')
+    ax.set_ylim(-2,2)
+    ax.legend()
+    ax.grid(True)
 
-        ys_ax = fig.add_subplot(gs[2,0])
-        ys_ax.plot(range(0,self.parsed_mpc), self.control_pitcht, color='blue', linestyle='--')
-        ys_ax.set_title(f'Pitch Torque(??)')
-        ys_ax.set_ylim(-2,2)
-        ys_ax.legend()
-        ys_ax.grid(True)
+    ax = fig.add_subplot(gs[3,0])
+    ax.plot(list([e[0] for e in mc.control_yawt]), list([e[1] for e in mc.control_yawt]), color='blue', linestyle='--', label='Yaw Torque')
+    ax.set_title(f'Yaw Torque(??)')
+    ax.set_ylim(-0.05,0.05)
+    ax.legend()
+    ax.grid(True)
 
-        ys_ax = fig.add_subplot(gs[3,0])
-        ys_ax.plot(range(0,self.parsed_mpc), self.control_yawt, color='blue', linestyle='--')
-        ys_ax.set_title(f'Yaw Torque(??)')
-        ys_ax.set_ylim(-0.05,0.05)
-        ys_ax.legend()
-        ys_ax.grid(True)
+    ## PWM Signals (rotor speeds)
+    ax = fig.add_subplot(gs[4,0])
+    ax.plot(list([e[0] for e in mc.p0]), list([e[1] for e in mc.p0]), color='blue', linestyle='--', label='Motor 1 pwm')
+    ax.set_title(f'Rotor0 Speed OR PWM (rad/s)')
+    ax.legend()
+    ax.grid(True)
 
-        ## PWM Signals (rotor speeds)
-        rs_ax = fig.add_subplot(gs[4,0])
-        rs_ax.plot(range(0,self.parsed_mpc), self.p0, color='blue', linestyle='--')
-        rs_ax.set_title(f'Rotor0 Speed OR PWM (rad/s)')
-        rs_ax.legend()
-        rs_ax.grid(True)
+    ax = fig.add_subplot(gs[5,0])
+    ax.plot(list([e[0] for e in mc.p1]), list([e[1] for e in mc.p1]), color='blue', linestyle='--', label='Motor 2 pwm')
+    ax.set_title(f'Rotor1 Speed OR PWM (rad/s)')
+    ax.legend()
+    ax.grid(True)
 
-        rs_ax = fig.add_subplot(gs[5,0])
-        rs_ax.plot(range(0,self.parsed_mpc), self.p1, color='blue', linestyle='--')
-        rs_ax.set_title(f'Rotor1 Speed OR PWM (rad/s)')
-        rs_ax.legend()
-        rs_ax.grid(True)
+    ax = fig.add_subplot(gs[6,0])
+    ax.plot(list([e[0] for e in mc.p2]), list([e[1] for e in mc.p2]), color='blue', linestyle='--', label='Motor 3 pwm')
+    ax.set_title(f'Rotor2 Speed OR PWM (rad/s)')
+    ax.legend()
+    ax.grid(True)
 
-        rs_ax = fig.add_subplot(gs[6,0])
-        rs_ax.plot(range(0,self.parsed_mpc), self.p2, color='blue', linestyle='--')
-        rs_ax.set_title(f'Rotor2 Speed OR PWM (rad/s)')
-        rs_ax.legend()
-        rs_ax.grid(True)
-
-        rs_ax = fig.add_subplot(gs[7,0])
-        rs_ax.plot(range(0,self.parsed_mpc), self.p3, color='blue', linestyle='--')
-        rs_ax.set_title(f'Rotor3 Speed OR PWM (rad/s)')
-        rs_ax.legend()
-        rs_ax.grid(True)
+    ax = fig.add_subplot(gs[7,0])
+    ax.plot(list([e[0] for e in mc.p3]), list([e[1] for e in mc.p3]), color='blue', linestyle='--', label='Motor 4 pwm')
+    ax.set_title(f'Rotor3 Speed OR PWM (rad/s)')
+    ax.legend()
+    ax.grid(True)
 
 

@@ -2,49 +2,55 @@
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 
-class IMUSensor:
-    def __init__(self, title):
-        self.parsed = 0
+import math
 
-    def plot(self):
-        fig = plt.figure(figsize=(6,1))
-        gs = gridspec.GridSpec(6,1, figure=fig)
+def plot_imu(mc):
+    fig = plt.figure(figsize=(6,1))
+    gs = gridspec.GridSpec(6,1, figure=fig)
 
-        accel_x = fig.add_subplot(gs[0,0])
-        accel_x.plot(range(0,self.parsed), self.accel_x, color='blue', linestyle='--')
-        accel_x.set_title(f'Accel X (m/s^2)')
-        accel_x.legend()
-        accel_x.grid(True)
+    ax = fig.add_subplot(gs[0,0])
+    ax.plot(list([e[0] for e in mc.accel_x]), list([e[1] for e in mc.accel_x]), color='blue', linestyle='--', label='Accel x')
+    ax.set_title(f'Accel X (m/s^2)')
+    ax.legend()
+    ax.grid(True)
 
-        accel_y = fig.add_subplot(gs[1,0])
-        accel_y.plot(range(0,self.parsed), self.accel_y, color='blue', linestyle='--')
-        accel_y.set_title(f'Accel Y (m/s^2)')
-        accel_y.legend()
-        accel_y.grid(True)
+    ax = fig.add_subplot(gs[1,0])
+    ax.plot(list([e[0] for e in mc.accel_y]), list([e[1] for e in mc.accel_y]), color='blue', linestyle='--', label='Accel y')
+    ax.set_title(f'Accel Y (m/s^2)')
+    ax.legend()
+    ax.grid(True)
 
-        accel_z = fig.add_subplot(gs[2,0])
-        accel_z.plot(range(0,self.parsed), self.accel_z, color='blue', linestyle='--')
-        accel_z.set_title(f'Accel Z (m/s^2)')
-        accel_z.legend()
-        accel_z.grid(True)
+    ax = fig.add_subplot(gs[2,0])
+    ax.plot(list([e[0] for e in mc.accel_z]), list([e[1] for e in mc.accel_z]), color='blue', linestyle='--', label='Accel z')
+    ax.set_title(f'Accel Z (m/s^2)')
+    ax.legend()
+    ax.grid(True)
 
-        gyro_x = fig.add_subplot(gs[3,0])
-        gyro_x.plot(range(0,self.parsed), self.gyro_x, color='blue', linestyle='--')
-        gyro_x.set_title(f'Gyro X (rad/s)')
-        gyro_x.legend()
-        gyro_x.grid(True)
+    ax = fig.add_subplot(gs[3,0])
+    ax.plot(list([e[0] for e in mc.gyro_x]), list([e[1] for e in mc.gyro_x]), color='blue', linestyle='--', label='Gyro x')
+    ax.plot(range(0,len(mc.gyro_x)), len(mc.gyro_x)*[-3*math.pi], color='red', linestyle='solid')
+    ax.plot(range(0,len(mc.gyro_x)), len(mc.gyro_x)*[3*math.pi], color='red', linestyle='solid')
+    ax.set_title(f'Gyro X (rad/s)')
+    ax.legend()
+    ax.grid(True)
 
-        gyro_y = fig.add_subplot(gs[4,0])
-        gyro_y.plot(range(0,self.parsed), self.gyro_y, color='blue', linestyle='--')
-        gyro_y.set_title(f'Gyro Y (rad/s)')
-        gyro_y.legend()
-        gyro_y.grid(True)
+    ax = fig.add_subplot(gs[4,0])
+    ax.plot(list([e[0] for e in mc.gyro_y]), list([e[1] for e in mc.gyro_y]), color='blue', linestyle='--', label='Gyro y')
+    ax.plot(range(0,len(mc.gyro_y)), len(mc.gyro_y)*[-3*math.pi], color='red', linestyle='solid')
+    ax.plot(range(0,len(mc.gyro_y)), len(mc.gyro_y)*[3*math.pi], color='red', linestyle='solid')
+    ax.set_title(f'Gyro Y (rad/s)')
+    ax.legend()
+    ax.grid(True)
 
-        gyro_z = fig.add_subplot(gs[5,0])
-        gyro_z.plot(range(0,self.parsed), self.gyro_z, color='blue', linestyle='--')
-        gyro_z.set_title(f'Gyro Z (rad/s)')
-        gyro_z.legend()
-        gyro_z.grid(True)
+    ax = fig.add_subplot(gs[5,0])
+    ax.plot(list([e[0] for e in mc.gyro_z]), list([e[1] for e in mc.gyro_z]), color='blue', linestyle='--', label='Gyro z')
+    ax.plot(range(0,len(mc.gyro_z)), len(mc.gyro_z)*[-3*math.pi], color='red', linestyle='solid')
+    ax.plot(range(0,len(mc.gyro_z)), len(mc.gyro_z)*[3*math.pi], color='red', linestyle='solid')
+    ax.set_title(f'Gyro Z (rad/s)')
+    ax.legend()
+    ax.grid(True)
+
+    return
 
 class BaroSensor:
     def __init__(self, title):
@@ -83,6 +89,7 @@ class CompassSensor:
         self.parsed = 0
     
     def parse(self, vals):
+        pass
 
     def plot(self):
         fig = plt.figure(figsize=(3,1))

@@ -199,10 +199,10 @@ void MPC_Controller::mixer_generate_pwm(float thrust, float roll, float pitch, f
 	// Assign control to signal
 	// NOTE For the first 2 seconds, just wait until initialisation is complete and send min thrust
 	static uint8_t generate_calls=0;
-	if (generate_calls<50) {
+	if (generate_calls<5) {
 		generate_calls++;
 		for (int i=0;i<4;i++) gz_interface.control_pwm[i] = 1400;
-	} else if (generate_calls<200 ) {
+	} else if (generate_calls<20 ) {
 		// Max thrust to get off ground
 		generate_calls++;
 		for (int i=0;i<4;i++) gz_interface.control_pwm[i] = 1900;
