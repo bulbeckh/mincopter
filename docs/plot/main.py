@@ -26,11 +26,11 @@ if __name__=="__main__":
     m = MinCopter()
     m.parse('../../build/standard.mcsimlog')
 
-    plot_ahrs(m)
-    plot_inav(m)
+    #plot_ahrs(m)
+    #plot_inav(m)
     #plot_motors(m)
     plot_mpc(m)
-    plot_imu(m)
+    #plot_imu(m)
 
     plt.show()
 
