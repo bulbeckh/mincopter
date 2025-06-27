@@ -17,7 +17,7 @@ def plot_mpc(mc):
     ax = fig.add_subplot(gs[0,0])
     ax.plot(list([e[0] for e in mc.control_thrust]), list([e[1] for e in mc.control_thrust]), color='blue', linestyle='--', label='Thrust')
     ax.set_title(f'Total Thrust (N)')
-    ax.set_ylim(0,50)
+    a.set_ylim(0,50)
     ax.legend()
     ax.grid(True)
 
