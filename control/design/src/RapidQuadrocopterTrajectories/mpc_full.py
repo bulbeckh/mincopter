@@ -63,13 +63,20 @@ def setup(params, linA, linB, horizon=10):
     #p = np.block([[np.eye(120,120), np.zeros((120,40))],[np.zeros((40,120)), np.zeros((40,40))]])
 
     #x_penalty = 10*[1,1,1,1,1,1,0,0,0,0,0,0]
-    x_penalty = 10*[1,1,1,1,1,1,1,1,1,1,1,1]
-    p = np.block([[np.diag(x_penalty), np.zeros((120,40))],[np.zeros((40,120)), np.zeros((40,40))]])
+    #x_penalty = 10*[1,1,1,1,1,1,1,1,1,1,1,1]
+    x_penalty = np.tile(params['state_penalty'],10)
+
+    u_penalty = np.tile(params['control_penalty'],10)
+
+    ## Create p penalty matrix. We don't penalise any of the inputs so we zero-out their penalty values here
+    #p = np.block([[np.diag(x_penalty), np.zeros((120,40))],[np.zeros((40,120)), np.zeros((40,40))]])
+    p = np.block([[np.diag(x_penalty), np.zeros((120,40))],
+                  [np.zeros((40,120)), np.diag(u_penalty)]])
 
     ## Increase TERMINAL constraint
     for i in range(0,12):
         #p[108+i][108+i] = [10*e for e in x_penalty][i]
-        p[108+i][108+i] = [1*e for e in x_penalty][i]
+        p[108+i][108+i] = [params['terminal_multiplier']*e for e in x_penalty][i]
 
     l = np.zeros((240,1))
     u = np.zeros((240,1))
@@ -162,16 +169,13 @@ def loop(params, num_iterations, p, A, l, u, linA, linB):
     # Each step, we update the lower and upper matrix with the current state vector
     # For reference tracking, we also need a q matrix to be updated with the state reference vector (for the states we are controlling)
 
-    x_ref = np.tile(params['constant_ref'],10)
-    x_ref = np.append(x_ref, np.zeros((40,1)))
-    q = -1*x_ref@p
 
     prob = osqp.OSQP()
-    prob.setup(p, q, A, l, u, alpha=1.0, verbose=False)
+    prob.setup(p, None, A, l, u, alpha=1.0, verbose=False)
 
     #prob.codegen('./cgen', force_rewrite=True)
 
-    x0 = np.array([3, 10, -2, 0.75, 0, 0, 0, 0, 0, 0, 0, 0])
+    x0 = params['initial_state']
 
     for i in range(0,num_iterations):
         ## Store state vector for plotting
@@ -182,6 +186,17 @@ def loop(params, num_iterations, p, A, l, u, linA, linB):
         u[120:120+12] = np.matmul(linA, x0).reshape((12,1))
 
         ## Update q NOTE q (reference trajectory) is constant for now
+        ref_temp = params['constant_ref']
+
+        if params['reference_limit']:
+            ## Constrain the reference trajectory to be within a +-4 band of the current value 
+            ref_temp[0] = x0[0] + min(4,max(-4, params['constant_ref'][0]-x0[0]))
+            ref_temp[1] = x0[1] + min(4,max(-4, params['constant_ref'][1]-x0[1]))
+            ref_temp[2] = x0[2] + min(4,max(-4, params['constant_ref'][2]-x0[2]))
+
+        x_ref = np.tile(ref_temp,10)
+        x_ref = np.append(x_ref, np.zeros((40,1)))
+        q = -1*x_ref@p
 
         ## Update and solve
         prob.update(l=l, u=u, q=q)
@@ -200,6 +215,18 @@ def loop(params, num_iterations, p, A, l, u, linA, linB):
     print(f'Average solve time (ms): {1e3*sum(solvetimes)/len(solvetimes):4.6f}')
 
     return {'states': x_loop, 'controls': u_loop, 'status': statuses, 'solvetimes': solvetimes}
+
+def run(params):
+
+    iterations = int(params['runtime']/params['step'])
+
+    linA, linB = linearise(params)
+
+    p, A, l, u = setup(params, linA, linB, 10)
+
+    output = loop(params, iterations, p, A, l, u, linA, linB)
+
+    return output
 
 if __name__=="__main__":
 
@@ -243,47 +270,56 @@ if __name__=="__main__":
             ## Reference
             'constant_ref': np.array([4, 5, -10, 0, 0, 0, 0, 0, 0, 0, 0, 0]),
 
+            ## Initial
+            'initial_state': np.array([3, 10, -2, 0.75, 0, 0, 0, 0, 0, 0, 0, 0]),
+
+            ## Penalty
+            'state_penalty': np.array([60,60,60, 60,60,60, 6,6,6, 1,1,1]),
+            'terminal_multiplier': 1,
+            'control_penalty': np.array([10,10,10,10]),
+
+            ## Flags
+            'reference_limit': True,
+
             ## Simulation variables
-            'step': 0.1
+            'step': 0.01,
+            'runtime': 20 ## seconds
             }
 
-    linA, linB = linearise(params)
+    output = run(params)
 
-    p, A, l, u = setup(params, linA, linB, 10)
-
-    n_iter = 200
-    output = loop(params, n_iter, p, A, l, u, linA, linB)
+    iterations = int(params['runtime']/params['step'])
 
     ## GRAPH STATE
-    x = [output['states'][i][0] for i in range(0,n_iter)]
-    y = [output['states'][i][1] for i in range(0,n_iter)]
-    z = [output['states'][i][2] for i in range(0,n_iter)]
+    x = [output['states'][i][0] for i in range(0,iterations)]
+    y = [output['states'][i][1] for i in range(0,iterations)]
+    z = [output['states'][i][2] for i in range(0,iterations)]
 
     fig = plt.figure(figsize=(12, 4), constrained_layout=True)
 
     ax = fig.add_subplot(7,1,1)
     ax.plot(range(0,len(x)),x, label='x')
-    ax.plot(range(0,len(x)), params['constant_ref'][0].repeat(n_iter), linestyle='--', color='red')
+    ax.plot(range(0,len(x)), params['constant_ref'][0].repeat(iterations), linestyle='--', color='red')
     ax.set_title('x')
     ax.grid(True)
 
     ax = fig.add_subplot(7,1,2)
     ax.plot(range(0,len(y)),y)
-    ax.plot(range(0,len(y)), params['constant_ref'][1].repeat(n_iter), linestyle='--', color='red')
+    ax.plot(range(0,len(y)), params['constant_ref'][1].repeat(iterations), linestyle='--', color='red')
     ax.set_title('y')
     ax.grid(True)
 
     ax = fig.add_subplot(7,1,3)
     ax.plot(range(0,len(z)),z)
-    ax.plot(range(0,len(z)), params['constant_ref'][2].repeat(n_iter), linestyle='--', color='red')
+    ax.plot(range(0,len(z)), params['constant_ref'][2].repeat(iterations), linestyle='--', color='red')
     ax.set_title('z')
     ax.grid(True )
 
     ## GRAPH CONTROL VECTOR
-    u0 = [output['controls'][i][0] for i in range(0,n_iter)]
-    u1 = [output['controls'][i][1] for i in range(0,n_iter)]
-    u2 = [output['controls'][i][2] for i in range(0,n_iter)]
-    u3 = [output['controls'][i][3] for i in range(0,n_iter)]
+    u0 = [output['controls'][i][0] for i in range(0,iterations)]
+    u1 = [output['controls'][i][1] for i in range(0,iterations)]
+    u2 = [output['controls'][i][2] for i in range(0,iterations)]
+    u3 = [output['controls'][i][3] for i in range(0,iterations)]
 
     ax = fig.add_subplot(7,1,4)
     ax.plot(range(0,len(u0)),u0)
