@@ -163,16 +163,18 @@ void loop()
      * with linux based boards like Raspberry PI.
      */
 
+	// NOTE TODO I have updated the gz_interface to only call at 100Hz so no need to bucket the calls together like this
+	
     // Repeat 10x times
     // 1. Setup and send control output packet (x4 motor vel)
     // 2. Receive and parse packet (update simulated sensor readings, incl. noise if needed)
 
 	// NOTE This is taking ~10ms to send/receive 10 times
 	uint32_t st = micros();
-    for (int ii=0;ii<10;ii++) {
+    //for (int ii=0;ii<10;ii++) {
 		gz_interface.send_control_output();
 		gz_interface.recv_state_input();
-    }
+    //}
 	uint32_t gz_elapsed = micros()-st;
 
 #endif
@@ -181,7 +183,7 @@ void loop()
     if (loop_iterations%100==0) {
 	/* Should output every 1 second */
 		std::cout << "TIMING (should be 10ms): " << (1.0e-3)*(micros()-fast_loopTimer) << "ms \n";
-		std::cout << "GZ (should be <<10ms): " << (1.0e-3)*(gz_elapsed) << "ms \n";
+		//std::cout << "GZ (should be <<10ms): " << (1.0e-3)*(gz_elapsed) << "ms \n";
     	//std::cout << loop_iterations << " loop: time used during sensor update and scheduler call " << time_elapsed << "\n";
     	//std::cout << "load avg " << scheduler.load_average((uint32_t)10000) << "\n";
 
