@@ -211,7 +211,10 @@ def loop(params, num_iterations, p, A, l, u, linA, linB, dynamics):
         ## Recompute system dynamics
         #x0 = np.matmul(linA, x0)+np.matmul(linB,u_next)
         #x0 = np.matmul(linA, x0)+np.matmul(linB,np.array([0,0,0,0]))
-        x0 = dynamics(x0, u_next).full()
+
+        # add-back +mg from the linearised point
+        u_next[0] += params['mass']*params['gravity']
+        x0 = dynamics(x0, u_next).full().reshape(12,)
         
     print(f'{sum([1 if e=='solved' else 0 for e in statuses])*100/len(statuses)}% solved')
     print(f'Average solve time (ms): {1e3*sum(solvetimes)/len(solvetimes):4.6f}')
