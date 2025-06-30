@@ -52,10 +52,10 @@ else()
 endif()
 
 # --------------------------------------------------------------------------- #
-find_package(RapidJSON REQUIRED)
-find_package(OpenCV REQUIRED)
+#find_package(RapidJSON REQUIRED)
+#find_package(OpenCV REQUIRED)
 
-pkg_check_modules(GST REQUIRED gstreamer-1.0 gstreamer-app-1.0)
+#pkg_check_modules(GST REQUIRED gstreamer-1.0 gstreamer-app-1.0)
 
 
 # --------------------------------------------------------------------------- #

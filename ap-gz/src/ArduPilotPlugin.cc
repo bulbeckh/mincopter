@@ -16,8 +16,8 @@
 */
 #include "ArduPilotPlugin.hh"
 
-#include <rapidjson/stringbuffer.h>
-#include <rapidjson/writer.h>
+// HASH include <rapidjson/stringbuffer.h>
+// HASH include <rapidjson/writer.h>
 
 #include <gz/msgs/imu.pb.h>
 #include <gz/msgs/magnetometer.pb.h>
