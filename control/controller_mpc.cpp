@@ -99,9 +99,15 @@ void MPC_Controller::run()
 	// Update Q matrix with reference trajectory
 	for (int i=0;i<10;i++) {
 		for (int j=0;j<12;j++) {
-			// TODO This equation assumes an identity P matrix for the MPC problem. The correct formulation is q = -1*x_ref^{T}@P
 			// NOTE We only update the first 120 rows as there is no reference tracking/penalty for the input
 			q_constraint[i*12+j] = -1*state_reference[i*12+j]*penalty_vector[i*12+j];
+		}
+	}
+	// Update Q matrix with input constraints TODO This should not be hardcoded as it doesn't change between loops
+	// like the reference trajectory may do.
+	for (int i=0;i<10;i++) {
+		for (int j=0;j<4;j++) {
+			q_constraint[120+i*4+j] = 0.1f;
 		}
 	}
 
@@ -159,6 +165,7 @@ void MPC_Controller::mixer_generate_pwm(float thrust, float roll, float pitch, f
 	 *
 	 */
 
+	// NOTE Have artifically scaled the roll and pitch torques to 10% of their values
 	float g0 = 121951.0f;
 	float g1 = 938086.9f;
 	float g2 = 609756.0f;
@@ -195,7 +202,7 @@ void MPC_Controller::mixer_generate_pwm(float thrust, float roll, float pitch, f
 	if (!exitflag) {
 		simlog.write_mpc_control_output(thrust, roll, pitch, yaw, pwm[0], pwm[1], pwm[2], pwm[3]);
 	} else {
-		simlog.write_mpc_control_output(thrust, roll, pitch, yaw, 1200, 1200, 1200, 1200);
+		simlog.write_mpc_control_output(thrust, roll, pitch, yaw, 0, 0, 0, 0);
 	}
 
 	// Assign control to signal

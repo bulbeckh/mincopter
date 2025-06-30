@@ -6,7 +6,7 @@ import osqp
 from matplotlib import pyplot as plt
 import matplotlib.gridspec as gridspec
 
-
+from datetime import datetime, timezone
 
 def linearise(params):
 
@@ -24,9 +24,9 @@ def linearise(params):
     dx_theta = x_dtheta
     dx_psi = x_dpsi
 
-    dx_dx = -1*u_F/params['mass'] * (ca.cos(x_phi)*ca.sin(x_theta)*ca.cos(x_psi) + ca.sin(x_phi)*ca.sin(x_psi))
-    dx_dy = -1*u_F/params['mass'] * (ca.cos(x_psi)*ca.sin(x_theta)*ca.sin(x_phi) - ca.sin(x_psi)*ca.cos(x_phi))
-    dx_dz = -1*u_F/params['mass'] * ca.cos(x_psi) * ca.cos(x_theta) + params['gravity']
+    dx_dx = (-1*u_F/params['mass']) * (ca.sin(x_theta))
+    dx_dy = (-1*u_F/params['mass']) * (-ca.sin(x_phi)*ca.cos(x_theta))
+    dx_dz = (-1*u_F/params['mass']) * (ca.cos(x_phi) * ca.cos(x_theta)) + params['gravity']
 
     dx_dphi   = 1/params['Ix'] * (u_Tx + x_dtheta * x_dpsi*(params['Iy'] - params['Iz']))
     dx_dtheta = 1/params['Iy'] * (u_Ty + x_dpsi*x_dphi*(params['Iz'] - params['Ix']))
@@ -51,7 +51,7 @@ def linearise(params):
     lin_ss_cont = ct.ss(A,B,C,D)
     lin_ss_disc = ct.c2d(lin_ss_cont, params['step'], method='zoh')
 
-    return (lin_ss_disc.A, lin_ss_disc.B)
+    return (lin_ss_disc.A, lin_ss_disc.B, dynamics)
 
 def setup(params, linA, linB, horizon=10):
 
@@ -62,10 +62,7 @@ def setup(params, linA, linB, horizon=10):
     #p = np.block([[np.eye(120,120), np.zeros((120,40))],[np.zeros((40,120)), np.eye(40,40)]])
     #p = np.block([[np.eye(120,120), np.zeros((120,40))],[np.zeros((40,120)), np.zeros((40,40))]])
 
-    #x_penalty = 10*[1,1,1,1,1,1,0,0,0,0,0,0]
-    #x_penalty = 10*[1,1,1,1,1,1,1,1,1,1,1,1]
     x_penalty = np.tile(params['state_penalty'],10)
-
     u_penalty = np.tile(params['control_penalty'],10)
 
     ## Create p penalty matrix. We don't penalise any of the inputs so we zero-out their penalty values here
@@ -158,7 +155,7 @@ def setup(params, linA, linB, horizon=10):
     return (p, A, l, u)
 
 
-def loop(params, num_iterations, p, A, l, u, linA, linB):
+def loop(params, num_iterations, p, A, l, u, linA, linB, dynamics):
 
     u_loop = []
     x_loop = []
@@ -173,7 +170,7 @@ def loop(params, num_iterations, p, A, l, u, linA, linB):
     prob = osqp.OSQP()
     prob.setup(p, None, A, l, u, alpha=1.0, verbose=False)
 
-    #prob.codegen('./cgen', force_rewrite=True)
+    prob.codegen('./cgen', force_rewrite=True)
 
     x0 = params['initial_state']
 
@@ -205,141 +202,65 @@ def loop(params, num_iterations, p, A, l, u, linA, linB):
         solvetimes.append(res.info.solve_time)
 
         ## Extract next control inputs
-        u_next = res.x[120:124]
-        u_loop.append(u_next)
+        if (res.info.status=='solved'):
+            u_next = res.x[120:124]
+            u_loop.append(u_next)
+        else:
+            u_loop.append([0,0,0,0])
 
         ## Recompute system dynamics
-        x0 = np.matmul(linA, x0)+np.matmul(linB,u_next)
-
+        #x0 = np.matmul(linA, x0)+np.matmul(linB,u_next)
+        #x0 = np.matmul(linA, x0)+np.matmul(linB,np.array([0,0,0,0]))
+        x0 = dynamics(x0, u_next).full()
+        
     print(f'{sum([1 if e=='solved' else 0 for e in statuses])*100/len(statuses)}% solved')
     print(f'Average solve time (ms): {1e3*sum(solvetimes)/len(solvetimes):4.6f}')
 
     return {'states': x_loop, 'controls': u_loop, 'status': statuses, 'solvetimes': solvetimes}
 
-def run(params):
+def generate_c_code(params, path, linA, linB, lower, upper):
+    with open(path,'w') as wfile:
+        wfile.write("""#include "controller_mpc.h"\n""")
+        wfile.write(f"/* Last generated using fulltest.ipynb at {datetime.now(timezone.utc)} */\n")
+        wfile.write("""
+MPC_Controller::MPC_Controller()
+    : MC_Controller(),
+    linearised_A{
+"""
+                   )
+        for i in range(0,12):
+            for j in range(0,12):
+                wfile.write(f"        {linA[i,j]}f, // ({i},{j})\n")
+        wfile.write("    },\n    linearised_B{\n")
+        for i in range(0,12):
+            for j in range(0,4):
+                wfile.write(f"        {linB[i,j]}f, // ({i},{j})\n")
+        wfile.write("    },\n    lower_constraint{\n")
+        for i in range(0,240):
+            wfile.write(f"        {lower[i][0]}f, // ({i},0)\n")
+        wfile.write("    },\n    upper_constraint{\n")
+        for i in range(0,240):
+            wfile.write(f"        {upper[i][0]}f, // ({i},0)\n")
+        ## Penalty vector
+        wfile.write("    },\n    penalty_vector{\n")
+        for i in range(0,120):
+            wfile.write(f"        {params['state_penalty'][i%12]}.0f, // ({i},0)\n")
+        wfile.write("    }\n{\n    for (int i=0;i<160;i++) {\n        q_constraint[i]=0.0f;\n    }\n}\n")
+
+def run(params, generate=False):
 
     iterations = int(params['runtime']/params['step'])
 
-    linA, linB = linearise(params)
+    linA, linB, dyn = linearise(params)
 
     p, A, l, u = setup(params, linA, linB, 10)
 
-    output = loop(params, iterations, p, A, l, u, linA, linB)
+    output = loop(params, iterations, p, A, l, u, linA, linB, dyn)
+
+    ## TODO Fix this absolute path reference
+    if generate:
+        generate_c_code(params, '../../../controller_mpc_constructor.cpp', linA, linB, l, u)
 
     return output
 
-if __name__=="__main__":
-
-    params = {
-            ## Geometry and environment variables
-            'mass':  2.23, # kg
-            'gravity': 9.8, # m/s
-            'Ix': 0.008,
-            'Iy': 0.015,
-            'Iz': 0.017,
-            'L': 0.2,
-
-            ## Constraint Variables
-            'force_max': 40,
-            'roll_torque_min': -1.475,
-            'roll_torque_max':  1.475,
-            'pitch_torque_min': -1.475,
-            'pitch_torque_max':  1.475,
-            'yaw_torque_min': -0.0196,
-            'yaw_torque_max': 0.0196,
-
-            'roll_min': -np.pi/2,
-            'roll_max': np.pi/2,
-            'pitch_min': -np.pi/2,
-            'pitch_max': np.pi/2,
-
-            'xvel_min': -2, 
-            'xvel_max': 2,
-            'yvel_min': -2,
-            'yvel_max': 2,
-            'zvel_min': -2,
-            'zvel_max': 2,
-
-            'roll_vel_min': -3*np.pi,
-            'roll_vel_max': 3*np.pi,
-            'pitch_vel_min': -3*np.pi,
-            'pitch_vel_max': 3*np.pi,
-            'yaw_vel_min': -3*np.pi,
-            'yaw_vel_max': 3*np.pi,
-
-            ## Reference
-            'constant_ref': np.array([4, 5, -10, 0, 0, 0, 0, 0, 0, 0, 0, 0]),
-
-            ## Initial
-            'initial_state': np.array([3, 10, -2, 0.75, 0, 0, 0, 0, 0, 0, 0, 0]),
-
-            ## Penalty
-            'state_penalty': np.array([60,60,60, 60,60,60, 6,6,6, 1,1,1]),
-            'terminal_multiplier': 1,
-            'control_penalty': np.array([10,10,10,10]),
-
-            ## Flags
-            'reference_limit': True,
-
-            ## Simulation variables
-            'step': 0.01,
-            'runtime': 20 ## seconds
-            }
-
-    output = run(params)
-
-    iterations = int(params['runtime']/params['step'])
-
-    ## GRAPH STATE
-    x = [output['states'][i][0] for i in range(0,iterations)]
-    y = [output['states'][i][1] for i in range(0,iterations)]
-    z = [output['states'][i][2] for i in range(0,iterations)]
-
-    fig = plt.figure(figsize=(12, 4), constrained_layout=True)
-
-    ax = fig.add_subplot(7,1,1)
-    ax.plot(range(0,len(x)),x, label='x')
-    ax.plot(range(0,len(x)), params['constant_ref'][0].repeat(iterations), linestyle='--', color='red')
-    ax.set_title('x')
-    ax.grid(True)
-
-    ax = fig.add_subplot(7,1,2)
-    ax.plot(range(0,len(y)),y)
-    ax.plot(range(0,len(y)), params['constant_ref'][1].repeat(iterations), linestyle='--', color='red')
-    ax.set_title('y')
-    ax.grid(True)
-
-    ax = fig.add_subplot(7,1,3)
-    ax.plot(range(0,len(z)),z)
-    ax.plot(range(0,len(z)), params['constant_ref'][2].repeat(iterations), linestyle='--', color='red')
-    ax.set_title('z')
-    ax.grid(True )
-
-    ## GRAPH CONTROL VECTOR
-    u0 = [output['controls'][i][0] for i in range(0,iterations)]
-    u1 = [output['controls'][i][1] for i in range(0,iterations)]
-    u2 = [output['controls'][i][2] for i in range(0,iterations)]
-    u3 = [output['controls'][i][3] for i in range(0,iterations)]
-
-    ax = fig.add_subplot(7,1,4)
-    ax.plot(range(0,len(u0)),u0)
-    ax.set_title('u0')
-    ax.grid(True)
-
-    ax = fig.add_subplot(7,1,5)
-    ax.plot(range(0,len(u0)),u1)
-    ax.set_title('u1')
-    ax.grid(True)
-
-    ax = fig.add_subplot(7,1,6)
-    ax.plot(range(0,len(x)),u2)
-    ax.set_title('u2')
-    ax.grid(True)
-
-    ax = fig.add_subplot(7,1,7)
-    ax.plot(range(0,len(x)),u3)
-    ax.set_title('u3')
-    ax.grid(True)
-
-    plt.show()
 
