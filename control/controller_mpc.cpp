@@ -134,7 +134,7 @@ void MPC_Controller::run()
 #ifdef TARGET_ARCH_LINUX
 	static uint32_t iter=0;
 	if (iter%10==0) {
-		std::cout << "MPC Control Output: " << control_vector[0] << " " << control_vector[1] << " " << control_vector[2] << " " << control_vector[3] << "\n";
+		//std::cout << "MPC Control Output: " << control_vector[0] << " " << control_vector[1] << " " << control_vector[2] << " " << control_vector[3] << "\n";
 		iter=0;
 	}
 	iter++;
@@ -222,8 +222,8 @@ void MPC_Controller::mixer_generate_pwm(float thrust, float roll, float pitch, f
 
 	static uint32_t iter2=0;
 	if (iter2%10==0) {
-		std::cout << "RS: " << rotor_speed[0] << " " << rotor_speed[1] << " " << rotor_speed[2] << " " << rotor_speed[3] << "\n";
-		std::cout << "PWM: " << pwm[0] << "  " << pwm[1] << " " << pwm[2] << " " << pwm[3] << "\n";
+		//std::cout << "RS: " << rotor_speed[0] << " " << rotor_speed[1] << " " << rotor_speed[2] << " " << rotor_speed[3] << "\n";
+		//std::cout << "PWM: " << pwm[0] << "  " << pwm[1] << " " << pwm[2] << " " << pwm[3] << "\n";
 		iter2=0;
 	}
 	iter2++;

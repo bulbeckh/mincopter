@@ -82,7 +82,7 @@ bool GZ_Interface::send_control_output()
 		control_pkt.pwm[i] = 0;
     }
 
-	if (true /* Use assigned PWM signals directly from MPC mixer*/ ) {
+	if (false /* Use assigned PWM signals directly from MPC mixer*/ ) {
 		control_pkt.pwm[0] = control_pwm[0];
 		control_pkt.pwm[1] = control_pwm[1];
 		// NOTE Deliberately switched
@@ -97,7 +97,12 @@ bool GZ_Interface::send_control_output()
 		control_pkt.pwm[3] = mincopter.motors.get_raw_motor_out(2);
 		*/
 		// NOTE Temporarily sending max servo to determine the acceleration rate
-		uint32_t send_pwm=1900;
+		
+		static uint32_t send_pwm=1400;
+		if (send_counter%100==0 && send_pwm<1900) {
+			send_pwm += 20;
+			std::cout << "SEND-PWM: " << send_pwm << "\n";
+		}
 		control_pkt.pwm[0] = send_pwm;
 		control_pkt.pwm[1] = send_pwm;
 		control_pkt.pwm[2] = send_pwm;
@@ -174,7 +179,7 @@ bool GZ_Interface::recv_state_input()
 
 
 	// sense check readings
-	if (true && frame_counter%1000==0) {
+	if (false && frame_counter%1000==0) {
 		std::cout << " Timestamp (s): " << pkt->timestamp << " ********************************\n";
 
 		std::cout << "IMU Gyro x/y/z : "
@@ -210,7 +215,7 @@ bool GZ_Interface::recv_state_input()
 			<< pkt->alt_met << "\n";
 	}
 
-	if (true && frame_counter%1000==0) {
+	if (false && frame_counter%1000==0) {
 		/* pkt->pos_<x,y,z> is the simulated position in metres
 		 *
 		 *
