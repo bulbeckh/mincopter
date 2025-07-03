@@ -115,10 +115,9 @@ void state_update()
 void control_determination()
 {
 	// The planner should run at every iteration but the controller should only run when armed
-	
-    /* At lower frequency than controller */
     planner.run();
 
+	// Run controller only if ARMED
 	if (planner.planner_arm_state==PlannerArmState::ARMED) controller.run();
 
 #ifdef TARGET_ARCH_LINUX

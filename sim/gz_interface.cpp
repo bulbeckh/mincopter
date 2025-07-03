@@ -82,7 +82,7 @@ bool GZ_Interface::send_control_output()
 		control_pkt.pwm[i] = 0;
     }
 
-	if (false /* Use assigned PWM signals directly from MPC mixer*/ ) {
+	if (true /* Use assigned PWM signals directly from MPC mixer*/ ) {
 		control_pkt.pwm[0] = control_pwm[0];
 		control_pkt.pwm[1] = control_pwm[1];
 		// NOTE Deliberately switched
@@ -98,11 +98,7 @@ bool GZ_Interface::send_control_output()
 		*/
 		// NOTE Temporarily sending max servo to determine the acceleration rate
 		
-		static uint32_t send_pwm=1400;
-		if (send_counter%100==0 && send_pwm<1900) {
-			send_pwm += 20;
-			std::cout << "SEND-PWM: " << send_pwm << "\n";
-		}
+		static uint32_t send_pwm=1200;
 		control_pkt.pwm[0] = send_pwm;
 		control_pkt.pwm[1] = send_pwm;
 		control_pkt.pwm[2] = send_pwm;
@@ -179,7 +175,7 @@ bool GZ_Interface::recv_state_input()
 
 
 	// sense check readings
-	if (false && frame_counter%1000==0) {
+	if (false && frame_counter%100==0) {
 		std::cout << " Timestamp (s): " << pkt->timestamp << " ********************************\n";
 
 		std::cout << "IMU Gyro x/y/z : "
@@ -202,6 +198,11 @@ bool GZ_Interface::recv_state_input()
 	if (false && frame_counter%1000==0) {
 		// TODO Add Temperature sensor to SDF
 		std::cout << "BARO Pressure (Pa) : " << pkt->pressure << "\n";
+	}
+	if (true && frame_counter%100==0) {
+		Vector3f inav_pos = mcstate.inertial_nav.get_position();
+		std::cout << "POS x-y () : " << pkt->pos_x << " " << pkt->pos_y << "\n";
+		std::cout << "INAV x-y () : " << inav_pos.x << " " << inav_pos.y << "\n";
 	}
 
 	if (false && frame_counter%1000==0) {

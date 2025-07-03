@@ -131,16 +131,6 @@ void MPC_Controller::run()
 	float mass=2.23;
 	control_vector[0] += mass*9.8f;
 
-#ifdef TARGET_ARCH_LINUX
-	static uint32_t iter=0;
-	if (iter%10==0) {
-		//std::cout << "MPC Control Output: " << control_vector[0] << " " << control_vector[1] << " " << control_vector[2] << " " << control_vector[3] << "\n";
-		iter=0;
-	}
-	iter++;
-
-#endif
-	
 	// TODO For now, use a mixer function embedded into the MPC to convert to a PWM signal but later move mixer to own class
 	mixer_generate_pwm(control_vector[0], control_vector[1], control_vector[2], control_vector[3], exitflag);
 
@@ -205,28 +195,21 @@ void MPC_Controller::mixer_generate_pwm(float thrust, float roll, float pitch, f
 		simlog.write_mpc_control_output(thrust, roll, pitch, yaw, 0, 0, 0, 0);
 	}
 
-	// Assign control to signal
-	// NOTE For the first 2 seconds, just wait until initialisation is complete and send min thrust
-	static uint8_t generate_calls=0;
-	if (generate_calls<5) {
-		generate_calls++;
-		for (int i=0;i<4;i++) gz_interface.control_pwm[i] = 1400;
-	} else if (generate_calls<20 ) {
-		// Max thrust to get off ground
-		generate_calls++;
+	// Assign control to signal NOTE We send max thrust until z-vel exceed a threshold
+	static bool z_vel_threshold=false;
+	if (mcstate.inertial_nav.get_velocity_z()*(1e-2) < -2.0f) {\
+		// Threshold velocity (-2m/s^2) has been reached
+		z_vel_threshold=true;
+	}
+
+	if (!z_vel_threshold) {
+		// Send max PWM
 		for (int i=0;i<4;i++) gz_interface.control_pwm[i] = 1900;
 	} else {
+		// Send control PWM
 		for (int i=0;i<4;i++) gz_interface.control_pwm[i] = pwm[i];
 	}
 	
-
-	static uint32_t iter2=0;
-	if (iter2%10==0) {
-		//std::cout << "RS: " << rotor_speed[0] << " " << rotor_speed[1] << " " << rotor_speed[2] << " " << rotor_speed[3] << "\n";
-		//std::cout << "PWM: " << pwm[0] << "  " << pwm[1] << " " << pwm[2] << " " << pwm[3] << "\n";
-		iter2=0;
-	}
-	iter2++;
 #endif
 
 }
