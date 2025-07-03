@@ -541,6 +541,8 @@ void gz::sim::systems::ArduPilotPlugin::Configure(
   {
     this->dataPtr->modelXYZToAirplaneXForwardZDown =
         sdfClone->Get<gz::math::Pose3d>("modelXYZToAirplaneXForwardZDown");
+
+	gzwarn << "FOUND modelXYZ sdf entry " << this->dataPtr->modelXYZToAirplaneXForwardZDown << "\n";
   }
 
   // gazeboXYZToNED: from gazebo model frame: x-forward, y-right, z-down
@@ -550,6 +552,7 @@ void gz::sim::systems::ArduPilotPlugin::Configure(
   {
     this->dataPtr->gazeboXYZToNED =
         sdfClone->Get<gz::math::Pose3d>("gazeboXYZToNED");
+	gzwarn << "FOUND gazeboXYZ sdf entry " << this->dataPtr->gazeboXYZToNED << "\n";
   }
 
   // Load control channel params
@@ -2213,6 +2216,9 @@ void gz::sim::systems::ArduPilotPlugin::CreateStateJSON(
     gz::math::Pose3d wldGToBdyG = worldPose->Data();
     gz::math::Pose3d wldAToBdyA =
         wldAToWldG * wldGToBdyG * bdyAToBdyG.Inverse();
+
+	gzwarn << "WORLDPOSE: " << worldPose->Data() << "\n";
+	gzwarn << "mincopterPOSE: " << wldAToBdyA << "\n";
 
     // velocity transformation
     gz::math::Vector3d velWldG = worldLinearVel->Data();
