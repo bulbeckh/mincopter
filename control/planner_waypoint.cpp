@@ -84,7 +84,7 @@ void WP_Planner::run(void)
 	// On the first iteration of the planner, we initialise the controller with a reference trajectory
 	static uint8_t state_ref_call=0;
 	if (!state_ref_call) {
-		float ref[12] = {0, 0, -10, 0, 0, -M_PI_F, 0, 0, 0, 0, 0, 0};
+		float ref[12] = {0, 0, -10, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 		controller.update_constant_state_reference(ref);
 		state_ref_call=1;
 	}

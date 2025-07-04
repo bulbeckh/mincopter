@@ -98,7 +98,7 @@ bool GZ_Interface::send_control_output()
 		*/
 		// NOTE Temporarily sending max servo to determine the acceleration rate
 		
-		static uint32_t send_pwm=1200;
+		static uint32_t send_pwm=1100;
 		control_pkt.pwm[0] = send_pwm;
 		control_pkt.pwm[1] = send_pwm;
 		control_pkt.pwm[2] = send_pwm;
@@ -201,9 +201,12 @@ bool GZ_Interface::recv_state_input()
 	}
 	if (true && frame_counter%100==0) {
 		Vector3f inav_pos = mcstate.inertial_nav.get_position();
-		std::cout << "POS x-y () : " << pkt->pos_x << " " << pkt->pos_y << "\n";
-		std::cout << "INAV x-y () : " << inav_pos.x << " " << inav_pos.y << "\n";
+		std::cout << "POS x,y,z r/p/y: " << pkt->pos_x << "," << pkt->pos_y << "," << pkt->pos_z << " " << pkt->wldAbdyA_eul_x << "/" << pkt->wldAbdyA_eul_y << "/" << pkt->wldAbdyA_eul_z << "\n";
+		//std::cout << "INAV x-y () : " << inav_pos.x << " " << inav_pos.y << "\n";
 	}
+		double wldAbdyA_eul_x; // Roll
+		double wldAbdyA_eul_y; // Pitch
+		double wldAbdyA_eul_z; // Yaw
 
 	if (false && frame_counter%1000==0) {
 		std::cout << "GPS Vel North / Vel East / Vel Up: " << pkt->vel_north << " "

@@ -16,7 +16,8 @@ class GZ_Interface {
 	GZ_Interface() : frame_counter(0)
 	{
 	}
-
+	
+	/* @brief Simulation state struct TODO */
     public:
 	struct mc_sim_state_packet {
 	    double timestamp;
@@ -33,6 +34,7 @@ class GZ_Interface {
 	    double pos_y;
 	    double pos_z;
 
+		// Is this now intrisic or extrinsic rotation?? In which order?
 		double wldAbdyA_eul_x; // Roll
 		double wldAbdyA_eul_y; // Pitch
 		double wldAbdyA_eul_z; // Yaw

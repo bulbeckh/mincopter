@@ -156,10 +156,16 @@ void MPC_Controller::mixer_generate_pwm(float thrust, float roll, float pitch, f
 	 */
 
 	// NOTE Have artifically scaled the roll and pitch torques to 10% of their values
+	/*
 	float g0 = 121951.0f;
 	float g1 = 938086.9f;
 	float g2 = 609756.0f;
 	float g3 = 6097560.0f;
+	*/
+	float g0 = 83333.0f;
+	float g1 = 641025.0f;
+	float g2 = 416666.0f;
+	float g3 = 4166666.0f;
 	allocation[0] = g0*thrust - g1*roll + g2*pitch + g3*yaw;
 	allocation[1] = g0*thrust + g1*roll - g2*pitch + g3*yaw;
 	allocation[2] = g0*thrust - g1*roll - g2*pitch - g3*yaw;

@@ -92,6 +92,7 @@ MCState mcstate;
 #endif
 
 // NOTE Bad hack to resolve linking errors as AP_Scheduler library uses an extern hal reference as original HAL was defined globally
+// TODO Remove all direct references to hal and just keep mincopter.hal
 const AP_HAL::HAL& hal = mincopter.hal;
 
 uint32_t fast_loopTimer;
@@ -168,6 +169,14 @@ void loop()
     // 1. Setup and send control output packet (x4 motor vel)
     // 2. Receive and parse packet (update simulated sensor readings, incl. noise if needed)
 
+	// TODO Check for reset flag here and reset simulation
+	// A MinCopter reset should trigger:
+	// - Resets of all controllers/planners/state/devices
+	// - Reset of simulation logger
+	// - Reset of timing variables (and iteration counters)
+	
+	// TODO Check for call to a pose update
+	
 	// NOTE This is taking ~10ms to send/receive 10 times
 	uint32_t st = micros();
     //for (int ii=0;ii<10;ii++) {
