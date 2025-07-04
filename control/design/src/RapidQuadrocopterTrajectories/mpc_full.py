@@ -24,9 +24,14 @@ def linearise(params):
     dx_theta = x_dtheta
     dx_psi = x_dpsi
 
-    dx_dx = (-1*u_F/params['mass']) * (ca.sin(x_theta))
-    dx_dy = (-1*u_F/params['mass']) * (-ca.sin(x_phi)*ca.cos(x_theta))
-    dx_dz = (-1*u_F/params['mass']) * (ca.cos(x_phi) * ca.cos(x_theta)) + params['gravity']
+    ## Dynamics
+    #dx_dx = (-1*u_F/params['mass']) * (ca.sin(x_theta))
+    #dx_dy = (-1*u_F/params['mass']) * (-ca.sin(x_phi)*ca.cos(x_theta))
+    #dx_dz = (-1*u_F/params['mass']) * (ca.cos(x_phi) * ca.cos(x_theta)) + params['gravity']
+
+    dx_dx = -1*u_F/params['mass'] * (ca.cos(x_phi)*ca.sin(x_theta)*ca.cos(x_psi) + ca.sin(x_phi)*ca.sin(x_psi))
+    dx_dy = -1*u_F/params['mass'] * (ca.sin(x_psi)*ca.sin(x_theta)*ca.cos(x_phi) - ca.cos(x_psi)*ca.sin(x_phi))
+    dx_dz = -1*u_F/params['mass'] * ca.cos(x_phi) * ca.cos(x_theta) + params['gravity']
 
     dx_dphi   = 1/params['Ix'] * (u_Tx + x_dtheta * x_dpsi*(params['Iy'] - params['Iz']))
     dx_dtheta = 1/params['Iy'] * (u_Ty + x_dpsi*x_dphi*(params['Iz'] - params['Ix']))
