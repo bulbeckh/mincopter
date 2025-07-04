@@ -12,3 +12,9 @@ Testing of integration between two or more modules i.e. the state requires senso
 Testing of entire system in flight
 
 
+
+#### List of Tests
+
+`unit/motors`
+- Motors spin in correct sequence
+

@@ -161,5 +161,7 @@ target_include_directories(mincopter PUBLIC
 ## target_link_libraries(mytarget PRIVATE osqp::osqp)
 ## target_link_libraries(mytarget PRIVATE osqp::osqpstatic)
 
+## MinCopter Testing
+add_subdirectory(test)
 
 

@@ -1,22 +1,29 @@
 
 ## This will be included from the source CMakeLists.txt file
 
-## Add the (simulated) motors library
-add_library(mc-test-motors-sim STATIC
-	${CMAKE_SOURCE_DIR}/gz_interface.cpp
-)
+message(STATUS "Building motors test file")
 
 ## Add gtest here if used
 
 ## Create test executable
-add_executable(test_motors_sim
+add_executable(test-motors-sim
 	test_motor_sim_core.cpp
+	${CMAKE_SOURCE_DIR}/mincopter/mcinstance.cpp
+	${CMAKE_SOURCE_DIR}/mincopter/init.cpp
+
 )
 
+target_include_directories(test-motors-sim PUBLIC
+	${MC_INCLUDE_DIRS}
+)
 
-## Link
-target_link_libraries(test_motors_sim PUBLIC
-	mc-test-motors-sim
+target_link_libraries(test-motors-sim PUBLIC
+	libs_control
+	libs_state
+	libs_sim
+	libs_dev
+	libs_common
+	libs_arch
 
 	## gtest libs
 )
