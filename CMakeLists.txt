@@ -85,6 +85,8 @@ list(APPEND MC_INCLUDE_DIRS
 )
 
 ## Control
+# OSQP Lib
+#add_subdirectory( ${CMAKE_SOURCE_DIR}/control/design/src/RapidQuadrocopterTrajectories/cgen )
 add_subdirectory( ${CMAKE_SOURCE_DIR}/control )
 
 ## State
@@ -94,7 +96,9 @@ add_subdirectory( ${CMAKE_SOURCE_DIR}/state )
 add_subdirectory( ${CMAKE_SOURCE_DIR}/dev )
 
 ## Sim
-add_subdirectory( ${CMAKE_SOURCE_DIR}/sim )
+if(TARGET_ARCH STREQUAL "x86_64")
+	add_subdirectory( ${CMAKE_SOURCE_DIR}/sim )
+endif()
 
 #### Build - arch/ ####
 ## This is dependent on the target architecture.

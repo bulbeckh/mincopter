@@ -5,9 +5,7 @@
 
 #include "controller_interface.h"
 
-#ifdef TARGET_ARCH_LINUX
-	#include "osqp.h"
-#endif
+#include "osqp.h"
 
 
 // TODO Fix this - bad way to do it

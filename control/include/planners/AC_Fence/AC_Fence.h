@@ -99,7 +99,7 @@ private:
 #ifdef TARGET_ARCH_LINUX
 	const MC_InertialNav_Sim* const _inav;
 #else
-    const AP_InertialNav *const _inav;S
+    const AP_InertialNav *const _inav;
 #endif
 
     // parameters

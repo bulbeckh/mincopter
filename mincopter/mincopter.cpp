@@ -148,7 +148,11 @@ void loop()
     // wait for an INS sample
     if (!mincopter.ins.wait_for_sample(1000)) {
         Log_Write_Error(ERROR_SUBSYSTEM_MAIN, ERROR_CODE_MAIN_INS_DELAY);
+#ifdef TARGET_ARCH_LINUX
         return false;
+#else
+		return;
+#endif
     }
 
 
@@ -250,7 +254,10 @@ void loop()
 	if (loop_iterations%100==0) std::cout << "FINAL TIME us : " << micros()-timer << "\n";
 #endif
 
+#ifdef TARGET_ARCH_LINUX
 	return false;
+#endif
+
 }
 
 

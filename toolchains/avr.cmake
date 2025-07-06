@@ -16,6 +16,10 @@ add_compile_definitions(
 	F_CPU=16000000L
 	#_GNU_SOURCE
 	TARGET_ARCH_AVR
+
+	## NOTE TODO This should really be defined elsewhere
+	CONTROLLER_MPC
+	PLANNER_WAYPOINT
 )
 
 set(MCU atmega2560)
