@@ -7,7 +7,6 @@ MinCopter CMakeLists
 
 ]]
 
-project(mincopter)
 
 ### Sets the correct toolchain based on the target architecture
 function (set_toolchain TARGET_ARCH)
@@ -31,7 +30,10 @@ else()
 	set_toolchain("avr")
 endif()
 
+
 include(${TOOLCHAIN_FILE})
+
+project(mincopter)
 
 message(STATUS "TOOLCHAIN FILE: ${TOOLCHAIN_FILE}")
 message(STATUS "C Compiler: ${CMAKE_C_COMPILER}")
@@ -145,12 +147,20 @@ add_executable(mincopter
 
 target_link_libraries(mincopter
 	libs_arch
-	libs_sim
+	#libs_sim
 	libs_dev
 	libs_control
 	libs_state
 	libs_common
 )
+
+if(TARGET_ARCH STREQUAL "x86_64")
+target_link_libraries(mincopter
+	libs_sim
+)
+endif()
+
+
 
 target_include_directories(mincopter PUBLIC
 	## TODO Need to separate private and public include directories (e.g. backend and interface)
