@@ -19,7 +19,8 @@ add_compile_definitions(
 
 	## NOTE TODO This should really be defined elsewhere
 	CONTROLLER_MPC
-	PLANNER_WAYPOINT
+	#PLANNER_WAYPOINT
+	PLANNER_NONE
 )
 
 set(MCU atmega2560)
