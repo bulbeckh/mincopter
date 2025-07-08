@@ -22,39 +22,63 @@ list(APPEND mc-control-none
 )
 
 list(APPEND mc-planner-waypoint
-	${CMAKE_SOURCE_DIR}/planner/planner_waypoint.cpp
-	${CMAKE_SOURCE_DIR}/planner/arming.cpp
+	${CMAKE_SOURCE_DIR}/control/planner_waypoint.cpp
+	${CMAKE_SOURCE_DIR}/control/arming.cpp
 )
 
 list(APPEND mc-planner-none
-	${CMAKE_SOURCE_DIR}/planner/planner_none.cpp
+	${CMAKE_SOURCE_DIR}/control/planner_none.cpp
 )
 
 add_library(mc-control STATIC
 	${mc-control-common}
-
-if()
-
-target_sources(mc-control INTERFACE
-	${mc-control-common}
 )
 
-target_link_libraries(mc-control PUBLIC
-	## OSQP Libraries
-	${CMAKE_SOURCE_DIR}/control/design/src/RapidQuadrocopterTrajectories/cgen/build/libosqpstatic.a
-)
+if(MC_CONTROLLER_TYPE STREQUAL "MPC")
+	target_sources(mc-control PUBLIC
+		${mc-control-mpc}
+	)
+	target_link_libraries(mc-control PUBLIC
+		## OSQP Libraries
+		${CMAKE_SOURCE_DIR}/control/design/src/RapidQuadrocopterTrajectories/cgen/build/libosqpstatic.a
+	)
+	target_include_directories(mc-control PUBLIC
+		## OSQP Headers
+		${CMAKE_SOURCE_DIR}/control/design/src/RapidQuadrocopterTrajectories/cgen/inc/private/
+		${CMAKE_SOURCE_DIR}/control/design/src/RapidQuadrocopterTrajectories/cgen/inc/public/
+		${CMAKE_SOURCE_DIR}/control/design/src/RapidQuadrocopterTrajectories/cgen/
+	)
+elseif(MC_CONTROLLER_TYPE STREQUAL "PID")
+	target_sources(mc-control PUBLIC
+		${mc-control-pid}
+	)
+elseif(MC_CONTROLLER_TYPE STREQUAL "NONE")
+	target_sources(mc-control PUBLIC
+		${mc-control-none}
+	)
+else()
+	message(FATAL_ERROR "MC_CONTROLLER_TYPE is not valid") 
+endif()
+
+if(MC_PLANNER_TYPE STREQUAL "WAYPOINT")
+	target_sources(mc-control PUBLIC
+		${mc-planner-waypoint}
+	)
+elseif(MC_PLANNER_TYPE STREQUAL "NONE")
+	target_sources(mc-control PUBLIC
+		${mc-planner-none}
+	)
+else()
+	message(FATAL_ERROR "MC_PLANNER_TYPE is not valid") 
+endif()
+
 
 target_include_directories(mc-control PUBLIC
 	${MC_INCLUDE_DIRS}
-
-	## OSQP Headers
-	${CMAKE_SOURCE_DIR}/control/design/src/RapidQuadrocopterTrajectories/cgen/inc/private/
-	${CMAKE_SOURCE_DIR}/control/design/src/RapidQuadrocopterTrajectories/cgen/inc/public/
-	${CMAKE_SOURCE_DIR}/control/design/src/RapidQuadrocopterTrajectories/cgen/
 )
 
 get_target_property(dirs mc-control INCLUDE_DIRECTORIES)
-message(VERBOSE "include for libs_control: ${dirs}")
+message(VERBOSE "include for mc-control: ${dirs}")
 
 
 

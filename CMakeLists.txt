@@ -35,6 +35,24 @@ include(${TOOLCHAIN_FILE})
 
 project(mincopter)
 
+include(mc-config.cmake)
+
+## Configuration
+if(MC_CONTROLLER_TYPE STREQUAL "MPC")
+	add_compile_definitions( CONTROLLER_MPC )
+elseif(MC_CONTROLLER_TYPE STREQUAL "PID")
+	add_compile_definitions( CONTROLLER_PID )
+elseif(MC_CONTROLLER_TYPE STREQUAL "NONE")
+	add_compile_definitions( CONTROLLER_NONE )
+endif()
+
+if(MC_PLANNER_TYPE STREQUAL "WAYPOINT")
+	add_compile_definitions( PLANNER_WAYPOINT )
+elseif(MC_PLANNER_TYPE STREQUAL "NONE")
+	add_compile_definitions( PLANNER_NONE )
+endif()
+
+
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
@@ -153,7 +171,7 @@ target_link_libraries(mincopter
 	libs_arch
 	#libs_sim
 	libs_dev
-	libs_control
+	mc-control
 	libs_state
 	libs_common
 )

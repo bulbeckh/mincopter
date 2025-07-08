@@ -18,8 +18,8 @@ add_compile_definitions(
 	TARGET_ARCH_LINUX
 
 	## NOTE TODO This should really be defined elsewhere
-	CONTROLLER_MPC
-	PLANNER_WAYPOINT
+	#CONTROLLER_MPC
+	#PLANNER_WAYPOINT
 )
 
 set(ARCHITECTURE elf_x86_64)

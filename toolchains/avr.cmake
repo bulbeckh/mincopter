@@ -18,9 +18,10 @@ add_compile_definitions(
 	TARGET_ARCH_AVR
 
 	## NOTE TODO This should really be defined elsewhere
-	CONTROLLER_MPC
+	#CONTROLLER_MPC
+	#CONTROLLER_NONE
 	#PLANNER_WAYPOINT
-	PLANNER_NONE
+	#PLANNER_NONE
 )
 
 set(MCU atmega2560)
@@ -68,8 +69,7 @@ relax : allows some link optimizations
 
 set(LINKER_FLAGS
 	-Wl,--gc-sections
-	#-Wl,-Map
-	#-Wl,${CMAKE_BINARY_DIR}/${PROJECT_NAME}.map
+	-Wl,-Map,${CMAKE_BINARY_DIR}/output.map
 	## NOTE I don't think this is needed
 	-Wl,-m,${ARCHITECTURE}
 	-Wl,--relax

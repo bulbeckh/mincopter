@@ -11,7 +11,7 @@ target_include_directories(libs_sim PUBLIC
 	${MC_INCLUDE_DIRS}
 )
 
-target_link_libraries(libs_sim PUBLIC libs_control)
+target_link_libraries(libs_sim PUBLIC mc-control)
 
 
 

@@ -13,7 +13,7 @@ target_include_directories(libs_common PUBLIC
 	${MC_INCLUDE_DIRS}
 )
 
-target_link_libraries(libs_common PUBLIC libs_control)
+target_link_libraries(libs_common PUBLIC mc-control)
 
 
 
