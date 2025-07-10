@@ -1,5 +1,5 @@
 
-#include "inav_interface.h"
+#include "inav_sim.h"
 
 
 #ifdef MC_GZ_INTERFACE
