@@ -19,7 +19,7 @@ target_include_directories(test-motors-sim PUBLIC
 
 target_link_libraries(test-motors-sim PUBLIC
 	mc-control
-	libs_state
+	mc-state
 	libs_sim
 	libs_dev
 	libs_common

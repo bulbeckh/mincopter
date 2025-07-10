@@ -35,9 +35,43 @@ include(${TOOLCHAIN_FILE})
 
 project(mincopter)
 
+## CONFIGURATION
 include(mc-config.cmake)
 
-## Configuration
+## TODO change the way simlog and GZ_Interface are done here - both should be dependent on existing flags
+## and simlog should be part of storage/logger anyway
+if(MC_SIM_TYPE STREQUAL "SIM")
+	add_compile_definitions( MC_SIM )
+endif()
+
+if(MC_SIMLOG STREQUAL "TRUE")
+	add_compile_definitions( MC_SIMLOG ) 
+endif()
+
+add_compile_definitions( MC_GZ_INTERFACE )
+
+## TODO We shouldn't have to know the SIM_LEVEL anywhere other than CMake. Change this
+if(MC_SIM_LEVEL STREQUAL "2")
+	add_compile_definitions( MC_SIM_LEVEL=2 )
+elseif(MC_SIM_LEVEL STREQUAL "1")
+	add_compile_definitions( MC_SIM_LEVEL=1 )
+elseif(MC_SIM_LEVEL STREQUAL "0")
+	add_compile_definitions( MC_SIM_LEVEL=0 )
+endif()
+
+if(MC_SIM_TYPE STREQUAL "SIM" AND MC_SIM_LEVEL STREQUAL "2")
+	add_compile_definitions( MC_AHRS_SIM )
+elseif(MC_AHRS_TYPE STREQUAL "DCM")
+	add_compile_definitions( MC_AHRS_DCM )
+endif()
+
+if(MC_INAV_TYPE STREQUAL "SIM" AND MC_SIM_LEVEL STREQUAL "2")
+	add_compile_definitions( MC_INAV_SIM )
+elseif(MC_INAV_TYPE STREQUAL "DEFAULT")
+	add_compile_definitions( MC_INAV_DEFAULT )
+endif()
+
+
 if(MC_CONTROLLER_TYPE STREQUAL "MPC")
 	add_compile_definitions( CONTROLLER_MPC )
 elseif(MC_CONTROLLER_TYPE STREQUAL "PID")
@@ -172,7 +206,7 @@ target_link_libraries(mincopter
 	#libs_sim
 	libs_dev
 	mc-control
-	libs_state
+	mc-state
 	libs_common
 )
 
