@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "AP_AHRS.h"
+#include "ahrs_interface.h"
 
 /* Simulated AHRS with state obtained directly from the simulation */
 

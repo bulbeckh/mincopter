@@ -1,10 +1,13 @@
 
 #include "inav_interface.h"
 
-#ifdef TARGET_ARCH_LINUX
+
+#ifdef MC_GZ_INTERFACE
 #include "gz_interface.h"
 extern GZ_Interface gz_interface;
+#endif
 
+#ifdef MC_SIMLOG
 #include "simulation_logger.h"
 extern SimulationLogger simlog;
 #endif
@@ -35,16 +38,7 @@ void MC_InertialNav_Sim::update(float dt)
 	inav_vel.y = 100.0f*gz_interface.last_sensor_state.vel_y;
 	inav_vel.z = 100.0f*gz_interface.last_sensor_state.vel_z;
 
-#ifdef TARGET_ARCH_LINUX
-	static int32_t inav_update_counter=0;
-	if (false && inav_update_counter%100==0) {
-		std::cout << "COR " << inav_update_counter << " ("
-			<< inav_pos.x << ", "
-			<< inav_pos.y << ", "
-			<< inav_pos.z << ")\n";
-	}
-	inav_update_counter++;
-
+#ifdef MC_SIMLOG
 	simlog.write_inav_state(inav_pos, inav_vel);
 #endif
 

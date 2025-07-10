@@ -3,11 +3,14 @@
 #ifndef __AP_INERTIALNAV_H__
 #define __AP_INERTIALNAV_H__
 
-#include <AP_AHRS.h>
 #include <AP_InertialSensor.h>          // ArduPilot Mega IMU Library
 #include <AP_Baro.h>                    // ArduPilot Mega Barometer Library
 // HASH include <AP_Buffer.h>                  // FIFO buffer library
 #include <AP_GPS_Glitch.h>              // GPS Glitch detection library
+
+#include "inav_interface.h"
+
+#include "ahrs.h"
 
 #define AP_INTERTIALNAV_TC_XY   2.5f // default time constant for complementary filter's X & Y axis
 #define AP_INTERTIALNAV_TC_Z    5.0f // default time constant for complementary filter's Z axis
@@ -29,12 +32,13 @@
  *      An error value is calculated as the difference between the sensor's measurement and the last position estimation.
  *   	This value is weighted with a gain factor and incorporated into the new estimation
  */
-class AP_InertialNav
+class AP_InertialNav : public MC_InertialNav
 {
 public:
 
     // Constructor
-    AP_InertialNav( const AP_AHRS* ahrs, AP_Baro* baro, GPS*& gps, GPS_Glitch& gps_glitch ) :
+    AP_InertialNav( const MC_AHRS_CLASS *ahrs, AP_Baro* baro, GPS*& gps, GPS_Glitch& gps_glitch ) :
+		MC_InertialNav(),
         _ahrs(ahrs),
         _baro(baro),
         _gps(gps),
@@ -57,7 +61,7 @@ public:
      * AP_InertialNav::set_home_position(int32_t, int32_t) should be called later,
      * to enable all "horizontal related" getter-methods.
      */
-    void        init();
+    void init();
 
     /**
      * update - updates velocity and position estimates using latest info from accelerometers
@@ -65,7 +69,7 @@ public:
      *
      * @param dt : time since last update in seconds
      */
-    void        update(float dt);
+    void update(float dt);
 
     //
     // XY Axis specific methods
@@ -79,20 +83,20 @@ public:
      *
      * @param time_constant_in_seconds : constant in seconds; 0 < constant < 30 must hold
      */
-    void        set_time_constant_xy( float time_constant_in_seconds );
+    void set_time_constant_xy( float time_constant_in_seconds);
 
     /**
      * position_ok - true if inertial based altitude and position can be trusted
      * @return
      */
-    bool        position_ok() const;
+    bool position_ok() const;
 
     /**
      * check_gps - checks if new gps readings have arrived and calls correct_with_gps to
      * calculate the horizontal position error
      * @see correct_with_gps(int32_t lon, int32_t lat, float dt);
      */
-    void        check_gps();
+    void check_gps();
 
     /**
      * correct_with_gps - calculates horizontal position error using gps
@@ -101,7 +105,7 @@ public:
      * @param lon : longitude in 100 nano degrees (i.e. degree value multiplied by 10,000,000)
      * @param lat : latitude  in 100 nano degrees (i.e. degree value multiplied by 10,000,000)
      */
-    void        correct_with_gps(uint32_t now, int32_t lon, int32_t lat);
+    void correct_with_gps(uint32_t now, int32_t lon, int32_t lat);
 
     /**
      * get_position - returns the current position relative to the home location in cm.
@@ -110,7 +114,7 @@ public:
      *
      * @return
      */
-    const Vector3f&    get_position() const { return _position; }
+    const Vector3f get_position() const { return _position; }
 
     /**
      * get_latitude - returns the latitude of the current position estimation in 100 nano degrees (i.e. degree value multiplied by 10,000,000)
@@ -156,7 +160,7 @@ public:
      * 				.y : longitude velocity in cm/s
      * 				.z : vertical  velocity in cm/s
      */
-    const Vector3f&    get_velocity() const { return _velocity; }
+    const Vector3f   get_velocity() const { return _velocity; }
 
     /**
      * get_velocity_xy - returns the current horizontal velocity in cm/s
@@ -282,7 +286,7 @@ protected:
         uint8_t ignore_error        : 3;                // the number of iterations for which we should ignore errors
     } _flags;
 
-    const AP_AHRS*    const _ahrs;                      // pointer to ahrs object
+    const MC_AHRS_CLASS *const _ahrs;                      // pointer to ahrs object
     AP_Baro*                _baro;                      // pointer to barometer
     GPS*&                   _gps;                       // pointer to gps
 

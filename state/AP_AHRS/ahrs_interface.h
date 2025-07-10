@@ -271,6 +271,5 @@ protected:
     Vector2f _lastGndVelADS; // previous HPF input		
 };
 
-#include <AP_AHRS_DCM.h>
 
 #endif // __AP_AHRS_H__

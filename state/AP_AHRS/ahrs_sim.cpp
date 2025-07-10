@@ -1,5 +1,5 @@
 
-#include "AHRS_sim.h"
+#include "ahrs_sim.h"
 
 #include "AP_Math.h"
 
@@ -41,11 +41,9 @@ void AHRS_sim::update()
 	// After rotation, we assign
 	_accel_ef = accel_temp;
 
-#ifdef TARGET_ARCH_LINUX
 	float error_rp = get_error_rp();
 	float error_yaw = get_error_yaw();
 	simlog.write_ahrs_state(roll_sensor, pitch_sensor, yaw_sensor, _accel_ef.x, _accel_ef.y, _accel_ef.z, error_rp, error_yaw);
-#endif
 
 	return;
 }

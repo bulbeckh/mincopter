@@ -88,16 +88,6 @@ class WP_Planner : public MC_Planner
 		// counter to verify landings
 		uint16_t land_detector;
 
-		AP_UNION_T ap;
-
-		/* Failsafe Parameters */
-    int8_t         failsafe_battery_enabled;   // battery failsafe enabled
-    float          fs_batt_voltage;            // battery voltage below which failsafe will be triggered
-    float          fs_batt_mah;                // battery capacity (in mah) below which failsafe will be triggered
-    int8_t         failsafe_gps_enabled;       // gps failsafe enabled
-    int8_t         failsafe_gcs;               // ground station failsafe behavior
-    int8_t         failsafe_throttle;
-    int16_t        failsafe_throttle_value;
 
 		/* Navigation Parameters */
 
@@ -108,8 +98,6 @@ class WP_Planner : public MC_Planner
 		// distance between plane and home in cm
 		int32_t home_distance;
 
-		// The altitude as reported by Baro in cm – Values can be quite high
-		int32_t baro_alt;
 																							 
 		//TODO Remove wp_distance and wp_bearing - I think they are updated but not used
 		// Distance between copter and next wp in cm
@@ -138,22 +126,13 @@ class WP_Planner : public MC_Planner
 		WP_FLIGHT_STATE nav_mode;
 
 		// Throttle variables
-		int16_t desired_climb_rate;          // pilot desired climb rate - for logging purposes only
 		float target_alt_for_reporting;      // target altitude in cm for reporting (logs and ground station)
 
 		// The Commanded Throttle from the autopilot.
 		int16_t nav_throttle;    // 0-1000 for throttle control
 														 //
 														 //
-		// We use atan2 and other trig techniques to calaculate angles
-		// We need to scale the longitude up to make these calcs work
-		// to account for decreasing distance between lines of longitude away from the equator
-		float scaleLongUp = 1;
-		// Sometimes we need to remove the scaling for distance calcs
-		float scaleLongDown = 1;
 
-		// Max lean-angle of the copter in centi-degrees
-		int16_t angle_max;
 
 	private:
 

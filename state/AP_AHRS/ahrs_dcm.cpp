@@ -40,7 +40,7 @@ extern const AP_HAL::HAL& hal;
 // http://gentlenav.googlecode.com/files/fastRotations.pdf
 #define SPIN_RATE_LIMIT 20
 
-#ifdef TARGET_ARCH_LINUX
+#ifdef MC_SIMLOG
 #include "simulation_logger.h"
 extern SimulationLogger simlog;
 #endif
@@ -50,7 +50,7 @@ void
 AP_AHRS_DCM::update(void)
 {
 
-#ifdef TARGET_ARCH_LINUX
+#ifdef MC_SIMLOG
 	float error_rp = get_error_rp();
 	float error_yaw = get_error_yaw();
 	simlog.write_ahrs_state(roll_sensor, pitch_sensor, yaw_sensor, _accel_ef.x, _accel_ef.y, _accel_ef.z, error_rp, error_yaw);

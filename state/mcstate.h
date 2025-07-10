@@ -1,10 +1,7 @@
 #pragma once
 
-#include <AP_AHRS.h>
-#include "AHRS_sim.h"
-
-#include <AP_InertialNav.h>
-#include "inav_interface.h"
+#include <ahrs.h>
+#include <inav.h>
 
 class MCState
 {
@@ -25,19 +22,13 @@ class MCState
 
 	public:
 	
+		// NOTE These two classes are macros to the desired AHRS and INAV classes
+		
 		/* @brief ahrs tracks the copter orientation */
-#ifdef TARGET_ARCH_LINUX
-		AHRS_sim ahrs;
-#else
-		AP_AHRS_DCM ahrs;
-#endif
+		MC_AHRS_CLASS ahrs;
 
 		/* @brief inertial_nav fuses AHRS and GPS to determine position and velocity */
-#ifdef TARGET_ARCH_LINUX
-		MC_InertialNav_Sim inertial_nav;
-#else
-		AP_InertialNav inertial_nav;
-#endif
+		MC_INAV_CLASS inertial_nav;
 
 	public:
 		/* @brief IMU roll rates that get updated during read_AHRS */

@@ -21,6 +21,9 @@ extern MCState    mcstate;
     extern SimulationLogger simlog;
 #endif
 
+// Instance
+PID_Controller controller;
+
 void PID_Controller::run()
 {
 	/* 1. Run P controllers to convert desired angle into desired rate

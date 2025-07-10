@@ -1,12 +1,11 @@
 /// -*- tab-width: 4; Mode: C++; c-basic-offset: 4; indent-tabs-mode: nil -*-
 #include <AP_HAL.h>
-#include <AP_InertialNav.h>
+#include <inav_default.h>
 
 extern const AP_HAL::HAL& hal;
 
-#ifdef TARGET_ARCH_LINUX
+#ifdef MC_SIMLOG
 #include <iostream>
-
 #include "simulation_logger.h"
 extern SimulationLogger simlog;
 #endif
@@ -43,18 +42,6 @@ void AP_InertialNav::init()
 // update - updates velocities and positions using latest info from ahrs and barometer if new data is available;
 void AP_InertialNav::update(float dt)
 {
-
-#ifdef TARGET_ARCH_LINUX
-	static int32_t inav_update_counter=0;
-
-	if (false && inav_update_counter%100==0) {
-		std::cout << "PRE " << inav_update_counter << "("
-			<< _position_base.x << ", "
-			<< _position_base.y << ", "
-			<< _position_base.z << ")\n";
-	}
-#endif
-
     // discard samples where dt is too large
     if( dt > 0.1f ) {
         return;
@@ -70,15 +57,6 @@ void AP_InertialNav::update(float dt)
 
     // check if new gps readings have arrived and use them to correct position estimates
     check_gps();
-
-#ifdef TARGET_ARCH_LINUX
-	if (false && inav_update_counter%100==0) {
-		std::cout << "ERR " << inav_update_counter << "("
-				<< _position_error.x << ", "
-				<< _position_error.y << ", "
-				<< _position_error.z << ")\n";
-	}
-#endif
 
     Vector3f accel_ef = _ahrs->get_accel_ef();
 
@@ -148,15 +126,7 @@ void AP_InertialNav::update(float dt)
         //_hist_position_estimate_y.push_back(_position_base.y);
     }
 
-#ifdef TARGET_ARCH_LINUX
-	if (false && inav_update_counter%100==0) {
-		std::cout << "COR " << inav_update_counter << " ("
-			<< _position.x << ", "
-			<< _position.y << ", "
-			<< _position.z << ")\n";
-	}
-	inav_update_counter++;
-
+#ifdef MC_SIMLOG
 	simlog.write_inav_state(_position, _velocity);
 	simlog.write_inav_correction(_position_correction,
 			_position_error,
@@ -406,11 +376,7 @@ void AP_InertialNav::correct_with_baro(float baro_alt, float dt)
 
 	/* NOTE In the simulation, the barometer starts with no reading for the first 10 iterations (because
 	 * it gets called at 10Hz) so we need to wait for 20 readings to discard */
-#ifdef TARGET_ARCH_LINUX
-    if( first_reads <= 20 ) {
-#else
     if( first_reads <= 10 ) {
-#endif
         set_altitude(baro_alt);
         first_reads++;
     }
