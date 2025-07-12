@@ -8,9 +8,9 @@
 #include <AP_Math.h>
 #include <AC_PID.h>             // PID library
 // HASH include <APM_PI.h>             // PID library
-#include <AP_InertialNav.h>     // Inertial Navigation library
 
-#include "inav_interface.h"
+#include "inav.h"
+#include "ahrs.h"
 
 // loiter maximum velocities and accelerations
 #define WPNAV_ACCELERATION              100.0f      // defines the default velocity vs distant curve.  maximum acceleration in cm/s/s that position controller asks for from acceleration controller
@@ -43,12 +43,8 @@ public:
 
 	// TODO Fix this
 
-#ifdef TARGET_ARCH_LINUX
-	AC_WPNav(const MC_InertialNav_Sim* inav,
-#else
-    AC_WPNav(const AP_InertialNav* inav,
-#endif
-				const AP_AHRS* ahrs
+	AC_WPNav(const MC_INAV_CLASS *inav,
+				const MC_AHRS_CLASS *ahrs
 				/*
 				AC_PID* pid_pos_lat,
 				AC_PID* pid_pos_lon,
@@ -207,12 +203,8 @@ protected:
     void calculate_wp_leash_length(bool climb);
 
     // references to inertial nav and ahrs libraries
-#ifdef TARGET_ARCH_LINUX
-	const MC_InertialNav_Sim* const _inav;
-#else
-    const AP_InertialNav* const _inav;
-#endif
-    const AP_AHRS*        const _ahrs;
+	const MC_INAV_CLASS *const _inav;
+    const MC_AHRS_CLASS *const _ahrs;
 
     // pid controllers
     AC_PID _pid_pos_lat;

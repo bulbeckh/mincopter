@@ -9,11 +9,7 @@ extern const AP_HAL::HAL& hal;
 // their values.
 //
 
-#ifdef TARGET_ARCH_LINUX
-AC_WPNav::AC_WPNav(const MC_InertialNav_Sim* inav, const AP_AHRS* ahrs)
-#else
-AC_WPNav::AC_WPNav(const AP_InertialNav* inav, const AP_AHRS* ahrs)
-#endif
+AC_WPNav::AC_WPNav(const MC_INAV_CLASS *inav, const MC_AHRS_CLASS *ahrs)
 	:
     _inav(inav),
     _ahrs(ahrs),

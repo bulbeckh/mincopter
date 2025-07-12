@@ -65,7 +65,7 @@ elseif(MC_AHRS_TYPE STREQUAL "DCM")
 	add_compile_definitions( MC_AHRS_DCM )
 endif()
 
-if(MC_INAV_TYPE STREQUAL "SIM" AND MC_SIM_LEVEL STREQUAL "2")
+if(MC_SIM_TYPE STREQUAL "SIM" AND MC_SIM_LEVEL STREQUAL "2")
 	add_compile_definitions( MC_INAV_SIM )
 elseif(MC_INAV_TYPE STREQUAL "DEFAULT")
 	add_compile_definitions( MC_INAV_DEFAULT )
