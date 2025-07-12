@@ -160,12 +160,6 @@ Storage (AP_HAL::Storage)
 - virtual void write_block(uint16_t dst, const void* src, size_t n) = 0;
 
 
-## `AP_HAL_AVR`
-- xx
-
-
-
-
 ### NOTE TODO Things to potentially remove
 - FastDelegate (need to replace with something simpler and smaller)
 - Print/Stream/BetterStream (replace with standard printf)

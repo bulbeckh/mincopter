@@ -7,7 +7,7 @@
 
 
 ## Specify simulation here
-set(MC_SIM_TYPE "NONE") ## (SIM, NONE)
+set(MC_SIM_TYPE "SIM") ## (SIM, NONE)
 set(MC_SIM_ENV "GAZEBO") ## (GAZEBO)
 
 #[[ Level of Simulation
