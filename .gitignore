@@ -1,4 +1,4 @@
-**/build
+**/build*
 **/*.swp
 **/venv
 **/.ipynb_checkpoints
