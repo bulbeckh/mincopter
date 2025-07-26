@@ -4,10 +4,8 @@
 #set(MC_CONTROLLER_TYPE "PID" CACHE STRING "Controller type for mincopter (MPC, PID, NONE)")
 #set(MC_PLANNER_TYPE "NONE" CACHE STRING "Planner type for mincopter (WAYPOINT, NONE)")
 
-
-
 ## Specify simulation here
-set(MC_SIM_TYPE "SIM") ## (SIM, NONE)
+set(MC_SIM_TYPE "NONE") ## (SIM, NONE)
 set(MC_SIM_ENV "GAZEBO") ## (GAZEBO)
 
 #[[ Level of Simulation

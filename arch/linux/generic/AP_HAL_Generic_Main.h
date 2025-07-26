@@ -1,9 +1,8 @@
 
-
-#ifndef __AP_HAL_LINUX_MAIN_H__
-#define __AP_HAL_LINUX_MAIN_H__
+#pragma once
 
 #if CONFIG_HAL_BOARD == HAL_BOARD_LINUX
+
 #define AP_HAL_MAIN() extern "C" {\
 int main (int argc, char * const argv[]) {        \
 	hal.init(argc, argv);			\
@@ -15,4 +14,3 @@ int main (int argc, char * const argv[]) {        \
     }
 #endif // HAL_BOARD_LINUX
 
-#endif // __AP_HAL_LINUX_MAIN_H__

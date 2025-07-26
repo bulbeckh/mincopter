@@ -8,17 +8,7 @@
  */
 
 namespace Linux {
-    class LinuxUARTDriver;
-    class LinuxI2CDriver;
-    class LinuxSPIDeviceManager;
-    class LinuxSPIDeviceDriver;
-    class LinuxAnalogSource;
-    class LinuxAnalogIn;
     class LinuxStorage;
-    class LinuxGPIO;
-    class LinuxDigitalSource;
-    class LinuxRCInput;
-    class LinuxRCOutput;
     class LinuxSemaphore;
     class LinuxScheduler;
     class LinuxUtil;

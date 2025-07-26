@@ -21,7 +21,9 @@
   You should have received a copy of the GNU General Public License
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include <AP_AHRS.h>
+
+#include "ahrs_dcm.h"
+
 #include <AP_HAL.h>
 
 extern const AP_HAL::HAL& hal;

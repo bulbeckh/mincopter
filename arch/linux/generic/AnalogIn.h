@@ -1,12 +1,11 @@
 
-#ifndef __AP_HAL_LINUX_ANALOGIN_H__
-#define __AP_HAL_LINUX_ANALOGIN_H__
+#pragma once
 
-#include <AP_HAL_Linux.h>
+#include <AP_HAL_Generic.h>
 
-class Linux::LinuxAnalogSource : public AP_HAL::AnalogSource {
+class generic::GenericAnalogSource : public AP_HAL::AnalogSource {
 public:
-    LinuxAnalogSource(float v);
+    GenericAnalogSource(float v);
     float read_average();
     float read_latest();
     void set_pin(uint8_t p);
@@ -19,10 +18,11 @@ private:
     float _v;
 };
 
-class Linux::LinuxAnalogIn : public AP_HAL::AnalogIn {
+class generic::GenericAnalogIn : public AP_HAL::AnalogIn {
 public:
-    LinuxAnalogIn();
+    GenericAnalogIn();
     void init(void* implspecific);
     AP_HAL::AnalogSource* channel(int16_t n);
 };
-#endif // __AP_HAL_LINUX_ANALOGIN_H__
+
+

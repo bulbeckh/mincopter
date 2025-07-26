@@ -21,6 +21,8 @@
  *
  */
 
+#include "ahrs_interface.h"
+
 class AP_AHRS_DCM : public AP_AHRS
 {
 public:

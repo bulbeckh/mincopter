@@ -15,12 +15,12 @@
 #include <linux/i2c.h>
 #endif
 
-using namespace Linux;
+using namespace generic;
 
 /*
   constructor
  */
-LinuxI2CDriver::LinuxI2CDriver(AP_HAL::Semaphore* semaphore, const char *device) : 
+GenericI2CDriver::GenericI2CDriver(AP_HAL::Semaphore* semaphore, const char *device) : 
     _semaphore(semaphore),
     _fd(-1),
     _device(device)
@@ -30,7 +30,7 @@ LinuxI2CDriver::LinuxI2CDriver(AP_HAL::Semaphore* semaphore, const char *device)
 /*
   called from HAL class init()
  */
-void LinuxI2CDriver::begin() 
+void GenericI2CDriver::begin() 
 {
     if (_fd != -1) {
         close(_fd);
@@ -38,7 +38,7 @@ void LinuxI2CDriver::begin()
     _fd = open(_device, O_RDWR);
 }
 
-void LinuxI2CDriver::end() 
+void GenericI2CDriver::end() 
 {
     if (_fd != -1) {
         ::close(_fd);
@@ -49,7 +49,7 @@ void LinuxI2CDriver::end()
 /*
   tell the I2C library what device we want to talk to
  */
-bool LinuxI2CDriver::set_address(uint8_t addr)
+bool GenericI2CDriver::set_address(uint8_t addr)
 {
     if (_fd == -1) {
         return false;
@@ -61,17 +61,17 @@ bool LinuxI2CDriver::set_address(uint8_t addr)
     return true;
 }
 
-void LinuxI2CDriver::setTimeout(uint16_t ms) 
+void GenericI2CDriver::setTimeout(uint16_t ms) 
 {
     // unimplemented
 }
 
-void LinuxI2CDriver::setHighSpeed(bool active) 
+void GenericI2CDriver::setHighSpeed(bool active) 
 {
     // unimplemented    
 }
 
-uint8_t LinuxI2CDriver::write(uint8_t addr, uint8_t len, uint8_t* data)
+uint8_t GenericI2CDriver::write(uint8_t addr, uint8_t len, uint8_t* data)
 {
     if (!set_address(addr)) {
         return 1;
@@ -83,7 +83,7 @@ uint8_t LinuxI2CDriver::write(uint8_t addr, uint8_t len, uint8_t* data)
 }
 
 
-uint8_t LinuxI2CDriver::writeRegisters(uint8_t addr, uint8_t reg,
+uint8_t GenericI2CDriver::writeRegisters(uint8_t addr, uint8_t reg,
                                        uint8_t len, uint8_t* data)
 {
     uint8_t buf[len+1];
@@ -109,7 +109,7 @@ static inline __s32 _i2c_smbus_access(int file, char read_write, __u8 command,
 	return ioctl(file,I2C_SMBUS,&args);
 }
 
-uint8_t LinuxI2CDriver::writeRegister(uint8_t addr, uint8_t reg, uint8_t val)
+uint8_t GenericI2CDriver::writeRegister(uint8_t addr, uint8_t reg, uint8_t val)
 {
     if (!set_address(addr)) {
         return 1;
@@ -123,7 +123,7 @@ uint8_t LinuxI2CDriver::writeRegister(uint8_t addr, uint8_t reg, uint8_t val)
     return 0;
 }
 
-uint8_t LinuxI2CDriver::read(uint8_t addr, uint8_t len, uint8_t* data)
+uint8_t GenericI2CDriver::read(uint8_t addr, uint8_t len, uint8_t* data)
 {
     if (!set_address(addr)) {
         return 1;
@@ -134,7 +134,7 @@ uint8_t LinuxI2CDriver::read(uint8_t addr, uint8_t len, uint8_t* data)
     return 0;
 }
 
-uint8_t LinuxI2CDriver::readRegisters(uint8_t addr, uint8_t reg,
+uint8_t GenericI2CDriver::readRegisters(uint8_t addr, uint8_t reg,
                                       uint8_t len, uint8_t* data)
 {
     if (!set_address(addr)) {
@@ -151,7 +151,7 @@ uint8_t LinuxI2CDriver::readRegisters(uint8_t addr, uint8_t reg,
 }
 
 
-uint8_t LinuxI2CDriver::readRegister(uint8_t addr, uint8_t reg, uint8_t* data)
+uint8_t GenericI2CDriver::readRegister(uint8_t addr, uint8_t reg, uint8_t* data)
 {
     if (!set_address(addr)) {
         return 1;
@@ -165,7 +165,7 @@ uint8_t LinuxI2CDriver::readRegister(uint8_t addr, uint8_t reg, uint8_t* data)
     return 0;
 }
 
-uint8_t LinuxI2CDriver::lockup_count() 
+uint8_t GenericI2CDriver::lockup_count() 
 {
     return 0;
 }

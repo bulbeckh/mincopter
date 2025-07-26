@@ -6,7 +6,7 @@
 #include "HAL_RPI_Class.h"
 #include "AP_HAL_RPI_Private.h"
 
-#include <getopt.h>
+// HASH include <getopt.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
