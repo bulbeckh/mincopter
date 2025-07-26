@@ -6,7 +6,7 @@
 
 #include "I2CDriver.h"
 
-#include "pigpio.h"
+#include <pigpiod_if2.h>
 
 using namespace RPI;
 
@@ -53,7 +53,7 @@ int RPII2CDriver::check_device(uint8_t dev)
 	}
 
 	/* Device not found, need to initialise */
-	int handle = i2cOpen(1, dev, 0);
+	int handle = i2c_open(1, dev, 0);
 	if (handle<0) {
 		fprintf(stderr, "Failed to open I2C device: %x\n", dev);
 		return -1;
@@ -72,7 +72,7 @@ uint8_t RPII2CDriver::write(uint8_t addr, uint8_t len, uint8_t* data)
 	int handle = check_device(addr);
 	if(handle>0) {
 		/* Write data to whatever device register is in _addr */
-		if (i2cWriteByteData(handle, _addr, *data) != 0 ) {
+		if (i2c_write_byte_data(handle, _addr, *data) != 0 ) {
 			fprintf(stderr, "I2C Error: Writing bytes [device: %x, data: %x]\n",addr, *data);
 			// Return error
 			return 1;
@@ -86,7 +86,7 @@ uint8_t RPII2CDriver::writeRegisters(uint8_t addr, uint8_t reg, uint8_t len, uin
 	int handle = check_device(addr);
 	if(handle>0) {
 		/* Write data to device */
-		if (i2cWriteBlockData(handle, reg, data, len) != len ) {
+		if (i2c_write_block_data(handle, reg, data, len) != len ) {
 			fprintf(stderr, "I2C Error: Writing bytes [device: %x]\n",addr);
 			// Return error
 			return 1;
@@ -100,7 +100,7 @@ uint8_t RPII2CDriver::writeRegister(uint8_t addr, uint8_t reg, uint8_t val)
 	int handle = check_device(addr);
 	if(handle>0) {
 		/* Write data to register */
-		if (i2cWriteByteData(handle, reg, val) != 0 ) {
+		if (i2c_write_byte_data(handle, reg, val) != 0 ) {
 			fprintf(stderr, "I2C Error: Writing bytes [device: %x, data: %x]\n",addr, val);
 			// Return error
 			return 1;

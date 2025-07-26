@@ -18,16 +18,16 @@ static RPIUARTDriver uartADriver(true);
 //static LinuxUARTDriver uartBDriver(false);
 //static LinuxUARTDriver uartCDriver(false);
 
-static RPISemaphore  i2cSemaphore;
+static LinuxSemaphore  i2cSemaphore;
 static RPII2CDriver  i2cDriver(&i2cSemaphore, "/dev/i2c-1");
 static RPISPIDeviceManager spiDeviceManager;
 static RPIAnalogIn analogIn;
-static RPIStorage storageDriver;
+static LinuxStorage storageDriver;
 static RPIGPIO gpioDriver;
 static RPIRCInput rcinDriver;
 static RPIRCOutput rcoutDriver;
-static RPIScheduler schedulerInstance;
-static RPIUtil utilInstance;
+static LinuxScheduler schedulerInstance;
+static LinuxUtil utilInstance;
 
 HAL_RPI::HAL_RPI() :
     AP_HAL::HAL(

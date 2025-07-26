@@ -3,9 +3,9 @@
 
 #include <AP_HAL_RPI.h>
 
-class RPI::LinuxAnalogSource : public AP_HAL::AnalogSource {
+class RPI::RPIAnalogSource : public AP_HAL::AnalogSource {
 	public:
-		LinuxAnalogSource(float v);
+		RPIAnalogSource(float v);
 
 		float read_average();
 

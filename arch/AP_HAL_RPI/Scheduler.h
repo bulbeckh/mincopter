@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include <AP_HAL_Linux.h>
+#include <AP_HAL_RPI.h>
 
 #if CONFIG_HAL_BOARD == HAL_BOARD_LINUX
 #include <sys/time.h>

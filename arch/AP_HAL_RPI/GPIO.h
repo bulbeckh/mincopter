@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include <AP_HAL_Linux.h>
+#include <AP_HAL_RPI.h>
 
 /* RaspberryPI GPIO Interface */
 
@@ -35,7 +35,7 @@ class RPI::RPIGPIO : public AP_HAL::GPIO {
 class RPI::RPIDigitalSource : public AP_HAL::DigitalSource {
 	public:
 
-		LinuxDigitalSource(uint8_t v);
+		RPIDigitalSource(uint8_t v);
 
 		void    mode(uint8_t output);
 

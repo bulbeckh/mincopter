@@ -58,7 +58,7 @@ void LinuxScheduler::init(void* machtnichts)
     (void)pthread_attr_setschedparam(&thread_attr, &param);
     pthread_attr_setschedpolicy(&thread_attr, SCHED_FIFO);
 
-    pthread_create(&_timer_thread_ctx, &thread_attr, (pthread_startroutine_t)&Linux::LinuxScheduler::_timer_thread, this);
+    pthread_create(&_timer_thread_ctx, &thread_attr, (pthread_startroutine_t)&RPI::LinuxScheduler::_timer_thread, this);
 
     // the UART thread runs at a medium priority
     pthread_attr_init(&thread_attr);
@@ -66,7 +66,7 @@ void LinuxScheduler::init(void* machtnichts)
     (void)pthread_attr_setschedparam(&thread_attr, &param);
     pthread_attr_setschedpolicy(&thread_attr, SCHED_FIFO);
 
-    pthread_create(&_uart_thread_ctx, &thread_attr, (pthread_startroutine_t)&Linux::LinuxScheduler::_uart_thread, this);
+    pthread_create(&_uart_thread_ctx, &thread_attr, (pthread_startroutine_t)&RPI::LinuxScheduler::_uart_thread, this);
     
     // the IO thread runs at lower priority
     pthread_attr_init(&thread_attr);
@@ -74,7 +74,7 @@ void LinuxScheduler::init(void* machtnichts)
     (void)pthread_attr_setschedparam(&thread_attr, &param);
     pthread_attr_setschedpolicy(&thread_attr, SCHED_FIFO);
     
-    pthread_create(&_io_thread_ctx, &thread_attr, (pthread_startroutine_t)&Linux::LinuxScheduler::_io_thread, this);
+    pthread_create(&_io_thread_ctx, &thread_attr, (pthread_startroutine_t)&RPI::LinuxScheduler::_io_thread, this);
 }
 
 void LinuxScheduler::_microsleep(uint32_t usec)
@@ -255,9 +255,9 @@ void *LinuxScheduler::_uart_thread(void)
         _microsleep(10000);
 
         // process any pending serial bytes
-        ((LinuxUARTDriver *)hal.uartA)->_timer_tick();
-        ((LinuxUARTDriver *)hal.uartB)->_timer_tick();
-        ((LinuxUARTDriver *)hal.uartC)->_timer_tick();
+        ((RPIUARTDriver *)hal.uartA)->_timer_tick();
+        ((RPIUARTDriver *)hal.uartB)->_timer_tick();
+        ((RPIUARTDriver *)hal.uartC)->_timer_tick();
     }
     return NULL;
 }

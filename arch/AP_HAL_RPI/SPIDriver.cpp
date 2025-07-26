@@ -51,8 +51,8 @@ void RPISPIDeviceDriver::transfer(const uint8_t *data, uint16_t len)
 }
 
 RPISPIDeviceManager::RPISPIDeviceManager() :
-    _device_cs0("/dev/spidev0.0", SPI_MODE_0, 8, 2600000),
-    _device_cs1("/dev/spidev0.1", SPI_MODE_0, 8, 1000000)
+    _device_cs0("/dev/spidev0.0", 0 /* SPI_MODE_0 */, 8, 2600000),
+    _device_cs1("/dev/spidev0.1", 0 /* SPI_MODE_0 */, 8, 1000000)
 {
 	/* Implement */
 }
@@ -63,7 +63,7 @@ void RPISPIDeviceManager::init(void *)
     _device_cs1.init();
 }
 
-AP_HAL::SPIDeviceDriver* LinuxSPIDeviceManager::device(enum AP_HAL::SPIDevice dev)
+AP_HAL::SPIDeviceDriver* RPISPIDeviceManager::device(enum AP_HAL::SPIDevice dev)
 {
     switch (dev) {
 		/* Implement Case Statement */

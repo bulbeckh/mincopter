@@ -15,12 +15,16 @@ function (set_toolchain TARGET_ARCH)
 	if(TARGET_ARCH STREQUAL "avr")
 		set(TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/toolchains/avr.cmake" PARENT_SCOPE)
 		message("Set TOOLCHAIN_FILE to: ${TOOLCHAIN_FILE}")
-  elseif(TARGET_ARCH STREQUAL "x86_64")
+  	elseif(TARGET_ARCH STREQUAL "x86_64")
 		set(TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/toolchains/x86_64.cmake" PARENT_SCOPE)
 		message("Set TOOLCHAIN_FILE to: ${TOOLCHAIN_FILE}")
-  else()
-      message(FATAL_ERROR "Unsupported target architecture: ${TARGET_ARCH}")
-  endif()
+	elseif(TARGET_ARCH STREQUAL "rpi")
+		## Just use x86_64 for rpi but really should be native (windows, mac, etc.)
+		set(TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/toolchains/rpi.cmake" PARENT_SCOPE)
+		message("Set TOOLCHAIN_FILE to: ${TOOLCHAIN_FILE}")
+  	else()
+      	message(FATAL_ERROR "Unsupported target architecture: ${TARGET_ARCH}")
+  	endif()
 endfunction()
 
 if (DEFINED TARGET_ARCH)
@@ -111,6 +115,7 @@ list(APPEND MC_INCLUDE_DIRS
 	${CMAKE_SOURCE_DIR}/arch/AP_HAL
 	${CMAKE_SOURCE_DIR}/arch/AP_HAL_AVR
 	${CMAKE_SOURCE_DIR}/arch/AP_HAL_Linux
+	${CMAKE_SOURCE_DIR}/arch/AP_HAL_RPI
 	${CMAKE_SOURCE_DIR}/arch/AP_Progmem
 	${CMAKE_SOURCE_DIR}/arch/AP_Scheduler
 	${CMAKE_SOURCE_DIR}/lib/AP_Common
@@ -176,6 +181,13 @@ elseif(${TARGET_ARCH} STREQUAL "x86_64")
 		"arch/AP_HAL/*.cpp"
 		"arch/AP_HAL/*.c"
 		"arch/AP_HAL_Linux/*.cpp"
+		"arch/AP_Scheduler/*.cpp"
+	)
+elseif(${TARGET_ARCH} STREQUAL "rpi")
+	file(GLOB_RECURSE MC_LIBS_ARCH
+		"arch/AP_HAL/*.cpp"
+		"arch/AP_HAL/*.c"
+		"arch/AP_HAL_RPI/*.cpp"
 		"arch/AP_Scheduler/*.cpp"
 	)
 endif()

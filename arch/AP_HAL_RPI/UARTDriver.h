@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include <AP_HAL_Linux.h>
+#include <AP_HAL_RPI.h>
 
 class RPI::RPIUARTDriver : public AP_HAL::UARTDriver {
 	public:

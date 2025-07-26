@@ -65,7 +65,7 @@ void RPIUARTDriver::set_blocking_writes(bool blocking)
 bool RPIUARTDriver::tx_pending() 
 { 
 	/* Implement */
-	return false
+	return false;
 }
 
 int16_t RPIUARTDriver::available() 
@@ -88,7 +88,7 @@ size_t RPIUARTDriver::write(uint8_t c)
 	/* Implement */
 }
 
-size_t LinuxUARTDriver::write(const uint8_t *buffer, size_t size)
+size_t RPIUARTDriver::write(const uint8_t *buffer, size_t size)
 {
 	/* Implement */
 }
