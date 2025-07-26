@@ -14,9 +14,12 @@ namespace RPI {
     class RPIDigitalSource;
     class RPIRCInput;
     class RPIRCOutput;
-    class RPISemaphore;
-    class RPIScheduler;
-    class RPIUtil;
+	/* Keep the LinuxSemaphore & LinuxScheduler */
+    class LinuxSemaphore;
+    class LinuxScheduler;
+
+	// Linux
+    class LinuxUtil;
 }
 
 

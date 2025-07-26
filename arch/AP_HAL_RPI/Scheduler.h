@@ -1,6 +1,5 @@
 
-#ifndef __AP_HAL_LINUX_SCHEDULER_H__
-#define __AP_HAL_LINUX_SCHEDULER_H__
+#pragma once
 
 #include <AP_HAL_Linux.h>
 
@@ -10,7 +9,7 @@
 
 #define LINUX_SCHEDULER_MAX_TIMER_PROCS 10
 
-class Linux::LinuxScheduler : public AP_HAL::Scheduler {
+class RPI::LinuxScheduler : public AP_HAL::Scheduler {
 public:
     LinuxScheduler();
     void     init(void* machtnichts);
@@ -81,4 +80,3 @@ private:
 
 #endif // CONFIG_HAL_BOARD
 
-#endif // __AP_HAL_LINUX_SCHEDULER_H__

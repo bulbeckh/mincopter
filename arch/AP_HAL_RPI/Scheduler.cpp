@@ -14,7 +14,7 @@
 #include <errno.h>
 #include <sys/mman.h>
 
-using namespace Linux;
+using namespace RPI;
 
 extern const AP_HAL::HAL& hal;
 

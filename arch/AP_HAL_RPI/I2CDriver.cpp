@@ -25,11 +25,11 @@ RPII2CDriver::RPII2CDriver(AP_HAL::Semaphore* semaphore, const char *device) :
 /* called from HAL class init() */
 void RPII2CDriver::begin() 
 {
-	int handle = i2cOpen(
 }
 
 void RPII2CDriver::end() 
 {
+	/* TODO Close each i2c_device */
 }
 
 bool RPII2CDriver::set_address(uint8_t addr)
@@ -43,7 +43,7 @@ void RPII2CDriver::setTimeout(uint16_t ms)
 
 void RPII2CDriver::setHighSpeed(bool active) 
 {
-    // unimplemented    
+    // unimplemented
 }
 
 int RPII2CDriver::check_device(uint8_t dev)

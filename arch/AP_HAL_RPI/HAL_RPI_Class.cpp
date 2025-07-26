@@ -45,7 +45,10 @@ HAL_RPI::HAL_RPI() :
         &rcoutDriver,
         &schedulerInstance,
         &utilInstance)
-{}
+{
+}
+
+/* TODO Method to setup pigpio interface and object */
 
 void HAL_RPI::init(int argc,char* const argv[]) const 
 {

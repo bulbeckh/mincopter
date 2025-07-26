@@ -6,7 +6,7 @@
 
 extern const AP_HAL::HAL& hal;
 
-using namespace Linux;
+using namespace RPI;
 
 bool LinuxSemaphore::give() 
 {
