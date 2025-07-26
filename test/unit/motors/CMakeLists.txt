@@ -20,10 +20,10 @@ target_include_directories(test-motors-sim PUBLIC
 target_link_libraries(test-motors-sim PUBLIC
 	mc-control
 	mc-state
-	libs_sim
-	libs_dev
-	libs_common
-	libs_arch
+	mc-sim
+	mc-dev
+	mc-common
+	mc-arch
 
 	## gtest libs
 )

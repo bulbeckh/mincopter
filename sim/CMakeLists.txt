@@ -5,13 +5,13 @@ foreach(src ${MC_LIBS_SIM})
 	message(VERBOSE "${src}")
 endforeach()
 
-add_library(libs_sim STATIC ${MC_LIBS_SIM})
+add_library(mc-sim STATIC ${MC_LIBS_SIM})
 
-target_include_directories(libs_sim PUBLIC
+target_include_directories(mc-sim PUBLIC
 	${MC_INCLUDE_DIRS}
 )
 
-target_link_libraries(libs_sim PUBLIC mc-control)
+target_link_libraries(mc-sim PUBLIC mc-control)
 
 
 

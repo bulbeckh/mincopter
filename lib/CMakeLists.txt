@@ -7,13 +7,13 @@ foreach(src ${MC_LIBS_COMMON})
 	message(VERBOSE "${src}")
 endforeach()
 
-add_library(libs_common STATIC ${MC_LIBS_COMMON})
+add_library(mc-common STATIC ${MC_LIBS_COMMON})
 
-target_include_directories(libs_common PUBLIC
+target_include_directories(mc-common PUBLIC
 	${MC_INCLUDE_DIRS}
 )
 
-target_link_libraries(libs_common PUBLIC mc-control)
+target_link_libraries(mc-common PUBLIC mc-control)
 
 
 

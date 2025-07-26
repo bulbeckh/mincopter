@@ -8,8 +8,8 @@ foreach(src ${MC_LIBS_DEV})
 	message(VERBOSE "${src}")
 endforeach()
 
-add_library(libs_dev STATIC ${MC_LIBS_DEV})
+add_library(mc-dev STATIC ${MC_LIBS_DEV})
 
-target_include_directories(libs_dev PUBLIC
+target_include_directories(mc-dev PUBLIC
 	${MC_INCLUDE_DIRS}
 )

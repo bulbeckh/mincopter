@@ -39,7 +39,8 @@ include(${TOOLCHAIN_FILE})
 
 project(mincopter)
 
-## CONFIGURATION
+####### CONFIGURATION
+
 include(mc-config.cmake)
 
 ## TODO change the way simlog and GZ_Interface are done here - both should be dependent on existing flags
@@ -196,9 +197,9 @@ foreach(src ${MC_LIBS_ARCH})
 	message(VERBOSE "${src}")
 endforeach()
 
-add_library(libs_arch STATIC ${MC_LIBS_ARCH})
+add_library(mc-arch STATIC ${MC_LIBS_ARCH})
 
-target_include_directories(libs_arch PUBLIC
+target_include_directories(mc-arch PUBLIC
 	${MC_INCLUDE_DIRS}
 )
 
@@ -214,17 +215,17 @@ add_executable(mincopter
 )
 
 target_link_libraries(mincopter
-	libs_arch
+	mc-arch
 	#libs_sim
-	libs_dev
+	mc-dev
 	mc-control
 	mc-state
-	libs_common
+	mc-common
 )
 
 if(TARGET_ARCH STREQUAL "x86_64")
 target_link_libraries(mincopter
-	libs_sim
+	mc-sim
 )
 endif()
 
