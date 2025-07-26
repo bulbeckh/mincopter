@@ -39,7 +39,9 @@ include(${TOOLCHAIN_FILE})
 
 project(mincopter)
 
-####### CONFIGURATION
+##################################################################
+# CONFIGURATION
+##################################################################
 
 include(mc-config.cmake)
 
@@ -100,23 +102,14 @@ message(STATUS "TOOLCHAIN FILE: ${TOOLCHAIN_FILE}")
 message(STATUS "C Compiler: ${CMAKE_C_COMPILER}")
 message(STATUS "CXX Compiler: ${CMAKE_CXX_COMPILER}")
 
-#[[ Main Directories
-
-- state/
-- control/
-- arch/
-- dev/
-- lib/
-- arducopter/ (soon to be renamed to mincopter)
-
-]]
-
 list(APPEND MC_INCLUDE_DIRS
 	${CMAKE_SOURCE_DIR}/mincopter/
 	${CMAKE_SOURCE_DIR}/arch/AP_HAL
-	${CMAKE_SOURCE_DIR}/arch/AP_HAL_AVR
-	${CMAKE_SOURCE_DIR}/arch/AP_HAL_Linux
-	${CMAKE_SOURCE_DIR}/arch/AP_HAL_RPI
+	${CMAKE_SOURCE_DIR}/arch/avr/AP_HAL_AVR
+	${CMAKE_SOURCE_DIR}/arch/linux
+	${CMAKE_SOURCE_DIR}/arch/linux/generic
+	${CMAKE_SOURCE_DIR}/arch/linux/beaglebone
+	${CMAKE_SOURCE_DIR}/arch/linux/rpi
 	${CMAKE_SOURCE_DIR}/arch/AP_Progmem
 	${CMAKE_SOURCE_DIR}/arch/AP_Scheduler
 	${CMAKE_SOURCE_DIR}/lib/AP_Common
@@ -148,65 +141,79 @@ list(APPEND MC_INCLUDE_DIRS
 	${CMAKE_SOURCE_DIR}/sim/
 )
 
-## Control
+##################################################################
+# SIM, CONTROL, STATE, DEV
+##################################################################
+
 # OSQP Lib
 #add_subdirectory( ${CMAKE_SOURCE_DIR}/control/design/src/RapidQuadrocopterTrajectories/cgen )
 add_subdirectory( ${CMAKE_SOURCE_DIR}/control )
 
-## State
 add_subdirectory( ${CMAKE_SOURCE_DIR}/state )
 
-## Dev
 add_subdirectory( ${CMAKE_SOURCE_DIR}/dev )
 
-## Sim
+## TODO Fix this
 if(TARGET_ARCH STREQUAL "x86_64")
 	add_subdirectory( ${CMAKE_SOURCE_DIR}/sim )
 endif()
 
-#### Build - arch/ ####
+##################################################################
+# ARCHITECTURE
+##################################################################
+
 ## This is dependent on the target architecture.
-##file(GLOB_RECURSE MC_LIBS_ARCH "arch/*.cpp" "arch/*.c")
+
+file(GLOB_RECURSE MC_ARCH_COMMON
+	"${CMAKE_SOURCE_DIR}/arch/AP_HAL/*.cpp"
+	"${CMAKE_SOURCE_DIR}/arch/AP_HAL/*.c"
+	## NOTE For now AP_Scheduler is common but may soon be architecture-dependent
+	"${CMAKE_SOURCE_DIR}/arch/AP_Scheduler/*.cpp"
+	"${CMAKE_SOURCE_DIR}/arch/avr/AP_Progmem/*cpp"
+)
 
 if (${TARGET_ARCH} STREQUAL "avr")
 	file(GLOB_RECURSE MC_LIBS_ARCH
-		"arch/AP_HAL/*.cpp"
-		"arch/AP_HAL/*.c"
-		"arch/AP_HAL_AVR/*.cpp"
-		"arch/AP_HAL_AVR/*.c"
-		"arch/AP_Progmem/*cpp"
-		"arch/AP_Scheduler/*.cpp"
+		"arch/avr/AP_HAL_AVR/*.cpp"
+		"arch/avr/AP_HAL_AVR/*.c"
 	)
 elseif(${TARGET_ARCH} STREQUAL "x86_64")
 	file(GLOB_RECURSE MC_LIBS_ARCH
-		"arch/AP_HAL/*.cpp"
-		"arch/AP_HAL/*.c"
-		"arch/AP_HAL_Linux/*.cpp"
-		"arch/AP_Scheduler/*.cpp"
+		"arch/linux/generic/*.cpp"
+		"arch/linux/*.cpp"
 	)
 elseif(${TARGET_ARCH} STREQUAL "rpi")
 	file(GLOB_RECURSE MC_LIBS_ARCH
-		"arch/AP_HAL/*.cpp"
-		"arch/AP_HAL/*.c"
-		"arch/AP_HAL_RPI/*.cpp"
-		"arch/AP_Scheduler/*.cpp"
+		"arch/linux/rpi/*.cpp"
+		"arch/linux/*.cpp"
+	)
+elseif(${TARGET_ARCH} STREQUAL "beaglebone")
+	file(GLOB_RECURSE MC_LIBS_ARCH
+		"arch/linux/beaglebone/*.cpp"
+		"arch/linux/*.cpp"
 	)
 endif()
 
+#[[
 foreach(src ${MC_LIBS_ARCH})
 	message(VERBOSE "${src}")
 endforeach()
+]]
 
-add_library(mc-arch STATIC ${MC_LIBS_ARCH})
+add_library(mc-arch STATIC ${MC_LIBS_ARCH} ${MC_ARCH_COMMON})
 
 target_include_directories(mc-arch PUBLIC
 	${MC_INCLUDE_DIRS}
 )
 
-## Common (lib/)
+##################################################################
+# COMMON (lib/)
+##################################################################
 add_subdirectory( ${CMAKE_SOURCE_DIR}/lib )
 
-#### Build - mincopter/ ####
+##################################################################
+# TARGET - Mincopter
+##################################################################
 add_executable(mincopter
 	# TODO Change the name
 	mincopter/mincopter.cpp
@@ -224,12 +231,10 @@ target_link_libraries(mincopter
 )
 
 if(TARGET_ARCH STREQUAL "x86_64")
-target_link_libraries(mincopter
-	mc-sim
-)
+	target_link_libraries(mincopter
+		mc-sim
+	)
 endif()
-
-
 
 target_include_directories(mincopter PUBLIC
 	## TODO Need to separate private and public include directories (e.g. backend and interface)
@@ -244,7 +249,9 @@ target_include_directories(mincopter PUBLIC
 ## target_link_libraries(mytarget PRIVATE osqp::osqp)
 ## target_link_libraries(mytarget PRIVATE osqp::osqpstatic)
 
-## MinCopter Testing
+##################################################################
+# TESTING
+##################################################################
 add_subdirectory(test)
 
 

@@ -5,7 +5,9 @@
 #include <AP_HAL_Boards.h>
 
 #if CONFIG_HAL_BOARD == HAL_BOARD_LINUX
-#include <AP_HAL_Linux.h>
+#include <AP_HAL.h>
+#include "AP_HAL_Linux_Namespace.h"
+
 #include <pthread.h>
 
 class Linux::LinuxSemaphore : public AP_HAL::Semaphore {

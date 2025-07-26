@@ -18,7 +18,7 @@
 #ifdef TARGET_ARCH_AVR
 	#include <AP_HAL_AVR.h>
 #elif TARGET_ARCH_LINUX
-	#include <AP_HAL_Linux.h>
+	#include <AP_HAL_Generic.h>
 	#include "sim_compass.h"
 	#include "sim_adc.h"
 	#include "sim_inertialsensor.h"

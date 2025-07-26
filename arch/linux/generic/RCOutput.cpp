@@ -4,33 +4,33 @@
 
 #include "RCOutput.h"
 
-using namespace Linux;
+using namespace generic;
 
-void LinuxRCOutput::init(void* machtnichts) {}
+void GenericRCOutput::init(void* machtnichts) {}
 
-void LinuxRCOutput::set_freq(uint32_t chmask, uint16_t freq_hz) {}
+void GenericRCOutput::set_freq(uint32_t chmask, uint16_t freq_hz) {}
 
-uint16_t LinuxRCOutput::get_freq(uint8_t ch) {
+uint16_t GenericRCOutput::get_freq(uint8_t ch) {
     return 50;
 }
 
-void LinuxRCOutput::enable_ch(uint8_t ch)
+void GenericRCOutput::enable_ch(uint8_t ch)
 {}
 
-void LinuxRCOutput::disable_ch(uint8_t ch)
+void GenericRCOutput::disable_ch(uint8_t ch)
 {}
 
-void LinuxRCOutput::write(uint8_t ch, uint16_t period_us)
+void GenericRCOutput::write(uint8_t ch, uint16_t period_us)
 {}
 
-void LinuxRCOutput::write(uint8_t ch, uint16_t* period_us, uint8_t len)
+void GenericRCOutput::write(uint8_t ch, uint16_t* period_us, uint8_t len)
 {}
 
-uint16_t LinuxRCOutput::read(uint8_t ch) {
+uint16_t GenericRCOutput::read(uint8_t ch) {
     return 900;
 }
 
-void LinuxRCOutput::read(uint16_t* period_us, uint8_t len)
+void GenericRCOutput::read(uint16_t* period_us, uint8_t len)
 {}
 
 #endif // CONFIG_HAL_BOARD

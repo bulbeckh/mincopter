@@ -2,6 +2,7 @@
 
 #if CONFIG_HAL_BOARD == HAL_BOARD_LINUX
 #include "SPIDriver.h"
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -11,9 +12,9 @@
 #include <sys/ioctl.h>
 #include <linux/spi/spidev.h>
 
-using namespace Linux;
+using namespace generic;
 
-LinuxSPIDeviceDriver::LinuxSPIDeviceDriver(const char *spipath, uint8_t mode, uint8_t bitsPerWord, uint32_t speed) :
+GenericSPIDeviceDriver::GenericSPIDeviceDriver(const char *spipath, uint8_t mode, uint8_t bitsPerWord, uint32_t speed) :
     _spipath(spipath),
     _fd(-1),
     _mode(mode),
@@ -21,7 +22,7 @@ LinuxSPIDeviceDriver::LinuxSPIDeviceDriver(const char *spipath, uint8_t mode, ui
     _speed(speed)
 {}
 
-void LinuxSPIDeviceDriver::init()
+void GenericSPIDeviceDriver::init()
 {
     _fd = open(_spipath, O_RDWR);
     if (_fd == -1) {
@@ -65,12 +66,12 @@ failed:
     _fd = -1;
 }
 
-AP_HAL::Semaphore* LinuxSPIDeviceDriver::get_semaphore()
+AP_HAL::Semaphore* GenericSPIDeviceDriver::get_semaphore()
 {
     return &_semaphore;
 }
 
-void LinuxSPIDeviceDriver::transaction(const uint8_t *tx, uint8_t *rx, uint16_t len)
+void GenericSPIDeviceDriver::transaction(const uint8_t *tx, uint8_t *rx, uint16_t len)
 {
     struct spi_ioc_transfer spi[1];
     spi[0].tx_buf        = (uint64_t)tx;
@@ -85,32 +86,32 @@ void LinuxSPIDeviceDriver::transaction(const uint8_t *tx, uint8_t *rx, uint16_t 
 }
 
 
-void LinuxSPIDeviceDriver::cs_assert()
+void GenericSPIDeviceDriver::cs_assert()
 {
 }
 
-void LinuxSPIDeviceDriver::cs_release()
+void GenericSPIDeviceDriver::cs_release()
 {
 }
 
-uint8_t LinuxSPIDeviceDriver::transfer(uint8_t data)
+uint8_t GenericSPIDeviceDriver::transfer(uint8_t data)
 {
     uint8_t v = 0;
     transaction(&data, &v, 1);
     return v;
 }
 
-void LinuxSPIDeviceDriver::transfer(const uint8_t *data, uint16_t len)
+void GenericSPIDeviceDriver::transfer(const uint8_t *data, uint16_t len)
 {
     transaction(data, NULL, len);
 }
 
-LinuxSPIDeviceManager::LinuxSPIDeviceManager() :
+GenericSPIDeviceManager::GenericSPIDeviceManager() :
     _device_cs0("/dev/spidev0.0", SPI_MODE_0, 8, 2600000),
     _device_cs1("/dev/spidev0.1", SPI_MODE_0, 8, 1000000)
 {}
 
-void LinuxSPIDeviceManager::init(void *)
+void GenericSPIDeviceManager::init(void *)
 {
     _device_cs0.init();
     _device_cs1.init();
@@ -119,7 +120,7 @@ void LinuxSPIDeviceManager::init(void *)
 /*
   return a SPIDeviceDriver for a particular device
  */
-AP_HAL::SPIDeviceDriver* LinuxSPIDeviceManager::device(enum AP_HAL::SPIDevice dev)
+AP_HAL::SPIDeviceDriver* GenericSPIDeviceManager::device(enum AP_HAL::SPIDevice dev)
 {
     switch (dev) {
         case AP_HAL::SPIDevice_ADS7844:

@@ -1,10 +1,9 @@
 
-#ifndef __AP_HAL_LINUX_RCOUTPUT_H__
-#define __AP_HAL_LINUX_RCOUTPUT_H__
+#pragma once
 
-#include <AP_HAL_Linux.h>
+#include <AP_HAL_Generic.h>
 
-class Linux::LinuxRCOutput : public AP_HAL::RCOutput {
+class generic::GenericRCOutput : public AP_HAL::RCOutput {
     void     init(void* machtnichts);
     void     set_freq(uint32_t chmask, uint16_t freq_hz);
     uint16_t get_freq(uint8_t ch);
@@ -16,4 +15,3 @@ class Linux::LinuxRCOutput : public AP_HAL::RCOutput {
     void     read(uint16_t* period_us, uint8_t len);
 };
 
-#endif // __AP_HAL_LINUX_RCOUTPUT_H__

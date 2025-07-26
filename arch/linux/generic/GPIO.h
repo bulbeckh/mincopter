@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include <AP_HAL_Linux.h>
+#include <AP_HAL_Generic.h>
 
 class generic::GenericGPIO : public AP_HAL::GPIO {
 	public:
@@ -26,7 +26,7 @@ class generic::GenericGPIO : public AP_HAL::GPIO {
 
 class generic::GenericDigitalSource : public AP_HAL::DigitalSource {
 	public:
-		LinuxDigitalSource(uint8_t v);
+		GenericDigitalSource(uint8_t v);
 		void    mode(uint8_t output);
 		uint8_t read();
 		void    write(uint8_t value); 
