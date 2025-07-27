@@ -9,7 +9,6 @@
 
 #include <AP_HAL.h>
 
-#if HAL_OS_POSIX_IO
 #include "DataFlash.h"
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -590,5 +589,4 @@ void DataFlash_File::_io_timer(void)
     perf_end(_perf_write);
 }
 
-#endif // HAL_OS_POSIX_IO
 

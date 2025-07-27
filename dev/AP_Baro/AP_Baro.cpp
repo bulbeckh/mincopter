@@ -144,12 +144,13 @@ float AP_Baro::get_altitude(void)
     }
 
 
-#if HAL_CPU_CLASS <= HAL_CPU_CLASS_16
+	/* NOTE This code was originally used to update for slower CPUs
     // on slower CPUs use a less exact, but faster, calculation
     scaling                                 = (float)_ground_pressure / (float)get_pressure();
     temp                                    = ((float)_ground_temperature) + 273.15f;
     _altitude = logf(scaling) * temp * 29.271267f;
-#else
+	*/
+
     // on faster CPUs use a more exact calculation
     scaling                                 = (float)get_pressure() / (float)_ground_pressure;
     temp                                    = ((float)_ground_temperature) + 273.15f;
@@ -157,7 +158,6 @@ float AP_Baro::get_altitude(void)
     // This is an exact calculation that is within +-2.5m of the standard atmosphere tables
     // in the troposphere (up to 11,000 m amsl).
 	_altitude = 153.8462f * temp * (1.0f - expf(0.190259f * logf(scaling)));
-#endif
 
     _last_altitude_t = _last_update;
 

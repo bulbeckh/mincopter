@@ -1,5 +1,7 @@
 
-## File where we specify the architectures and wiring we want to build for
+## File where we specify the (non-HAL/architecture) configuration parameters and
+## wiring, including things like the the choice of planner/controller and
+## sensor backends.
 
 #set(MC_CONTROLLER_TYPE "PID" CACHE STRING "Controller type for mincopter (MPC, PID, NONE)")
 #set(MC_PLANNER_TYPE "NONE" CACHE STRING "Planner type for mincopter (WAYPOINT, NONE)")

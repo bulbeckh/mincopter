@@ -12,19 +12,21 @@ MinCopter CMakeLists
 function (set_toolchain TARGET_ARCH)
 	message(STATUS "Using target architecture ${TARGET_ARCH}")
 
-	if(TARGET_ARCH STREQUAL "avr")
+	if(TARGET_ARCH STREQUAL "atmega2560" OR
+			TARGET_ARCH STREQUAL "atmega1280" OR
+			TARGET_ARCH STREQUAL "atmega328p")
 		set(TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/toolchains/avr.cmake" PARENT_SCOPE)
-		message("Set TOOLCHAIN_FILE to: ${TOOLCHAIN_FILE}")
-  	elseif(TARGET_ARCH STREQUAL "x86_64")
+	elseif(TARGET_ARCH STREQUAL "stm32f407")
+		set(TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/toolchains/stm32.cmake" PARENT_SCOPE)
+  	elseif(TARGET_ARCH STREQUAL "generic")
 		set(TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/toolchains/x86_64.cmake" PARENT_SCOPE)
-		message("Set TOOLCHAIN_FILE to: ${TOOLCHAIN_FILE}")
 	elseif(TARGET_ARCH STREQUAL "rpi")
-		## Just use x86_64 for rpi but really should be native (windows, mac, etc.)
+		## TODO Cross-compilation for RPI
 		set(TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/toolchains/rpi.cmake" PARENT_SCOPE)
-		message("Set TOOLCHAIN_FILE to: ${TOOLCHAIN_FILE}")
   	else()
       	message(FATAL_ERROR "Unsupported target architecture: ${TARGET_ARCH}")
   	endif()
+	message("Set TOOLCHAIN_FILE to: ${TOOLCHAIN_FILE}")
 endfunction()
 
 if (DEFINED TARGET_ARCH)
@@ -33,7 +35,6 @@ else()
 	message("Target Architecture not supplied, use -DTARGET_ARCH=<arch>")
 	set_toolchain("avr")
 endif()
-
 
 include(${TOOLCHAIN_FILE})
 
@@ -47,6 +48,7 @@ include(mc-config.cmake)
 
 ## TODO change the way simlog and GZ_Interface are done here - both should be dependent on existing flags
 ## and simlog should be part of storage/logger anyway
+#[[
 if(MC_SIM_TYPE STREQUAL "SIM")
 	add_compile_definitions( MC_SIM )
 endif()
@@ -56,8 +58,10 @@ if(MC_SIMLOG STREQUAL "TRUE")
 endif()
 
 add_compile_definitions( MC_GZ_INTERFACE )
+]]
 
 ## TODO We shouldn't have to know the SIM_LEVEL anywhere other than CMake. Change this
+#[[
 if(MC_SIM_LEVEL STREQUAL "2")
 	add_compile_definitions( MC_SIM_LEVEL=2 )
 elseif(MC_SIM_LEVEL STREQUAL "1")
@@ -65,34 +69,43 @@ elseif(MC_SIM_LEVEL STREQUAL "1")
 elseif(MC_SIM_LEVEL STREQUAL "0")
 	add_compile_definitions( MC_SIM_LEVEL=0 )
 endif()
+]]
 
-if(MC_SIM_TYPE STREQUAL "SIM" AND MC_SIM_LEVEL STREQUAL "2")
-	add_compile_definitions( MC_AHRS_SIM )
-elseif(MC_AHRS_TYPE STREQUAL "DCM")
+#if(MC_SIM_TYPE STREQUAL "SIM" AND MC_SIM_LEVEL STREQUAL "2")
+#add_compile_definitions( MC_AHRS_SIM )
+if(MC_AHRS_TYPE STREQUAL "DCM")
 	add_compile_definitions( MC_AHRS_DCM )
+else()
+	message(FATAL_ERROR "Unsupported AHRS type: ${MC_AHRS_TYPE}")
 endif()
 
-if(MC_SIM_TYPE STREQUAL "SIM" AND MC_SIM_LEVEL STREQUAL "2")
-	add_compile_definitions( MC_INAV_SIM )
-elseif(MC_INAV_TYPE STREQUAL "DEFAULT")
+#if(MC_SIM_TYPE STREQUAL "SIM" AND MC_SIM_LEVEL STREQUAL "2")
+#add_compile_definitions( MC_INAV_SIM )
+if(MC_INAV_TYPE STREQUAL "DEFAULT")
 	add_compile_definitions( MC_INAV_DEFAULT )
+else()
+	message(FATAL_ERROR "Unsupported INAV type: ${MC_INAV_TYPE}")
 endif()
 
-
+## Controller Configuration
 if(MC_CONTROLLER_TYPE STREQUAL "MPC")
 	add_compile_definitions( CONTROLLER_MPC )
 elseif(MC_CONTROLLER_TYPE STREQUAL "PID")
 	add_compile_definitions( CONTROLLER_PID )
 elseif(MC_CONTROLLER_TYPE STREQUAL "NONE")
 	add_compile_definitions( CONTROLLER_NONE )
+else()
+	message(FATAL_ERROR "Unsupported controller type: ${MC_CONTROLLER_TYPE}")
 endif()
 
+## Planner Configuration
 if(MC_PLANNER_TYPE STREQUAL "WAYPOINT")
 	add_compile_definitions( PLANNER_WAYPOINT )
 elseif(MC_PLANNER_TYPE STREQUAL "NONE")
 	add_compile_definitions( PLANNER_NONE )
+else()
+	message(FATAL_ERROR "Unsupported planner type: ${MC_PLANNER_TYPE}")
 endif()
-
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
@@ -105,11 +118,6 @@ message(STATUS "CXX Compiler: ${CMAKE_CXX_COMPILER}")
 list(APPEND MC_INCLUDE_DIRS
 	${CMAKE_SOURCE_DIR}/mincopter/
 	${CMAKE_SOURCE_DIR}/arch/AP_HAL
-	${CMAKE_SOURCE_DIR}/arch/avr/AP_HAL_AVR
-	${CMAKE_SOURCE_DIR}/arch/linux
-	${CMAKE_SOURCE_DIR}/arch/linux/generic
-	${CMAKE_SOURCE_DIR}/arch/linux/beaglebone
-	${CMAKE_SOURCE_DIR}/arch/linux/rpi
 	${CMAKE_SOURCE_DIR}/arch/AP_Progmem
 	${CMAKE_SOURCE_DIR}/arch/AP_Scheduler
 	${CMAKE_SOURCE_DIR}/lib/AP_Common
@@ -177,20 +185,35 @@ if (${TARGET_ARCH} STREQUAL "avr")
 		"arch/avr/AP_HAL_AVR/*.cpp"
 		"arch/avr/AP_HAL_AVR/*.c"
 	)
+	list(APPEND MC_INCLUDE_DIRS
+		"${CMAKE_SOURCE_DIR}/arch/avr/AP_HAL_AVR"
+	)
 elseif(${TARGET_ARCH} STREQUAL "x86_64")
 	file(GLOB_RECURSE MC_LIBS_ARCH
 		"arch/linux/generic/*.cpp"
 		"arch/linux/*.cpp"
+	)
+	list(APPEND MC_INCLUDE_DIRS
+		"${CMAKE_SOURCE_DIR}/arch/linux"
+		"${CMAKE_SOURCE_DIR}/arch/linux/generic"
 	)
 elseif(${TARGET_ARCH} STREQUAL "rpi")
 	file(GLOB_RECURSE MC_LIBS_ARCH
 		"arch/linux/rpi/*.cpp"
 		"arch/linux/*.cpp"
 	)
+	list(APPEND MC_INCLUDE_DIRS
+		"${CMAKE_SOURCE_DIR}/arch/linux"
+		"${CMAKE_SOURCE_DIR}/arch/linux/rpi"
+	)
 elseif(${TARGET_ARCH} STREQUAL "beaglebone")
 	file(GLOB_RECURSE MC_LIBS_ARCH
 		"arch/linux/beaglebone/*.cpp"
 		"arch/linux/*.cpp"
+	)
+	list(APPEND MC_INCLUDE_DIRS
+		"${CMAKE_SOURCE_DIR}/arch/linux"
+		"${CMAKE_SOURCE_DIR}/arch/linux/beaglebone"
 	)
 endif()
 

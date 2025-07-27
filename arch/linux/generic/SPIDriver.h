@@ -32,7 +32,7 @@ class generic::GenericSPIDeviceDriver : public AP_HAL::SPIDeviceDriver {
 		uint32_t _speed;
 };
 
-class generic::GenericjSPIDeviceManager : public AP_HAL::SPIDeviceManager {
+class generic::GenericSPIDeviceManager : public AP_HAL::SPIDeviceManager {
 public:
     GenericSPIDeviceManager();
 
@@ -45,4 +45,3 @@ private:
     GenericSPIDeviceDriver _device_cs1;
 };
 
-#endif // __AP_HAL_LINUX_SPIDRIVER_H__

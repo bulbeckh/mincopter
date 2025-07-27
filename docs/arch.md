@@ -1,4 +1,15 @@
 
+## HAL Configuration
+
+`CONFIG_HAL_BOARD`
+
+- Removed HAL_CPU_CLASS (was only used by baro)
+- Removed HAL_OS_POSIX_IO (used in DataFlash_File)
+
+Then defined by CMake:
+- TARGET_ARCH_LINUX
+- TARGET_ARCH_AVR
+- ...
 
 HAL interface has
 
