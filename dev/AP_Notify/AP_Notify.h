@@ -23,7 +23,6 @@
 #include <ToshibaLED.h>
 #include <ToshibaLED_I2C.h>
 #include <ToshibaLED_PX4.h>
-#include <ToneAlarm_PX4.h>
 #include <ExternalLED.h>
 #include <Buzzer.h>
 
@@ -60,16 +59,12 @@ public:
 private:
     // individual drivers
     AP_BoardLED boardled;
-#if CONFIG_HAL_BOARD == HAL_BOARD_PX4
-    ToshibaLED_PX4 toshibaled;
-    ToneAlarm_PX4 tonealarm;
-#elif CONFIG_HAL_BOARD == HAL_BOARD_APM1 || CONFIG_HAL_BOARD == HAL_BOARD_APM2 
+
+    //ToshibaLED_PX4 toshibaled;
+    //ToshibaLED_I2C toshibaled;
+    //ExternalLED externalled;
+    //Buzzer buzzer;
     ToshibaLED_I2C toshibaled;
-    ExternalLED externalled;
-    Buzzer buzzer;
-#else
-    ToshibaLED_I2C toshibaled;
-#endif
 };
 
 #endif	// __AP_NOTIFY_H__

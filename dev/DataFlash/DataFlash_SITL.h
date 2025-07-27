@@ -4,8 +4,6 @@
 #ifndef __DATAFLASH_SITL_H__
 #define __DATAFLASH_SITL_H__
 
-#if CONFIG_HAL_BOARD == HAL_BOARD_AVR_SITL
-
 #include <AP_HAL.h>
 #include "DataFlash.h"
 
@@ -48,5 +46,4 @@ public:
     bool        CardInserted();
 };
 
-#endif // CONFIG_HAL_BOARD == HAL_BOARD_AVR_SITL
 #endif // __DATAFLASH_SITL_H__

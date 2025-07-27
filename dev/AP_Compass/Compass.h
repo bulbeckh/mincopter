@@ -20,32 +20,11 @@
 #define AP_COMPASS_MOT_COMP_THROTTLE    0x01
 #define AP_COMPASS_MOT_COMP_CURRENT     0x02
 
+// TODO Make this a configurable parameter somewhere
 // setup default mag orientation for each board type
-#if CONFIG_HAL_BOARD == HAL_BOARD_APM1
-# define MAG_BOARD_ORIENTATION ROTATION_ROLL_180
-#elif CONFIG_HAL_BOARD == HAL_BOARD_APM2
 # define MAG_BOARD_ORIENTATION ROTATION_NONE
-#elif CONFIG_HAL_BOARD == HAL_BOARD_FLYMAPLE
-# define MAG_BOARD_ORIENTATION ROTATION_NONE
-#elif CONFIG_HAL_BOARD == HAL_BOARD_PX4
-# define MAG_BOARD_ORIENTATION ROTATION_NONE
-#elif CONFIG_HAL_BOARD == HAL_BOARD_AVR_SITL
-# define MAG_BOARD_ORIENTATION ROTATION_NONE
-#elif CONFIG_HAL_BOARD == HAL_BOARD_LINUX
-# define MAG_BOARD_ORIENTATION ROTATION_YAW_90
-#else
-# error "You must define a default compass orientation for this board"
-#endif
 
-/**
-   maximum number of compass instances available on this platform. If more
-   than 1 then redundent sensors may be available
- */
-#if CONFIG_HAL_BOARD == HAL_BOARD_PX4
-#define COMPASS_MAX_INSTANCES 2
-#else
 #define COMPASS_MAX_INSTANCES 1
-#endif
 
 class Compass
 {

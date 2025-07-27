@@ -18,13 +18,8 @@
 #ifndef __BUZZER_H__
 #define __BUZZER_H__
 
-#if CONFIG_HAL_BOARD == HAL_BOARD_APM1
-# define BUZZER_PIN     63      // pin 63 on APM1
-#elif CONFIG_HAL_BOARD == HAL_BOARD_APM2
- # define BUZZER_PIN    59      // pin 59 on APM2
-#else
- # define BUZZER_PIN    0       // pin undefined on other boards
-#endif
+// TODO Move pin config
+# define BUZZER_PIN    59      // pin 59 on APM2
 
 class Buzzer
 {

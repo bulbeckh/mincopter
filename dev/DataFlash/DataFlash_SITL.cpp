@@ -5,8 +5,6 @@
 
 #include <AP_HAL.h>
 
-#if CONFIG_HAL_BOARD == HAL_BOARD_AVR_SITL
-
 #include <unistd.h>
 #include <stdlib.h>
 #include <sys/types.h>
@@ -162,6 +160,5 @@ void DataFlash_SITL::ChipErase()
 }
 
 
-#endif
 
 

@@ -45,11 +45,9 @@ DataFlash_File::DataFlash_File(const char *log_directory) :
     _writebuf_head(0),
     _writebuf_tail(0),
     _last_write_time(0)
-#if CONFIG_HAL_BOARD == HAL_BOARD_PX4
     ,_perf_write(perf_alloc(PC_ELAPSED, "DF_write")),
     _perf_fsync(perf_alloc(PC_ELAPSED, "DF_fsync")),
     _perf_errors(perf_alloc(PC_COUNT, "DF_errors"))
-#endif
 {}
 
 
@@ -61,7 +59,6 @@ void DataFlash_File::Init(const struct LogStructure *structure, uint8_t num_type
     int ret;
     struct stat st;
 
-#if CONFIG_HAL_BOARD == HAL_BOARD_PX4
     // try to cope with an existing lowercase log directory
     // name. NuttX does not handle case insensitive VFAT well
     DIR *d = opendir("/fs/microsd/APM");
@@ -74,7 +71,6 @@ void DataFlash_File::Init(const struct LogStructure *structure, uint8_t num_type
         }
         closedir(d);
     }
-#endif
 
     ret = stat(_log_directory, &st);
     if (ret == -1) {
@@ -581,9 +577,7 @@ void DataFlash_File::_io_timer(void)
           chunk, ensuring the directory entry is updated after each
           write.
          */
-#if CONFIG_HAL_BOARD != HAL_BOARD_AVR_SITL
         ::fsync(_write_fd);
-#endif
         BUF_ADVANCEHEAD(_writebuf, nwritten);
     }
     perf_end(_perf_write);

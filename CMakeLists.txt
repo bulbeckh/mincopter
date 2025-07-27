@@ -20,7 +20,7 @@ function (set_toolchain TARGET_ARCH)
 		set(TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/toolchains/stm32.cmake" PARENT_SCOPE)
   	elseif(TARGET_ARCH STREQUAL "generic")
 		set(TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/toolchains/x86_64.cmake" PARENT_SCOPE)
-	elseif(TARGET_ARCH STREQUAL "rpi")
+	elseif(TARGET_ARCH STREQUAL "rpi2modelb")
 		## TODO Cross-compilation for RPI
 		set(TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/toolchains/rpi.cmake" PARENT_SCOPE)
   	else()
@@ -36,6 +36,7 @@ else()
 	set_toolchain("avr")
 endif()
 
+## TODO Each tool file should make use of the TARGET_ARCH variable to determine flags like -mmcu and -march
 include(${TOOLCHAIN_FILE})
 
 project(mincopter)
@@ -45,6 +46,8 @@ project(mincopter)
 ##################################################################
 
 include(mc-config.cmake)
+
+## Simulation parameters for 'generic' target
 
 ## TODO change the way simlog and GZ_Interface are done here - both should be dependent on existing flags
 ## and simlog should be part of storage/logger anyway

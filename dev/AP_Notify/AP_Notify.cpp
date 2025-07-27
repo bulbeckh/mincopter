@@ -27,13 +27,9 @@ void AP_Notify::init(bool enable_external_leds)
     boardled.init();
     toshibaled.init();
 
-#if CONFIG_HAL_BOARD == HAL_BOARD_PX4
-    tonealarm.init();
-#endif
-#if CONFIG_HAL_BOARD == HAL_BOARD_APM1 || CONFIG_HAL_BOARD == HAL_BOARD_APM2
-    externalled.init();
-    buzzer.init();
-#endif
+    //tonealarm.init();
+    //externalled.init();
+    //buzzer.init();
 }
 
 // main update function, called at 50Hz
@@ -42,11 +38,7 @@ void AP_Notify::update(void)
     boardled.update();
     toshibaled.update();
 
-#if CONFIG_HAL_BOARD == HAL_BOARD_PX4
-    tonealarm.update();
-#endif
-#if CONFIG_HAL_BOARD == HAL_BOARD_APM1 || CONFIG_HAL_BOARD == HAL_BOARD_APM2
-    externalled.update();
-    buzzer.update();
-#endif
+    //tonealarm.update();
+    //externalled.update();
+    //buzzer.update();
 }
