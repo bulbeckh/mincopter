@@ -1,11 +1,12 @@
 
 #include <AP_HAL/AP_HAL.h>
 
-#if CONFIG_HAL_BOARD == HAL_BOARD_LINUX
-
 #include <arch/linux/Scheduler.h>
 #include <arch/linux/Storage.h>
-#include <arch/linux/UARTDriver.h>
+
+/* TODO Fix this - either make the scheduler dependent on the embedded linux type or 
+ * add a way to provide xxUartDriver type to below (i.e. via an interface header */
+#include <arch/linux/generic/UARTDriver.h>
 
 #include <unistd.h>
 #include <sys/time.h>
@@ -257,9 +258,9 @@ void *LinuxScheduler::_uart_thread(void)
         _microsleep(10000);
 
         // process any pending serial bytes
-        ((LinuxUARTDriver *)hal.uartA)->_timer_tick();
-        ((LinuxUARTDriver *)hal.uartB)->_timer_tick();
-        ((LinuxUARTDriver *)hal.uartC)->_timer_tick();
+        ((generic::GenericUARTDriver *)hal.uartA)->_timer_tick();
+        ((generic::GenericUARTDriver *)hal.uartB)->_timer_tick();
+        ((generic::GenericUARTDriver *)hal.uartC)->_timer_tick();
     }
     return NULL;
 }
@@ -336,4 +337,3 @@ void LinuxScheduler::time_shift(uint32_t shift_ms)
     _sketch_start_time.tv_nsec = new_ns;
 }
 
-#endif // CONFIG_HAL_BOARD

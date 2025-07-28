@@ -173,7 +173,7 @@ add_subdirectory( ${CMAKE_SOURCE_DIR}/state )
 add_subdirectory( ${CMAKE_SOURCE_DIR}/dev )
 
 ## TODO Fix this
-if(TARGET_ARCH STREQUAL "x86_64")
+if(TARGET_ARCH STREQUAL "generic")
 	add_subdirectory( ${CMAKE_SOURCE_DIR}/sim )
 endif()
 
@@ -191,15 +191,15 @@ file(GLOB_RECURSE MC_ARCH_COMMON
 	"${CMAKE_SOURCE_DIR}/arch/avr/AP_Progmem/*cpp"
 )
 
-if (${TARGET_ARCH} STREQUAL "avr")
-	file(GLOB_RECURSE MC_LIBS_ARCH
-		"arch/avr/AP_HAL_AVR/*.cpp"
-		"arch/avr/AP_HAL_AVR/*.c"
-	)
-elseif(${TARGET_ARCH} STREQUAL "x86_64")
+if(${TARGET_ARCH} STREQUAL "generic")
 	file(GLOB_RECURSE MC_LIBS_ARCH
 		"arch/linux/generic/*.cpp"
 		"arch/linux/*.cpp"
+	)
+elseif(${TARGET_ARCH} STREQUAL "avr")
+	file(GLOB_RECURSE MC_LIBS_ARCH
+		"arch/avr/AP_HAL_AVR/*.cpp"
+		"arch/avr/AP_HAL_AVR/*.c"
 	)
 elseif(${TARGET_ARCH} STREQUAL "rpi")
 	file(GLOB_RECURSE MC_LIBS_ARCH
@@ -242,14 +242,13 @@ add_executable(mincopter
 
 target_link_libraries(mincopter
 	mc-arch
-	#libs_sim
 	mc-dev
 	mc-control
 	mc-state
 	mc-common
 )
 
-if(TARGET_ARCH STREQUAL "x86_64")
+if(TARGET_ARCH STREQUAL "generic")
 	target_link_libraries(mincopter
 		mc-sim
 	)

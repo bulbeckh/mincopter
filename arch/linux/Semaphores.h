@@ -4,7 +4,6 @@
 
 #include <AP_HAL/AP_HAL_Boards.h>
 
-#if CONFIG_HAL_BOARD == HAL_BOARD_LINUX
 #include <AP_HAL/AP_HAL.h>
 #include <arch/linux/AP_HAL_Linux_Namespace.h>
 
@@ -21,6 +20,5 @@ public:
 private:
     pthread_mutex_t _lock;
 };
-#endif // CONFIG_HAL_BOARD
 
 #endif // __AP_HAL_LINUX_SEMAPHORE_H__

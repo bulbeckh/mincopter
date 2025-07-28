@@ -14,6 +14,15 @@
 #include <assert.h>
 #include <sys/ioctl.h>
 
+/*
+  buffer handling macros
+ */
+#define BUF_AVAILABLE(buf) ((buf##_head > (_tail=buf##_tail))? (buf##_size - buf##_head) + _tail: _tail - buf##_head)
+#define BUF_SPACE(buf) (((_head=buf##_head) > buf##_tail)?(_head - buf##_tail) - 1:((buf##_size - buf##_tail) + _head) - 1)
+#define BUF_EMPTY(buf) (buf##_head == buf##_tail)
+#define BUF_ADVANCETAIL(buf, n) buf##_tail = (buf##_tail + n) % buf##_size
+#define BUF_ADVANCEHEAD(buf, n) buf##_head = (buf##_head + n) % buf##_size
+
 extern const AP_HAL::HAL& hal;
 
 using namespace generic;
@@ -97,3 +106,80 @@ size_t GenericUARTDriver::write(const uint8_t *buffer, size_t size)
     return 0;
 }
 
+int GenericUARTDriver::_write_fd(const uint8_t *buf, uint16_t n)
+{
+    int ret = 0;
+
+    struct pollfd fds;
+    fds.fd = _wr_fd;
+    fds.events = POLLOUT;
+    fds.revents = 0;
+
+    if (poll(&fds, 1, 0) == 1) {
+        ret = ::write(_wr_fd, buf, n);
+    }
+
+    if (ret > 0) {
+        BUF_ADVANCEHEAD(_writebuf, ret);
+        return ret;
+    }
+
+    return ret;
+}
+
+int GenericUARTDriver::_read_fd(uint8_t *buf, uint16_t n)
+{
+    int ret;
+    ret = ::read(_rd_fd, buf, n);
+    if (ret > 0) {
+        BUF_ADVANCETAIL(_readbuf, ret);
+    }
+    return ret;
+}
+
+void GenericUARTDriver::_timer_tick(void)
+{
+    uint16_t n;
+
+    if (!_initialised) return;
+
+    _in_timer = true;
+
+    // write any pending bytes
+    uint16_t _tail;
+    n = BUF_AVAILABLE(_writebuf);
+    if (n > 0) {
+        if (_tail > _writebuf_head) {
+            // do as a single write
+            _write_fd(&_writebuf[_writebuf_head], n);
+        } else {
+            // split into two writes
+            uint16_t n1 = _writebuf_size - _writebuf_head;
+            int ret = _write_fd(&_writebuf[_writebuf_head], n1);
+            if (ret == n1 && n != n1) {
+                _write_fd(&_writebuf[_writebuf_head], n - n1);                
+            }
+        }
+    }
+
+    // try to fill the read buffer
+    uint16_t _head;
+    n = BUF_SPACE(_readbuf);
+    if (n > 0) {
+        if (_readbuf_tail < _head) {
+            // one read will do
+            assert(_readbuf_tail+n <= _readbuf_size);
+            _read_fd(&_readbuf[_readbuf_tail], n);
+        } else {
+            uint16_t n1 = _readbuf_size - _readbuf_tail;
+            assert(_readbuf_tail+n1 <= _readbuf_size);
+            int ret = _read_fd(&_readbuf[_readbuf_tail], n1);
+            if (ret == n1 && n != n1) {
+                assert(_readbuf_tail+(n-n1) <= _readbuf_size);
+                _read_fd(&_readbuf[_readbuf_tail], n - n1);                
+            }
+        }
+    }
+
+    _in_timer = false;
+}

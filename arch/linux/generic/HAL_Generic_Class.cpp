@@ -14,25 +14,22 @@
 // TODO For generic linux (and maybe embedded linux too), one UART should redirect to stdout or some other
 // device file and the rest should be NULL, or we have separate device files for each of the 4 UARTs
 
-// 3 serial ports on Linux for now
-namespace generic {
-	static GenericUARTDriver uartADriver(true);
-	static GenericUARTDriver uartBDriver(false);
-	static GenericUARTDriver uartCDriver(false);
-	static GenericI2CDriver  i2cDriver(&i2cSemaphore, "/dev/i2c-1");
-	static GenericSPIDeviceManager spiDeviceManager;
-	static GenericAnalogIn analogIn;
-	static GenericGPIO gpioDriver;
-	static GenericRCInput rcinDriver;
-	static GenericRCOutput rcoutDriver;
-}
+static Linux::LinuxSemaphore  i2cSemaphore;
+static Linux::LinuxStorage storageDriver;
+static Linux::LinuxScheduler schedulerInstance;
+static Linux::LinuxUtil utilInstance;
 
-namespace linux {
-	static LinuxSemaphore  i2cSemaphore;
-	static LinuxStorage storageDriver;
-	static LinuxScheduler schedulerInstance;
-	static LinuxUtil utilInstance;
-}
+// 3 serial ports on Linux for now
+static generic::GenericUARTDriver uartADriver(true);
+static generic::GenericUARTDriver uartBDriver(false);
+static generic::GenericUARTDriver uartCDriver(false);
+static generic::GenericI2CDriver  i2cDriver(&i2cSemaphore, "/dev/i2c-1");
+static generic::GenericSPIDeviceManager spiDeviceManager;
+static generic::GenericAnalogIn analogIn;
+static generic::GenericGPIO gpioDriver;
+static generic::GenericRCInput rcinDriver;
+static generic::GenericRCOutput rcoutDriver;
+
 
 HAL_Generic::HAL_Generic() :
     AP_HAL::HAL(

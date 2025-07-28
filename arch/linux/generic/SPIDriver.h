@@ -24,7 +24,7 @@ class generic::GenericSPIDeviceDriver : public AP_HAL::SPIDeviceDriver {
 		void transfer (const uint8_t *data, uint16_t len);
 
 	private:
-		LinuxSemaphore _semaphore;
+		Linux::LinuxSemaphore _semaphore;
 		const char *_spipath;
 		int _fd;
 		uint8_t _mode;

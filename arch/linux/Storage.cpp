@@ -1,5 +1,4 @@
 #include <AP_HAL/AP_HAL.h>
-#if CONFIG_HAL_BOARD == HAL_BOARD_LINUX
 
 #include <assert.h>
 #include <sys/types.h>
@@ -237,4 +236,3 @@ void LinuxStorage::_timer_tick(void)
 	}
 }
 
-#endif // CONFIG_HAL_BOARD
