@@ -20,8 +20,8 @@
  *
  */
 
-#include <AP_HAL.h>
-#include <AP_Scheduler.h>
+#include <AP_HAL/AP_HAL.h>
+#include <AP_Scheduler/AP_Scheduler.h>
 
 
 #ifdef TARGET_ARCH_LINUX

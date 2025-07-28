@@ -1,4 +1,4 @@
-#include <AP_HAL.h>
+#include <AP_HAL/AP_HAL.h>
 #if CONFIG_HAL_BOARD == HAL_BOARD_LINUX
 
 #include <assert.h>
@@ -9,7 +9,8 @@
 #include <errno.h>
 #include <stdio.h>
 
-#include "Storage.h"
+#include <arch/linux/Storage.h>
+
 using namespace Linux;
 
 /*

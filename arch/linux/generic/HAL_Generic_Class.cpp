@@ -1,8 +1,8 @@
-#include <AP_HAL.h>
-#if CONFIG_HAL_BOARD == HAL_BOARD_LINUX
 
-#include "HAL_Generic_Class.h"
-#include "AP_HAL_Generic_Private.h"
+#include <AP_HAL/AP_HAL.h>
+
+#include <arch/linux/generic/HAL_Generic_Class.h>
+#include <arch/linux/generic/AP_HAL_Generic_Private.h>
 
 #include <getopt.h>
 #include <stdio.h>
@@ -64,6 +64,5 @@ void HAL_Generic::init(int argc,char* const argv[]) const
 
 const HAL_Generic AP_HAL_Generic;
 
-#endif
 
 

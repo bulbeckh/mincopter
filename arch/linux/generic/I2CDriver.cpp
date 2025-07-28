@@ -1,8 +1,7 @@
 
-#include <AP_HAL.h>
+#include <AP_HAL/AP_HAL.h>
 
-#if CONFIG_HAL_BOARD == HAL_BOARD_LINUX
-#include "I2CDriver.h"
+#include <arch/linux/generic/I2CDriver.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -169,4 +168,3 @@ uint8_t GenericI2CDriver::lockup_count()
 {
     return 0;
 }
-#endif // CONFIG_HAL_BOARD

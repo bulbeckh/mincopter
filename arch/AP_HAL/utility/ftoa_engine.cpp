@@ -28,9 +28,9 @@
   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
   POSSIBILITY OF SUCH DAMAGE. */
 
-#include <AP_HAL.h>
+#include <AP_HAL/AP_HAL.h>
 #include <AP_Common.h>
-#include "ftoa_engine.h"
+#include <AP_HAL/utility/ftoa_engine.h>
 #include <stdint.h>
 
 #define PGM_INT8(addr) (int8_t)pgm_read_byte((const prog_char *)addr)

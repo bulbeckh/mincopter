@@ -4,8 +4,8 @@
 
 #include <stdint.h>
 
-#include "AP_HAL_Namespace.h"
-#include "utility/BetterStream.h"
+#include <AP_HAL/AP_HAL_Namespace.h>
+#include <AP_HAL/utility/BetterStream.h>
 
 /* Pure virtual UARTDriver class */
 class AP_HAL::UARTDriver : public AP_HAL::BetterStream {

@@ -29,7 +29,7 @@
   POSSIBILITY OF SUCH DAMAGE. */
 
 #include <stdint.h>
-#include "xtoa_fast.h"
+#include <AP_HAL/utility/xtoa_fast.h>
 
 char * ultoa_invert (uint32_t val, char *s, uint8_t base) {
 	if (base == 8) {

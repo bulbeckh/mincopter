@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include <AP_HAL_Generic.h>
+#include <arch/linux/generic/AP_HAL_Generic.h>
 
 class generic::GenericUARTDriver : public AP_HAL::UARTDriver {
 	public:

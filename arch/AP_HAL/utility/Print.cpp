@@ -25,8 +25,9 @@
 #include <stdint.h>
 
 #include <AP_Math.h>
-#include "../AP_HAL_Namespace.h"
-#include "Print.h"
+#include <AP_HAL/AP_HAL_Namespace.h>
+#include <AP_HAL/utility/Print.h>
+
 using namespace AP_HAL;
 
 size_t Print::print(const char str[])

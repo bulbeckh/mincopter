@@ -2,7 +2,7 @@
 #ifndef __AP_HAL_RC_INPUT_H__
 #define __AP_HAL_RC_INPUT_H__
 
-#include "AP_HAL_Namespace.h"
+#include <AP_HAL/AP_HAL_Namespace.h>
 
 #define RC_INPUT_MIN_PULSEWIDTH 900
 #define RC_INPUT_MAX_PULSEWIDTH 2100

@@ -11,14 +11,13 @@
 #include <AP_ADC.h>             // ArduPilot Mega Analog to Digital Converter Library
 #include <AP_ADC_AnalogSource.h>
 #include <AP_BattMonitor.h>
-#include <AP_HAL.h>
+#include <AP_HAL/AP_HAL.h>
+#include <arch/AP_HAL/HAL_Interface.h>
+
 // HASH include <APM_PI.h>
 #include <RC_Channel.h>
 
-#ifdef TARGET_ARCH_AVR
-	#include <AP_HAL_AVR.h>
-#elif TARGET_ARCH_LINUX
-	#include <AP_HAL_Generic.h>
+#if TARGET_ARCH_LINUX
 	#include "sim_compass.h"
 	#include "sim_adc.h"
 	#include "sim_inertialsensor.h"

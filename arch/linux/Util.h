@@ -2,8 +2,8 @@
 #ifndef __AP_HAL_LINUX_UTIL_H__
 #define __AP_HAL_LINUX_UTIL_H__
 
-#include <AP_HAL.h>
-#include "AP_HAL_Linux_Namespace.h"
+#include <AP_HAL/AP_HAL.h>
+#include <arch/linux/AP_HAL_Linux_Namespace.h>
 
 class Linux::LinuxUtil : public AP_HAL::Util {
 public:

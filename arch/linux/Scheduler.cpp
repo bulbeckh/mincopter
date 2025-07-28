@@ -1,10 +1,12 @@
-#include <AP_HAL.h>
+
+#include <AP_HAL/AP_HAL.h>
 
 #if CONFIG_HAL_BOARD == HAL_BOARD_LINUX
 
-#include "Scheduler.h"
-#include "Storage.h"
-#include "UARTDriver.h"
+#include <arch/linux/Scheduler.h>
+#include <arch/linux/Storage.h>
+#include <arch/linux/UARTDriver.h>
+
 #include <unistd.h>
 #include <sys/time.h>
 #include <poll.h>

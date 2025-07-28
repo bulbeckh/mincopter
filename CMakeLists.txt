@@ -119,8 +119,16 @@ message(STATUS "C Compiler: ${CMAKE_C_COMPILER}")
 message(STATUS "CXX Compiler: ${CMAKE_CXX_COMPILER}")
 
 list(APPEND MC_INCLUDE_DIRS
+	${CMAKE_SOURCE_DIR}
 	${CMAKE_SOURCE_DIR}/mincopter/
+	${CMAKE_SOURCE_DIR}/arch
 	${CMAKE_SOURCE_DIR}/arch/AP_HAL
+	${CMAKE_SOURCE_DIR}/arch/avr/AP_HAL_AVR
+	${CMAKE_SOURCE_DIR}/arch/stm32
+	${CMAKE_SOURCE_DIR}/arch/linux
+	${CMAKE_SOURCE_DIR}/arch/linux/generic
+	${CMAKE_SOURCE_DIR}/arch/linux/rpi
+	${CMAKE_SOURCE_DIR}/arch/linux/beaglebone
 	${CMAKE_SOURCE_DIR}/arch/AP_Progmem
 	${CMAKE_SOURCE_DIR}/arch/AP_Scheduler
 	${CMAKE_SOURCE_DIR}/lib/AP_Common
@@ -188,35 +196,20 @@ if (${TARGET_ARCH} STREQUAL "avr")
 		"arch/avr/AP_HAL_AVR/*.cpp"
 		"arch/avr/AP_HAL_AVR/*.c"
 	)
-	list(APPEND MC_INCLUDE_DIRS
-		"${CMAKE_SOURCE_DIR}/arch/avr/AP_HAL_AVR"
-	)
 elseif(${TARGET_ARCH} STREQUAL "x86_64")
 	file(GLOB_RECURSE MC_LIBS_ARCH
 		"arch/linux/generic/*.cpp"
 		"arch/linux/*.cpp"
-	)
-	list(APPEND MC_INCLUDE_DIRS
-		"${CMAKE_SOURCE_DIR}/arch/linux"
-		"${CMAKE_SOURCE_DIR}/arch/linux/generic"
 	)
 elseif(${TARGET_ARCH} STREQUAL "rpi")
 	file(GLOB_RECURSE MC_LIBS_ARCH
 		"arch/linux/rpi/*.cpp"
 		"arch/linux/*.cpp"
 	)
-	list(APPEND MC_INCLUDE_DIRS
-		"${CMAKE_SOURCE_DIR}/arch/linux"
-		"${CMAKE_SOURCE_DIR}/arch/linux/rpi"
-	)
 elseif(${TARGET_ARCH} STREQUAL "beaglebone")
 	file(GLOB_RECURSE MC_LIBS_ARCH
 		"arch/linux/beaglebone/*.cpp"
 		"arch/linux/*.cpp"
-	)
-	list(APPEND MC_INCLUDE_DIRS
-		"${CMAKE_SOURCE_DIR}/arch/linux"
-		"${CMAKE_SOURCE_DIR}/arch/linux/beaglebone"
 	)
 endif()
 

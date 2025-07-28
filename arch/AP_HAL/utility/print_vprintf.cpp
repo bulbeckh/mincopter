@@ -38,16 +38,16 @@
 /* $Id: vfprintf.c,v 1.18.2.1 2009/04/01 23:12:06 arcanum Exp $ */
 
 
-#include <AP_HAL.h>
+#include <AP_HAL/AP_HAL.h>
 #include <AP_Progmem.h>
 #include <stdarg.h>
 #include <string.h>
 #include <math.h>
 
-#include "ftoa_engine.h"
-#include "xtoa_fast.h"
+#include <AP_HAL/utility/ftoa_engine.h>
+#include <AP_HAL/utility/xtoa_fast.h>
 
-#include "print_vprintf.h"
+#include <AP_HAL/utility/print_vprintf.h>
 
 #define GETBYTE(flag, mask, pnt) ((flag)&(mask)?pgm_read_byte(pnt++):*pnt++)
 

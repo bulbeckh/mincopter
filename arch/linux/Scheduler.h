@@ -1,8 +1,8 @@
 
 #pragma once
 
-#include <AP_HAL.h>
-#include "AP_HAL_Linux_Namespace.h"
+#include <AP_HAL/AP_HAL.h>
+#include <arch/linux/AP_HAL_Linux_Namespace.h>
 
 #if CONFIG_HAL_BOARD == HAL_BOARD_LINUX
 #include <sys/time.h>

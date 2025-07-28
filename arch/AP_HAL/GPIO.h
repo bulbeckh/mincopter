@@ -4,7 +4,7 @@
 
 #include <stdint.h>
 
-#include "AP_HAL_Namespace.h"
+#include <AP_HAL/AP_HAL_Namespace.h>
 
 #define GPIO_INPUT  0
 #define GPIO_OUTPUT 1

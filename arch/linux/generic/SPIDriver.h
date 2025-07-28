@@ -1,9 +1,9 @@
 
 #pragma once
 
-#include <AP_HAL_Generic.h>
+#include <arch/linux/generic/AP_HAL_Generic.h>
 
-#include "Semaphores.h"
+#include <arch/linux/Semaphores.h>
 
 class generic::GenericSPIDeviceDriver : public AP_HAL::SPIDeviceDriver {
 	public:

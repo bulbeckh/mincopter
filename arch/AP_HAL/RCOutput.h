@@ -2,7 +2,7 @@
 #ifndef __AP_HAL_RC_OUTPUT_H__
 #define __AP_HAL_RC_OUTPUT_H__
 
-#include "AP_HAL_Namespace.h"
+#include <AP_HAL/AP_HAL_Namespace.h>
 
 /* Define the CH_n names, indexed from 1, if we don't have them already */
 #ifndef CH_1

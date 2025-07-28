@@ -4,7 +4,7 @@
 #ifdef __AVR__
 
 #include <string.h>
-#include "AP_Progmem.h"
+#include <AP_Progmem/AP_Progmem.h>
 
 // strlcat_P() in AVR libc seems to be broken
 size_t strlcat_P(char *d, const prog_char_t *s, size_t bufsize)

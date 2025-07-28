@@ -89,12 +89,6 @@ const AP_Param::GroupInfo AP_InertialSensor::var_info[] PROGMEM = {
     // @User: Advanced
     AP_GROUPINFO("MPU6K_FILTER", 4, AP_InertialSensor, _mpu6000_filter,  0),
 
-#if INS_MAX_INSTANCES > 1
-    AP_GROUPINFO("ACC2SCAL",    5, AP_InertialSensor, _accel_scale[1],   0),
-    AP_GROUPINFO("ACC2OFFS",    6, AP_InertialSensor, _accel_offset[1],  0),
-    AP_GROUPINFO("GYR2OFFS",    7, AP_InertialSensor, _gyro_offset[1],   0),
-#endif
-
     AP_GROUPEND
 };
 */
@@ -334,132 +328,6 @@ AP_InertialSensor::_init_accel()
 
 }
 
-#if !defined( __AVR_ATmega1280__ )
-// calibrate_accel - perform accelerometer calibration including providing user
-// instructions and feedback Gauss-Newton accel calibration routines borrowed
-// from Rolfe Schmidt blog post describing the method:
-// http://chionophilous.wordpress.com/2011/10/24/accelerometer-calibration-iv-1-implementing-gauss-newton-on-an-atmega/
-// original sketch available at
-// http://rolfeschmidt.com/mathtools/skimetrics/adxl_gn_calibration.pde
-bool AP_InertialSensor::calibrate_accel(AP_InertialSensor_UserInteract* interact,
-                                        float &trim_roll,
-                                        float &trim_pitch)
-{
-    uint8_t num_accels = ap_min(get_accel_count(), INS_MAX_INSTANCES);
-    Vector3f samples[num_accels][6];
-    Vector3f new_offsets[num_accels];
-    Vector3f new_scaling[num_accels];
-    Vector3f orig_offset[num_accels];
-    Vector3f orig_scale[num_accels];
-    uint8_t num_ok = 0;
-
-    for (uint8_t k=0; k<num_accels; k++) {
-        // backup original offsets and scaling
-        orig_offset[k] = _accel_offset[k];
-        orig_scale[k]  = _accel_scale[k];
-
-        // clear accelerometer offsets and scaling
-        _accel_offset[k] = Vector3f(0,0,0);
-        _accel_scale[k] = Vector3f(1,1,1);
-    }
-
-    // capture data from 6 positions
-    for (uint8_t i=0; i<6; i++) {
-        const prog_char_t *msg;
-
-        // display message to user
-        switch ( i ) {
-            case 0:
-                msg = PSTR("level");
-                break;
-            case 1:
-                msg = PSTR("on its LEFT side");
-                break;
-            case 2:
-                msg = PSTR("on its RIGHT side");
-                break;
-            case 3:
-                msg = PSTR("nose DOWN");
-                break;
-            case 4:
-                msg = PSTR("nose UP");
-                break;
-            default:    // default added to avoid compiler warning
-            case 5:
-                msg = PSTR("on its BACK");
-                break;
-        }
-        interact->printf_P(
-                PSTR("Place vehicle %S and press any key.\n"), msg);
-
-        // wait for user input
-        interact->blocking_read();
-
-        // clear out any existing samples from ins
-        update();
-
-        // average 32 samples
-        for (uint8_t k=0; k<num_accels; k++) {
-            samples[k][i] = Vector3f();
-        }
-        uint8_t num_samples = 0;
-        while (num_samples < 32) {
-            if (!wait_for_sample(1000)) {
-                interact->printf_P(PSTR("Failed to get INS sample\n"));
-                goto failed;
-            }
-            // read samples from ins
-            update();
-            // capture sample
-            for (uint8_t k=0; k<num_accels; k++) {
-                samples[k][i] += get_accel(k);
-            }
-            hal.scheduler->delay(10);
-            num_samples++;
-        }
-        for (uint8_t k=0; k<num_accels; k++) {
-            samples[k][i] /= num_samples;
-        }
-    }
-
-    // run the calibration routine
-    for (uint8_t k=0; k<num_accels; k++) {
-        bool success = _calibrate_accel(samples[k], new_offsets[k], new_scaling[k]);
-
-        interact->printf_P(PSTR("Offsets[%u]: %.2f %.2f %.2f\n"),
-                           (unsigned)k,
-                           new_offsets[k].x, new_offsets[k].y, new_offsets[k].z);
-        interact->printf_P(PSTR("Scaling[%u]: %.2f %.2f %.2f\n"),
-                           (unsigned)k,
-                           new_scaling[k].x, new_scaling[k].y, new_scaling[k].z);
-        if (success) num_ok++;
-    }
-
-    if (num_ok == num_accels) {
-        interact->printf_P(PSTR("Calibration successful\n"));
-
-        for (uint8_t k=0; k<num_accels; k++) {
-            // set and save calibration
-            _accel_offset[k] = new_offsets[k];
-            _accel_scale[k] = new_scaling[k];
-        }
-
-        // calculate the trims as well from primary accels and pass back to caller
-        _calculate_trim(samples[0][0], trim_roll, trim_pitch);
-
-        return true;
-    }
-
-failed:
-    interact->printf_P(PSTR("Calibration FAILED\n"));
-    // restore original scaling and offsets
-    for (uint8_t k=0; k<num_accels; k++) {
-        _accel_offset[k] = orig_offset[k];
-        _accel_scale[k] = orig_scale[k]; 
-    }
-    return false;
-}
-
 /// calibrated - returns true if the accelerometers have been calibrated
 /// @note this should not be called while flying because it reads from the eeprom which can be slow
 bool AP_InertialSensor::calibrated()
@@ -642,5 +510,4 @@ void AP_InertialSensor::_calculate_trim(Vector3f accel_sample, float& trim_roll,
     }
 }
 
-#endif // __AVR_ATmega1280__
 

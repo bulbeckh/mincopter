@@ -3,7 +3,7 @@
 #define __AP_HAL_NAMESPACE_H__
 
 #include "string.h"
-#include "utility/FastDelegate.h"
+#include <AP_HAL/utility/FastDelegate.h>
 
 namespace AP_HAL {
 

@@ -4,7 +4,7 @@
 
 #include <stdint.h>
 
-#include "AP_HAL_Namespace.h"
+#include <AP_HAL/AP_HAL_Namespace.h>
 
 class AP_HAL::I2CDriver {
 public:

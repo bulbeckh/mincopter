@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include <AP_HAL_Generic.h>
+#include <arch/linux/generic/AP_HAL_Generic.h>
 
 class generic::GenericGPIO : public AP_HAL::GPIO {
 	public:

@@ -3,8 +3,8 @@
 #ifndef __AP_HAL_LINUX_STORAGE_H__
 #define __AP_HAL_LINUX_STORAGE_H__
 
-#include <AP_HAL.h>
-#include "AP_HAL_Linux_Namespace.h"
+#include <AP_HAL/AP_HAL.h>
+#include <arch/linux/AP_HAL_Linux_Namespace.h>
 
 #define LINUX_STORAGE_SIZE 4096
 #define LINUX_STORAGE_MAX_WRITE 512

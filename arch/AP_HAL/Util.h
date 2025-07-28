@@ -3,7 +3,7 @@
 #define __AP_HAL_UTIL_H__
 
 #include <stdarg.h>
-#include "AP_HAL_Namespace.h"
+#include <AP_HAL/AP_HAL_Namespace.h>
 #include <AP_Progmem.h>
 
 class AP_HAL::Util {

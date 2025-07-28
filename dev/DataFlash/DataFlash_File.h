@@ -10,13 +10,6 @@
 #ifndef DataFlash_File_h
 #define DataFlash_File_h
 
-#include <systemlib/perf_counter.h>
-#else
-#define perf_begin(x)
-#define perf_end(x)
-#define perf_count(x)
-
-
 class DataFlash_File : public DataFlash_Class
 {
 public:
@@ -81,10 +74,6 @@ private:
 
     void _io_timer(void);
 
-    // performance counters
-    perf_counter_t  _perf_write;
-    perf_counter_t  _perf_fsync;
-    perf_counter_t  _perf_errors;
 };
 
 

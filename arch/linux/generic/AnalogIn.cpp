@@ -1,7 +1,6 @@
-#include <AP_HAL.h>
+#include <AP_HAL/AP_HAL.h>
 
-#if CONFIG_HAL_BOARD == HAL_BOARD_LINUX
-#include "AnalogIn.h"
+#include <arch/linux/generic/AnalogIn.h>
 
 using namespace generic;
 
@@ -44,4 +43,3 @@ AP_HAL::AnalogSource* GenericAnalogIn::channel(int16_t n) {
     return new GenericAnalogSource(1.11);
 }
 
-#endif // CONFIG_HAL_BOARD

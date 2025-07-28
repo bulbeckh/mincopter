@@ -3,7 +3,7 @@
 #define __AP_HAL_STORAGE_H__
 
 #include <stdint.h>
-#include "AP_HAL_Namespace.h"
+#include <AP_HAL/AP_HAL_Namespace.h>
 
 class AP_HAL::Storage {
 public:

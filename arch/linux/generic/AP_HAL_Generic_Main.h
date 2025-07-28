@@ -1,7 +1,6 @@
 
 #pragma once
 
-#if CONFIG_HAL_BOARD == HAL_BOARD_LINUX
 
 #define AP_HAL_MAIN() extern "C" {\
 int main (int argc, char * const argv[]) {        \
@@ -12,5 +11,4 @@ int main (int argc, char * const argv[]) {        \
         return 0;\
     }\
     }
-#endif // HAL_BOARD_LINUX
 

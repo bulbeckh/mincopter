@@ -1,8 +1,7 @@
-#include <AP_HAL.h>
+#include <AP_HAL/AP_HAL.h>
 
-#if CONFIG_HAL_BOARD == HAL_BOARD_LINUX
 
-#include "RCOutput.h"
+#include <arch/linux/generic/RCOutput.h>
 
 using namespace generic;
 
@@ -33,4 +32,3 @@ uint16_t GenericRCOutput::read(uint8_t ch) {
 void GenericRCOutput::read(uint16_t* period_us, uint8_t len)
 {}
 
-#endif // CONFIG_HAL_BOARD

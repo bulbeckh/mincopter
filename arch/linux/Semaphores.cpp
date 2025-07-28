@@ -1,8 +1,8 @@
-#include <AP_HAL.h>
+#include <AP_HAL/AP_HAL.h>
 
 #if CONFIG_HAL_BOARD == HAL_BOARD_LINUX
 
-#include "Semaphores.h"
+#include <arch/linux/Semaphores.h>
 
 extern const AP_HAL::HAL& hal;
 

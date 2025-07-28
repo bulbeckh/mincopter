@@ -1,8 +1,6 @@
-#include <AP_HAL.h>
 
-#if CONFIG_HAL_BOARD == HAL_BOARD_LINUX
-
-#include "GPIO.h"
+#include <AP_HAL/AP_HAL.h>
+#include <arch/linux/generic/GPIO.h>
 
 using namespace generic;
 
@@ -66,4 +64,3 @@ void GenericDigitalSource::toggle() {
     _v = !_v;
 }
 
-#endif // CONFIG_HAL_BOARD

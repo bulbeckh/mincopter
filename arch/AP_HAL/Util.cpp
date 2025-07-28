@@ -1,6 +1,7 @@
-#include <AP_HAL.h>
-#include "Util.h"
-#include "utility/print_vprintf.h"
+
+#include <AP_HAL/AP_HAL.h>
+#include <AP_HAL/Util.h>
+#include <AP_HAL/utility/print_vprintf.h>
 
 /* Helper class implements AP_HAL::Print so we can use utility/vprintf */
 class BufferPrinter : public AP_HAL::Print {

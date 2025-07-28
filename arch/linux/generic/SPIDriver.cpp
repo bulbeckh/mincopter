@@ -1,7 +1,6 @@
-#include <AP_HAL.h>
+#include <AP_HAL/AP_HAL.h>
 
-#if CONFIG_HAL_BOARD == HAL_BOARD_LINUX
-#include "SPIDriver.h"
+#include <arch/linux/generic/SPIDriver.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -129,4 +128,3 @@ AP_HAL::SPIDeviceDriver* GenericSPIDeviceManager::device(enum AP_HAL::SPIDevice 
     return NULL;
 }
 
-#endif // CONFIG_HAL_BOARD

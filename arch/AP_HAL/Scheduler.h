@@ -2,7 +2,7 @@
 #ifndef __AP_HAL_SCHEDULER_H__
 #define __AP_HAL_SCHEDULER_H__
 
-#include "AP_HAL_Namespace.h"
+#include <AP_HAL/AP_HAL_Namespace.h>
 
 #include <stdint.h>
 #include <AP_Progmem.h>

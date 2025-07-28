@@ -20,7 +20,7 @@
 #include <stdint.h>
 #include <AP_HAL.h>
 #include <AP_Math.h>
-#include "AP_InertialSensor_UserInteract.h"
+// HASH include "AP_InertialSensor_UserInteract.h"
 /* AP_InertialSensor is an abstraction for gyro and accel measurements
  * which are correctly aligned to the body axes and scaled to SI units.
  *
@@ -67,14 +67,6 @@ public:
     ///       been called, as ::init may perform other work.
     ///
     virtual void init_accel();
-
-#if !defined( __AVR_ATmega1280__ )
-    // perform accelerometer calibration including providing user instructions
-    // and feedback
-    virtual bool calibrate_accel(AP_InertialSensor_UserInteract *interact,
-                                 float& trim_roll,
-                                 float& trim_pitch);
-#endif
 
     /// calibrated - returns true if the accelerometers have been calibrated
     ///
@@ -209,12 +201,12 @@ protected:
     enum Rotation			_board_orientation;
 };
 
-#include "AP_InertialSensor_Oilpan.h"
+// HASH include "AP_InertialSensor_Oilpan.h"
 #include "AP_InertialSensor_MPU6000.h"
-#include "AP_InertialSensor_HIL.h"
-#include "AP_InertialSensor_PX4.h"
-#include "AP_InertialSensor_UserInteract_Stream.h"
-#include "AP_InertialSensor_Flymaple.h"
+// HASH include "AP_InertialSensor_HIL.h"
+// HASH include "AP_InertialSensor_PX4.h"
+// HASH include "AP_InertialSensor_UserInteract_Stream.h"
+// HASH include "AP_InertialSensor_Flymaple.h"
 #include "AP_InertialSensor_L3G4200D.h"
 
 #endif // __AP_INERTIAL_SENSOR_H__

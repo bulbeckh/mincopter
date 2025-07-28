@@ -1,8 +1,6 @@
-#include <AP_HAL.h>
 
-#if CONFIG_HAL_BOARD == HAL_BOARD_LINUX
-
-#include "RCInput.h"
+#include <AP_HAL/AP_HAL.h>
+#include <arch/linux/generic/RCInput.h>
 
 using namespace generic;
 
@@ -40,4 +38,3 @@ bool GenericRCInput::set_override(uint8_t channel, int16_t override) {
 void GenericRCInput::clear_overrides()
 {}
 
-#endif // CONFIG_HAL_BOARD
