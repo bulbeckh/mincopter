@@ -1,8 +1,6 @@
-#include <AP_HAL.h>
+#include <AP_HAL/AP_HAL.h>
 
-#if CONFIG_HAL_BOARD == HAL_BOARD_LINUX
-
-#include "UARTDriver.h"
+#include <arch/linux/rpi/UARTDriver.h>
 
 #include <stdio.h>
 #include <errno.h>
@@ -93,4 +91,3 @@ size_t RPIUARTDriver::write(const uint8_t *buffer, size_t size)
 	/* Implement */
 }
 
-#endif // CONFIG_HAL_BOARD

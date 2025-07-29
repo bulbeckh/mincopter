@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.22)
+cmake_minimum_required(VERSION 3.13)
 
 #[[
 
@@ -73,6 +73,46 @@ elseif(MC_SIM_LEVEL STREQUAL "0")
 	add_compile_definitions( MC_SIM_LEVEL=0 )
 endif()
 ]]
+
+## Device Configuration
+if(MC_GPS_TYPE STREQUAL "AUTO")
+	add_compile_definitions(MC_GPS_AUTO)
+elseif(MC_GPS_TYPE STREQUAL "UBLOX")
+	add_compile_definitions(MC_GPS_UBLOX)
+else()
+	message(FATAL_ERROR "GPS device not supported.")
+endif()
+
+if(MC_IMU_TYPE STREQUAL "MPU6000")
+	add_compile_definitions(MC_IMU_MPU6000)
+else()
+	message(FATAL_ERROR "IMU device not supported.")
+endif()
+
+if(MC_COMP_TYPE STREQUAL "HMC5843")
+	add_compile_definitions(MC_COMP_HMC5843)
+else()
+	message(FATAL_ERROR "Compass device not supported.")
+endif()
+
+if(MC_BARO_TYPE STREQUAL "MS5611")
+	add_compile_definitions(MC_BARO_MS5611)
+else()
+	message(FATAL_ERROR "Barometer device not supported.")
+endif()
+
+if(MC_STORAGE_TYPE STREQUAL "FILE")
+	add_compile_definitions(MC_STORAGE_FILE)
+else()
+	message(FATAL_ERROR "Storage device not supported.")
+endif()
+
+if(MC_ADC_TYPE STREQUAL "ADS7844")
+	add_compile_definitions(MC_ADC_ADS7844)
+else()
+	message(FATAL_ERROR "ADC device not supported.")
+endif()
+
 
 #if(MC_SIM_TYPE STREQUAL "SIM" AND MC_SIM_LEVEL STREQUAL "2")
 #add_compile_definitions( MC_AHRS_SIM )
@@ -185,10 +225,11 @@ endif()
 
 file(GLOB_RECURSE MC_ARCH_COMMON
 	"${CMAKE_SOURCE_DIR}/arch/AP_HAL/*.cpp"
+	"${CMAKE_SOURCE_DIR}/arch/AP_HAL/utility/*.cpp"
 	"${CMAKE_SOURCE_DIR}/arch/AP_HAL/*.c"
 	## NOTE For now AP_Scheduler is common but may soon be architecture-dependent
 	"${CMAKE_SOURCE_DIR}/arch/AP_Scheduler/*.cpp"
-	"${CMAKE_SOURCE_DIR}/arch/avr/AP_Progmem/*cpp"
+	"${CMAKE_SOURCE_DIR}/arch/AP_Progmem/*cpp"
 )
 
 if(${TARGET_ARCH} STREQUAL "generic")

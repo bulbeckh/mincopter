@@ -1,33 +1,32 @@
-#include <AP_HAL.h>
+#include <AP_HAL/AP_HAL.h>
 
-/* TODO Update this to RPI */
-#if CONFIG_HAL_BOARD == HAL_BOARD_LINUX
 
-#include "HAL_RPI_Class.h"
-#include "AP_HAL_RPI_Private.h"
+#include <arch/linux/rpi/HAL_RPI_Class.h>
+#include <arch/linux/rpi/AP_HAL_RPI_Private.h>
+#include <arch/linux/AP_HAL_Linux_Namespace.h>
 
 // HASH include <getopt.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
 
-using namespace RPI;
+//using namespace RPI;
 
 // Single UART for the Raspberry PI 2 Model B
-static RPIUARTDriver uartADriver(true);
+static RPI::RPIUARTDriver uartADriver(true);
 //static LinuxUARTDriver uartBDriver(false);
 //static LinuxUARTDriver uartCDriver(false);
 
-static LinuxSemaphore  i2cSemaphore;
-static RPII2CDriver  i2cDriver(&i2cSemaphore, "/dev/i2c-1");
-static RPISPIDeviceManager spiDeviceManager;
-static RPIAnalogIn analogIn;
-static LinuxStorage storageDriver;
-static RPIGPIO gpioDriver;
-static RPIRCInput rcinDriver;
-static RPIRCOutput rcoutDriver;
-static LinuxScheduler schedulerInstance;
-static LinuxUtil utilInstance;
+static Linux::LinuxSemaphore  i2cSemaphore;
+static RPI::RPII2CDriver  i2cDriver(&i2cSemaphore, "/dev/i2c-1");
+static RPI::RPISPIDeviceManager spiDeviceManager;
+static RPI::RPIAnalogIn analogIn;
+static Linux::LinuxStorage storageDriver;
+static RPI::RPIGPIO gpioDriver;
+static RPI::RPIRCInput rcinDriver;
+static RPI::RPIRCOutput rcoutDriver;
+static Linux::LinuxScheduler schedulerInstance;
+static Linux::LinuxUtil utilInstance;
 
 HAL_RPI::HAL_RPI() :
     AP_HAL::HAL(
@@ -62,4 +61,3 @@ void HAL_RPI::init(int argc,char* const argv[]) const
 
 const HAL_RPI AP_HAL_RPI;
 
-#endif

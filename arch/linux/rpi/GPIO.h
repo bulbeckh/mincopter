@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include <AP_HAL_RPI.h>
+#include <arch/linux/rpi/AP_HAL_RPI.h>
 
 /* RaspberryPI GPIO Interface */
 

@@ -1,15 +1,15 @@
 
 #pragma once
 
-#include "UARTDriver.h"
-#include "I2CDriver.h"
-#include "SPIDriver.h"
-#include "AnalogIn.h"
-#include "Storage.h"
-#include "GPIO.h"
-#include "RCInput.h"
-#include "RCOutput.h"
-#include "Semaphores.h"
-#include "Scheduler.h"
-#include "Util.h"
+#include <arch/linux/rpi/UARTDriver.h>
+#include <arch/linux/rpi/I2CDriver.h>
+#include <arch/linux/rpi/SPIDriver.h>
+#include <arch/linux/rpi/AnalogIn.h>
+#include <arch/linux/rpi/Storage.h>
+#include <arch/linux/rpi/GPIO.h>
+#include <arch/linux/rpi/RCInput.h>
+#include <arch/linux/rpi/RCOutput.h>
+#include <arch/linux/rpi/Semaphores.h>
+#include <arch/linux/rpi/Scheduler.h>
+#include <arch/linux/rpi/Util.h>
 

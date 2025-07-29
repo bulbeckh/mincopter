@@ -1,8 +1,6 @@
-#include <AP_HAL.h>
+#include <AP_HAL/AP_HAL.h>
 
-#if CONFIG_HAL_BOARD == HAL_BOARD_LINUX
-
-#include "GPIO.h"
+#include <arch/linux/rpi/GPIO.h>
 
 using namespace RPI;
 

@@ -1,8 +1,8 @@
 
 #pragma once
 
-#include <AP_HAL.h>
-#include "AP_HAL_RPI_Namespace.h"
+#include <AP_HAL/AP_HAL.h>
+#include <arch/linux/rpi/AP_HAL_RPI_Namespace.h>
 
 class RPI::LinuxUtil : public AP_HAL::Util {
 public:

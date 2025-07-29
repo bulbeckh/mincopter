@@ -1,7 +1,7 @@
 
-#include <AP_Progmem.h>
+#include <AP_Progmem/AP_Progmem.h>
 #include <AP_Common.h>
-#include <AP_HAL.h>
+#include <AP_HAL/AP_HAL.h>
 
 #include "sim_adc.h"
 

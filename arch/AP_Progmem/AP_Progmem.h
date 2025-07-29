@@ -6,7 +6,8 @@
 
 #if defined(TARGET_ARCH_AVR)
 	#include <AP_Progmem/AP_Progmem_AVR.h>
-#elif defined(TARGET_ARCH_LINUX)
+// HASH elif defined(TARGET_ARCH_LINUX)
+#else
 	#include <AP_Progmem/AP_Progmem_Identity.h>
 #endif
 

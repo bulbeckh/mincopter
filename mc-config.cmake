@@ -32,7 +32,8 @@ set(MC_GPS_TYPE "AUTO")
 set(MC_IMU_TYPE "MPU6000")
 set(MC_COMP_TYPE "HMC5843")
 set(MC_BARO_TYPE "MS5611")
-set(MC_STORAGE_TYPE "DATAFLASH_APM2")
+set(MC_STORAGE_TYPE "FILE")
+set(MC_ADC_TYPE "ADS7844")
 
 ## Specify wiring for each peripheral (ignored for sim)
 # TODO

@@ -23,8 +23,6 @@
 	#include "sim_inertialsensor.h"
 	#include "sim_gps.h"
 	#include "sim_barometer.h"
-#else
-	#error "wrong target from within mcinstance.h"
 #endif
 
 #include "config.h"
@@ -38,23 +36,23 @@ class MCInstance {
 		 * This class should contain the 'wiring' between the various backend sensors and board architectures.
 		 */
 		MCInstance() :
-#ifdef TARGET_ARCH_LINUX
+#ifdef MC_STORAGE_FILE
 			DataFlash("/home/henry/Documents/mc-dev/logs"),
-#elif TARGET_ARCH_AVR
+#elif  MC_STORAGE_DATAFLASH
 			DataFlash(),
 #endif
 
-#ifdef TARGET_ARCH_LINUX
+#ifdef MC_BARO_SIM
 			barometer(),
-#elif TARGET_ARCH_AVR
+#elif  MC_BARO_MS5611
 			barometer(&AP_Baro_MS5611::spi),
 #endif
 
 			gps_glitch(g_gps),
 
-#ifdef TARGET_ARCH_AVR
+#ifdef MC_GPS_AUTO
 			g_gps_driver(&g_gps),
-#elif TARGET_ARCH_LINUX
+#elif  MC_GPS_SIM
 			g_gps_driver(),
 #endif
 
@@ -85,45 +83,46 @@ class MCInstance {
 		AP_BattMonitor battery;
 
 		/* @brief ATMEL DataFlash interface for flash storage */
-#ifdef TARGET_ARCH_AVR
-		DataFlash_APM2 DataFlash;
-#elif TARGET_ARCH_LINUX
+#ifdef MC_STORAGE_FILE
 		DataFlash_File DataFlash;
+#elif  MC_STORAGE_DATAFLASH
+		DataFlash_APM2 DataFlash;
 #endif
 
 		/* @brief ADC Instance used to obtain battery voltage levels */
-#ifdef TARGET_ARCH_AVR
+#ifdef MC_ADC_ADS7844
 		AP_ADC_ADS7844 adc;
-#elif TARGET_ARCH_LINUX
+#elif  MC_ADC_SIM
 		AP_ADC_Sim adc;
 #endif
 
 		/* @brief Inertial Measurement Unit interface */
-#ifdef TARGET_ARCH_AVR
+#ifdef MC_IMU_MPU6000
 		AP_InertialSensor_MPU6000 ins;
-#elif TARGET_ARCH_LINUX
+#elif  MC_IMU_SIM
 		AP_InertialSensor_Sim ins;
 #endif
 
 		const AP_InertialSensor::Sample_rate ins_sample_rate = AP_InertialSensor::RATE_100HZ;
 
 		/* @brief Barometer instance */
-#ifdef TARGET_ARCH_AVR
-		#if CONFIG_MS5611_SERIAL == AP_BARO_MS5611_SPI
+#ifdef MC_BARO_MS5611
+		// TODO Whether to use I2C or SPI should be a separate configuration, where the wiring is also specified
+		// HASH if CONFIG_MS5611_SERIAL == AP_BARO_MS5611_SPI
 		AP_Baro_MS5611 barometer;
-		#elif CONFIG_MS5611_SERIAL == AP_BARO_MS5611_I2C
+		// HASH elif CONFIG_MS5611_SERIAL == AP_BARO_MS5611_I2C
 		// TODO Remove this - I2C is not used for Baro
 		// Confirmed this is the baro (the I2C version)
-		AP_Baro_MS5611 barometer(&AP_Baro_MS5611::i2c);
-		#endif
-#elif TARGET_ARCH_LINUX
+		// AP_Baro_MS5611 barometer(&AP_Baro_MS5611::i2c);
+		// HASH endif
+#elif  MC_BARO_SIM
 		AP_Baro_Sim barometer;
 #endif
 
 		/* @brief Compass instance */
-#ifdef TARGET_ARCH_AVR
+#ifdef MC_COMP_HMC5843
 		AP_Compass_HMC5843 compass;
-#elif TARGET_ARCH_LINUX
+#elif  MC_COMP_SIM
 		AP_Compass_Sim compass;
 #endif
 
@@ -131,7 +130,7 @@ class MCInstance {
 		GPS         *g_gps;
 		GPS_Glitch   gps_glitch;
 
-#ifdef TARGET_ARCH_AVR
+#ifdef MC_GPS_AUTO
 		// NOTE Almost certain ours is ublox
 		// TODO I'm pretty sure AP_GPS_Auto will include code for
 		// all GPS backends into final executable and determine at
@@ -155,7 +154,7 @@ class MCInstance {
 		 #else
 			#error Unrecognised GPS_PROTOCOL setting.
 		 #endif // GPS PROTOCOL
-#elif TARGET_ARCH_LINUX
+#elif MC_GPS_SIM
 		AP_GPS_Sim g_gps_driver;
 #endif
 

@@ -1,10 +1,8 @@
 
-#include <AP_HAL.h>
+#include <AP_HAL/AP_HAL.h>
 #include <stdio.h>
 
-#if CONFIG_HAL_BOARD == HAL_BOARD_LINUX
-
-#include "I2CDriver.h"
+#include <arch/linux/rpi/I2CDriver.h>
 
 #include <pigpiod_if2.h>
 
@@ -126,4 +124,3 @@ uint8_t RPII2CDriver::lockup_count()
     return 0;
 }
 
-#endif // CONFIG_HAL_BOARD

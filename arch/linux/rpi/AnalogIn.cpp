@@ -1,7 +1,6 @@
-#include <AP_HAL.h>
+#include <AP_HAL/AP_HAL.h>
 
-#if CONFIG_HAL_BOARD == HAL_BOARD_LINUX
-#include "AnalogIn.h"
+#include <arch/linux/rpi/AnalogIn.h>
 
 using namespace RPI;
 
@@ -45,4 +44,3 @@ AP_HAL::AnalogSource* RPIAnalogIn::channel(int16_t n) {
     return new RPIAnalogSource(1.11);
 }
 
-#endif // CONFIG_HAL_BOARD

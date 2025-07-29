@@ -1,28 +1,29 @@
 ## x86-64 (Linux) Toolchain File
 
 set(CMAKE_SYSTEM_NAME Linux)
-set(CMAKE_SYSTEM_PROCESSOR x86_64)
+set(CMAKE_SYSTEM_PROCESSOR arm)
 
-set(CMAKE_C_COMPILER x86_64-linux-gnu-gcc)
-set(CMAKE_CXX_COMPILER x86_64-linux-gnu-g++)
+## For RaspberryPI, use native compilation for now to avoid cross-compilation TODO
+set(CMAKE_C_COMPILER gcc)
+set(CMAKE_CXX_COMPILER g++)
 
 #set(CMAKE_C_FLAGS "-march=x86-64 -O2 -Wall -Wextra")
 #set(CMAKE_CXX_FLAGS "-march=x86-64 -O2 -Wall -Wextra")
 
 add_compile_definitions(
 	#BOARD=atmega2560
-	CONFIG_HAL_BOARD=HAL_BOARD_LINUX
+	CONFIG_HAL_BOARD=HAL_BOARD_RPI
 	#PORT=/dev/ttyACM0
 	F_CPU=16000000L
 	#_GNU_SOURCE
-	TARGET_ARCH_LINUX
+	#TARGET_ARCH_LINUX
 
 	## NOTE TODO This should really be defined elsewhere
 	#CONTROLLER_MPC
 	#PLANNER_WAYPOINT
 )
 
-set(ARCHITECTURE elf_x86_64)
+#set(ARCHITECTURE elf_x86_64)
 
 #[[ COMMON FLAGS
 mmcu  AVR specific flag for specifying target architecture
@@ -51,7 +52,7 @@ set(COMMON_FLAGS
 	
 	## RPI specifics
 	-pthread
-	-lpigpiod-if2
+	-lpigpiod_if2
 	-lrt
 
 #[[
@@ -59,7 +60,7 @@ set(COMMON_FLAGS
 	-fdata-sections
 #]]
 	-fsigned-char
-	-march=x86-64
+	#-march=arm
 	## Add debug symbols
 	-g
 	## Add profiling information  - REMOVED
@@ -78,7 +79,7 @@ relax : allows some link optimizations
 ]]
 
 set(LINKER_FLAGS
-	-Wl,-m,${ARCHITECTURE}
+	#-Wl,-m,${ARCHITECTURE}
 	-Wl,--relax
 )
 message("x86-64 Architecture - linker flags: ${LINKER_FLAGS}")

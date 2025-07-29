@@ -1,7 +1,6 @@
-#include <AP_HAL.h>
+#include <AP_HAL/AP_HAL.h>
 
-#if CONFIG_HAL_BOARD == HAL_BOARD_LINUX
-#include "SPIDriver.h"
+#include <arch/linux/rpi/SPIDriver.h>
 
 using namespace RPI;
 
@@ -75,4 +74,3 @@ AP_HAL::SPIDeviceDriver* RPISPIDeviceManager::device(enum AP_HAL::SPIDevice dev)
     return NULL;
 }
 
-#endif // CONFIG_HAL_BOARD

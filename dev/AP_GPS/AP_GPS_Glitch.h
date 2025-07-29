@@ -6,10 +6,10 @@
 #ifndef __GPS_GLITCH_H__
 #define __GPS_GLITCH_H__
 
-#include <AP_HAL.h>
+#include <AP_HAL/AP_HAL.h>
 
 #include <inttypes.h>
-#include <AP_Progmem.h>
+#include <AP_Progmem/AP_Progmem.h>
 #include <AP_Math.h>
 #include <AP_GPS.h>
 

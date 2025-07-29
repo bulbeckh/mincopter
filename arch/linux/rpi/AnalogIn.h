@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include <AP_HAL_RPI.h>
+#include <arch/linux/rpi/AP_HAL_RPI.h>
 
 class RPI::RPIAnalogSource : public AP_HAL::AnalogSource {
 	public:

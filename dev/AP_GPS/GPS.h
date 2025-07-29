@@ -6,10 +6,10 @@
 #ifndef __GPS_H__
 #define __GPS_H__
 
-#include <AP_HAL.h>
+#include <AP_HAL/AP_HAL.h>
 
 #include <inttypes.h>
-#include <AP_Progmem.h>
+#include <AP_Progmem/AP_Progmem.h>
 #include <AP_Math.h>
 
 /// @class	GPS

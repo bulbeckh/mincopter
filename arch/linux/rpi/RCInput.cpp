@@ -1,8 +1,6 @@
-#include <AP_HAL.h>
+#include <AP_HAL/AP_HAL.h>
 
-#if CONFIG_HAL_BOARD == HAL_BOARD_LINUX
-
-#include "RCInput.h"
+#include <arch/linux/rpi/RCInput.h>
 
 using namespace RPI;
 
@@ -40,4 +38,3 @@ void RPIRCInput::clear_overrides()
 {
 }
 
-#endif // CONFIG_HAL_BOARD

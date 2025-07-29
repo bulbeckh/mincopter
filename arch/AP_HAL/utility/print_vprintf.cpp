@@ -39,7 +39,7 @@
 
 
 #include <AP_HAL/AP_HAL.h>
-#include <AP_Progmem.h>
+#include <AP_Progmem/AP_Progmem.h>
 #include <stdarg.h>
 #include <string.h>
 #include <math.h>

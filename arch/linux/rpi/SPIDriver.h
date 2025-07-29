@@ -1,8 +1,8 @@
 
 #pragma once
 
-#include <AP_HAL_RPI.h>
-#include "Semaphores.h"
+#include <arch/linux/rpi/AP_HAL_RPI.h>
+#include <arch/linux/Semaphores.h>
 
 /* RaspberryPI SPI Interface */
 
@@ -26,7 +26,7 @@ class RPI::RPISPIDeviceDriver : public AP_HAL::SPIDeviceDriver {
 		void transfer (const uint8_t *data, uint16_t len);
 
 	private:
-		LinuxSemaphore _semaphore;
+		Linux::LinuxSemaphore _semaphore;
 
 		const char *_spipath;
 		int _fd;

@@ -1,9 +1,9 @@
 
 #pragma once
 
-#include <AP_HAL.h>
+#include <AP_HAL/AP_HAL.h>
 
-#include "AP_HAL_RPI_Namespace.h"
+#include <arch/linux/rpi/AP_HAL_RPI_Namespace.h>
 
 class HAL_RPI : public AP_HAL::HAL {
 public:
