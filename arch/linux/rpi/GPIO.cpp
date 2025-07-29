@@ -78,4 +78,3 @@ void RPIDigitalSource::toggle() {
     _v = !_v;
 }
 
-#endif // CONFIG_HAL_BOARD

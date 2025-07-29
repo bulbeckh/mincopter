@@ -17,7 +17,6 @@
 #define HAL_BOARD_STM32   3
 #define HAL_BOARD_AVR     4
 
-
 #if CONFIG_HAL_BOARD == HAL_BOARD_GENERIC
 	#define AP_HAL_BOARD_DRIVER AP_HAL_Generic
 	#define HAL_BOARD_NAME "generic"

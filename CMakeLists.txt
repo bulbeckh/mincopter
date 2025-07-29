@@ -16,13 +16,17 @@ function (set_toolchain TARGET_ARCH)
 			TARGET_ARCH STREQUAL "atmega1280" OR
 			TARGET_ARCH STREQUAL "atmega328p")
 		set(TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/toolchains/avr.cmake" PARENT_SCOPE)
+		set(TARGET_ARCH_FAMILY "avr" PARENT_SCOPE)
 	elseif(TARGET_ARCH STREQUAL "stm32f407")
 		set(TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/toolchains/stm32.cmake" PARENT_SCOPE)
+		set(TARGET_ARCH_FAMILY "stm32" PARENT_SCOPE)
   	elseif(TARGET_ARCH STREQUAL "generic")
 		set(TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/toolchains/x86_64.cmake" PARENT_SCOPE)
+		set(TARGET_ARCH_FAMILY "generic" PARENT_SCOPE)
 	elseif(TARGET_ARCH STREQUAL "rpi2modelb")
 		## TODO Cross-compilation for RPI
 		set(TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/toolchains/rpi.cmake" PARENT_SCOPE)
+		set(TARGET_ARCH_FAMILY "rpi" PARENT_SCOPE)
   	else()
       	message(FATAL_ERROR "Unsupported target architecture: ${TARGET_ARCH}")
   	endif()
@@ -201,23 +205,6 @@ list(APPEND MC_INCLUDE_DIRS
 )
 
 ##################################################################
-# SIM, CONTROL, STATE, DEV
-##################################################################
-
-# OSQP Lib
-#add_subdirectory( ${CMAKE_SOURCE_DIR}/control/design/src/RapidQuadrocopterTrajectories/cgen )
-add_subdirectory( ${CMAKE_SOURCE_DIR}/control )
-
-add_subdirectory( ${CMAKE_SOURCE_DIR}/state )
-
-add_subdirectory( ${CMAKE_SOURCE_DIR}/dev )
-
-## TODO Fix this
-if(TARGET_ARCH STREQUAL "generic")
-	add_subdirectory( ${CMAKE_SOURCE_DIR}/sim )
-endif()
-
-##################################################################
 # ARCHITECTURE
 ##################################################################
 
@@ -232,23 +219,23 @@ file(GLOB_RECURSE MC_ARCH_COMMON
 	"${CMAKE_SOURCE_DIR}/arch/AP_Progmem/*cpp"
 )
 
-if(${TARGET_ARCH} STREQUAL "generic")
-	file(GLOB_RECURSE MC_LIBS_ARCH
+if(${TARGET_ARCH_FAMILY} STREQUAL "generic")
+	file(GLOB MC_LIBS_ARCH
 		"arch/linux/generic/*.cpp"
 		"arch/linux/*.cpp"
 	)
-elseif(${TARGET_ARCH} STREQUAL "avr")
-	file(GLOB_RECURSE MC_LIBS_ARCH
+elseif(${TARGET_ARCH_FAMILY} STREQUAL "avr")
+	file(GLOB MC_LIBS_ARCH
 		"arch/avr/AP_HAL_AVR/*.cpp"
 		"arch/avr/AP_HAL_AVR/*.c"
 	)
-elseif(${TARGET_ARCH} STREQUAL "rpi")
-	file(GLOB_RECURSE MC_LIBS_ARCH
+elseif(${TARGET_ARCH_FAMILY} STREQUAL "rpi")
+	file(GLOB MC_LIBS_ARCH
 		"arch/linux/rpi/*.cpp"
 		"arch/linux/*.cpp"
 	)
-elseif(${TARGET_ARCH} STREQUAL "beaglebone")
-	file(GLOB_RECURSE MC_LIBS_ARCH
+elseif(${TARGET_ARCH_FAMILY} STREQUAL "beaglebone")
+	file(GLOB MC_LIBS_ARCH
 		"arch/linux/beaglebone/*.cpp"
 		"arch/linux/*.cpp"
 	)
@@ -265,6 +252,23 @@ add_library(mc-arch STATIC ${MC_LIBS_ARCH} ${MC_ARCH_COMMON})
 target_include_directories(mc-arch PUBLIC
 	${MC_INCLUDE_DIRS}
 )
+
+##################################################################
+# SIM, CONTROL, STATE, DEV
+##################################################################
+
+# OSQP Lib
+#add_subdirectory( ${CMAKE_SOURCE_DIR}/control/design/src/RapidQuadrocopterTrajectories/cgen )
+add_subdirectory( ${CMAKE_SOURCE_DIR}/control )
+
+add_subdirectory( ${CMAKE_SOURCE_DIR}/state )
+
+add_subdirectory( ${CMAKE_SOURCE_DIR}/dev )
+
+## TODO Fix this
+if(TARGET_ARCH STREQUAL "generic")
+	add_subdirectory( ${CMAKE_SOURCE_DIR}/sim )
+endif()
 
 ##################################################################
 # COMMON (lib/)
