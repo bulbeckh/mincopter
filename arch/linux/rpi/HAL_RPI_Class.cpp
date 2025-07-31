@@ -1,9 +1,13 @@
 #include <AP_HAL/AP_HAL.h>
 
-
 #include <arch/linux/rpi/HAL_RPI_Class.h>
 #include <arch/linux/rpi/AP_HAL_RPI_Private.h>
 #include <arch/linux/AP_HAL_Linux_Namespace.h>
+
+#include <arch/linux/Scheduler.h>
+#include <arch/linux/Util.h>
+#include <arch/linux/Storage.h>
+#include <arch/linux/Semaphores.h>
 
 // HASH include <getopt.h>
 #include <stdio.h>

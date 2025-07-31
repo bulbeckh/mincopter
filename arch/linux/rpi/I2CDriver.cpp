@@ -12,7 +12,8 @@ RPII2CDriver::RPII2CDriver(AP_HAL::Semaphore* semaphore, const char *device) :
     _semaphore(semaphore),
     _fd(-1),
     _device(device),
-	_i2c_device_count(0)
+	_i2c_device_count(0),
+	_daemon(-1)
 {
 	/* Initialise array of device handles to -1 */
 	for (int i=0;i<16;i++) {
@@ -23,6 +24,14 @@ RPII2CDriver::RPII2CDriver(AP_HAL::Semaphore* semaphore, const char *device) :
 /* called from HAL class init() */
 void RPII2CDriver::begin() 
 {
+	// Connect to pigpiod daemon with default (localhost, 8888)
+	int daemon = pigpio_start(NULL, NULL);
+	if (daemon<0) {
+		fprintf(stderr, "I2C Error: Connecting to pigpiod.\n");
+	} else {
+		_daemon = daemon;
+	}
+	return;
 }
 
 void RPII2CDriver::end() 
@@ -51,7 +60,7 @@ int RPII2CDriver::check_device(uint8_t dev)
 	}
 
 	/* Device not found, need to initialise */
-	int handle = i2c_open(1, dev, 0);
+	int handle = i2c_open(_daemon, 1, dev, 0);
 	if (handle<0) {
 		fprintf(stderr, "Failed to open I2C device: %x\n", dev);
 		return -1;
@@ -70,7 +79,7 @@ uint8_t RPII2CDriver::write(uint8_t addr, uint8_t len, uint8_t* data)
 	int handle = check_device(addr);
 	if(handle>0) {
 		/* Write data to whatever device register is in _addr */
-		if (i2c_write_byte_data(handle, _addr, *data) != 0 ) {
+		if (i2c_write_byte_data(_daemon, handle, _addr, *data) != 0 ) {
 			fprintf(stderr, "I2C Error: Writing bytes [device: %x, data: %x]\n",addr, *data);
 			// Return error
 			return 1;
@@ -84,7 +93,7 @@ uint8_t RPII2CDriver::writeRegisters(uint8_t addr, uint8_t reg, uint8_t len, uin
 	int handle = check_device(addr);
 	if(handle>0) {
 		/* Write data to device */
-		if (i2c_write_block_data(handle, reg, data, len) != len ) {
+		if (i2c_write_block_data(_daemon, handle, reg, (char*)data, len) != len ) {
 			fprintf(stderr, "I2C Error: Writing bytes [device: %x]\n",addr);
 			// Return error
 			return 1;
@@ -98,7 +107,7 @@ uint8_t RPII2CDriver::writeRegister(uint8_t addr, uint8_t reg, uint8_t val)
 	int handle = check_device(addr);
 	if(handle>0) {
 		/* Write data to register */
-		if (i2c_write_byte_data(handle, reg, val) != 0 ) {
+		if (i2c_write_byte_data(_daemon, handle, reg, val) != 0 ) {
 			fprintf(stderr, "I2C Error: Writing bytes [device: %x, data: %x]\n",addr, val);
 			// Return error
 			return 1;

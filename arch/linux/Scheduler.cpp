@@ -6,7 +6,7 @@
 
 /* TODO Fix this - either make the scheduler dependent on the embedded linux type or 
  * add a way to provide xxUartDriver type to below (i.e. via an interface header */
-#include <arch/linux/generic/UARTDriver.h>
+// HASH include <arch/linux/generic/UARTDriver.h>
 
 #include <unistd.h>
 #include <sys/time.h>
@@ -258,9 +258,11 @@ void *LinuxScheduler::_uart_thread(void)
         _microsleep(10000);
 
         // process any pending serial bytes
+		/*
         ((generic::GenericUARTDriver *)hal.uartA)->_timer_tick();
         ((generic::GenericUARTDriver *)hal.uartB)->_timer_tick();
         ((generic::GenericUARTDriver *)hal.uartC)->_timer_tick();
+		*/
     }
     return NULL;
 }

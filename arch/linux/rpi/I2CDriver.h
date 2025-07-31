@@ -45,6 +45,7 @@ private:
     uint8_t _addr;
     const char *_device;
 
+	int _daemon;
 
 	/* I2C Device Addresses */
 	uint8_t i2c_device[I2C_MAX_DEVICES]; 
