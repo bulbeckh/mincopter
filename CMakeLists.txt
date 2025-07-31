@@ -101,6 +101,8 @@ endif()
 
 if(MC_BARO_TYPE STREQUAL "MS5611")
 	add_compile_definitions(MC_BARO_MS5611)
+elseif(MC_BARO_TYPE STREQUAL "BME280")
+	add_compile_definitions(MC_BARO_BME280)
 else()
 	message(FATAL_ERROR "Barometer device not supported.")
 endif()

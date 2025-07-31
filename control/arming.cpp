@@ -73,10 +73,8 @@ void WP_Planner::init_arm_motors()
     // mid-flight, so set the serial ports non-blocking once we arm
     // the motors
     mincopter.hal.uartA->set_blocking_writes(false);
-    mincopter.hal.uartC->set_blocking_writes(false);
-    if (mincopter.hal.uartD != NULL) {
-        mincopter.hal.uartD->set_blocking_writes(false);
-    }
+    if (mincopter.hal.uartC != NULL) mincopter.hal.uartC->set_blocking_writes(false);
+    if (mincopter.hal.uartD != NULL) mincopter.hal.uartD->set_blocking_writes(false);
 
     // Remember Orientation
     // --------------------

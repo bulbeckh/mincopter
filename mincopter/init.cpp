@@ -63,7 +63,9 @@ void init_ardupilot()
 #if GPS_PROTOCOL != GPS_PROTOCOL_IMU
     // standard gps running. Note that we need a 256 byte buffer for some
     // GPS types (eg. UBLOX)
-    mincopter.hal.uartB->begin(38400, 256, 16);
+	if ( mincopter.hal.uartB != NULL) {
+    	mincopter.hal.uartB->begin(38400, 256, 16);
+	}
 #endif
 
 		// Send initialisation string
@@ -121,7 +123,11 @@ void init_ardupilot()
     // we have a 2nd serial port for telemetry on all boards except
     // APM2. We actually do have one on APM2 but it isn't necessary as
     // a MUX is used
-    mincopter.hal.uartC->begin(map_baudrate(mincopter.serial1_baud, SERIAL1_BAUD), 128, 128);
+	
+	// TODO Replace this with the board configuration that checks how many UARTs are enabled 
+	if (mincopter.hal.uartC != NULL) {
+    	mincopter.hal.uartC->begin(map_baudrate(mincopter.serial1_baud, SERIAL1_BAUD), 128, 128);
+	}
     //gcs[1].init(hal.uartC);
 #endif
 #if MAVLINK_COMM_NUM_BUFFERS > 2
@@ -180,7 +186,10 @@ void init_ardupilot()
     mincopter.g_gps = &mincopter.g_gps_driver;
 
     // GPS Initialization
-    mincopter.g_gps->init(mincopter.hal.uartB, GPS::GPS_ENGINE_AIRBORNE_1G);
+	// TODO on RPI, move GPS to uartA and redirect console to a different UART
+	if (mincopter.hal.uartB != NULL) {
+    	mincopter.g_gps->init(mincopter.hal.uartB, GPS::GPS_ENGINE_AIRBORNE_1G);
+	}
 
     init_compass();
 

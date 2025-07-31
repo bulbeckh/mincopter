@@ -46,6 +46,8 @@ class MCInstance {
 			barometer(),
 #elif  MC_BARO_MS5611
 			barometer(&AP_Baro_MS5611::spi),
+#elif  MC_BARO_BME280
+			barometer(),
 #endif
 
 			gps_glitch(g_gps),
@@ -115,6 +117,8 @@ class MCInstance {
 		// Confirmed this is the baro (the I2C version)
 		// AP_Baro_MS5611 barometer(&AP_Baro_MS5611::i2c);
 		// HASH endif
+#elif  MC_BARO_BME280
+		AP_Baro_BME280 barometer;
 #elif  MC_BARO_SIM
 		AP_Baro_Sim barometer;
 #endif
