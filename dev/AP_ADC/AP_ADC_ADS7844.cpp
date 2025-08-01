@@ -268,3 +268,6 @@ uint16_t AP_ADC_ADS7844::num_samples_available(const uint8_t *channel_numbers)
     }
     return min_count;
 }
+
+
+

@@ -33,7 +33,7 @@ set(MC_IMU_TYPE "MPU6000")
 set(MC_COMP_TYPE "HMC5843")
 set(MC_BARO_TYPE "BME280")
 set(MC_STORAGE_TYPE "FILE")
-set(MC_ADC_TYPE "ADS7844")
+set(MC_ADC_TYPE "NONE") ## ('SIM', 'ADS7844')
 
 ## Specify wiring for each peripheral (ignored for sim)
 # TODO

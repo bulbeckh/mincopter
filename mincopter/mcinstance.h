@@ -94,6 +94,8 @@ class MCInstance {
 		/* @brief ADC Instance used to obtain battery voltage levels */
 #ifdef MC_ADC_ADS7844
 		AP_ADC_ADS7844 adc;
+#elif  MC_ADC_NONE
+		AP_ADC_None adc;
 #elif  MC_ADC_SIM
 		AP_ADC_Sim adc;
 #endif
