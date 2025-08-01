@@ -13,6 +13,8 @@ bool AP_Baro_BME280::init()
 {
 	/* Implement */
 
+	healthy = true;
+
     return true;
 }
 
@@ -30,11 +32,11 @@ uint8_t AP_Baro_BME280::read()
 
 float AP_Baro_BME280::get_pressure() {
     //return Press;
-	return 0.0f;
+	return 1000.0f;
 }
 
 float AP_Baro_BME280::get_temperature() {
     //return Temp;
-	return 0.0f;
+	return 20.0f;
 }
 

@@ -66,10 +66,12 @@ AP_HAL::SPIDeviceDriver* RPISPIDeviceManager::device(enum AP_HAL::SPIDevice dev)
 {
     switch (dev) {
 		/* Implement Case Statement */
-		/*
         case AP_HAL::SPIDevice_ADS7844:
             return &_device_cs0;
-		*/
+		case AP_HAL::SPIDevice_MPU6000:
+			return &_device_cs1;
+		default:
+			return NULL;
     }
     return NULL;
 }

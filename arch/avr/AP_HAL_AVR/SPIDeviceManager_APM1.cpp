@@ -42,8 +42,6 @@ AP_HAL::SPIDeviceDriver* APM1SPIDeviceManager::device(enum AP_HAL::SPIDevice d)
             return _dataflash;
         case AP_HAL::SPIDevice_ADS7844:
             return _adc;
-        case AP_HAL::SPIDevice_ADNS3080_SPI0:
-            return _optflow;
         default:
             return NULL;
     };

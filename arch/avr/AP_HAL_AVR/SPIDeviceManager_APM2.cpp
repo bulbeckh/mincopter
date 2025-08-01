@@ -69,10 +69,6 @@ AP_HAL::SPIDeviceDriver* APM2SPIDeviceManager::device(enum AP_HAL::SPIDevice d)
             return _ms5611;
         case AP_HAL::SPIDevice_MPU6000:
             return _mpu6k;
-        case AP_HAL::SPIDevice_ADNS3080_SPI0:
-            return _optflow_spi0;
-        case AP_HAL::SPIDevice_ADNS3080_SPI3:
-            return _optflow_spi3;
         default:
             return NULL;
     };
