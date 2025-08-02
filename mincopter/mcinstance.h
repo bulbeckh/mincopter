@@ -103,6 +103,8 @@ class MCInstance {
 		/* @brief Inertial Measurement Unit interface */
 #ifdef MC_IMU_MPU6000
 		AP_InertialSensor_MPU6000 ins;
+#elif  MC_IMU_MPU6050
+		AP_InertialSensor_MPU6050 ins;
 #elif  MC_IMU_SIM
 		AP_InertialSensor_Sim ins;
 #endif

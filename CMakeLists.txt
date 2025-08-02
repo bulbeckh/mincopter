@@ -89,6 +89,8 @@ endif()
 
 if(MC_IMU_TYPE STREQUAL "MPU6000")
 	add_compile_definitions(MC_IMU_MPU6000)
+elseif(MC_IMU_TYPE STREQUAL "MPU6050")
+	add_compile_definitions(MC_IMU_MPU6050)
 else()
 	message(FATAL_ERROR "IMU device not supported.")
 endif()

@@ -203,6 +203,7 @@ protected:
 
 // HASH include "AP_InertialSensor_Oilpan.h"
 #include "AP_InertialSensor_MPU6000.h"
+#include "AP_InertialSensor_MPU6050.h"
 // HASH include "AP_InertialSensor_HIL.h"
 // HASH include "AP_InertialSensor_PX4.h"
 // HASH include "AP_InertialSensor_UserInteract_Stream.h"

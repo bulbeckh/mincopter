@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include <AP_HAL.h>
+#include <AP_HAL/AP_HAL.h>
 #include <AP_Math.h>
 
 #include "AP_InertialSensor.h"
@@ -19,6 +19,10 @@
  * able to read/write immediately.
  *
  */
+
+
+#define MPU6050_ADDR 0x68
+#define MPU6050_PWR_MGMT_1 0x6B
 
 class AP_InertialSensor_MPU6050 : public AP_InertialSensor
 { 
