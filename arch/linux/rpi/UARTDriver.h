@@ -25,37 +25,23 @@ class RPI::RPIUARTDriver : public AP_HAL::UARTDriver {
 		size_t write(uint8_t c);
 		size_t write(const uint8_t *buffer, size_t size);
 
-		void set_device_path(const char *path);
+		//void set_device_path(const char *path);
 
-		void _timer_tick(void);
+		//void _timer_tick(void);
 
 	private:
-		const char *device_path;
-		int _rd_fd;
-		int _wr_fd;
+
+		/* This drivers pigpio daemon connection */
+		int32_t _pi_ref;
+
+		/* Handle for the serial connection to pigpio daemon */
+		int32_t _handle;
+
 		bool _nonblocking_writes;
-		bool _console;
+
+		/* Whether we have initialised this UART driver */
 		volatile bool _initialised;
-		volatile bool _in_timer;
 
-		// we use in-task ring buffers to reduce the system call cost
-		// of ::read() and ::write() in the main loop
-		uint8_t *_readbuf;
-		uint16_t _readbuf_size;
-
-		// _head is where the next available data is. _tail is where new
-		// data is put
-		volatile uint16_t _readbuf_head;
-		volatile uint16_t _readbuf_tail;
-
-		uint8_t *_writebuf;
-		uint16_t _writebuf_size;
-		volatile uint16_t _writebuf_head;
-		volatile uint16_t _writebuf_tail;
-
-		int _write_fd(const uint8_t *buf, uint16_t n);
-		int _read_fd(uint8_t *buf, uint16_t n);
-		uint64_t _last_write_time;
 };
 
 

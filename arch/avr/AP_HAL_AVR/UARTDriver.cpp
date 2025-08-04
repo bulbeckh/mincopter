@@ -161,6 +161,7 @@ int16_t AVRUARTDriver::read(void) {
 
 void AVRUARTDriver::flush(void) {
 	// don't reverse this or there may be problems if the RX interrupt
+	//
 	// occurs after reading the value of _rxBuffer->head but before writing
 	// the value to _rxBuffer->tail; the previous value of head
 	// may be written to tail, making it appear as if the buffer

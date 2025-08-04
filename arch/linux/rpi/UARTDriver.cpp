@@ -3,51 +3,66 @@
 #include <arch/linux/rpi/UARTDriver.h>
 
 #include <stdio.h>
-#include <errno.h>
-#include <termios.h>
-#include <stdlib.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <poll.h>
-#include <assert.h>
-#include <sys/ioctl.h>
+
+#include <pigpiod_if2.h>
+
+// HASH include <errno.h>
+// HASH include <termios.h>
+// HASH include <stdlib.h>
+// HASH include <sys/types.h>
+// HASH include <sys/stat.h>
+// HASH include <fcntl.h>
+// HASH include <unistd.h>
+// HASH include <poll.h>
+// HASH include <assert.h>
+// HASH include <sys/ioctl.h>
 
 extern const AP_HAL::HAL& hal;
 
 using namespace RPI;
 
-RPIUARTDriver::RPIUARTDriver(bool default_console) :
+RPIUARTDriver::RPIUARTDriver(bool default_console) /* :
     device_path(NULL),
     _rd_fd(-1),
-    _wr_fd(-1)
+    _wr_fd(-1) */
 {
+	/*
     if (default_console) {
         _rd_fd = 0;
         _wr_fd = 1;
         _console = true;
     }
+	*/
 }
 
 void RPIUARTDriver::begin(uint32_t b) 
 {
-	/* Implement */
+	begin(b,0,0);
 }
 
 void RPIUARTDriver::begin(uint32_t b, uint16_t rxS, uint16_t txS) 
 {
-	/* Implement */
+	// Connect to pigpio daemon
+	_pi_ref = pigpio_start(NULL, NULL);
+	if (_pi_ref<0) hal.scheduler->panic(PSTR("UARTDriver Init: failed to connect to pigpiod daemon\n"));
+
+	// TODO The UART device path needs to be configurable
+	// Open serial
+	_handle = serial_open(_pi_ref, "/dev/ttyAMA0", b, 0x00);
+	if (_handle<0) hal.scheduler->panic(PSTR("UARTDriver Init: failed to open connection to /dev/ttyAMA0\n"));
+
+	_initialised = true;
 }
 
 void RPIUARTDriver::end() 
 {
-	/* Implement */
+	int32_t status = serial_close(_pi_ref, _handle);
+	if(status) hal.scheduler->panic(PSTR("UARTDriver Close: failed to close\n"));
 }
 
 void RPIUARTDriver::flush() 
 {
-	/* Implement */
+	// Do nothing - the tx/rx buffers for pigpiod are fixed size and not configurable.
 }
 
 bool RPIUARTDriver::is_initialized() 
@@ -62,32 +77,45 @@ void RPIUARTDriver::set_blocking_writes(bool blocking)
 
 bool RPIUARTDriver::tx_pending() 
 { 
-	/* Implement */
+	// TODO pigpiod handles writes asynchronously but there is no way to monitor the buffer for writes
 	return false;
 }
 
 int16_t RPIUARTDriver::available() 
 { 
-	/* Implement */
+	int16_t bytes_rx = serial_data_available(_pi_ref, _handle);
+	if (bytes_rx<0) hal.scheduler->panic(PSTR("UARTDriver: could not read available bytes\n"));
+	return bytes_rx;
 }
 
 int16_t RPIUARTDriver::txspace() 
 { 
-	/* Implement */
+	// Return max buffer size since we don't implement buffers directly
+	return 4096;
 }
 
 int16_t RPIUARTDriver::read() 
 { 
-	/* Implement */
+	int16_t data = serial_read_byte(_pi_ref, _handle);
+	if (data==PI_SER_READ_NO_DATA) {
+		hal.console->printf(PSTR("RPI-UART: No data available to read\n"));
+		return 0x00;
+	}
+	return data;
 }
 
 size_t RPIUARTDriver::write(uint8_t c) 
 { 
-	/* Implement */
+	return write((uint8_t*)&c, 1);
 }
 
 size_t RPIUARTDriver::write(const uint8_t *buffer, size_t size)
 {
-	/* Implement */
+	int16_t status = serial_write(_pi_ref, _handle, (char*)buffer, size);
+	if (status) {
+		hal.console->printf(PSTR("RPI-UART: Failed to write\n"));
+		return 0;
+	}
+	return size;
 }
 
