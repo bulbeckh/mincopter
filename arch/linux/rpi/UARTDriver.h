@@ -40,6 +40,8 @@ class RPI::RPIUARTDriver : public AP_HAL::UARTDriver {
 		/* Handle for the serial connection to pigpio daemon */
 		int32_t _handle;
 
+		int32_t _baudrate;
+
 		bool _nonblocking_writes;
 
 		/* Whether we have initialised this UART driver */

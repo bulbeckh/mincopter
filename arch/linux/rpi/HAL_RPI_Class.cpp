@@ -18,8 +18,9 @@
 
 // Single UART for the Raspberry PI 2 Model B
 static RPI::RPIUARTDriver uartADriver("/dev/ttyAMA0");
-//static LinuxUARTDriver uartBDriver(false);
-//static LinuxUARTDriver uartCDriver(false);
+// For these drivers, we instantiate the class but pass a NULL pointer as the device file
+static RPI::RPIUARTDriver uartBDriver(NULL);
+static RPI::RPIUARTDriver uartCDriver(NULL);
 
 static Linux::LinuxSemaphore  i2cSemaphore;
 static RPI::RPII2CDriver  i2cDriver(&i2cSemaphore, "/dev/i2c-1");
@@ -35,14 +36,14 @@ static Linux::LinuxUtil utilInstance;
 HAL_RPI::HAL_RPI() :
     AP_HAL::HAL(
         &uartADriver,
-        NULL, /*&uartBDriver,*/
-        NULL, /*&uartCDriver,*/
+        &uartBDriver,
+        &uartCDriver,
         NULL,            /* no uartD */
         &i2cDriver,
         &spiDeviceManager,
         &analogIn,
         &storageDriver,
-        &uartADriver,
+        &uartBDriver, /* console on uartB */
         &gpioDriver,
         &rcinDriver,
         &rcoutDriver,
@@ -58,7 +59,7 @@ void HAL_RPI::init(int argc,char* const argv[]) const
 	// Ignore CLAs
 
     scheduler->init(NULL);
-    uartA->begin(115200);
+    uartB->begin(115200);
     i2c->begin();
     spi->init(NULL);
 }

@@ -52,10 +52,10 @@ void init_ardupilot()
     //
 #if HIL_MODE != HIL_MODE_DISABLED
     // we need more memory for HIL, as we get a much higher packet rate
-    mincopter.hal.uartA->begin(SERIAL0_BAUD, 256, 256);
+    mincopter.hal.uartB->begin(SERIAL0_BAUD, 256, 256);
 #else
     // use a bit less for non-HIL operation
-    mincopter.hal.uartA->begin(SERIAL0_BAUD, 512, 128);
+    mincopter.hal.uartB->begin(SERIAL0_BAUD, 512, 128);
 #endif
 
     // GPS serial port.
@@ -63,8 +63,8 @@ void init_ardupilot()
 #if GPS_PROTOCOL != GPS_PROTOCOL_IMU
     // standard gps running. Note that we need a 256 byte buffer for some
     // GPS types (eg. UBLOX)
-	if ( mincopter.hal.uartB != NULL) {
-    	mincopter.hal.uartB->begin(38400, 256, 16);
+	if ( mincopter.hal.uartA != NULL) {
+    	mincopter.hal.uartA->begin(38400, 256, 16);
 	}
 #endif
 
@@ -186,9 +186,8 @@ void init_ardupilot()
     mincopter.g_gps = &mincopter.g_gps_driver;
 
     // GPS Initialization
-	// TODO on RPI, move GPS to uartA and redirect console to a different UART
-	if (mincopter.hal.uartB != NULL) {
-    	mincopter.g_gps->init(mincopter.hal.uartB, GPS::GPS_ENGINE_AIRBORNE_1G);
+	if (mincopter.hal.uartA != NULL) {
+    	mincopter.g_gps->init(mincopter.hal.uartA, GPS::GPS_ENGINE_AIRBORNE_1G);
 	}
 
     init_compass();
@@ -310,7 +309,7 @@ void init_ardupilot()
 
 		// Start Menu
 		// NOTE cliSerial is an alias for hal.uartA I think
-		init_cli(mincopter.hal.uartA);
+		init_cli(mincopter.hal.uartB);
 
 		// Finally, run the profiling test functions that measure approximate time taken to
 		// publish serial messages and log messages of different format
