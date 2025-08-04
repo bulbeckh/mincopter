@@ -5,7 +5,7 @@
 
 class RPI::RPIUARTDriver : public AP_HAL::UARTDriver {
 	public:
-		RPIUARTDriver(bool default_console);
+		RPIUARTDriver(const char* device_path);
 
 		/* Overrides */
 		void begin(uint32_t b);
@@ -30,6 +30,9 @@ class RPI::RPIUARTDriver : public AP_HAL::UARTDriver {
 		//void _timer_tick(void);
 
 	private:
+
+		/* @brief The path to the device file on rpi */
+		const char* _device;
 
 		/* This drivers pigpio daemon connection */
 		int32_t _pi_ref;

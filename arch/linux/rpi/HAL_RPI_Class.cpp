@@ -17,7 +17,7 @@
 //using namespace RPI;
 
 // Single UART for the Raspberry PI 2 Model B
-static RPI::RPIUARTDriver uartADriver(true);
+static RPI::RPIUARTDriver uartADriver("/dev/ttyAMA0");
 //static LinuxUARTDriver uartBDriver(false);
 //static LinuxUARTDriver uartCDriver(false);
 

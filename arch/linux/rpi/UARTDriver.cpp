@@ -21,18 +21,10 @@ extern const AP_HAL::HAL& hal;
 
 using namespace RPI;
 
-RPIUARTDriver::RPIUARTDriver(bool default_console) /* :
-    device_path(NULL),
-    _rd_fd(-1),
-    _wr_fd(-1) */
+RPIUARTDriver::RPIUARTDriver(const char* device_path) :
+    _device(device_path)
 {
-	/*
-    if (default_console) {
-        _rd_fd = 0;
-        _wr_fd = 1;
-        _console = true;
-    }
-	*/
+
 }
 
 void RPIUARTDriver::begin(uint32_t b) 
@@ -46,9 +38,8 @@ void RPIUARTDriver::begin(uint32_t b, uint16_t rxS, uint16_t txS)
 	_pi_ref = pigpio_start(NULL, NULL);
 	if (_pi_ref<0) hal.scheduler->panic(PSTR("UARTDriver Init: failed to connect to pigpiod daemon\n"));
 
-	// TODO The UART device path needs to be configurable
 	// Open serial
-	_handle = serial_open(_pi_ref, "/dev/ttyAMA0", b, 0x00);
+	_handle = serial_open(_pi_ref, (char*)_device, b, 0x00);
 	if (_handle<0) hal.scheduler->panic(PSTR("UARTDriver Init: failed to open connection to /dev/ttyAMA0\n"));
 
 	_initialised = true;
