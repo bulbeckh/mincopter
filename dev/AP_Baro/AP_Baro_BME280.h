@@ -23,9 +23,40 @@ public:
     float           get_temperature();
 
 private:
+
+	/* @brief Used by pigpiod */
+	int16_t _pi_ref;
+	int16_t _handle;
+
 	//float Press;
 	//float Temp;
 
+	/* @brief Retrieve compensation parameters from Barometer EEPROM */
+	void init_compensation_parameters();
+
+	/* @brief Compensation variables */
+	int16_t dig_T1;
+	int16_t dig_T2;
+	int16_t dig_T3;
+
+	int16_t dig_P1;
+	int16_t dig_P2;
+	int16_t dig_P3;
+	int16_t dig_P4;
+	int16_t dig_P5;
+	int16_t dig_P6;
+	int16_t dig_P7;
+	int16_t dig_P8;
+	int16_t dig_P9;
+
+	/* @brief Temperature compensation function for BME280 */
+	int32_t BME280_compensate_T_int32(int32_t adc_T);
+
+	/* @brief Pressure compensation function for BME280 */
+	uint32_t BME280_compensate_P_int32(int32_t adc_P);
+
+	/* @brief Placeholder parameter */
+	int32_t t_fine;
 };
 
 
