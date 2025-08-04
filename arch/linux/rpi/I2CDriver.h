@@ -47,12 +47,12 @@ private:
 
 	int _daemon;
 
-	/* I2C Device Addresses */
-	uint8_t i2c_device[I2C_MAX_DEVICES]; 
-	/* I2C Device Handles */
-	int handles[I2C_MAX_DEVICES];
-	/* Current number of I2C devices */
-	int _i2c_device_count;
+	/* Map from I2C device address -> handle */
+	uint8_t _i2c_device_address[I2C_MAX_DEVICES]; 
+	int     _i2c_device_handle[I2C_MAX_DEVICES];
+
+	/* Index of next free spot in map array */
+	int _i2c_device_head;
 
 	/* Get the handle for the specified device */
 	int check_device(uint8_t dev);

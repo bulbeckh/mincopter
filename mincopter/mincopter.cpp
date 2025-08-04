@@ -292,7 +292,7 @@ const AP_Scheduler::Task scheduler_tasks[] PROGMEM = {
     { read_baro,  	   2,     1 }, /* Sensor Update - Barometer (accumulate) */
     { one_hz_loop,       100,  1 },
 #else
-    { update_GPS, 	   2,     900 }, /* Sensor Update - GPS */
+    //{ update_GPS, 	   2,     900 }, /* Sensor Update - GPS */
     { read_batt_compass,  10,     720 }, /* Sensor Update - Battery */
     { update_altitude,    10,    1000 }, /* Sensor Update - Barometer (read) */
     { read_compass,        2,     420 }, /* Sensor Update - Compass */
