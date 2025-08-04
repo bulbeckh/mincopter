@@ -56,6 +56,8 @@ class MCInstance {
 			g_gps_driver(&g_gps),
 #elif  MC_GPS_SIM
 			g_gps_driver(),
+#elif  MC_GPS_UBLOX
+			g_gps_driver(),
 #endif
 
 			compass(),
@@ -164,6 +166,8 @@ class MCInstance {
 		 #endif // GPS PROTOCOL
 #elif MC_GPS_SIM
 		AP_GPS_Sim g_gps_driver;
+#elif MC_GPS_UBLOX
+		AP_GPS_UBLOX g_gps_driver;
 #endif
 
 		// receiver RSSI

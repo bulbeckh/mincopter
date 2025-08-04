@@ -28,7 +28,7 @@ set(MC_AHRS_TYPE "DCM") ## (DCM)
 
 ## Specify backend dev (ignored for sim)
 ## TODO Get ride of this
-set(MC_GPS_TYPE "AUTO")
+set(MC_GPS_TYPE "UBLOX") ## (NONE, UBLOX)
 set(MC_IMU_TYPE "MPU6050")
 set(MC_COMP_TYPE "HMC5843")
 set(MC_BARO_TYPE "BME280")

@@ -46,29 +46,15 @@ void init_ardupilot()
 
 
     // Console serial port
-    //
-    // The console port buffers are defined to be sufficiently large to support
-    // the MAVLink protocol efficiently
-    //
-#if HIL_MODE != HIL_MODE_DISABLED
-    // we need more memory for HIL, as we get a much higher packet rate
-    mincopter.hal.uartB->begin(SERIAL0_BAUD, 256, 256);
-#else
-    // use a bit less for non-HIL operation
     mincopter.hal.uartB->begin(SERIAL0_BAUD, 512, 128);
-#endif
 
-    // GPS serial port.
-    //
+    // GPS serial port
 #if GPS_PROTOCOL != GPS_PROTOCOL_IMU
     // standard gps running. Note that we need a 256 byte buffer for some
-    // GPS types (eg. UBLOX)
-	if ( mincopter.hal.uartA != NULL) {
-    	mincopter.hal.uartA->begin(38400, 256, 16);
-	}
+	if (mincopter.hal.uartA != NULL) mincopter.hal.uartA->begin(38400, 256, 16);
 #endif
 
-		// Send initialisation string
+	// Send initialisation string
     mincopter.cliSerial->printf_P(PSTR("PS00-Init, Free RAM: %u\n"), mincopter.hal.util->available_memory());
 
 #if CONFIG_HAL_BOARD == HAL_BOARD_APM2
@@ -79,14 +65,6 @@ void init_ardupilot()
     mincopter.hal.scheduler->set_timer_speed(500);
 #endif
 
-
-    // load parameters from EEPROM
-    //load_parameters();
-
-    // FIX: this needs to be the inverse motors mask
-    //ServoRelayEvents.set_channel_mask(0xFFF0);
-
-    //relay.init();
 
     bool enable_external_leds = true;
 
@@ -102,20 +80,9 @@ void init_ardupilot()
 
     mincopter.barometer.init();
 
-    // init the GCS
-		// REMOVE GCS
-    //gcs[0].init(hal.uartA);
-
-    // Register the mavlink service callback. This will run
-    // anytime there are more than 5ms remaining in a call to
-    // hal.scheduler->delay.
-		// NO MAVLINK
-    //hal.scheduler->register_delay_callback(mavlink_delay_cb, 5);
-
     // we start by assuming USB connected, as we initialed the serial
     // port with SERIAL0_BAUD. check_usb_mux() fixes this if need be.
     planner.ap.usb_connected = true;
-
 
     check_usb_mux();
 

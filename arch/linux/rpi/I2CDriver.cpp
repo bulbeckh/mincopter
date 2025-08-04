@@ -128,6 +128,7 @@ uint8_t RPII2CDriver::writeRegister(uint8_t addr, uint8_t reg, uint8_t val)
 
 uint8_t RPII2CDriver::read(uint8_t addr, uint8_t len, uint8_t* data)
 {
+	/* TODO */
 }
 
 uint8_t RPII2CDriver::readRegisters(uint8_t addr, uint8_t reg, uint8_t len, uint8_t* data)
@@ -141,12 +142,16 @@ uint8_t RPII2CDriver::readRegisters(uint8_t addr, uint8_t reg, uint8_t len, uint
 			fprintf(stderr, "I2C Error: Reading bytes [device: %x]\n",addr);
 			return 1;
 		}
+	} else {
+		fprintf(stderr, "I2C Error: read - bad handle\n");
+		return 1;
 	}
 	return 0;
 }
 
 uint8_t RPII2CDriver::readRegister(uint8_t addr, uint8_t reg, uint8_t* data)
 {
+	return readRegisters(addr, reg, 1, data);
 }
 
 uint8_t RPII2CDriver::lockup_count() 

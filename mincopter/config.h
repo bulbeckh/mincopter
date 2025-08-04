@@ -277,7 +277,8 @@
 // GPS_PROTOCOL
 //
 #ifndef GPS_PROTOCOL
- # define GPS_PROTOCOL           GPS_PROTOCOL_AUTO
+ // define GPS_PROTOCOL           GPS_PROTOCOL_AUTO
+ # define GPS_PROTOCOL           GPS_PROTOCOL_UBLOX
 #endif
 
 
