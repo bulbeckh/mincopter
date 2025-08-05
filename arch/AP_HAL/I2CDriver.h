@@ -13,6 +13,8 @@ public:
     virtual void setTimeout(uint16_t ms) = 0;
     virtual void setHighSpeed(bool active) = 0;
 
+	// TODO Remove this method and it's usage
+	
     /* write: for i2c devices which do not obey register conventions */
     virtual uint8_t write(uint8_t addr, uint8_t len, uint8_t* data) = 0;
     /* writeRegister: write a single 8-bit value to a register */
