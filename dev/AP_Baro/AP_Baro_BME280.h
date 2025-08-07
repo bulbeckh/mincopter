@@ -28,19 +28,19 @@ class AP_Baro_BME280 : public AP_Baro
 		int16_t _pi_ref;
 		int16_t _handle;
 
-		/* @brief Latest pressure reading */
+		/* @brief Latest pressure reading (in Pa)*/
 		float _pressure;
 
-		/* @brief Latest temperature reading */
+		/* @brief Latest temperature reading (degrees celsius) */
 		float _temperature;
 
 		/* @brief Compensation variables */
 		struct {
-			int16_t dig_T1;
+			uint16_t dig_T1;
 			int16_t dig_T2;
 			int16_t dig_T3;
 
-			int16_t dig_P1;
+			uint16_t dig_P1;
 			int16_t dig_P2;
 			int16_t dig_P3;
 			int16_t dig_P4;

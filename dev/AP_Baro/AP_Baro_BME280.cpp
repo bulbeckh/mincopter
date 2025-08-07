@@ -120,14 +120,15 @@ uint8_t AP_Baro_BME280::read()
 	hal.i2c->readRegisters(BME280_ADDR, BME280_PRESS_START, 6, _buffer);
 
 	// Combined into raw readings
-	uint32_t pressure_uncompensated = (_buffer[0] << 12) | (_buffer[1] << 4) | _buffer[2];
-	uint32_t temperature_uncompensated = (_buffer[3] << 12) | (_buffer[4] << 4) | _buffer[5];
+	uint32_t pressure_uncompensated = (_buffer[0] << 12) | (_buffer[1] << 4) | (0x0F & _buffer[2]);
+	uint32_t temperature_uncompensated = (_buffer[3] << 12) | (_buffer[4] << 4) | (0x0F & _buffer[5]);
 
 	// Use Bosch compensation functions to convert
 	int32_t comp_temp = BME280_compensate_T_int32((int32_t)temperature_uncompensated);
 	uint32_t comp_pressure = BME280_compensate_P_int32((int32_t)pressure_uncompensated);
 
-	printf("TEMP: %d, PRES: %u\n", comp_temp, comp_pressure);
+	//printf("TEMP: %d, PRES: %u\n", comp_temp, comp_pressure);
+	//printf("hexT: %LX, hexP: %LX\n", pressure_uncompensated, temperature_uncompensated);
 
 	// TODO Make this scaling configurable or read from sensor device on init
 	// Update the pressure and temperature readings
@@ -148,12 +149,12 @@ uint8_t AP_Baro_BME280::init_compensation_parameters(void)
 	}
 
 	// Temperature
-	_dig.dig_T1 = (int16_t)((comp_reading[1]<<8) | (comp_reading[0]));
+	_dig.dig_T1 = (uint16_t)((comp_reading[1]<<8) | (comp_reading[0]));
 	_dig.dig_T2 = (int16_t)((comp_reading[3]<<8) | (comp_reading[2]));
 	_dig.dig_T3 = (int16_t)((comp_reading[5]<<8) | (comp_reading[4]));
 
 	// Pressure
-	_dig.dig_P1 = (int16_t)((comp_reading[7]<<8) | (comp_reading[6]));
+	_dig.dig_P1 = (uint16_t)((comp_reading[7]<<8) | (comp_reading[6]));
 	_dig.dig_P2 = (int16_t)((comp_reading[9]<<8) | (comp_reading[8]));
 	_dig.dig_P3 = (int16_t)((comp_reading[11]<<8) | (comp_reading[10]));
 	_dig.dig_P4 = (int16_t)((comp_reading[13]<<8) | (comp_reading[12]));
@@ -168,15 +169,6 @@ uint8_t AP_Baro_BME280::init_compensation_parameters(void)
 
 int32_t AP_Baro_BME280::BME280_compensate_T_int32(int32_t adc_T)
 {
-	/*
-	int32_t var1, var2, T;
-	var1 = ((((adc_T>>3) - ((int32_t)_dig.dig_T1<<1))) * ((int32_t)_dig.dig_T2)) >> 11;
-	var2 = (((((adc_T>>4) - ((int32_t)_dig.dig_T1)) * ((adc_T>>4) - ((int32_t)_dig.dig_T1))) >> 12) * ((int32_t)_dig.dig_T3)) >> 14;
-	t_fine = var1 + var2;
-	T = (t_fine * 5 + 128) >> 8;
-	return T;
-	*/
-
 	int32_t var1, var2, T;
 	var1 = ((((adc_T>>3) - ((int32_t)_dig.dig_T1<<1))) * ((int32_t)_dig.dig_T2)) >> 11;
 	var2 = (((((adc_T>>4) - ((int32_t)_dig.dig_T1)) * ((adc_T>>4) - ((int32_t)_dig.dig_T1))) >> 12) * ((int32_t)_dig.dig_T3)) >> 14;
@@ -185,35 +177,8 @@ int32_t AP_Baro_BME280::BME280_compensate_T_int32(int32_t adc_T)
 	return T;
 }
 
-/* Returns compensated pressure reading */
 uint32_t AP_Baro_BME280::BME280_compensate_P_int32(int32_t adc_P)
 {
-	/*
-	int32_t var1, var2;
-
-	uint32_t p;
-	var1 = (((int32_t)t_fine)>>1) - (int32_t)64000;
-	var2 = (((var1>>2) * (var1>>2)) >> 11 ) * ((int32_t)_dig.dig_P6);
-	var2 = var2 + ((var1*((int32_t)_dig.dig_P5))<<1);
-	var2 = (var2>>2)+(((int32_t)_dig.dig_P4)<<16);
-
-	var1 = (((_dig.dig_P3 * (((var1>>2) * (var1>>2)) >> 13 )) >> 3) + ((((int32_t)_dig.dig_P2) * var1)>>1))>>18;
-	var1 =((((32768+var1))*((int32_t)_dig.dig_P1))>>15);
-	if (var1 == 0) {
-		return 0; // avoid exception caused by division by zero
-	}
-	p = (((uint32_t)(((int32_t)1048576)-adc_P)-(var2>>12)))*3125;
-	if (p < 0x80000000) {
-		p = (p << 1) / ((uint32_t)var1);
-	} else {
-		p = (p / (uint32_t)var1) * 2;
-	}
-	var1 = (((int32_t)_dig.dig_P9) * ((int32_t)(((p>>3) * (p>>3))>>13)))>>12;
-	var2 = (((int32_t)(p>>2)) * ((int32_t)_dig.dig_P8))>>13;
-	p = (uint32_t)((int32_t)p + ((var1 + var2 + _dig.dig_P7) >> 4));
-	return p;
-	*/
-
 	int32_t var1, var2;
 	uint32_t p;
 	var1 = (((int32_t)t_fine)>>1) - (int32_t)64000;
