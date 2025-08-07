@@ -1,6 +1,4 @@
 
-#include <inttypes.h>
-
 #include <AP_Common.h>
 #include <AP_Math.h>
 
@@ -125,23 +123,18 @@ uint8_t AP_Baro_BME280::read()
 	uint32_t pressure_uncompensated = (_buffer[0] << 12) | (_buffer[1] << 4) | _buffer[2];
 	uint32_t temperature_uncompensated = (_buffer[3] << 12) | (_buffer[4] << 4) | _buffer[5];
 
+	// Use Bosch compensation functions to convert
 	int32_t comp_temp = BME280_compensate_T_int32((int32_t)temperature_uncompensated);
+	uint32_t comp_pressure = BME280_compensate_P_int32((int32_t)pressure_uncompensated);
 
-	//printf("BARO: %u, %u, %u\n", pressure_uncompensated, temperature_uncompensated, humidity_uncompensated);
-	printf("BARO: %d\n", comp_temp);
+	printf("TEMP: %d, PRES: %u\n", comp_temp, comp_pressure);
 
-	/* Implement */
+	// TODO Make this scaling configurable or read from sensor device on init
+	// Update the pressure and temperature readings
+	_temperature = comp_temp / 100.0f;
+	_pressure = comp_pressure;
+
     return 0;
-}
-
-float AP_Baro_BME280::get_pressure() {
-    //return Press;
-	return 1000.0f;
-}
-
-float AP_Baro_BME280::get_temperature() {
-    //return Temp;
-	return 20.0f;
 }
 
 uint8_t AP_Baro_BME280::init_compensation_parameters(void)
@@ -195,7 +188,9 @@ int32_t AP_Baro_BME280::BME280_compensate_T_int32(int32_t adc_T)
 /* Returns compensated pressure reading */
 uint32_t AP_Baro_BME280::BME280_compensate_P_int32(int32_t adc_P)
 {
+	/*
 	int32_t var1, var2;
+
 	uint32_t p;
 	var1 = (((int32_t)t_fine)>>1) - (int32_t)64000;
 	var2 = (((var1>>2) * (var1>>2)) >> 11 ) * ((int32_t)_dig.dig_P6);
@@ -204,6 +199,29 @@ uint32_t AP_Baro_BME280::BME280_compensate_P_int32(int32_t adc_P)
 
 	var1 = (((_dig.dig_P3 * (((var1>>2) * (var1>>2)) >> 13 )) >> 3) + ((((int32_t)_dig.dig_P2) * var1)>>1))>>18;
 	var1 =((((32768+var1))*((int32_t)_dig.dig_P1))>>15);
+	if (var1 == 0) {
+		return 0; // avoid exception caused by division by zero
+	}
+	p = (((uint32_t)(((int32_t)1048576)-adc_P)-(var2>>12)))*3125;
+	if (p < 0x80000000) {
+		p = (p << 1) / ((uint32_t)var1);
+	} else {
+		p = (p / (uint32_t)var1) * 2;
+	}
+	var1 = (((int32_t)_dig.dig_P9) * ((int32_t)(((p>>3) * (p>>3))>>13)))>>12;
+	var2 = (((int32_t)(p>>2)) * ((int32_t)_dig.dig_P8))>>13;
+	p = (uint32_t)((int32_t)p + ((var1 + var2 + _dig.dig_P7) >> 4));
+	return p;
+	*/
+
+	int32_t var1, var2;
+	uint32_t p;
+	var1 = (((int32_t)t_fine)>>1) - (int32_t)64000;
+	var2 = (((var1>>2) * (var1>>2)) >> 11 ) * ((int32_t)_dig.dig_P6);
+	var2 = var2 + ((var1*((int32_t)_dig.dig_P5))<<1);
+	var2 = (var2>>2) + (((int32_t)_dig.dig_P4)<<16);
+	var1 = (((_dig.dig_P3 * (((var1>>2) * (var1>>2)) >> 13 )) >> 3) + ((((int32_t)_dig.dig_P2) * var1)>>1))>>18;
+	var1 = ((((32768+var1))*((int32_t)_dig.dig_P1))>>15);
 	if (var1 == 0) {
 		return 0; // avoid exception caused by division by zero
 	}
