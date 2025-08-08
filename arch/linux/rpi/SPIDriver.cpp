@@ -50,7 +50,7 @@ void RPISPIDeviceDriver::transfer(const uint8_t *data, uint16_t len)
 }
 
 RPISPIDeviceManager::RPISPIDeviceManager() :
-    _device_cs0("/dev/spidev0.0", 0 /* SPI_MODE_0 */, 8, 2600000),
+    _device_cs0("/dev/spidev0.0", 0 /* SPI_MODE_0 */, 8, 1000000),
     _device_cs1("/dev/spidev0.1", 0 /* SPI_MODE_0 */, 8, 1000000)
 {
 	/* Implement */
@@ -67,9 +67,14 @@ AP_HAL::SPIDeviceDriver* RPISPIDeviceManager::device(enum AP_HAL::SPIDevice dev)
     switch (dev) {
 		/* Implement Case Statement */
         case AP_HAL::SPIDevice_ADS7844:
-            return &_device_cs0;
+            return &_device_cs1;
+		case AP_HAL::SPIDevice_ICM20948:
+			// TODO Make this all configurable as per board wiring
+			return &_device_cs0;
+		/*
 		case AP_HAL::SPIDevice_MPU6000:
-			return &_device_cs1;
+			return &_device_cs0;
+		*/
 		default:
 			return NULL;
     }

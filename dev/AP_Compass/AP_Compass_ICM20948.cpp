@@ -1,6 +1,8 @@
 
 #include "AP_Compass_ICM20948.h"
 
+//#include <stdio.h>
+
 extern const AP_HAL::HAL& hal;
 
 // ICM20948 Definitions
@@ -37,15 +39,17 @@ extern const AP_HAL::HAL& hal;
 
 
 AP_Compass_ICM20948::AP_Compass_ICM20948()
-	// : init */
+	: Compass()
 {
-	_spi = hal.spi->device(AP_HAL::SPIDevice_ICM20948);
-	if (_spi==NULL) hal.scheduler->panic("ICM Init: no SPI device\n");
 }
 
 
 bool AP_Compass_ICM20948::init()
 {
+	// Retrieve SPI device
+	_spi = hal.spi->device(AP_HAL::SPIDevice_ICM20948);
+	if (_spi==NULL) hal.scheduler->panic("ICM Init: no SPI device\n");
+
 	// TODO For now, initialise both gyro/accel and magnetometer but change to separate init functions soon
 	
 	// Reset device after power-on
@@ -77,6 +81,8 @@ bool AP_Compass_ICM20948::init()
 
 bool AP_Compass_ICM20948::read()
 {
+	//printf("AP Compass - read called\n");
+
 	uint8_t _pkt[2];
 
 	// Select bank 0

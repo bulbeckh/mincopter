@@ -2,7 +2,7 @@
 #pragma once
 
 #include <Compass.h>
-#include <AP_HAL/AP_HAL.h>
+#include <AP_HAL.h>
 
 
 class AP_Compass_ICM20948 : public Compass
