@@ -11,7 +11,7 @@ class RPI::RPISPIDeviceDriver : public AP_HAL::SPIDeviceDriver {
 
 		RPISPIDeviceDriver(const char *spipath, uint8_t mode, uint8_t bitsPerWord, uint32_t speed);
 
-		void init();
+		void init(void);
 
 		AP_HAL::Semaphore* get_semaphore();
 
@@ -33,6 +33,12 @@ class RPI::RPISPIDeviceDriver : public AP_HAL::SPIDeviceDriver {
 		uint8_t _mode;
 		uint8_t _bitsPerWord;
 		uint32_t _speed;
+
+		/* @brief Device handle for pigpiod functions */
+		int32_t _handle;
+
+		/* @brief PI object for pigpiod functions */
+		//int32_t _pi_ref;
 };
 
 class RPI::RPISPIDeviceManager : public AP_HAL::SPIDeviceManager {

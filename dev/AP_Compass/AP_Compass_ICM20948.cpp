@@ -144,6 +144,8 @@ bool AP_Compass_ICM20948::read()
 	_field[0].y = mag_y*0.15f;
 	_field[0].z = mag_z*0.15f;
 
+	//printf("FieldX: %f\n", _field[0].x);
+
 	// Magnetometer reading is valid
 	_healthy[0] = true;
 
