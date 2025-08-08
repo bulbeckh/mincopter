@@ -132,6 +132,8 @@ class MCInstance {
 		/* @brief Compass instance */
 #ifdef MC_COMP_HMC5843
 		AP_Compass_HMC5843 compass;
+#elif  MC_COMP_ICM20948
+		AP_Compass_ICM20948 compass;
 #elif  MC_COMP_SIM
 		AP_Compass_Sim compass;
 #endif

@@ -97,6 +97,8 @@ endif()
 
 if(MC_COMP_TYPE STREQUAL "HMC5843")
 	add_compile_definitions(MC_COMP_HMC5843)
+elseif(MC_COMP_TYPE STREQUAL "ICM20948")
+	add_compile_definitions(MC_COMP_ICM20948)
 else()
 	message(FATAL_ERROR "Compass device not supported.")
 endif()
