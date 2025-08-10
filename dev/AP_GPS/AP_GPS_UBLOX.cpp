@@ -20,6 +20,8 @@
 //
 #include <stdint.h>
 
+#include <stdio.h>
+
 #include <AP_HAL.h>
 
 #define UBLOX_DEBUGGING 0
@@ -130,6 +132,9 @@ AP_GPS_UBLOX::read(void)
         // read the next byte
         data = _port->read();
 
+		//printf("%02X\n", data);
+		//continue;
+
 	reset:
         switch(_step) {
 
@@ -199,7 +204,9 @@ AP_GPS_UBLOX::read(void)
         case 6:
             _ck_b += (_ck_a += data);                   // checksum byte
             if (_payload_counter < sizeof(_buffer)) {
-                _buffer.bytes[_payload_counter] = data;
+                //_buffer.bytes[_payload_counter] = data;
+				// TODO Terrible hack - please fix
+				((uint8_t*)&_buffer)[_payload_counter] = data;
             }
             if (++_payload_counter == _payload_length)
                 _step++;
@@ -235,6 +242,8 @@ AP_GPS_UBLOX::read(void)
 bool
 AP_GPS_UBLOX::_parse_gps(void)
 {
+	printf("Parsing GPS msg %02X %02X\n", _class, _msg_id);
+
     if (_class == CLASS_ACK) {
         Debug("ACK %u", (unsigned)_msg_id);
         return false;
