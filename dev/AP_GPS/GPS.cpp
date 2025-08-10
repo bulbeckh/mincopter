@@ -8,6 +8,8 @@
 #include <AP_Notify.h>
 #include "GPS.h"
 
+#include <stdio.h>
+
 extern const AP_HAL::HAL& hal;
 
 #define GPS_DEBUGGING 0
@@ -50,6 +52,12 @@ GPS::update(void)
 {
     bool result;
     uint32_t tnow;
+
+	/*
+	static uint32_t i=0;
+	if (i%50==0) printf("ToW: %u\n", _idleTimer);
+	i++;
+	*/
 
     // call the GPS driver to process incoming data
     result = read();

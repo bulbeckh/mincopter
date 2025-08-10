@@ -242,8 +242,6 @@ AP_GPS_UBLOX::read(void)
 bool
 AP_GPS_UBLOX::_parse_gps(void)
 {
-	printf("Parsing GPS msg %02X %02X\n", _class, _msg_id);
-
     if (_class == CLASS_ACK) {
         Debug("ACK %u", (unsigned)_msg_id);
         return false;
