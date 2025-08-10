@@ -13,7 +13,9 @@ add_library(mc-test-barometer STATIC
 ## Add gtest here if used
 
 ## Create test executable
-add_executable(test_barometer)
+add_executable(test_barometer
+	test_barometer_core.cpp
+)
 
 ## Link
 target_link_libraries(test_barometer PUBLIC

@@ -24,10 +24,6 @@ class AP_Baro_BME280 : public AP_Baro
 
 	private:
 
-		/* @brief Used by pigpiod */
-		int16_t _pi_ref;
-		int16_t _handle;
-
 		/* @brief Latest pressure reading (in Pa)*/
 		float _pressure;
 

@@ -7,8 +7,6 @@
 
 #include <stdio.h>
 
-#include <pigpiod_if2.h>
-
 // BME280 Register Definitions
 #define BME280_ADDR  0x77
 #define BME280_ID 0xD0
