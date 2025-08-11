@@ -17,7 +17,10 @@ AP_InertialSensor_MPU6050::AP_InertialSensor_MPU6050()
 
 bool AP_InertialSensor_MPU6050::update(void)
 {
-
+	// NOTE TODO The majority of the 'reading' is done in _poll but it should just be accumulating in poll and actually calculated here
+	
+	wait_for_sample(1000);
+	return true;
 }
 
 float AP_InertialSensor_MPU6050::get_gyro_drift_rate()
