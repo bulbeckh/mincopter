@@ -66,6 +66,9 @@ bool AP_Baro_BME280::init()
 	// Set mode to normal to start measuring
 	if (set_bme280_mode(BME280_MODE_NORMAL)) return false;
 
+	// Wait another 10ms for configuration to update
+	hal.scheduler->delay(10);
+
 	healthy = true;
 
     return true;
@@ -115,7 +118,7 @@ void AP_Baro_BME280::accumulate(void)
 uint8_t AP_Baro_BME280::read()
 {
 	uint8_t _buffer[6];
-	hal.i2c->readRegisters(BME280_ADDR, BME280_PRESS_START, 6, _buffer);
+	if (hal.i2c->readRegisters(BME280_ADDR, BME280_PRESS_START, 6, _buffer) != 0) return 1;
 
 	// Combined into raw readings
 	uint32_t pressure_uncompensated = (_buffer[0] << 12) | (_buffer[1] << 4) | (0x0F & _buffer[2]);

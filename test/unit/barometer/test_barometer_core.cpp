@@ -12,15 +12,30 @@ const AP_HAL::HAL& hal = AP_HAL_BOARD_DRIVER;
 uint8_t run_unit_tests(AP_Baro& _barometer)
 {
 	// Initialise barometer
-	_barometer.init();
+	bool init_status = _barometer.init();
+
+	if (!init_status) {
+		printf("Error in baro initialisation\n");
+		return 1;
+	}
 
 	/* Test 1. Read value */
-	uint8_t status = _barometer.read();
+	for (int i=0;i<8;i++) {
+		uint8_t status = _barometer.read();
 
-	float _temp = _barometer.get_temperature();
-	float _pressure = _barometer.get_pressure();
+		if (status!=0) {
+			printf("Error in barometer read\n");
+			return 1;
+		}
 
-	printf("T %f P %f\n", _temp, _pressure);
+		float _temp = _barometer.get_temperature();
+		float _pressure = _barometer.get_pressure();
+
+		printf("T %f P %f\n", _temp, _pressure);
+
+		// Delay 10ms
+		hal.scheduler->delay(10);
+	}
 
 	return 0;
 }
