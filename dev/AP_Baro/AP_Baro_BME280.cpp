@@ -1,6 +1,6 @@
 
-#include <AP_Common.h>
-#include <AP_Math.h>
+// HASH include <AP_Common.h>
+// HASH include <AP_Math.h>
 
 #include <AP_HAL.h>
 #include "AP_Baro_BME280.h"
