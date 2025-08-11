@@ -73,6 +73,9 @@ bool AP_Compass_ICM20948::init()
 
 	_icm_init_magnetometer();
 
+	// Prepare the state for a magnetometer read
+	_icm_prep_magnetometer_measure();
+
 	// Assign magnetometer as healthy
 	_healthy[0] = true;
 
