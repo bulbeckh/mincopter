@@ -42,8 +42,6 @@ void crash_check();
 void read_inertia();
 void read_inertial_altitude();
 
-// leds.pde
-void update_notify();
 
 void perf_info_reset();
 void perf_info_check_loop_time(uint32_t time_in_micros);
@@ -66,6 +64,5 @@ bool GPS_ok();
 
 void update_auto_armed();
 
-uint32_t map_baudrate(int8_t rate, uint32_t default_baud);
 
 void check_usb_mux(void);

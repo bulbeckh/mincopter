@@ -278,14 +278,6 @@ bool WP_Planner::pre_arm_gps_checks(bool display_failure)
         return false;
     }
 
-    // warn about hdop separately - to prevent user confusion with no gps lock
-    if (mincopter.g_gps->hdop > mincopter.gps_hdop_good) {
-        if (display_failure) {
-            //gcs_send_text_P(SEVERITY_HIGH,PSTR("PreArm: High GPS HDOP"));
-        }
-        return false;
-    }
-
     // if we got here all must be ok
     return true;
 }

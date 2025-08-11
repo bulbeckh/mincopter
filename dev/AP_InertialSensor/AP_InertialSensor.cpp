@@ -5,7 +5,6 @@
 
 #include <AP_Common.h>
 #include <AP_HAL.h>
-#include <AP_Notify.h>
 
 extern const AP_HAL::HAL& hal;
 
@@ -137,8 +136,6 @@ AP_InertialSensor::_init_gyro()
     // cold start
     hal.console->print_P(PSTR("GS00-Init Gyro\n"));
 
-    // flash leds to tell user to keep the IMU still
-    AP_Notify::flags.initialising = true;
 
     // remove existing gyro offsets
     for (uint8_t k=0; k<num_gyros; k++) {
@@ -203,9 +200,6 @@ AP_InertialSensor::_init_gyro()
         }
     }
 
-    // stop flashing leds
-    AP_Notify::flags.initialising = false;
-
     if (num_converged == num_gyros) {
         // all OK
         return;
@@ -245,9 +239,6 @@ AP_InertialSensor::_init_accel()
     hal.scheduler->delay(100);
 
     hal.console->print_P(PSTR("Init Accel"));
-
-    // flash leds to tell user to keep the IMU still
-    AP_Notify::flags.initialising = true;
 
     // clear accelerometer offsets and scaling
     for (uint8_t k=0; k<num_accels; k++) {
@@ -320,9 +311,6 @@ AP_InertialSensor::_init_accel()
     for (uint8_t k=0; k<num_accels; k++) {
         _accel_offset[k] = accel_offset[k];
     }
-
-    // stop flashing the leds
-    AP_Notify::flags.initialising = false;
 
     hal.console->print_P(PSTR(" "));
 

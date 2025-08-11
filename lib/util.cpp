@@ -62,8 +62,6 @@ void set_failsafe_radio(bool b)
             //failsafe_radio_on_event();
         }
 
-        // update AP_Notify
-        AP_Notify::flags.failsafe_radio = b;
     }
 }
 
@@ -72,7 +70,6 @@ void set_failsafe_radio(bool b)
 void set_failsafe_battery(bool b)
 {
     planner.failsafe.battery = b;
-    AP_Notify::flags.failsafe_battery = b;
 }
 
 
@@ -80,9 +77,6 @@ void set_failsafe_battery(bool b)
 void set_failsafe_gps(bool b)
 {
     planner.failsafe.gps = b;
-
-    // update AP_Notify
-    AP_Notify::flags.failsafe_gps = b;
 }
 
 // ---------------------------------------------
@@ -119,7 +113,6 @@ void set_pre_arm_check(bool b)
 {
     if(planner.ap.pre_arm_check != b) {
         planner.ap.pre_arm_check = b;
-        AP_Notify::flags.pre_arm_check = b;
     }
 }
 
@@ -247,15 +240,6 @@ void read_inertial_altitude()
     // with inertial nav we can update the altitude and climb rate at 50hz
     mcstate.current_loc.alt = mcstate.inertial_nav.get_altitude();
     controller.climb_rate = mcstate.inertial_nav.get_velocity_z();
-}
-
-// leds.pde
-
-// updates the status of notify
-// should be called at 50hz
-void update_notify()
-{
-    mincopter.notify.update();
 }
 
 // position_vector.pde
@@ -400,26 +384,6 @@ void update_auto_armed()
     }
 }
 
-/*
- *  map from a 8 bit EEPROM baud rate to a real baud rate
- */
-uint32_t map_baudrate(int8_t rate, uint32_t default_baud)
-{
-    switch (rate) {
-    case 1:    return 1200;
-    case 2:    return 2400;
-    case 4:    return 4800;
-    case 9:    return 9600;
-    case 19:   return 19200;
-    case 38:   return 38400;
-    case 57:   return 57600;
-    case 111:  return 111100;
-    case 115:  return 115200;
-    }
-    //cliSerial->println_P(PSTR("Invalid baudrate"));
-    return default_baud;
-}
-
 void check_usb_mux(void)
 {
     bool usb_check = mincopter.hal.gpio->usb_connected();
@@ -438,7 +402,7 @@ void check_usb_mux(void)
     if (planner.ap.usb_connected) {
         mincopter.hal.uartA->begin(SERIAL0_BAUD);
     } else {
-        mincopter.hal.uartA->begin(map_baudrate(mincopter.serial1_baud, SERIAL1_BAUD));
+        mincopter.hal.uartA->begin(SERIAL1_BAUD);
     }
 #endif
 }

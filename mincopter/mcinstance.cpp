@@ -69,14 +69,6 @@ void update_GPS(void)
 				if (planner.ap.home_is_set) {
 						mincopter.gps_glitch.check_position();
 						report_gps_glitch = (mincopter.gps_glitch.glitching() && !planner.ap.usb_connected);
-						if (AP_Notify::flags.gps_glitching != report_gps_glitch) {
-								if (mincopter.gps_glitch.glitching()) {
-										Log_Write_Error(ERROR_SUBSYSTEM_GPS, ERROR_CODE_GPS_GLITCH);
-								}else{
-										Log_Write_Error(ERROR_SUBSYSTEM_GPS, ERROR_CODE_ERROR_RESOLVED);
-								}
-								AP_Notify::flags.gps_glitching = report_gps_glitch;
-						}
 				}
 		}
 

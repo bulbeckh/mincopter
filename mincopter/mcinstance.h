@@ -111,8 +111,6 @@ class MCInstance {
 		AP_InertialSensor_Sim ins;
 #endif
 
-		const AP_InertialSensor::Sample_rate ins_sample_rate = AP_InertialSensor::RATE_100HZ;
-
 		/* @brief Barometer instance */
 #ifdef MC_BARO_MS5611
 		// TODO Whether to use I2C or SPI should be a separate configuration, where the wiring is also specified
@@ -176,19 +174,7 @@ class MCInstance {
 		uint8_t receiver_rssi;
 		AP_HAL::AnalogSource* rssi_analog_source;
 
-		/* @brief notify is used to control onboard LED behaviour */
-		AP_Notify notify;
 
-
-		/* Hardware Variables */
-		
-    int8_t         serial1_baud;
-#if MAVLINK_COMM_NUM_BUFFERS > 2
-    int8_t         serial2_baud;
-#endif
-
-    int16_t        gps_hdop_good;              // GPS Hdop value at or below this value represent a good position
-																				
 		/* RSSI Information - used as part of voltage readers */
     int8_t         rssi_pin;
     float        	 rssi_range;                 // allows to set max voltage for rssi pin such as 5.0, 3.3 etc. 

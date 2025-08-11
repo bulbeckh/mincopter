@@ -39,19 +39,13 @@
  */
 
 
-#include <AP_Scheduler.h>       // main loop scheduler
+#include <AP_Scheduler.h>
 
 #include "defines.h"
 #include "config.h"
-
-// Local modules
-// HASHinclude "compat.h"
 #include "log.h"
-// HASH include "init.h" // Replaced with forward declaration
 #include "util.h"
-
 #include "profiler.h"
-
 #include "mcinstance.h"
 #include "mcstate.h"
 
@@ -97,11 +91,10 @@ const AP_HAL::HAL& hal = mincopter.hal;
 
 uint32_t fast_loopTimer;
 
-/* @brief Initialises the ardupilot. Defined in init.cpp */
+/* @brief Forward declaration of ardupilot initialisation. Defined in init.cpp */
 void init_ardupilot();
 
-/* @brief The state update routine. Will update the AHRS, the Inertial Navigation, and some sensors
- */
+/* @brief The state update routine. Will update the AHRS, the Inertial Navigation, and some sensors */
 void state_update()
 {
     mcstate.read_AHRS();
@@ -109,10 +102,11 @@ void state_update()
     read_inertia();
 
     mcstate.update_trig();
+
+	return;
 }
 
-/* @brief The control update routine. Runs the planner and then the controller.
- */
+/* @brief The control update routine. Runs the planner and then the controller. */
 void control_determination()
 {
 	// The planner should run at every iteration but the controller should only run when armed
@@ -126,18 +120,11 @@ void control_determination()
     simlog.write_planner_state();
 #endif
 
+	return;
 }
 
-#ifdef TARGET_ARCH_LINUX
-uint32_t loop_iterations=0;
-#endif
-
 /* Core Loop - Meant to run every 10ms (10,000 microseconds) */
-#ifdef TARGET_ARCH_LINUX
-bool loop()
-#else
 void loop()
-#endif
 {
     uint32_t timer = micros();
 
@@ -148,11 +135,7 @@ void loop()
     // wait for an INS sample
     if (!mincopter.ins.wait_for_sample(1000)) {
         Log_Write_Error(ERROR_SUBSYSTEM_MAIN, ERROR_CODE_MAIN_INS_DELAY);
-#ifdef TARGET_ARCH_LINUX
-        return false;
-#else
 		return;
-#endif
     }
 
 
@@ -183,31 +166,14 @@ void loop()
 	
 	// NOTE This is taking ~10ms to send/receive 10 times
 	uint32_t st = micros();
-    //for (int ii=0;ii<10;ii++) {
-		gz_interface.send_control_output();
-		gz_interface.recv_state_input();
-    //}
+	gz_interface.send_control_output();
+	gz_interface.recv_state_input();
 	uint32_t gz_elapsed = micros()-st;
-
 #endif
 
-#ifdef TARGET_ARCH_LINUX
-    if (loop_iterations%100==0) {
-	/* Should output every 1 second */
-		std::cout << "TIMING (should be 10ms): " << (1.0e-3)*(micros()-fast_loopTimer) << "ms \n";
-		//std::cout << "GZ (should be <<10ms): " << (1.0e-3)*(gz_elapsed) << "ms \n";
-    	//std::cout << loop_iterations << " loop: time used during sensor update and scheduler call " << time_elapsed << "\n";
-    	//std::cout << "load avg " << scheduler.load_average((uint32_t)10000) << "\n";
-
-	//std::cout << "delay" << 10000-(uint16_t)time_elapsed << "\n";
-    }
-    loop_iterations++;
-#endif
-
-
-    // used by PI Loops
-    mincopter.G_Dt                    = (float)(timer - fast_loopTimer) / 1000000.f;
-    fast_loopTimer          = timer;
+    // mincopter.G_Dt is used by PI loops
+    mincopter.G_Dt = (float)(timer - fast_loopTimer) / 1000000.f;
+    fast_loopTimer = timer;
 
     // Update state
     state_update();
@@ -231,7 +197,6 @@ void loop()
 	uint32_t runtime = gz_elapsed>(uint32_t)10000 ? 300 : (uint32_t)(10000-gz_elapsed);
 	// Run whatever has more time available. Will likely be the runtime because gz_time normally takes >10ms
 	scheduler.run(runtime);
-	if (loop_iterations%100==0) std::cout << "RUNTIME: " << runtime << "\n";
 #else
     scheduler.run(time_available - 300);
 #endif
@@ -239,67 +204,43 @@ void loop()
     uint32_t time_elapsed = micros() - timer;
     // Delay if we have time remaining (i.e. time took less than 10000us)
 	
-#ifdef TARGET_ARCH_LINUX
-	if (loop_iterations%100==0) std::cout << "TIME LEFT AFTER SCHEDULER RUN us: " << time_elapsed << "\n";
-#endif
-
-#ifdef TARGET_ARCH_LINUX
-	static uint32_t exit_count=0;
-	if (exit_count>=500) {
-		return true;
-	}
-	// NOTE Uncomment to ensure exit for gprof
-	//exit_count++;
-	
-	if (loop_iterations%100==0) std::cout << "FINAL TIME us : " << micros()-timer << "\n";
-#endif
-
-#ifdef TARGET_ARCH_LINUX
-	return false;
-#endif
-
+	return;
 }
 
 
+/* TODO Add a new (scheduled) function that checks for input (commands) from
+ * the console and asynchronously runs them ensuring that enough time is
+ * provided to run them. */
 
-
-/*
-  scheduler table - all regular tasks apart from the fast_loop()
-  should be listed here, along with how often they should be called
-  (in 10ms units) and the maximum time they are expected to take (in
-  microseconds)
- */
-
-// TODO Add a new (scheduled) function that checks for input (commands) from the console and asynchronously runs them
-// ensuring that enough time is provided to run them.
-
-/* `scheduler_tasks` has the following structure
- * { function_name, interval_ticks (multiples of 10ms), max time in us }
+/* `scheduler_tasks` has the following structure:
+* 		{ function_name, interval_ticks (multiples of 10ms), max time in us }
  *
- * I believe these are executed in the order they are specified below.
- * There is no mechanism to stop a function overrunning - AP_Scheduler will only report that
- * it overran.
- */
+ * NOTE I believe these are executed in the order they are specified below.
+ * 
+ * NOTE There is no mechanism to stop a function overrunning - AP_Scheduler
+ * will only report that it overran. */
+
 const AP_Scheduler::Task scheduler_tasks[] PROGMEM = {
-//												 TOTAL 4210
 #ifdef TARGET_ARCH_LINUX
-	/* For simulation, we reduce the maximum runtime for each to 1us in order to ensure they all run
-	 * within a single scheduler call */
-    { update_GPS, 	   2,     1 }, /* Sensor Update - GPS */
-    { read_batt_compass,  10,  1 }, /* Sensor Update - Battery */
-    { update_altitude,    10,  1 }, /* Sensor Update - Barometer (read) */
-    { read_compass,        2,  1 }, /* Sensor Update - Compass */
-    { read_baro,  	   2,     1 }, /* Sensor Update - Barometer (accumulate) */
-    { one_hz_loop,       100,  1 },
+	/* For simulation, we reduce the maximum runtime for each function
+	 * to 1us in order to ensure they all run within a single scheduler call */
+    { update_GPS, 	       2,   1 }, /* Sensor Update - GPS */
+    { read_batt_compass,  10,   1 }, /* Sensor Update - Battery */
+    { update_altitude,    10,   1 }, /* Sensor Update - Barometer (read) */
+    { read_compass,        2,   1 }, /* Sensor Update - Compass */
+    { read_baro,  	       2,   1 }, /* Sensor Update - Barometer (accumulate) */
+    { one_hz_loop,       100,   1 },
 #else
-    { update_GPS, 	   2,     900 }, /* Sensor Update - GPS */
-    { read_batt_compass,  10,     720 }, /* Sensor Update - Battery */
-    { update_altitude,    10,    1000 }, /* Sensor Update - Barometer (read) */
-    { read_compass,        2,     420 }, /* Sensor Update - Compass */
-    { read_baro,  	   2,     250 }, /* Sensor Update - Barometer (accumulate) */
-    { one_hz_loop,       100,     420 },
+    { update_GPS, 	       2, 900 }, /* Sensor Update - GPS */
+    { read_batt_compass,  10, 720 }, /* Sensor Update - Battery */
+    { update_altitude,    10,1000 }, /* Sensor Update - Barometer (read) */
+    { read_compass,        2, 420 }, /* Sensor Update - Compass */
+    { read_baro,  	       2, 250 }, /* Sensor Update - Barometer (accumulate) */
+    { one_hz_loop,       100, 420 },
 #endif
 
+	/* NOTE These functions have been removed from the codebase.
+	 * Kept here for reference only. */
     //{ dump_serial, 	  20,     500 },
     //{ run_cli,          10,     500 },
     //{ throttle_loop,     2,     450 },
@@ -314,8 +255,7 @@ const AP_Scheduler::Task scheduler_tasks[] PROGMEM = {
 
 
 /* The scheduler should schedule functions that execute sensor and state updates.
-* It should then 'tick' the behaviour tree which runs control libraries.
-*/
+* It should then 'tick' the behaviour tree which runs control libraries. */
 
 /* TODO Remove this - this is an artefact from the old Arduino setup/loop format of code. Can reducing bloat
  * here by moving to a single main function */
@@ -330,23 +270,13 @@ void setup()
     scheduler.init(&scheduler_tasks[0], sizeof(scheduler_tasks)/sizeof(scheduler_tasks[0]));
 }
 
-// NOTE Replaced the macro expansion with the main entrypoint to avoid modifying AP_HAL_AVR library
-// AP_HAL_MAIN();
-
+// AP_HAL_MAIN() body
 extern "C" {
   int main (void) {
 		mincopter.hal.init(0, NULL);
     setup();
     mincopter.hal.scheduler->system_initialized();
-#ifdef TARGET_ARCH_LINUX
-	// For simulation purposes, have ability to exit early
-	bool early_return=false;
-	while (!early_return) {
-		early_return = loop();
-	}
-#else
     for(;;) loop();
-#endif
     return 0;
 	}
 }

@@ -42,7 +42,6 @@ void init_esc()
 	while(0) {
 		read_radio();
 		delay(100);
-		AP_Notify::flags.esc_calibration = true;
 		mincopter.motors.throttle_pass_through();
 	}
 	*/
@@ -95,7 +94,6 @@ void init_rc_out()
             // display message on console
             mincopter.cliSerial->printf_P(PSTR("Entering ESC Calibration: please restart APM.\n"));
             // turn on esc calibration notification
-            AP_Notify::flags.esc_calibration = true;
             // block until we restart
             while(1) { delay(5); }
         }else{

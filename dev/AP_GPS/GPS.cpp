@@ -5,7 +5,6 @@
 #include <AP_Common.h>
 #include <AP_Math.h>
 #include <AP_HAL.h>
-#include <AP_Notify.h>
 #include "GPS.h"
 
 #include <stdio.h>
@@ -115,9 +114,6 @@ GPS::update(void)
             }
         }
     }
-
-    // update notify with gps status
-    AP_Notify::flags.gps_status = _status;
 }
 
 void

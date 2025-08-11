@@ -5,7 +5,6 @@
 #include <AP_Common.h>
 #include <AP_Math.h>
 #include <AP_HAL.h>
-#include <AP_Notify.h>
 #include "AP_GPS_Glitch.h"
 
 extern const AP_HAL::HAL& hal;

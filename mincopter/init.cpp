@@ -68,9 +68,6 @@ void init_ardupilot()
 
     bool enable_external_leds = true;
 
-    // initialise notify system
-    // disable external leds if epm is enabled because of pin conflict on the APM
-    mincopter.notify.init(enable_external_leds);
 
     // initialise battery monitor
     mincopter.battery.init();
@@ -93,13 +90,13 @@ void init_ardupilot()
 	
 	// TODO Replace this with the board configuration that checks how many UARTs are enabled 
 	if (mincopter.hal.uartC != NULL) {
-    	mincopter.hal.uartC->begin(map_baudrate(mincopter.serial1_baud, SERIAL1_BAUD), 128, 128);
+    	mincopter.hal.uartC->begin(SERIAL1_BAUD, 128, 128);
 	}
     //gcs[1].init(hal.uartC);
 #endif
 #if MAVLINK_COMM_NUM_BUFFERS > 2
     if (mincopter.hal.uartD != NULL) {
-        mincopter.hal.uartD->begin(map_baudrate(mincopter.serial2_baud, SERIAL2_BAUD), 128, 128);
+        mincopter.hal.uartD->begin(SERIAL2_BAUD, 128, 128);
         //gcs[2].init(hal.uartD);
     }
 #endif
@@ -210,7 +207,7 @@ void init_ardupilot()
 
     // Warm up and read Gyro offsets
     // -----------------------------
-    mincopter.ins.init(AP_InertialSensor::COLD_START, mincopter.ins_sample_rate);
+    mincopter.ins.init(AP_InertialSensor::COLD_START, AP_InertialSensor::RATE_100HZ);
 
     // setup fast AHRS gains to get right attitude
     mcstate.ahrs.set_fast_gains(true);

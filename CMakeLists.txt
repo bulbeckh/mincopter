@@ -204,7 +204,6 @@ list(APPEND MC_INCLUDE_DIRS
 	${CMAKE_SOURCE_DIR}/dev/AP_GPS
 	${CMAKE_SOURCE_DIR}/dev/AP_InertialSensor
 	${CMAKE_SOURCE_DIR}/dev/AP_Motors
-	${CMAKE_SOURCE_DIR}/dev/AP_Notify
 	${CMAKE_SOURCE_DIR}/dev/DataFlash
 	${CMAKE_SOURCE_DIR}/control/include/controllers/AC_PID
 	${CMAKE_SOURCE_DIR}/control/include/controllers/
