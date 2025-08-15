@@ -81,7 +81,7 @@ void init_ardupilot()
     // port with SERIAL0_BAUD. check_usb_mux() fixes this if need be.
     planner.ap.usb_connected = true;
 
-    check_usb_mux();
+    //check_usb_mux();
 
 #if CONFIG_HAL_BOARD != HAL_BOARD_APM2
     // we have a 2nd serial port for telemetry on all boards except

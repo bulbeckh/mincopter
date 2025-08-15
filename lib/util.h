@@ -65,4 +65,3 @@ bool GPS_ok();
 void update_auto_armed();
 
 
-void check_usb_mux(void);

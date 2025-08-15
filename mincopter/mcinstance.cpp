@@ -193,6 +193,4 @@ void one_hz_loop()
 		}
 		*/
 
-		check_usb_mux();
-
 }
