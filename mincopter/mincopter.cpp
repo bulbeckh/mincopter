@@ -97,9 +97,11 @@ void init_ardupilot();
 /* @brief The state update routine. Will update the AHRS, the Inertial Navigation, and some sensors */
 void state_update()
 {
-    mcstate.read_AHRS();
+	mcstate.ahrs.update();
 
-    read_inertia();
+	mcstate.omega = mincopter.ins.get_gyro();
+
+	mcstate.inertial_nav.update(mincopter.G_Dt);
 
     mcstate.update_trig();
 

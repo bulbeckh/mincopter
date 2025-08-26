@@ -13,7 +13,7 @@ if [ "$1" == "gdb" ]; then
 	if [ -f "bin/mincopter" ]; then
 		gdb ./bin/mincopter  -x ../docs/breaks.gdb
 	else
-		./build/bin/mincopter -x ./docs/breaks.gdb
+		./build-generic/bin/mincopter -x ./docs/breaks.gdb
 	fi
 
 else
@@ -21,7 +21,7 @@ else
 	if [ -f "bin/mincopter" ]; then
 		./bin/mincopter
 	else
-		./build/bin/mincopter
+		./build-generic/bin/mincopter
 	fi
 fi
 

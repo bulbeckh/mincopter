@@ -39,7 +39,7 @@ uint8_t digitalRead(uint8_t pin);
 void crash_check();
 
 // inertia.pde
-void read_inertia();
+//void read_inertia();
 void read_inertial_altitude();
 
 

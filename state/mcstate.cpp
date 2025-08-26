@@ -18,12 +18,14 @@ MCState::MCState() :
 
 }
 
+/*
 void MCState::read_AHRS(void)
 {
 		// Perform IMU calculations and get attitude info
 		this->ahrs.update();
 		this->omega = mincopter.ins.get_gyro();
 }
+*/
 
 void MCState::update_trig(void){
 		Vector2f yawvector;

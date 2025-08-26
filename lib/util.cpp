@@ -228,11 +228,13 @@ void crash_check()
 // inertia.pde
 
 // read_inertia - read inertia in from accelerometers
+/*
 void read_inertia()
 {
     // inertial altitude estimates
     mcstate.inertial_nav.update(mincopter.G_Dt);
 }
+*/
 
 // read_inertial_altitude - pull altitude and climb rate from inertial nav library
 void read_inertial_altitude()

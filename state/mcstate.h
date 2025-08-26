@@ -57,7 +57,7 @@ class MCState
 
 		/* @brief Entry point into state update
 		 */
-		void read_AHRS(void);
+		//void read_AHRS(void);
 
 
 };
