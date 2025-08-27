@@ -29,6 +29,15 @@ if(MC_SIM_TYPE STREQUAL "SIM")
 				${CMAKE_SOURCE_DIR}/state/AP_InertialNav/inav_default.cpp
 			)
 		endif()
+
+		## The EKF class implements both the AHRS and the INAV so we check the flag for either of them
+		if(MC_INAV_TYPE STREQUAL "EKF" OR MC_AHRS_TYPE STREQUAL "EKF")
+			list(APPEND MC_LIBS_STATE
+				${CMAKE_SOURCE_DIR}/state/ekf/ekf.cpp
+				${CMAKE_SOURCE_DIR}/state/ekf/ekf_predict.c
+				${CMAKE_SOURCE_DIR}/state/ekf/ekf_correct.c
+			)
+		endif()
 	endif()
 else()
 	## Non-simulation
@@ -42,6 +51,14 @@ else()
 	if(MC_INAV_TYPE STREQUAL "DEFAULT")
 		list(APPEND MC_LIBS_STATE
 			${CMAKE_SOURCE_DIR}/state/AP_InertialNav/inav_default.cpp
+		)
+	endif()
+
+	if(MC_INAV_TYPE STREQUAL "EKF" OR MC_AHRS_TYPE STREQUAL "EKF")
+		list(APPEND MC_LIBS_STATE
+			${CMAKE_SOURCE_DIR}/state/ekf/ekf.cpp
+			${CMAKE_SOURCE_DIR}/state/ekf/ekf_predict.c
+			${CMAKE_SOURCE_DIR}/state/ekf/ekf_correct.c
 		)
 	endif()
 endif()

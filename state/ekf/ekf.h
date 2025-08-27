@@ -34,7 +34,7 @@
 
 class EKF : public AP_AHRS, public MC_InertialNav {
 	public:
-		EKF() {}
+		EKF();
 
 	private:
 		/* @brief Run estimation part of EKF algorithm
@@ -67,15 +67,15 @@ class EKF : public AP_AHRS, public MC_InertialNav {
 		double var_accel;
 		double var_mag;
 
-		// NOTE Is this type of indexing correct here or should we create a truly continugous array rather than pointer->pointer?
-		double cov[10][10];
+		// NOTE Covariance matrix (10,10)
+		double cov[100];
 		double q[4];
 		double x[3];
 		double v[3];
 
 		// NOTE TODO These are duplicates with the above state - change into a single struct/union so that one can be re-used
 		double state_out[10];
-		double cov_out[10][10];
+		double cov_out[100];
 
 		// NOTE In very constrained system, we could point this directly to the memory location of current GPS position and velocity
 		double gps_pos[3];
@@ -84,9 +84,9 @@ class EKF : public AP_AHRS, public MC_InertialNav {
 		double var_gps_vel;
 
 		double state_est[10];
-		double cov_est[10][10];
+		double cov_est[100];
 
-		double ekf_predict_arg[] = {
+		double* ekf_predict_arg[9] = {
 			&dt,
 			w,
 			a,
@@ -97,9 +97,9 @@ class EKF : public AP_AHRS, public MC_InertialNav {
 			x,
 			v};
 
-		double ekf_predict_res[] = {state_est, cov_est};
+		double* ekf_predict_res[2] = {state_est, cov_est};
 
-		double ekf_correct_arg[] = {
+		double* ekf_correct_arg[10] = {
 			state_est, // Re-use state_est and cov_est from ekf_predict
 			cov_est,
 			a,
@@ -111,10 +111,11 @@ class EKF : public AP_AHRS, public MC_InertialNav {
 			&var_gps_pos,
 			&var_gps_vel};
 
-		double vt[10][12];
-		double kgain[10][10];
+		// NOTE vt matrix is (10,12) and kgain is (10,10)
+		double vt[120];
+		double kgain[100];
 
-		double ekf_correct_res[] = {state_out, cov_out, vt, kgain};
+		double* ekf_correct_res[4] = {state_out, cov_out, vt, kgain};
 
 		// TODO What units are each of these??
 		// TODO Change to struct
@@ -127,6 +128,9 @@ class EKF : public AP_AHRS, public MC_InertialNav {
 
 		/* @brief Vector holding attitude quaternion in ENU frame */
 		Quaternion _attitude;
+
+		/* @brief DCM Matrix representation of orientation in ENU frame. NOTE Computed on demand at function call */
+		Matrix3f _dcm;
 
 	public:
 		
@@ -141,7 +145,7 @@ class EKF : public AP_AHRS, public MC_InertialNav {
 		void update(void) override;
 
 		/* @brief Returns the latest gyrometer reading TODO Why should this be in mcstate and not got directly from sensors? */
-    	const Vector3f get_gyro(void) override;
+    	const Vector3f get_gyro(void) const override;
 
 		/* @brief Returns the estimate gyrometer drift TODO Not yet implemented in EKF */
     	const Vector3f &get_gyro_drift(void) const override;
@@ -154,8 +158,8 @@ class EKF : public AP_AHRS, public MC_InertialNav {
     	void reset_attitude(const float &roll, const float &pitch, const float &yaw) override;
 
 		// TODO Remove these from MCState representation
-    	virtual float get_error_rp(void) = 0;
-    	virtual float get_error_yaw(void) = 0;
+    	float get_error_rp(void) override;
+    	float get_error_yaw(void) override;
 
 		/* @brief Returns a DCM matrix representation of the current attitude in the ENU frame */
     	const Matrix3f &get_dcm_matrix(void) const override;
@@ -176,7 +180,7 @@ class EKF : public AP_AHRS, public MC_InertialNav {
 		void set_altitude(float new_alt) override;
 
 		// TODO Should origin be tracked as part of MCState or in planner? Remove if needed
-		virtual void set_home_position(int32_t lat, int32_t lng) = 0;
+		void set_home_position(int32_t lat, int32_t lng) override;
 
 
 

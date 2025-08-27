@@ -11,6 +11,9 @@
 #elif MC_AHRS_SIM
 	#include "ahrs_sim.h"
 	#define MC_AHRS_CLASS AHRS_sim
+#elif MC_AHRS_EKF
+	#include "ekf.h"
+	#define MC_AHRS_CLASS EKF
 /* Add additional AHRS here
  *
  */

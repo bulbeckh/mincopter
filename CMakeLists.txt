@@ -132,6 +132,8 @@ endif()
 #add_compile_definitions( MC_AHRS_SIM )
 if(MC_AHRS_TYPE STREQUAL "DCM")
 	add_compile_definitions( MC_AHRS_DCM )
+elseif(MC_AHRS_TYPE STREQUAL "EKF")
+	add_compile_definitions( MC_AHRS_EKF )
 else()
 	message(FATAL_ERROR "Unsupported AHRS type: ${MC_AHRS_TYPE}")
 endif()
@@ -140,6 +142,8 @@ endif()
 #add_compile_definitions( MC_INAV_SIM )
 if(MC_INAV_TYPE STREQUAL "DEFAULT")
 	add_compile_definitions( MC_INAV_DEFAULT )
+elseif(MC_INAV_TYPE STREQUAL "EKF")
+	add_compile_definitions( MC_INAV_EKF )
 else()
 	message(FATAL_ERROR "Unsupported INAV type: ${MC_INAV_TYPE}")
 endif()
@@ -194,6 +198,7 @@ list(APPEND MC_INCLUDE_DIRS
 	${CMAKE_SOURCE_DIR}/lib/
 	${CMAKE_SOURCE_DIR}/state/AP_AHRS
 	${CMAKE_SOURCE_DIR}/state/AP_InertialNav
+	${CMAKE_SOURCE_DIR}/state/ekf
 	${CMAKE_SOURCE_DIR}/state/
 	${CMAKE_SOURCE_DIR}/dev/AP_ADC
 	${CMAKE_SOURCE_DIR}/dev/AP_ADC_AnalogSource

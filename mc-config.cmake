@@ -23,8 +23,8 @@ set(MC_PLANNER_TYPE "NONE")
 
 ## Specify state here
 ## TODO Change these names
-set(MC_INAV_TYPE "DEFAULT") ## (DEFAULT)
-set(MC_AHRS_TYPE "DCM") ## (DCM)
+set(MC_INAV_TYPE "EKF") ## (DEFAULT, EKF)
+set(MC_AHRS_TYPE "EKF") ## (DCM, EKF)
 
 ## Specify backend dev (ignored for sim)
 ## TODO Get ride of this

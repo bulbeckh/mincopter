@@ -7,6 +7,9 @@
 #elif MC_INAV_SIM
 	#include "inav_sim.h"
 	#define MC_INAV_CLASS MC_InertialNav_Sim
+#elif MC_INAV_EKF
+	#include "ekf.h"
+	#define MC_INAV_CLASS EKF
 /* Add remaining implementations here */
 #else
 	#error No INAV implementation selected

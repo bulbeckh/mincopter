@@ -3,9 +3,6 @@
 
 #include "AP_Math.h"
 
-#include "mcinstance.h"
-extern MCInstance mincopter;
-
 #include "gz_interface.h"
 extern GZ_Interface gz_interface;
 
