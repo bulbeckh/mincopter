@@ -9,11 +9,22 @@ extern MCInstance mincopter;
 
 #include "util.h"
 
+// TODO This is now incorrect as it is potentially created and initialising two EKF instances. Change to pointers instead
+
 MCState::MCState() : 
+#if MC_AHRS_DCM
 		ahrs(mincopter.ins, mincopter.g_gps),
-		//fence(&this->inertial_nav),
+#elif MC_AHRS_EKF
+		ahrs(),
+#endif
+
+#if MC_INAV_DEFAULT
 		inertial_nav(&this->ahrs, &mincopter.barometer, mincopter.g_gps, mincopter.gps_glitch)
+#elif MC_INAV_EKF
+		inertial_nav()
+#endif
 		//wp_nav(&this->inertial_nav, &this->ahrs, &mincopter.pi_loiter_lat, &mincopter.pi_loiter_lon, &mincopter.pid_loiter_rate_lat, &mincopter.pid_loiter_rate_lon)
+		//fence(&this->inertial_nav),
 {
 
 }

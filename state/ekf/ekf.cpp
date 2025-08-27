@@ -1,10 +1,6 @@
 
 
 #include "ekf.h"
-
-#include "ekf_predict.h"
-#include "ekf_correct.h"
-
 #include <math.h>
 
 #include "mcinstance.h"
@@ -17,20 +13,19 @@ EKF::EKF() :
 
 }
 
-// TODO REMOVE THESE 
-float EKF::get_error_rp(void) {}
-float get_error_yaw(void) {}
-
+// NOTE We forward declare the generated ekf casadi methods here rather than using a header file
+int ekf_predict(const double** arg, double** res, long long int* iw, double* w, int mem);
+int ekf_correct(const double** arg, double** res, long long int* iw, double* w, int mem);
 
 void EKF::update(void)
 {
 	// This is called from the main loop at ~100Hz
 	
 	// Run prediction step (last three args are real/int workspace sizes and memory index, which are all 0)
-	int _result = ekf_predict(&ekf_predict_arg, &ekf_predict_res, 0, 0, 0);
+	int _result = ekf_predict(ekf_predict_arg, ekf_predict_res, 0, 0, 0);
 
 	// Run correction step
-	int _result = ekf_correct(&ekf_correct_arg, &ekf_correct_res, 0, 0, 0);
+	int _result = ekf_correct(ekf_correct_arg, ekf_correct_res, 0, 0, 0);
 
 	return;
 }
@@ -67,7 +62,7 @@ const Vector3f& EKF::get_gyro_drift(void) const
 	return Vector3f(0.0f,0.0f,0.0f);
 }
 
-void reset(bool recover_eulers)
+void EKF::reset(bool recover_eulers)
 {
 	// acc2q method from github.com/mayitzin/ahrs
 	
@@ -109,7 +104,7 @@ void reset(bool recover_eulers)
 	return;
 }
 
-void reset_attitude(const float &roll, const float &pitch, const float &yaw)
+void EKF::reset_attitude(const float &roll, const float &pitch, const float &yaw)
 {
 	_altitude.from_euler(roll, pitch, yaw);
 
@@ -122,8 +117,8 @@ void reset_attitude(const float &roll, const float &pitch, const float &yaw)
 }
 
 // TODO Remove these from MCState representation
-float EKF::get_error_rp(void) {}
-float EKF::get_error_yaw(void) {}
+float EKF::get_error_rp(void) { return 0.0f; }
+float EKF::get_error_yaw(void) { return 0.0f; }
 
 const Matrix3f& EKF::get_dcm_matrix(void) const
 {
