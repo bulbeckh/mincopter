@@ -17,6 +17,12 @@
  * vector is expressed in an ENU frame.
  *
  *
+ * Part 1. Predict
+ * This function returns a predicted state (float[10]) and predicted covariance matrix (float[10][10])
+ *
+ * Part 2. Correct
+ * This function returns a measurement corrected state matrix and covariance matrix
+ *
  */
 
 #include <AP_Math.h>
@@ -30,7 +36,7 @@ class EKF : public AP_AHRS, public MC_InertialNav {
 	public:
 		EKF() {}
 
-	public:
+	private:
 		/* @brief Run estimation part of EKF algorithm
 		 * @param dt The elapsed time (in seconds) since last the last EKF prediction */
 		void predict(float dt);
@@ -38,7 +44,7 @@ class EKF : public AP_AHRS, public MC_InertialNav {
 		/* @brief Correct state position and velocity estimates with GPS reading
 		 * @param gps_position Vector3f with latest gps position measurement
 		 * @param gps_velocity Vector3f with latest gps velocity measurement */
-		void correct_pos_vel(Vector3f gps_position, Vector3f gps_velocty);
+		void correct_pos_vel(Vector3f gps_position, Vector3f gps_velocity);
 
 		/* @brief Correct state attitude with magnetometer and accelerometer (gravity) readings
 		 * @param mag_reading Latest magnetometer measurement
@@ -46,8 +52,73 @@ class EKF : public AP_AHRS, public MC_InertialNav {
 		void correct_attitude(Vector3f mag_reading, Vector3f accelerometer_reading);
 
 	private:
+		/* Our casadi functions use the following interface:
+		 *
+		 *
+		 *
+		 */
+
+		// ekf arg/res
+		double dt;
+		double w[3];
+		double a[3];
+		double m[3];
+		double var_gyro;
+		double var_accel;
+		double var_mag;
+
+		// NOTE Is this type of indexing correct here or should we create a truly continugous array rather than pointer->pointer?
+		double cov[10][10];
+		double q[4];
+		double x[3];
+		double v[3];
+
+		// NOTE TODO These are duplicates with the above state - change into a single struct/union so that one can be re-used
+		double state_out[10];
+		double cov_out[10][10];
+
+		// NOTE In very constrained system, we could point this directly to the memory location of current GPS position and velocity
+		double gps_pos[3];
+		double gps_vel[3];
+		double var_gps_pos;
+		double var_gps_vel;
+
+		double state_est[10];
+		double cov_est[10][10];
+
+		double ekf_predict_arg[] = {
+			&dt,
+			w,
+			a,
+			&var_gyro,
+			&var_accel,
+			cov, 
+			q,
+			x,
+			v};
+
+		double ekf_predict_res[] = {state_est, cov_est};
+
+		double ekf_correct_arg[] = {
+			state_est, // Re-use state_est and cov_est from ekf_predict
+			cov_est,
+			a,
+			&var_accel,
+			m,
+			&var_mag,
+			gps_pos,
+			gps_vel,
+			&var_gps_pos,
+			&var_gps_vel};
+
+		double vt[10][12];
+		double kgain[10][10];
+
+		double ekf_correct_res[] = {state_out, cov_out, vt, kgain};
+
 		// TODO What units are each of these??
-		
+		// TODO Change to struct
+
 		/* @brief Vector holding position estimate in ENU frame */
 		Vector3f _position;
 
@@ -56,16 +127,6 @@ class EKF : public AP_AHRS, public MC_InertialNav {
 
 		/* @brief Vector holding attitude quaternion in ENU frame */
 		Quaternion _attitude;
-
-		// TODO Do we need to explicitly declare the 10x10 covariance matrix, P here?
-		
-		/* @brief Sensor variances for EKF algorithm */
-		float acc_variance;
-		float gyr_variance;
-		float mag_variance;
-
-		float gps_pos_variance;
-		float gps_vel_variance;
 
 	public:
 		
