@@ -29,14 +29,30 @@ MCState::MCState() :
 
 }
 
-/*
-void MCState::read_AHRS(void)
+
+void MCState::update(void)
 {
-		// Perform IMU calculations and get attitude info
-		this->ahrs.update();
-		this->omega = mincopter.ins.get_gyro();
+
+	/* If we are using the EKF, then we run the full update using a call to the inertial_nav and ignore the ahrs update method */
+#ifndef MC_AHRS_EKF
+	ahrs->update();
+#endif
+
+	// TODO Change the function prototype to contain NO dt parameter - this should be taken from accelerometer/gyrometer elasped time
+	inertial_nav->update(0.0f);
+
+	// TODO Check if we are using a drift/bias compensation state in our model and then compensate direct sensor readings
+	_omega = mincopter.ins.get_gyro();
+	_accel = mincopter.ins.get_accel();
+
+	// TODO I don't think this needs to be called
+	update_trig();
+
+	// TODO Update current_loc variable
+
+	// TODO Should this return something to indicate successful update
+	return;
 }
-*/
 
 void MCState::update_trig(void){
 		Vector2f yawvector;

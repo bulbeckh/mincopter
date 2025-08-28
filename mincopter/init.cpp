@@ -154,7 +154,12 @@ void init_ardupilot()
     	mincopter.g_gps->init(mincopter.hal.uartA, GPS::GPS_ENGINE_AIRBORNE_1G);
 	}
 
-    init_compass();
+    //init_compass();
+	// NOTE TODO Check whether the compass init was successful
+    mincopter.compass.init();
+	//mincopter.compass.read();
+	
+    //mcstate.ahrs.set_compass(&mincopter.compass);
 
     mcstate.inertial_nav.init();
 

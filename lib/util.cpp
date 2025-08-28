@@ -306,15 +306,6 @@ void init_barometer(bool full_calibration)
     }
 }
 
-
-void init_compass()
-{
-    if (!mincopter.compass.init() || !mincopter.compass.read()) {
-        return;
-    }
-    mcstate.ahrs.set_compass(&mincopter.compass);
-}
-
 // read the receiver RSSI as an 8 bit number for MAVLink
 // RC_CHANNELS_SCALED message
 void read_receiver_rssi(void)

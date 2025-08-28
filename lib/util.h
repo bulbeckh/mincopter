@@ -7,7 +7,7 @@
 // from sensors but added into util
 void init_barometer(bool full_calibration);
 int32_t read_barometer(void);
-void init_compass();
+//void init_compass();
 void read_receiver_rssi(void);
 
 // from arducopter.cpp

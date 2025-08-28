@@ -71,24 +71,6 @@ public:
         set_orientation();
     };
 
-    // Accessors
-    void set_fly_forward(bool b) {
-        _flags.fly_forward = b;
-    }
-
-    void set_wind_estimation(bool b) {
-        _flags.wind_estimation = b;
-    }
-
-    void set_compass(Compass *compass) {
-        _compass = compass;
-        set_orientation();
-    }
-
-    const Compass* get_compass() const {
-        return _compass;
-    }
-        
     // allow for runtime change of orientation
     // this makes initial config easier
     void set_orientation() {
@@ -97,17 +79,6 @@ public:
             _compass->set_board_orientation((enum Rotation)_board_orientation);
         }
     }
-
-    const GPS *get_gps() const {
-        return _gps;
-    }
-
-    const AP_InertialSensor &get_ins() const {
-	    return _ins;
-    }
-
-    // accelerometer values in the earth frame in m/s/s
-    const Vector3f &get_accel_ef(void) const { return _accel_ef; }
 
     // Methods
     virtual void update(void) = 0;
@@ -260,9 +231,6 @@ protected:
     // the limit of the gyro drift claimed by the sensors, in
     // radians/s/s
     float _gyro_drift_limit;
-
-    // accelerometer values in the earth frame in m/s/s
-    Vector3f        _accel_ef;
 
 	// Declare filter states for HPF and LPF used by complementary
 	// filter in AP_AHRS::groundspeed_vector
