@@ -6,20 +6,20 @@
 #include "mcinstance.h"
 extern MCInstance mincopter;
 
-EKF::EKF() :
-	AP_AHRS(&mincopter.ins, mincopter.g_gps),
-	MC_InertialNav()
-{
+// NOTE We forward declare the generated ekf casadi methods here rather than using a header file
 
+// Casadi generated c functions for ekf prediction and correction steps
+extern "C" {
+	int ekf_predict(const double** arg, double** res, long long int* iw, double* w, int mem);
+	int ekf_correct(const double** arg, double** res, long long int* iw, double* w, int mem);
 }
 
-// NOTE We forward declare the generated ekf casadi methods here rather than using a header file
-int ekf_predict(const double** arg, double** res, long long int* iw, double* w, int mem);
-int ekf_correct(const double** arg, double** res, long long int* iw, double* w, int mem);
-
-void EKF::update(void)
+void EKF::inav_update(void)
 {
 	// This is called from the main loop at ~100Hz
+	
+	// Prepare the predict and correct variable arrays with sensor readings and previous estimated state from _state
+	setup_ekf_args();
 	
 	// Run prediction step (last three args are real/int workspace sizes and memory index, which are all 0)
 	int _result = ekf_predict(ekf_predict_arg, ekf_predict_res, 0, 0, 0);
@@ -30,47 +30,51 @@ void EKF::update(void)
 	return;
 }
 
-
-/* IMPLEMENT REMAINING FUNCTIONS HERE */
-
-void EKF::predict(float dt)
+void EKF::setup_ekf_args(void)
 {
-	/* For now this is a placeholder until we change mcstate update interface */
+	/* Predict setup */
+
+	// TODO Does our dt represent a gyrometer time or an accelerometer time?
+	// Read dt from gyrometer
+	
+	// Get w - latest gyrometer reading
+	
+	// Get a - latest accel reading
+	
+	// Get accel and gyro variances TODO These should not change and be retrieved during
+	// init from the sensor drivers
+	
+	// Get state (q,x,v) from _state
+	
+
+	/* Correct step */
+
+	// Get a - latest accel reading
+	
+	// Get m - latest magnetometer reading
+	
+	// Get var_mag - mag variance
+	
+	// Get gps pos/vel/variances
+	
+	return;
 }
 
-void EKF::correct_pos_vel(Vector3f gps_position, Vector3f gps_velocity)
-{
-	/* For now this is a placeholder until we change mcstate update interface */
-}
-
-void EKF::correct_attitude(Vector3f mag_reading, Vector3f accelerometer_reading)
-{
-	/* For now this is a placeholder until we change mcstate update interface */
-}
-
-const Vector3f EKF::get_gyro(void) const
-{
-	// TODO Remove this whole interface - controllers/planners should just get
-	// gyrometer readings from devices directly rather than going through state
-	// estimation. Angular velocity is not really state unless it has biases
-	// removed during state estimation
-	return mincopter.ins.get_gyro();
-}
-
-const Vector3f& EKF::get_gyro_drift(void) const
-{
-	return Vector3f(0.0f,0.0f,0.0f);
-}
-
-void EKF::reset(bool recover_eulers)
+void EKF::reset(void)
 {
 	// acc2q method from github.com/mayitzin/ahrs
 	
 	// TODO Ignored the recover_eulers argument
 	
-	// Reset covariance matrix
+	// Reset covariance matrix to identity matrix
 	for (uint8_t i=0;i<10;i++) {
-		for (uint8_t j=0;j<10;j++) cov[i][j] = 0.0f;
+		for (uint8_t j=0;j<10;j++) {
+			if (i==j) {
+				cov[i*10+j] = 1.0f;
+			} else {
+				cov[i*10+j] = 0.0f;
+			}
+		}
 	}
 
 	// TODO Should we be resetting position/velocity to most recent GPS measurement?
@@ -97,68 +101,31 @@ void EKF::reset(bool recover_eulers)
 	q[3] = -sx2*sy2;
 
 	// Update _altitude quaternion
-	_altitude(q[0], q[1], q[2], q[3]);
+	_state._attitude(q[0], q[1], q[2], q[3]);
 	
 	// TODO normalize the _altitude quaternion
 
 	return;
 }
 
-void EKF::reset_attitude(const float &roll, const float &pitch, const float &yaw)
-{
-	_altitude.from_euler(roll, pitch, yaw);
 
-	q[0] = _altitude.q1;
-	q[1] = _altitude.q2;
-	q[2] = _altitude.q3;
-	q[3] = _altitude.q4;
+void EKF::_ahrs_init_internal(void)
+{
+	// Initialise quaternion state
+	reset();
 
 	return;
 }
 
-// TODO Remove these from MCState representation
-float EKF::get_error_rp(void) { return 0.0f; }
-float EKF::get_error_yaw(void) { return 0.0f; }
-
-const Matrix3f& EKF::get_dcm_matrix(void) const
+void EKF::ahrs_update(void)
 {
-	_altitude.rotation_matrix(_dcm);
-
-	return _dcm;
-}
-
-// Implementation of AP_InertialNav methods
-
-
-// TODO Change name
-void EKF::init(void)
-{
-	/* No implementation yet*/
+	/* For the EKF, the entire state update (predict and correct) is handled by
+	 * inav_update. As such, we don't actually do anything in this method. */
 	return;
 }
 
-void EKF::update(float dt)
+void EKF::_inav_init_internal(void)
 {
-	/* No implementation yet*/
+	/* TODO */
 	return;
 }
-
-bool EKF::position_ok() const
-{
-	/* TODO No implementation yet*/
-	return;
-}
-
-void EKF::set_altitude(float new_alt)
-{
-	// x is a vector with position in ENU frame (z-axis is positive-up and last index)
-	x[2] = new_alt;
-	return;
-}
-
-void EKF::set_home_position(int32_t lat, int32_t lng)
-{
-	/* TODO No implementation yet*/
-	return;
-}
-

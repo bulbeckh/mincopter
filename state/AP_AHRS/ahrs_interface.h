@@ -40,22 +40,33 @@ class AP_AHRS
 		}
 
 		/* @brief Initialisation of the AHRS */
-		virtual void ahrs_init(MCStateData* state) = 0;
+		void ahrs_init(MCStateData* state) {
+			_state = state;
+			_ahrs_init_internal();
+			return;
+		}
 
 		/* @brief Update method for AHRS. Called by MCState during MCState::update */
 		virtual void ahrs_update(void) = 0;
 
-		// TODO These don't really need to be virtual. Will always reset the quaternion the same way
-
 		/* @brief Reset the current attitude representation to zero */
-		virtual void ahrs_reset(void) = 0;
+		virtual void ahrs_reset(void) {
+			_state._attitude(0.0f, 0.0f, 0.0f);
+			return;
+		}
 
 		/* @brief Reset the current attitude representation to the provided roll, pitch, and yaw */
-		virtual void ahrs_reset_attitude(const float &roll, const float &pitch, const float &yaw) = 0;
+		virtual void ahrs_reset_attitude(const float &roll, const float &pitch, const float &yaw) {
+			_state._attitude.from_euler(roll, pitch, yaw);
+			return;
+		}
 
 	private:
 		/* @brief Pointer to the state object to be updated on each call to ahrs_update */
 		MCStateData* _state;
+
+		/* @brief Class specific initialisation method */
+		virtual void _ahrs_init_internal(void) = 0;
 
 		// TODO Are these actually used? Remove if not used or not sufficiently general for a state class
 		// how often our attitude representation has gone out of range
