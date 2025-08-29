@@ -12,12 +12,22 @@ extern SimulationLogger simlog;
 #include "mcinstance.h"
 extern MCInstance mincopter;
 
-void AHRS_sim::update()
+void AHRS_sim::_ahrs_init_internal(void)
 {
+	/* Don't need to do anything */
+	return;
+}
+
+void AHRS_sim::ahrs_update()
+{
+	// TODO Needs to be updated for new ahrs interface
+	// We need to retrieve the orientation and then update the attitude quaternion (_state._attitude)
+	
+	/*
 	// Call the ins.update method otherwise it won't measure state
 	mincopter.ins.update();
 
-	/* Update the <roll,pitch,yaw>_sensor variables as well as the _accel_ef variable */
+	// Update the <roll,pitch,yaw>_sensor variables as well as the _accel_ef variable
 
 	// Update angle variables in deg*100
 	roll_sensor  = (int32_t)(degrees(gz_interface.last_sensor_state.wldAbdyA_eul_x)*100.0f);
@@ -40,26 +50,10 @@ void AHRS_sim::update()
 
 	float error_rp = get_error_rp();
 	float error_yaw = get_error_yaw();
-	simlog.write_ahrs_state(roll_sensor, pitch_sensor, yaw_sensor, _accel_ef.x, _accel_ef.y, _accel_ef.z, error_rp, error_yaw);
 
-	return;
-}
-
-void AHRS_sim::reset(bool recover_eulers)
-{
-	return;
-}
-
-const Vector3f AHRS_sim::get_gyro(void) const
-{
-	return mincopter.ins.get_gyro();
-}
-
-void AHRS_sim::reset_attitude(const float &roll, const float &pitch, const float &yaw)
-{
-	roll_sensor = (int32_t)(degrees(roll)*100.0f);
-	pitch_sensor = (int32_t)(degrees(pitch)*100.0f);
-	yaw_sensor = (int32_t)(degrees(yaw)*100.0f);
+	//simlog.write_ahrs_state(roll_sensor, pitch_sensor, yaw_sensor, _accel_ef.x, _accel_ef.y, _accel_ef.z, error_rp, error_yaw);
+	
+	*/
 
 	return;
 }

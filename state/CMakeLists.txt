@@ -17,16 +17,17 @@ if(MC_SIM_TYPE STREQUAL "SIM")
 			${CMAKE_SOURCE_DIR}/state/AP_AHRS/ahrs_sim.cpp
 		)
 	else()
+		## REMOVED DCM
 		if(MC_AHRS_TYPE STREQUAL "DCM")
 			list(APPEND MC_LIBS_STATE
-				${CMAKE_SOURCE_DIR}/state/AP_AHRS/ahrs_dcm.cpp
+				#${CMAKE_SOURCE_DIR}/state/AP_AHRS/ahrs_dcm.cpp
 			)
 		endif()
 
-		## TODO Change name of this
+		# INAV DEFAULT Removed
 		if(MC_INAV_TYPE STREQUAL "DEFAULT")
 			list(APPEND MC_LIBS_STATE
-				${CMAKE_SOURCE_DIR}/state/AP_InertialNav/inav_default.cpp
+				#${CMAKE_SOURCE_DIR}/state/AP_InertialNav/inav_default.cpp
 			)
 		endif()
 
@@ -43,14 +44,15 @@ else()
 	## Non-simulation
 	if(MC_AHRS_TYPE STREQUAL "DCM")
 		list(APPEND MC_LIBS_STATE
-			${CMAKE_SOURCE_DIR}/state/AP_AHRS/ahrs_dcm.cpp
+			#${CMAKE_SOURCE_DIR}/state/AP_AHRS/ahrs_dcm.cpp
 		)
 	endif()
 
 	## TODO Change name of this
 	if(MC_INAV_TYPE STREQUAL "DEFAULT")
+		## INAV DEFAULT Removed
 		list(APPEND MC_LIBS_STATE
-			${CMAKE_SOURCE_DIR}/state/AP_InertialNav/inav_default.cpp
+			#${CMAKE_SOURCE_DIR}/state/AP_InertialNav/inav_default.cpp
 		)
 	endif()
 

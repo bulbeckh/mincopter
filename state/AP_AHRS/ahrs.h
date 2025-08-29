@@ -6,8 +6,9 @@
  * and so will instead return a macro that expands to the desired AHRS and INAV classes. */
 
 #ifdef MC_AHRS_DCM
-	#include "ahrs_dcm.h"
-	#define MC_AHRS_CLASS AP_AHRS_DCM
+	#error "AHRS DCM no longer complies to interface. Do not use"
+	// HASH include "ahrs_dcm.h"
+	// HASH define MC_AHRS_CLASS AP_AHRS_DCM
 #elif MC_AHRS_SIM
 	#include "ahrs_sim.h"
 	#define MC_AHRS_CLASS AHRS_sim
@@ -18,7 +19,7 @@
  *
  */
 #else
-	#error No AHRS implementation selected
+	#error "No AHRS implementation selected"
 #endif
 
 
