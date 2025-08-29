@@ -12,23 +12,24 @@ extern MCInstance mincopter;
 // TODO This is now incorrect as it is potentially created and initialising two EKF instances. Change to pointers instead
 
 MCState::MCState() : 
-#if MC_AHRS_DCM
-		ahrs(mincopter.ins, mincopter.g_gps),
-#elif MC_AHRS_EKF
 		ahrs(),
-#endif
-
-#if MC_INAV_DEFAULT
-		inertial_nav(&this->ahrs, &mincopter.barometer, mincopter.g_gps, mincopter.gps_glitch)
-#elif MC_INAV_EKF
 		inertial_nav()
-#endif
 		//wp_nav(&this->inertial_nav, &this->ahrs, &mincopter.pi_loiter_lat, &mincopter.pi_loiter_lon, &mincopter.pid_loiter_rate_lat, &mincopter.pid_loiter_rate_lon)
 		//fence(&this->inertial_nav),
 {
 
 }
 
+void MCState::init(void)
+{
+	// Pass the _state variable into the ahrs and inertial_nav
+	
+	// TODO Check return value
+	ahrs.ahrs_init(_state);
+	inertial_nav.inav_init(_state);
+
+	return;
+}
 
 void MCState::update(void)
 {
@@ -54,6 +55,17 @@ void MCState::update(void)
 	return;
 }
 
+const Vector3f& MCState::get_euler_angles(void)
+{
+	/* TODO Compute euler angles from quaternion */
+}
+
+const Matrix3f& MCState::get_dcm(void)
+{
+	/* TODO Compute DCM matrix from quaternion */
+}
+
+// TODO REMOVE
 void MCState::update_trig(void){
 		Vector2f yawvector;
 		// TODO add this-> infront of class members. more verbose is better

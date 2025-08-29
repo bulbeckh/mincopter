@@ -24,219 +24,46 @@
 
 #include <AP_Math.h>
 #include <inttypes.h>
-#include <AP_Compass.h>
-#include <AP_GPS.h>
-#include <AP_InertialSensor.h>
-#include <AP_Baro.h>
 
+#include "mcstate_state.h"
 
-#define AP_AHRS_TRIM_LIMIT 10.0f        // maximum trim angle in degrees
+/* This class is the base class for any AHRS implementation. The AHRS should typically
+ * only be used by the MCState class */
 
+// TODO Remove AP_ from here - this interface has been significantly modified
 class AP_AHRS
 {
-public:
-    // Constructor
-    AP_AHRS(AP_InertialSensor &ins, GPS *&gps) :
-        _compass(NULL),
-        _ins(ins),
-        _gps(gps),
-		/* Initialised from AP_PARAM */
-		gps_gain(1.0f),
-		_gps_use(1),
-		_kp_yaw(0.2f),
-		_kp(0.2f),
-		_wind_max(0.0f),
-		_board_orientation(0),
-		beta(0.1f),
-		_gps_minsats(6),
-		_gps_delay(0)
+	public:
+		// Constructor
+		AP_AHRS(void) :
+		{
+		}
 
-    {
-        // load default values from var_info table
-        //AP_Param::setup_object_defaults(this, var_info);
+		/* @brief Initialisation of the AHRS */
+		virtual void ahrs_init(MCStateData* state) = 0;
 
-        // base the ki values by the sensors maximum drift
-        // rate. The APM2 has gyros which are much less drift
-        // prone than the APM1, so we should have a lower ki,
-        // which will make us less prone to increasing omegaI
-        // incorrectly due to sensor noise
-        _gyro_drift_limit = ins.get_gyro_drift_rate();
+		/* @brief Update method for AHRS. Called by MCState during MCState::update */
+		virtual void ahrs_update(void) = 0;
 
-        // enable centrifugal correction by default
-        _flags.correct_centrifugal = true;
-    }
+		// TODO These don't really need to be virtual. Will always reset the quaternion the same way
 
-    // init sets up INS board orientation
-    virtual void init() {
-        set_orientation();
-    };
+		/* @brief Reset the current attitude representation to zero */
+		virtual void ahrs_reset(void) = 0;
 
-    // allow for runtime change of orientation
-    // this makes initial config easier
-    void set_orientation() {
-        _ins.set_board_orientation((enum Rotation)_board_orientation);
-        if (_compass != NULL) {
-            _compass->set_board_orientation((enum Rotation)_board_orientation);
-        }
-    }
+		/* @brief Reset the current attitude representation to the provided roll, pitch, and yaw */
+		virtual void ahrs_reset_attitude(const float &roll, const float &pitch, const float &yaw) = 0;
 
-    // Methods
-    virtual void update(void) = 0;
+	private:
+		/* @brief Pointer to the state object to be updated on each call to ahrs_update */
+		MCStateData* _state;
 
-    // Euler angles (radians)
-    float roll;
-    float pitch;
-    float yaw;
+		// TODO Are these actually used? Remove if not used or not sufficiently general for a state class
+		// how often our attitude representation has gone out of range
+		uint8_t renorm_range_count;
 
-    // integer Euler angles (Degrees * 100)
-    int32_t roll_sensor;
-    int32_t pitch_sensor;
-    int32_t yaw_sensor;
+		// how often our attitude representation has blown up completely
+		uint8_t renorm_blowup_count;
 
-    // return a smoothed and corrected gyro vector
-    virtual const Vector3f get_gyro(void) const = 0;
-
-    // return the current estimate of the gyro drift
-    virtual const Vector3f &get_gyro_drift(void) const = 0;
-
-    // reset the current attitude, used on new IMU calibration
-    virtual void reset(bool recover_eulers=false) = 0;
-
-    // reset the current attitude, used on new IMU calibration
-    virtual void reset_attitude(const float &roll, const float &pitch, const float &yaw) = 0;
-
-    // how often our attitude representation has gone out of range
-    uint8_t renorm_range_count;
-
-    // how often our attitude representation has blown up completely
-    uint8_t renorm_blowup_count;
-
-    // return the average size of the roll/pitch error estimate
-    // since last call
-    virtual float get_error_rp(void) = 0;
-
-    // return the average size of the yaw error estimate
-    // since last call
-    virtual float get_error_yaw(void) = 0;
-
-    // return a DCM rotation matrix representing our current
-    // attitude
-    virtual const Matrix3f &get_dcm_matrix(void) const = 0;
-
-    // get our current position, either from GPS or via
-    // dead-reckoning. Return true if a position is available,
-    // otherwise false. This only updates the lat and lng fields
-    // of the Location
-    virtual bool get_position(struct Location &loc) {
-        if (!_gps || _gps->status() <= GPS::NO_FIX) {
-            return false;
-        }
-        loc.lat = _gps->latitude;
-        loc.lng = _gps->longitude;
-        return true;
-    }
-
-    // get our projected position, based on our GPS position plus
-    // heading and ground speed
-    bool get_projected_position(struct Location &loc);
-
-    // return the estimated lag in our position due to GPS lag
-    float get_position_lag(void) const;
-
-    // return a wind estimation vector, in m/s
-    virtual Vector3f wind_estimate(void) {
-        return Vector3f(0,0,0);
-    }
-
-
-    // return a ground vector estimate in meters/second, in North/East order
-    Vector2f groundspeed_vector(void);
-
-    // return ground speed estimate in meters/second. Used by ground vehicles.
-    float groundspeed(void) const {
-        if (!_gps || _gps->status() <= GPS::NO_FIX) {
-            return 0.0f;
-        }
-        return _gps->ground_speed_cm * 0.01f;
-    }
-
-    // return true if we will use compass for yaw
-    virtual bool use_compass(void) { return _compass && _compass->use_for_yaw(); }
-
-    // return true if yaw has been initialised
-    bool yaw_initialised(void) const {
-        return _flags.have_initial_yaw;
-    }
-
-    // set the fast gains flag
-    void set_fast_gains(bool setting) {
-        _flags.fast_ground_gains = setting;
-    }
-
-    // set the correct centrifugal flag
-    // allows arducopter to disable corrections when disarmed
-    void set_correct_centrifugal(bool setting) {
-        _flags.correct_centrifugal = setting;
-    }
-
-    // get trim
-    const Vector3f &get_trim() const { return _trim; }
-
-    // set trim
-    virtual void            set_trim(Vector3f new_trim);
-
-    // add_trim - adjust the roll and pitch trim up to a total of 10 degrees
-    virtual void            add_trim(float roll_in_radians, float pitch_in_radians, bool save_to_eeprom = true);
-
-    // for holding parameters
-    //static const struct AP_Param::GroupInfo var_info[];
-
-    // these are public for ArduCopter
-		float _kp_yaw;
-    float _kp;
-    float gps_gain;
-
-protected:
-    // settable parameters
-    float beta;
-    int8_t _gps_use;
-    int8_t _wind_max;
-    int8_t _board_orientation;
-    int8_t _gps_minsats;
-    int8_t _gps_delay;
-
-    // flags structure
-    struct ahrs_flags {
-        uint8_t have_initial_yaw        : 1;    // whether the yaw value has been intialised with a reference
-        uint8_t fast_ground_gains       : 1;    // should we raise the gain on the accelerometers for faster convergence, used when disarmed for ArduCopter
-        uint8_t fly_forward             : 1;    // 1 if we can assume the aircraft will be flying forward on its X axis
-        uint8_t correct_centrifugal     : 1;    // 1 if we should correct for centrifugal forces (allows arducopter to turn this off when motors are disarmed)
-        uint8_t wind_estimation         : 1;    // 1 if we should do wind estimation
-    } _flags;
-
-    // pointer to compass object, if available
-    Compass         * _compass;
-
-    // time in microseconds of last compass update
-    uint32_t _compass_last_update;
-
-    // note: we use ref-to-pointer here so that our caller can change the GPS without our noticing
-    //       IMU under us without our noticing.
-    AP_InertialSensor   &_ins;
-    GPS                 *&_gps;
-
-    // a vector to capture the difference between the controller and body frames
-    Vector3f         _trim;
-
-    // the limit of the gyro drift claimed by the sensors, in
-    // radians/s/s
-    float _gyro_drift_limit;
-
-	// Declare filter states for HPF and LPF used by complementary
-	// filter in AP_AHRS::groundspeed_vector
-	Vector2f _lp; // ground vector low-pass filter
-	Vector2f _hp; // ground vector high-pass filter
-    Vector2f _lastGndVelADS; // previous HPF input		
 };
 
 

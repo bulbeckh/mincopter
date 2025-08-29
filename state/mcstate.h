@@ -3,6 +3,8 @@
 #include <ahrs.h>
 #include <inav.h>
 
+#include "mcstate_state.h"
+
 class MCState
 {
 
@@ -18,7 +20,9 @@ class MCState
 		 *
 		 * @param mci (MCInstance*) Pointer to an MCInstance object containing interfaces to sensor inputs and control outputs
 		 */
-		MCState();
+		MCState(MC_AHRS_CLASS* _ahrs, MC_INAV_CLASS* _inav) :
+			ahrs(_ahrs),
+			inav(_inav)
 
 		/* MCState should contain the entire state vector:
 		 * 
@@ -49,53 +53,82 @@ class MCState
 		/* @brief inertial_nav Used to estimate position and velocity */
 		MC_INAV_CLASS* inertial_nav;
 
+		/* @brief Initialise the MCState */
+		void init(void);
+
+		/* @brief Run an update of the state estimation libraries to produce an accurate state vector */
 		void update(void);
 
 	public:
 
-		/* @brief State struct containing full system state */
-		struct {
-			double _position[3];
-			double _velocity[3];
-			// TODO We should be able to select the internal data type used by Quaternion class (i.e. float, double)
-			Quaternion _attitude;
+		/* @brief State struct which is passed between ahrs and inertial_nav */
+		MCStateData _state;
 
-			// Angular velocity and inertial frame accelerations
-			Vector3f _omega;
-			Vector3f _accel;
-
-			// TODO Add bias states
-		} _state;
-
+		// TODO REMOVE
 		/* @brief IMU roll rates that get updated during read_AHRS */
 		// TODO does this really need to be here - can we use ins readings directly instead?
-		Vector3f omega;
+		//Vector3f omega;
 
+		// TODO REMOVE
 		/* @brief Orientation values from DCM. Updated during call to update_trig in fast_loop */
+		/*
 		float cos_roll_x         = 1.0;
 		float cos_pitch_x        = 1.0;
 		float cos_yaw            = 1.0;
 		float sin_yaw;
 		float sin_roll;
 		float sin_pitch;
+		*/
 
 	private:
-		/* @brief Euler Angles <R,P,Y> representation of orientation. Retrieved through get_euler_angles in order to ensure on-demand computation */
-		Vector3f _euler_angles;
+		/* @brief Euler angle <R,P,Y> representation of orientation. Retrieved through get_euler_angles in order to ensure on-demand computation */
+		Vector3f _euler;
 
-		/* @brief 
+		/* @brief DCM Matrix representation of orientation. Computed on demand */
+		Matrix3f _dcm;
 
 	public:
-		/* Navigation Variables */
+		// NOTE These two functions are computed on demand based off the current attitude quaternion
 
+		/* @brief Get euler angle representation of orientation */
+		const Vector3f &get_euler_angles(void);
+
+		/* @brief Get DCM matrix representation of orientation */
+		const Matrix3f &get_dcm(void);
+
+	public:
 		/* @brief home Location (lat/lng/alt) where we first have arm the copter (after achieving GPS lock) */
 		struct   Location home;
 
 		/* @brief current_loc Current location (lat/lng/alt) of the copter */
 		struct   Location current_loc;
 
+		/* @brief Set altitude of inertial nav. */
+		void set_altitude(float new_alt);
+
+		/* @brief Set home position via latitude and longitude (in deg*1e7) */
+		void set_home_position(int32_t lat, int32_t lng);
+
+		/* @brief Checks if position reading is valid. Always true for simulation. */
+		bool position_ok(void) const;
+
+		/* @brief Returns latitude in deg*1e7  (*10,000,000) */
+		int32_t get_latitude() const;
+
+		/* @brief Returns longitude in deg*1e7  (*10,000,000) */
+		int32_t get_longitude() const;
+
+		/* @brief Returns altitude in cm. NOTE Even though the earth frame is NED, this will return a positive altitude */
+		float get_altitude() const;
+
+		/* @brief Get position in earth frame (NED) */
+		const Vector3f get_position() const;
+
+		/* @brief Get velocity in earth frame (NED) */
+		const Vector3f get_velocity() const;
+
 	public:
-		// TODO Do these really need to be class methods
+		// TODO REMOVE
 		void update_trig(void);
 
 };

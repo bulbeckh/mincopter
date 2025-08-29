@@ -11,66 +11,20 @@ class MC_InertialNav
 	public:
 
 		/* @brief Initialise the inertial navigation */
-		virtual void init(void) = 0;
+		virtual void inav_init(MCStateData* state) = 0;
 
 		/* @brief Update the inertial navigation. Called via xx TODO */
-		virtual void update(float dt) = 0;
+		virtual void inav_update(void) = 0;
 
-		/* @brief Checks if position reading is valid. Always true for simulation. */
-		virtual bool position_ok() const = 0;
+		/* @brief Reset the current attitude representation to zero */
+		virtual void inav_reset(void) = 0;
 
-		/* @brief Returns latitude in deg*1e7  (*10,000,000) */
-		virtual int32_t get_latitude() const {
-			return inav_lat;
-		}
-
-		/* @brief Returns longitude in deg*1e7  (*10,000,000) */
-		virtual int32_t get_longitude() const {
-			return inav_lng;
-		}
-
-		/* @brief Returns altitude in cm. NOTE Even though the earth frame is NED, this will return a positive altitude */
-		virtual float get_altitude() const {
-			return inav_alt;
-		}
-
-		/* @brief Get position in earth frame (NED) */
-		virtual const Vector3f get_position() const {
-			return inav_pos;
-		}
-
-		/* @brief Get velocity in earth frame (NED) */
-		virtual const Vector3f get_velocity() const {
-			return inav_vel;
-		}
-
-		/* @brief Get z-component of velocity in earth frame (NED) which is the vertical climb rate */
-		virtual float get_velocity_z() const {
-			return inav_vel.z;
-		}
-
-		/* @brief Set altitude of inertial nav.
-		 * @param new_alt float New altitude in cm */
-		virtual void set_altitude(float new_alt) = 0;
-
-		/* @brief Set home position via latitude and longitude (in deg*1e7)
-		 * @param lat int32t Latitude in degrees*1e7
-		 * @param lng int32t Longitude in degrees*1e7 */
-		virtual void set_home_position(int32_t lat, int32_t lng) = 0;
-
-	protected:
-
-		int32_t inav_lat;
-		int32_t inav_lng;
-
-		Vector3f inav_pos;
-		Vector3f inav_vel;
-
-		float inav_alt;
-
-
-
-
+		/* @brief Reset the current position and velocity to the provided values */
+		virtual void inav_reset_pos_vel(Vector3f pos, Vector3f vel) = 0;
+	
+	private:
+		/* @brief Pointer to the state object to be updated on each call to inav_update */
+		MCStateData* _state;
 };
 
 
