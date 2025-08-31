@@ -32,6 +32,8 @@ void init_ardupilot()
 		std::cout << "Target linux: Initialise started\n";
 #endif
 
+	printf("[INIT] Init started\n");
+
 // Run for anything except simulation
 #ifndef TARGET_ARCH_LINUX
     if (!mincopter.hal.gpio->usb_connected()) {
@@ -47,11 +49,13 @@ void init_ardupilot()
 
     // Console serial port
     mincopter.hal.uartB->begin(SERIAL0_BAUD, 512, 128);
+	printf("[INIT] uartB initialised\n");
 
     // GPS serial port
 #if GPS_PROTOCOL != GPS_PROTOCOL_IMU
     // standard gps running. Note that we need a 256 byte buffer for some
 	if (mincopter.hal.uartA != NULL) mincopter.hal.uartA->begin(38400, 256, 16);
+	printf("[INIT] uartA initialised\n");
 #endif
 
 	// Send initialisation string
@@ -71,11 +75,13 @@ void init_ardupilot()
 
     // initialise battery monitor
     mincopter.battery.init();
+	printf("[INIT] Battery monitor initialised\n");
 
     mincopter.rssi_analog_source      = mincopter.hal.analogin->channel(mincopter.rssi_pin);
     mincopter.board_vcc_analog_source = mincopter.hal.analogin->channel(ANALOG_INPUT_BOARD_VCC);
 
     mincopter.barometer.init();
+	printf("[INIT] Barometer initialised\n");
 
     // we start by assuming USB connected, as we initialed the serial
     // port with SERIAL0_BAUD. check_usb_mux() fixes this if need be.
@@ -91,12 +97,14 @@ void init_ardupilot()
 	// TODO Replace this with the board configuration that checks how many UARTs are enabled 
 	if (mincopter.hal.uartC != NULL) {
     	mincopter.hal.uartC->begin(SERIAL1_BAUD, 128, 128);
+		printf("[INIT] uartC initialised\n");
 	}
     //gcs[1].init(hal.uartC);
 #endif
 #if MAVLINK_COMM_NUM_BUFFERS > 2
     if (mincopter.hal.uartD != NULL) {
         mincopter.hal.uartD->begin(SERIAL2_BAUD, 128, 128);
+		printf("[INIT] uartD initialised\n");
         //gcs[2].init(hal.uartD);
     }
 #endif
@@ -116,6 +124,8 @@ void init_ardupilot()
     //DataFlash.Init(log_structure, sizeof(log_structure)/sizeof(log_structure[0]));
 		/* NOTE: Using 23 different structures instead of counting due to issue in separation of log_structure object */
     mincopter.DataFlash.Init(log_structure, 22);
+	printf("[INIT] DataFlash initialised\n");
+
     if (!mincopter.DataFlash.CardInserted()) {
         //gcs_send_text_P(SEVERITY_LOW, PSTR("No dataflash inserted"));
         mincopter.log_bitmask = 0;
@@ -143,6 +153,7 @@ void init_ardupilot()
  #if CONFIG_ADC == ENABLED
     // begin filtering the ADC Gyros
     mincopter.adc.Init();           // APM ADC library initialization
+	printf("[INIT] ADC initialised\n");
  #endif // CONFIG_ADC
 #endif // HIL_MODE
 
@@ -152,22 +163,20 @@ void init_ardupilot()
     // GPS Initialization
 	if (mincopter.hal.uartA != NULL) {
     	mincopter.g_gps->init(mincopter.hal.uartA, GPS::GPS_ENGINE_AIRBORNE_1G);
+		printf("[INIT] GPS initialised\n");
 	}
 
     //init_compass();
 	// NOTE TODO Check whether the compass init was successful
     mincopter.compass.init();
+	printf("[INIT] Compass initialised\n");
 	//mincopter.compass.read();
 	
     //mcstate.ahrs.set_compass(&mincopter.compass);
 
 	// Should initialise both ahrs and inertial_nav
     mcstate.init();
-
-
-#ifdef USERHOOK_INIT
-    USERHOOK_INIT
-#endif
+	printf("[INIT] MCState initialised\n");
 
 #if CLI_ENABLED == ENABLED
     //const prog_char_t *msg = PSTR("\nPress ENTER 3 times to start interactive setup\n");
@@ -197,6 +206,7 @@ void init_ardupilot()
     //-----------------------------
     init_barometer(true);
 #endif
+	// TODO Why is barometer initialised twice?
 
     // initialize commands
     //init_commands();
@@ -208,12 +218,11 @@ void init_ardupilot()
 		/* NOTE removed */
     //init_aux_switches();
 
-    // initialise ahrs (may push imu calibration into the mpu6000 if using that device).
-    mcstate.init();
-
+	// TODO Why is ins initialised after MCState??
     // Warm up and read Gyro offsets
     // -----------------------------
     mincopter.ins.init(AP_InertialSensor::COLD_START, AP_InertialSensor::RATE_100HZ);
+	printf("[INIT] IMU initialised\n");
 
     // setup fast AHRS gains to get right attitude
     //mcstate.ahrs.set_fast_gains(true);
@@ -228,9 +237,10 @@ void init_ardupilot()
 #if TARGET_ARCH_LINUX
     // In simulation so setup port
     gz_interface.setup_sim_socket();
+	printf("[INIT] GZ interface initialised\n");
 #endif
 
-		/* Dump Log on start */
+	/* Dump Log on start */
 
 		/*
 		DataFlash.ListAvailableLogs(cliSerial);
