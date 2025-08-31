@@ -49,12 +49,17 @@
 #include "mcinstance.h"
 #include "mcstate.h"
 
-
 #ifdef TARGET_ARCH_LINUX
     #include <iostream>
     #include "gz_interface.h"
     GZ_Interface gz_interface;
 #endif
+
+// TODO Remove - not board specific
+#include <stdio.h>
+#include <AP_Math.h>
+
+#include <AP_GPS.h>
 
 /* @brief Interface to the object storing each sensor and other hardware abstraction (DataFlash, Battery, ..) */
 MCInstance mincopter;
@@ -128,9 +133,28 @@ void control_determination()
 	return;
 }
 
+uint32_t _counter=0;
+
 /* Core Loop - Meant to run every 10ms (10,000 microseconds) */
 void loop()
 {
+	_counter++;
+	if (_counter%100==0) {
+		Vector3f _gyr_meas = mincopter.ins.get_gyro();
+		Vector3f _acc_meas = mincopter.ins.get_accel();
+		Vector3f _mag_meas = mincopter.compass.get_field();
+
+		GPS::GPS_Status _status = mincopter.g_gps->status();
+
+		printf("[loop %u]\n", _counter);
+		printf("gyr: % 6.2f, % 6.2f, % 6.2f\n", _gyr_meas.x, _gyr_meas.y, _gyr_meas.z);
+		printf("acc: % 6.2f, % 6.2f, % 6.2f\n", _acc_meas.x, _acc_meas.y, _acc_meas.z);
+		printf("mag: % 6.2f, % 6.2f, % 6.2f\n", _mag_meas.x, _mag_meas.y, _mag_meas.z);
+		printf("gps: %d\n", _status);
+		printf("lat/lng: %d, %d\n", mincopter.g_gps->latitude, mincopter.g_gps->longitude);
+	}
+
+
     uint32_t timer = micros();
 
 #ifdef TARGET_ARCH_LINUX
@@ -181,10 +205,10 @@ void loop()
     fast_loopTimer = timer;
 
     // Update state
-    state_update();
+    //state_update();
 
     // Control Determination
-    control_determination();
+    //control_determination();
 
     // tell the scheduler one tick has passed
     scheduler.tick();

@@ -43,7 +43,6 @@ AP_Compass_ICM20948::AP_Compass_ICM20948()
 {
 }
 
-
 bool AP_Compass_ICM20948::init()
 {
 	// Retrieve SPI device
@@ -142,12 +141,20 @@ bool AP_Compass_ICM20948::read()
 	int16_t mag_z = (_mag_raw_read[6]<<8) | (_mag_raw_read[5]);
 
 	// TODO Make the scaling configurable
-	// Update compass _field vector with compensated reading
-	_field[0].x = mag_x*0.15f;
-	_field[0].y = mag_y*0.15f;
-	_field[0].z = mag_z*0.15f;
+	// TODO Make compass offset configurable
+	// Update compass _field vector with compensated reading (scaled and then offset)
+	// NOTE Static offsets computed by measurement
+	_field[0].x = mag_x*0.15f +20.175;
+	_field[0].y = mag_y*0.15f -4.35;
+	_field[0].z = mag_z*0.15f +2.235;
 
-	//printf("FieldX: %f\n", _field[0].x);
+	// Rotate mag readings into ENU frame
+	// NOTE This is faster than doing a matrix multiplication and still maintains rotation
+	// NOTE Rotation comes from kalman_ins.py script
+	float _temp_x = _field[0].x;
+	_field[0].x = _field[0].y;
+	_field[0].y = _temp_x;
+	_field[0].z = -1*_field[0].z;
 
 	// Magnetometer reading is valid
 	_healthy[0] = true;

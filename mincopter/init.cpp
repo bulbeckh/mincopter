@@ -20,6 +20,8 @@ extern MCState mcstate;
     extern GZ_Interface gz_interface;
 #endif
 
+// TODO Not available on some boards - switch
+#include <stdio.h>
 
 // Forward Declaration - TODO move menu.cpp code to a class and include
 void init_cli(AP_HAL::UARTDriver* port);
