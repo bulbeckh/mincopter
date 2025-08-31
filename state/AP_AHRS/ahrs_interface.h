@@ -39,7 +39,7 @@ class AP_AHRS
 
 		/* @brief Initialisation of the AHRS */
 		void ahrs_init(MCStateData* state) {
-			_state = state;
+			_ahrs_state = state;
 			_ahrs_init_internal();
 			return;
 		}
@@ -49,20 +49,21 @@ class AP_AHRS
 
 		/* @brief Reset the current attitude representation to zero */
 		virtual void ahrs_reset(void) {
-			_state->_attitude(0.0f, 0.0f, 0.0f, 0.0f);
+			_ahrs_state->_attitude(0.0f, 0.0f, 0.0f, 0.0f);
 			return;
 		}
 
 		/* @brief Reset the current attitude representation to the provided roll, pitch, and yaw */
 		virtual void ahrs_reset_attitude(const float &roll, const float &pitch, const float &yaw) {
-			_state->_attitude.from_euler(roll, pitch, yaw);
+			_ahrs_state->_attitude.from_euler(roll, pitch, yaw);
 			return;
 		}
 
-	private:
+	protected:
 		/* @brief Pointer to the state object to be updated on each call to ahrs_update */
-		MCStateData* _state;
+		MCStateData* _ahrs_state;
 
+	private:
 		/* @brief Class specific initialisation method */
 		virtual void _ahrs_init_internal(void) = 0;
 

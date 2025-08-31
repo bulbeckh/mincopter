@@ -50,20 +50,6 @@ class EKF : public AP_AHRS, public MC_InertialNav {
 		 *
 		 */
 
-		/*
-		struct {
-			double dt;
-			double w[3];
-			double a[3];
-			double var_gyro;
-			double var_accel;
-			double cov[100]; // (10,10)
-			double q[4];
-			double x[3];
-			double v[3];
-		} ekf_predict_arg;
-		*/
-
 		// ekf arg/res
 		double dt;
 		double w[3];

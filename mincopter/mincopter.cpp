@@ -143,8 +143,10 @@ void loop()
 		Vector3f _gyr_meas = mincopter.ins.get_gyro();
 		Vector3f _acc_meas = mincopter.ins.get_accel();
 		Vector3f _mag_meas = mincopter.compass.get_field();
-
 		GPS::GPS_Status _status = mincopter.g_gps->status();
+		Vector3f _temp_pos = mcstate.get_position();
+
+		Quaternion& _temp_att = mcstate._state._attitude;
 
 		printf("[loop %u]\n", _counter);
 		printf("gyr: % 6.2f, % 6.2f, % 6.2f\n", _gyr_meas.x, _gyr_meas.y, _gyr_meas.z);
@@ -152,6 +154,8 @@ void loop()
 		printf("mag: % 6.2f, % 6.2f, % 6.2f\n", _mag_meas.x, _mag_meas.y, _mag_meas.z);
 		printf("gps: %d\n", _status);
 		printf("lat/lng: %d, %d\n", mincopter.g_gps->latitude, mincopter.g_gps->longitude);
+		printf("state x,y,z: %f, %f, %f\n", _temp_pos.x, _temp_pos.y, _temp_pos.z);
+		printf("att q1,q2,q3,q4: %f, %f, %f, %f\n", _temp_att[0], _temp_att[1], _temp_att[2], _temp_att[3]);
 	}
 
 

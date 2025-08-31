@@ -18,6 +18,12 @@
  * I2C initialisation should be handled by the HAL initialisation so we should just be
  * able to read/write immediately.
  *
+ * The ::update method should read and populate both the _accel and _gyro vectors with
+ * correct measurements in the ENU frame. (TODO Are we using NED or ENU?)
+ *
+ * The gyrometer measurements should be in **rad/s** and the accelerometer measurements
+ * in m/s^2
+ *
  */
 
 
@@ -30,18 +36,18 @@ class AP_InertialSensor_MPU6050 : public AP_InertialSensor
 	public:
 
 		/* @brief Constructor */
-		AP_InertialSensor_MPU6050();
+		AP_InertialSensor_MPU6050(void);
 
 		// Override Methods
 		
 		/* @brief Update sensor */
-		bool update();
+		bool update(void);
 
 		/* @brief Returns gyrometer drift rates (in rad/s) */
-		float get_gyro_drift_rate();
+		float get_gyro_drift_rate(void);
 
 		/* @brief Returns time (in seconds) that the last data read represents */
-		float get_delta_time();
+		float get_delta_time(void);
 
 		/* @brief Wait for a sample to be available
 		 * @param timeout_ms The period of time (in ms) to wait for before timing out.

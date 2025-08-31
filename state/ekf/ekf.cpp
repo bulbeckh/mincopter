@@ -6,6 +6,10 @@
 #include "mcinstance.h"
 extern MCInstance mincopter;
 
+// TODO Bad hack - fix this
+#include "mcstate.h"
+extern MCState mcstate;
+
 // NOTE We forward declare the generated ekf casadi methods here rather than using a header file
 
 // TODO This is bad - need to formalise the way be define MCState and pass AHRS and INAV objects
@@ -31,6 +35,23 @@ void EKF::inav_update(void)
 	// Run correction step
 	_result = ekf_correct((const double**)ekf_correct_arg, ekf_correct_res, 0, 0, 0);
 
+	// TODO Normalise quaternion before re-assigning
+
+	// Update MCState via _state variable - _result[0] is the state_out as (x,v,q)
+	_ahrs_state->_attitude(
+			ekf_correct_res[0][6],
+			ekf_correct_res[0][7],
+			ekf_correct_res[0][8],
+			ekf_correct_res[0][9]);
+
+	_inav_state->_position[0] = ekf_correct_res[0][0];
+	_inav_state->_position[1] = ekf_correct_res[0][1];
+	_inav_state->_position[2] = ekf_correct_res[0][2];
+
+	_inav_state->_velocity[0] = ekf_correct_res[0][3];
+	_inav_state->_velocity[1] = ekf_correct_res[0][4];
+	_inav_state->_velocity[2] = ekf_correct_res[0][5];
+
 	return;
 }
 
@@ -38,28 +59,60 @@ void EKF::setup_ekf_args(void)
 {
 	/* Predict setup */
 
+
 	// TODO Does our dt represent a gyrometer time or an accelerometer time?
 	// Read dt from gyrometer
+	dt = 0.01; // 100Hz approx.
 	
 	// Get w - latest gyrometer reading
+	Vector3f gyro = mincopter.ins.get_gyro();
+	w[0] = gyro.x;
+	w[1] = gyro.y;
+	w[2] = gyro.z;
 	
 	// Get a - latest accel reading
+	Vector3f accel = mincopter.ins.get_accel();
+	a[0] = accel.x;
+	a[1] = accel.y;
+	a[2] = accel.z;
 	
 	// Get accel and gyro variances TODO These should not change and be retrieved during
 	// init from the sensor drivers
 	
-	// Get state (q,x,v) from _state
+	var_gyro = 0.3*0.3;
+	var_accel = 0.5*0.5;
+	var_mag = 0.8*0.8;
 	
+	// Get state (q,x,v) from _state
+	// TODO FIx this - should not really be using mcstate directly for state here - should be passed in from somewhere else
+	x[0] = mcstate._state._position[0];
+	x[1] = mcstate._state._position[1];
+	x[2] = mcstate._state._position[2];
 
+	v[0] = mcstate._state._velocity[0];
+	v[1] = mcstate._state._velocity[1];
+	v[2] = mcstate._state._velocity[2];
+	
 	/* Correct step */
-
-	// Get a - latest accel reading
 	
 	// Get m - latest magnetometer reading
-	
-	// Get var_mag - mag variance
+	Vector3f field = mincopter.compass.get_field();
+	m[0] = field.x;
+	m[1] = field.y;
+	m[2] = field.z;
 	
 	// Get gps pos/vel/variances
+	// TODO I don't even think GPS is fused in the function call - need to check
+	gps_pos[0] = 0.0f;
+	gps_pos[1] = 0.0f;
+	gps_pos[2] = 0.0f;
+
+	gps_vel[0] = 0.0f;
+	gps_vel[1] = 0.0f;
+	gps_vel[2] = 0.0f;
+
+	var_gps_pos = 0.1;
+	var_gps_vel = 0.1;
 	
 	return;
 }
@@ -70,8 +123,6 @@ void EKF::reset(void)
 	// TODO We need to figure out the behaviour when a reset is called. It is 
 	// complicated by the fact that we have two reset methods - one to zero everything
 	// and then another to initialise to an euler angles (RPY) value
-	
-	/*
 	
 	// This reset method should reset both the internal EKF state variables
 	// but also the state from the _state struct
@@ -113,12 +164,10 @@ void EKF::reset(void)
 	q[3] = -sx2*sy2;
 
 	// Update _altitude quaternion
-	_state._attitude(q[0], q[1], q[2], q[3]);
+	_ahrs_state->_attitude(q[0], q[1], q[2], q[3]);
 	
 	// TODO normalize the _altitude quaternion
 	
-	*/
-
 	return;
 }
 
@@ -140,6 +189,6 @@ void EKF::ahrs_update(void)
 
 void EKF::_inav_init_internal(void)
 {
-	/* TODO */
+	reset();
 	return;
 }

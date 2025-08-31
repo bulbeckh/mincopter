@@ -71,6 +71,7 @@ uint16_t AP_InertialSensor_MPU6050::_init_sensor(Sample_rate sample_rate)
 
 void AP_InertialSensor_MPU6050::_poll(void)
 {
+	// TODO I think _poll can just store the int16_t reading and we can convert/scale/transform during ::update
 	// TODO Are semaphore/mutex required for I2C
 	
 	/* 1. Accelerometer read and convert */

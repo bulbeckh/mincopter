@@ -152,8 +152,11 @@ float MCState::get_altitude() const
 
 const Vector3f MCState::get_position() const
 {
-	// TODO Implement
-	return Vector3f(0,0,0);
+	// TODO Change this to a reference
+	return Vector3f(
+			_state._position[0],
+			_state._position[1],
+			_state._position[3]);
 }
 
 const Vector3f MCState::get_velocity() const
