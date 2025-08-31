@@ -7,7 +7,7 @@
 
 #include <AP_Math.h>
 
-#include "inav.h"
+#include <mcstate.h>
 
 // bit masks for enabled fence types.  Used for TYPE parameter
 #define AC_FENCE_TYPE_NONE                          0       // fence disabled
@@ -35,7 +35,7 @@ public:
     /// Constructor
 
 	// TODO Fix this - bad way to do this
-    AC_Fence(const MC_INAV_CLASS *inav);
+    AC_Fence(const MCState* mcstate);
 
     /// enable - allows fence to be enabled/disabled.  Note: this does not update the eeprom saved value
     void enable(bool true_false) { _enabled = true_false; }
@@ -91,8 +91,7 @@ private:
     /// clear_breach - update breach bitmask, time and count
     void clear_breach(uint8_t fence_type);
 
-    // pointers to other objects we depend upon
-    const MC_INAV_CLASS *const _inav;
+    const MCState* const _mcstate;
 
     // parameters
     int8_t         _enabled;               // top level enable/disable control

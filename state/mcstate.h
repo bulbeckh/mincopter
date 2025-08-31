@@ -20,9 +20,7 @@ class MCState
 		 *
 		 * @param mci (MCInstance*) Pointer to an MCInstance object containing interfaces to sensor inputs and control outputs
 		 */
-		MCState(MC_AHRS_CLASS* _ahrs, MC_INAV_CLASS* _inav) :
-			ahrs(_ahrs),
-			inav(_inav)
+		MCState(MC_AHRS_CLASS* _ahrs, MC_INAV_CLASS* _inav);
 
 		/* MCState should contain the entire state vector:
 		 * 
@@ -69,16 +67,19 @@ class MCState
 		// TODO does this really need to be here - can we use ins readings directly instead?
 		//Vector3f omega;
 
-		// TODO REMOVE
+		// TODO Do we remove or keep these - they are helpful values to avoid calling get_dcm or get_euler from controller
 		/* @brief Orientation values from DCM. Updated during call to update_trig in fast_loop */
-		/*
 		float cos_roll_x         = 1.0;
 		float cos_pitch_x        = 1.0;
 		float cos_yaw            = 1.0;
 		float sin_yaw;
 		float sin_roll;
 		float sin_pitch;
-		*/
+		
+		//
+		int32_t roll_sensor;
+		int32_t pitch_sensor;
+		int32_t yaw_sensor;
 
 	private:
 		/* @brief Euler angle <R,P,Y> representation of orientation. Retrieved through get_euler_angles in order to ensure on-demand computation */
@@ -124,6 +125,7 @@ class MCState
 		/* @brief Get position in earth frame (NED) */
 		const Vector3f get_position() const;
 
+		// TODO Should this return a ref? Same with get_position?
 		/* @brief Get velocity in earth frame (NED) */
 		const Vector3f get_velocity() const;
 

@@ -200,7 +200,7 @@ bool GZ_Interface::recv_state_input()
 		std::cout << "BARO Pressure (Pa) : " << pkt->pressure << "\n";
 	}
 	if (true && frame_counter%100==0) {
-		Vector3f inav_pos = mcstate.inertial_nav.get_position();
+		Vector3f inav_pos = mcstate.get_position();
 		std::cout << "POS x,y,z r/p/y: " << pkt->pos_x << "," << pkt->pos_y << "," << pkt->pos_z << " " << pkt->wldAbdyA_eul_x << "/" << pkt->wldAbdyA_eul_y << "/" << pkt->wldAbdyA_eul_z << "\n";
 		//std::cout << "INAV x-y () : " << inav_pos.x << " " << inav_pos.y << "\n";
 	}
@@ -230,22 +230,22 @@ bool GZ_Interface::recv_state_input()
 		 * is a position **estimate** by the inav relative to the home location. The home location
 		 * is set during a call to mcstate.inertial_nav.set_home_position during the init_home function
 		 * which is called during arming. In the simulation, this should be the (0,0,0) position. */
-		Vector3f inav_pos = mcstate.inertial_nav.get_position();
+		Vector3f inav_pos = mcstate.get_position();
 		inav_pos *= 0.01;
 
-		int32_t inav_lat = mcstate.inertial_nav.get_latitude();
-		int32_t inav_lng = mcstate.inertial_nav.get_longitude();
-		int32_t inav_alt = mcstate.inertial_nav.get_altitude();
+		int32_t inav_lat = mcstate.get_latitude();
+		int32_t inav_lng = mcstate.get_longitude();
+		int32_t inav_alt = mcstate.get_altitude();
 
-		float c_heading = degrees(mincopter.compass.calculate_heading(mcstate.ahrs.get_dcm_matrix()));
+		float c_heading = degrees(mincopter.compass.calculate_heading(mcstate.get_dcm()));
 
 		std::cout << "---------- ITERATION " << frame_counter << " ----\n";
 		std::cout << "(sim/inav) Position X (m): " << pkt->pos_x << " " << inav_pos.x << "\n";
 		std::cout << "(sim/inav) Position Y (m): " << pkt->pos_y << " " << inav_pos.y << "\n";
 		std::cout << "(sim/inav) Position Z (m): " << pkt->pos_z << " " << inav_pos.z << "\n";
-		std::cout << "(sim/ahrs) Rotation (Roll) (deg): " << degrees(pkt->wldAbdyA_eul_x) << " " << 0.01f*mcstate.ahrs.roll_sensor << "\n";
-		std::cout << "(sim/ahrs) Rotation (Pitch) (deg): " << degrees(pkt->wldAbdyA_eul_y) << " " << 0.01f*mcstate.ahrs.pitch_sensor << "\n";
-		std::cout << "(sim/ahrs) Rotation (Yaw) (deg): " << degrees(pkt->wldAbdyA_eul_z) << " " << 0.01f*wrap_360_cd(mcstate.ahrs.yaw_sensor) << "\n";
+		std::cout << "(sim/ahrs) Rotation (Roll) (deg): " << degrees(pkt->wldAbdyA_eul_x) << " " << 0.01f*mcstate.roll_sensor << "\n";
+		std::cout << "(sim/ahrs) Rotation (Pitch) (deg): " << degrees(pkt->wldAbdyA_eul_y) << " " << 0.01f*mcstate.pitch_sensor << "\n";
+		std::cout << "(sim/ahrs) Rotation (Yaw) (deg): " << degrees(pkt->wldAbdyA_eul_z) << " " << 0.01f*wrap_360_cd(mcstate.yaw_sensor) << "\n";
 		std::cout << "(compass)  Heading (deg)       : " << c_heading << "\n";
 		std::cout << "(sim/inav) Latitude (deg*1e7): " << (int32_t)((1e7)*pkt->lat_deg) << " " << inav_lat << "\n";
 		std::cout << "(sim/inav) Longitude(deg*1e7): " << (int32_t)((1e7)*pkt->lng_deg) << " " << inav_lng << "\n";

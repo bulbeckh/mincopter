@@ -60,9 +60,9 @@ const AP_Param::GroupInfo AC_Fence::var_info[] PROGMEM = {
 
 /// Default constructor.
 
-// TODO Fix this
-AC_Fence::AC_Fence(const MC_INAV_CLASS *inav) :
-    _inav(inav),
+// TODO Should mcstate be passed as a pointer here or accessible every via extern
+AC_Fence::AC_Fence(const MCState* mcstate) :
+    _mcstate(mcstate),
     _alt_max_backup(0),
     _circle_radius_backup(0),
     _alt_max_breach_distance(0),
@@ -107,7 +107,7 @@ bool AC_Fence::pre_arm_check() const
     }
 
     // if we have horizontal limits enabled, check inertial nav position is ok
-    if ((_enabled_fences & AC_FENCE_TYPE_CIRCLE)!=0 && !_inav->position_ok()) {
+    if ((_enabled_fences & AC_FENCE_TYPE_CIRCLE)!=0 && !_mcstate->position_ok()) {
         return false;
     }
 
@@ -126,7 +126,7 @@ uint8_t AC_Fence::check_fence()
     }
 
     // get current altitude in meters
-    float curr_alt = _inav->get_altitude() * 0.01f;
+    float curr_alt = _mcstate->get_altitude() * 0.01f;
 
     // altitude fence check
     if ((_enabled_fences & AC_FENCE_TYPE_ALT_MAX) != 0) {

@@ -161,7 +161,8 @@ void init_ardupilot()
 	
     //mcstate.ahrs.set_compass(&mincopter.compass);
 
-    mcstate.inertial_nav.init();
+	// Should initialise both ahrs and inertial_nav
+    mcstate.init();
 
 
 #ifdef USERHOOK_INIT
@@ -208,14 +209,14 @@ void init_ardupilot()
     //init_aux_switches();
 
     // initialise ahrs (may push imu calibration into the mpu6000 if using that device).
-    mcstate.ahrs.init();
+    mcstate.init();
 
     // Warm up and read Gyro offsets
     // -----------------------------
     mincopter.ins.init(AP_InertialSensor::COLD_START, AP_InertialSensor::RATE_100HZ);
 
     // setup fast AHRS gains to get right attitude
-    mcstate.ahrs.set_fast_gains(true);
+    //mcstate.ahrs.set_fast_gains(true);
 
     // set landed flag
     set_land_complete(true);

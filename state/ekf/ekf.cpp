@@ -8,6 +8,9 @@ extern MCInstance mincopter;
 
 // NOTE We forward declare the generated ekf casadi methods here rather than using a header file
 
+// TODO This is bad - need to formalise the way be define MCState and pass AHRS and INAV objects
+EKF ekf;
+
 // Casadi generated c functions for ekf prediction and correction steps
 extern "C" {
 	int ekf_predict(const double** arg, double** res, long long int* iw, double* w, int mem);
@@ -22,10 +25,11 @@ void EKF::inav_update(void)
 	setup_ekf_args();
 	
 	// Run prediction step (last three args are real/int workspace sizes and memory index, which are all 0)
-	int _result = ekf_predict(ekf_predict_arg, ekf_predict_res, 0, 0, 0);
+	// TODO Not sure why the ekf_predict function requires const double** arg as the arg changes between prediction runs.
+	int _result = ekf_predict((const double**)ekf_predict_arg, ekf_predict_res, 0, 0, 0);
 
 	// Run correction step
-	_result = ekf_correct(ekf_correct_arg, ekf_correct_res, 0, 0, 0);
+	_result = ekf_correct((const double**)ekf_correct_arg, ekf_correct_res, 0, 0, 0);
 
 	return;
 }

@@ -78,7 +78,7 @@ void PID_Controller::run()
 void PID_Controller::get_stabilize_roll(int32_t target_angle)
 {
     // angle error
-    int32_t target_error = wrap_180_cd(target_angle - mcstate.ahrs.roll_sensor);
+    int32_t target_error = wrap_180_cd(target_angle - mcstate.roll_sensor);
 
     // convert to desired rate
     int32_t target_rate = pi_stabilize_roll.kP() * target_error;
@@ -98,7 +98,7 @@ void PID_Controller::get_stabilize_roll(int32_t target_angle)
 void PID_Controller::get_stabilize_pitch(int32_t target_angle)
 {
     // angle error
-    int32_t target_error = wrap_180_cd(target_angle - mcstate.ahrs.pitch_sensor);
+    int32_t target_error = wrap_180_cd(target_angle - mcstate.pitch_sensor);
 
     // convert to desired rate
     int32_t target_rate = pi_stabilize_pitch.kP() * target_error;
@@ -121,7 +121,7 @@ void PID_Controller::get_stabilize_yaw(int32_t target_angle)
     int32_t angle_error;
 
     // angle error
-    angle_error = wrap_180_cd(target_angle - mcstate.ahrs.yaw_sensor);
+    angle_error = wrap_180_cd(target_angle - mcstate.yaw_sensor);
 
     // limit the error we're feeding to the PID
     angle_error = constrain_int32(angle_error, -4500, 4500);
@@ -168,7 +168,9 @@ int16_t PID_Controller::get_rate_roll(int32_t target_rate)
 
     // get current rate
 		// TODO Change this to get reading directly from sensors unless perfomance is signficantly degraded
-    current_rate    = (mcstate.omega.x * DEGX100);
+    //current_rate    = (mcstate.omega.x * DEGX100);
+	// TODO Change this and the other to compute once during start of ::run and then use there UNLESS the compiler optimises out this call to get_gyro
+    current_rate    = (mincopter.ins.get_gyro().x * DEGX100);
 
     // call pid controller
     rate_error  = target_rate - current_rate;
@@ -204,7 +206,8 @@ int16_t PID_Controller::get_rate_pitch(int32_t target_rate)
     int32_t output;                                                                     // output from pid controller
 
     // get current rate
-    current_rate    = (mcstate.omega.y * DEGX100);
+    //current_rate    = (mcstate.omega.y * DEGX100);
+    current_rate    = (mincopter.ins.get_gyro().y * DEGX100);
 
     // call pid controller
     rate_error      = target_rate - current_rate;
@@ -239,7 +242,8 @@ int16_t PID_Controller::get_rate_yaw(int32_t target_rate)
     int32_t output;
 
     // rate control
-    rate_error              = target_rate - (mcstate.omega.z * DEGX100);
+    //rate_error              = target_rate - (mcstate.omega.z * DEGX100);
+    rate_error              = target_rate - (mincopter.ins.get_gyro().z * DEGX100);
 
     // separately calculate p, i, d values for logging
 		p = pid_rate_yaw.get_p(rate_error);
@@ -279,7 +283,7 @@ void PID_Controller::update_throttle_cruise(int16_t throttle)
         throttle_avg = throttle_cruise;
     }
     // calc average throttle if we are in a level hover
-    if (throttle > throttle_min && abs(climb_rate) < 60 && labs(mcstate.ahrs.roll_sensor) < 500 && labs(mcstate.ahrs.pitch_sensor) < 500) {
+    if (throttle > throttle_min && abs(climb_rate) < 60 && labs(mcstate.roll_sensor) < 500 && labs(mcstate.pitch_sensor) < 500) {
         throttle_avg = throttle_avg * 0.99f + (float)throttle * 0.01f;
         throttle_cruise = throttle_avg;
     }
@@ -295,7 +299,7 @@ int16_t PID_Controller::get_angle_boost(int16_t throttle)
     temp = constrain_float(temp, 0.5f, 1.0f);
 
     // reduce throttle if we go inverted
-    temp = constrain_float(9000-ap_max(labs(mcstate.ahrs.roll_sensor),labs(mcstate.ahrs.pitch_sensor)), 0, 3000) / (3000 * temp);
+    temp = constrain_float(9000-ap_max(labs(mcstate.roll_sensor),labs(mcstate.pitch_sensor)), 0, 3000) / (3000 * temp);
 
     // apply scale and constrain throttle
     throttle_out = constrain_float((float)(throttle-throttle_min) * temp + throttle_min, throttle_min, 1000);
@@ -334,7 +338,8 @@ int16_t PID_Controller::get_throttle_accel(int16_t z_target_accel)
     uint32_t now = millis();
 
     // Calculate Earth Frame Z acceleration
-    z_accel_meas = -(mcstate.ahrs.get_accel_ef().z + GRAVITY_MSS) * 100;
+	// TODO Decide how to obtain earth-frame acceleration from MCState
+    //z_accel_meas = -(mcstate.get_accel_ef().z + GRAVITY_MSS) * 100;
 
     // reset target altitude if this controller has just been engaged
     if( now - last_call_ms > 100 ) {

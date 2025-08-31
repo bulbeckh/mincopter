@@ -35,9 +35,7 @@ class AP_AHRS
 {
 	public:
 		// Constructor
-		AP_AHRS(void) :
-		{
-		}
+		AP_AHRS(void) { }
 
 		/* @brief Initialisation of the AHRS */
 		void ahrs_init(MCStateData* state) {

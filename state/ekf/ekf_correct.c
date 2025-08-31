@@ -62,7 +62,7 @@ static const casadi_int casadi_s3[3] = {1, 1, 1};
 static const casadi_int casadi_s4[3] = {12, 1, 1};
 static const casadi_int casadi_s5[3] = {10, 12, 1};
 
-/* ekf:(i0[10],i1[10x10],i2[3],i3,i4[3],i5,i6[3],i7[3],i8,i9)->(o0[10],o1[10x10],o2[12],o3[10x12]) */
+/* ekf_correct:(i0[10],i1[10x10],i2[3],i3,i4[3],i5,i6[3],i7[3],i8,i9)->(o0[10],o1[10x10],o2[12],o3[10x12]) */
 static int casadi_f0(const casadi_real** arg, casadi_real** res, casadi_int* iw, casadi_real* w, int mem) {
   casadi_real a000, a001, a002, a003, a004, a005, a006, a007, a008, a009, a010, a011;
   casadi_real a012, a013, a014, a015, a016, a017, a018, a019, a020, a021, a022, a023;
@@ -12641,45 +12641,45 @@ static int casadi_f0(const casadi_real** arg, casadi_real** res, casadi_int* iw,
   return 0;
 }
 
-CASADI_SYMBOL_EXPORT int ekf(const casadi_real** arg, casadi_real** res, casadi_int* iw, casadi_real* w, int mem){
+CASADI_SYMBOL_EXPORT int ekf_correct(const casadi_real** arg, casadi_real** res, casadi_int* iw, casadi_real* w, int mem){
   return casadi_f0(arg, res, iw, w, mem);
 }
 
-CASADI_SYMBOL_EXPORT int ekf_alloc_mem(void) {
+CASADI_SYMBOL_EXPORT int ekf_correct_alloc_mem(void) {
   return 0;
 }
 
-CASADI_SYMBOL_EXPORT int ekf_init_mem(int mem) {
+CASADI_SYMBOL_EXPORT int ekf_correct_init_mem(int mem) {
   return 0;
 }
 
-CASADI_SYMBOL_EXPORT void ekf_free_mem(int mem) {
+CASADI_SYMBOL_EXPORT void ekf_correct_free_mem(int mem) {
 }
 
-CASADI_SYMBOL_EXPORT int ekf_checkout(void) {
+CASADI_SYMBOL_EXPORT int ekf_correct_checkout(void) {
   return 0;
 }
 
-CASADI_SYMBOL_EXPORT void ekf_release(int mem) {
+CASADI_SYMBOL_EXPORT void ekf_correct_release(int mem) {
 }
 
-CASADI_SYMBOL_EXPORT void ekf_incref(void) {
+CASADI_SYMBOL_EXPORT void ekf_correct_incref(void) {
 }
 
-CASADI_SYMBOL_EXPORT void ekf_decref(void) {
+CASADI_SYMBOL_EXPORT void ekf_correct_decref(void) {
 }
 
-CASADI_SYMBOL_EXPORT casadi_int ekf_n_in(void) { return 10;}
+CASADI_SYMBOL_EXPORT casadi_int ekf_correct_n_in(void) { return 10;}
 
-CASADI_SYMBOL_EXPORT casadi_int ekf_n_out(void) { return 4;}
+CASADI_SYMBOL_EXPORT casadi_int ekf_correct_n_out(void) { return 4;}
 
-CASADI_SYMBOL_EXPORT casadi_real ekf_default_in(casadi_int i) {
+CASADI_SYMBOL_EXPORT casadi_real ekf_correct_default_in(casadi_int i) {
   switch (i) {
     default: return 0;
   }
 }
 
-CASADI_SYMBOL_EXPORT const char* ekf_name_in(casadi_int i) {
+CASADI_SYMBOL_EXPORT const char* ekf_correct_name_in(casadi_int i) {
   switch (i) {
     case 0: return "i0";
     case 1: return "i1";
@@ -12695,7 +12695,7 @@ CASADI_SYMBOL_EXPORT const char* ekf_name_in(casadi_int i) {
   }
 }
 
-CASADI_SYMBOL_EXPORT const char* ekf_name_out(casadi_int i) {
+CASADI_SYMBOL_EXPORT const char* ekf_correct_name_out(casadi_int i) {
   switch (i) {
     case 0: return "o0";
     case 1: return "o1";
@@ -12705,7 +12705,7 @@ CASADI_SYMBOL_EXPORT const char* ekf_name_out(casadi_int i) {
   }
 }
 
-CASADI_SYMBOL_EXPORT const casadi_int* ekf_sparsity_in(casadi_int i) {
+CASADI_SYMBOL_EXPORT const casadi_int* ekf_correct_sparsity_in(casadi_int i) {
   switch (i) {
     case 0: return casadi_s0;
     case 1: return casadi_s1;
@@ -12721,7 +12721,7 @@ CASADI_SYMBOL_EXPORT const casadi_int* ekf_sparsity_in(casadi_int i) {
   }
 }
 
-CASADI_SYMBOL_EXPORT const casadi_int* ekf_sparsity_out(casadi_int i) {
+CASADI_SYMBOL_EXPORT const casadi_int* ekf_correct_sparsity_out(casadi_int i) {
   switch (i) {
     case 0: return casadi_s0;
     case 1: return casadi_s1;
@@ -12731,7 +12731,7 @@ CASADI_SYMBOL_EXPORT const casadi_int* ekf_sparsity_out(casadi_int i) {
   }
 }
 
-CASADI_SYMBOL_EXPORT int ekf_work(casadi_int *sz_arg, casadi_int* sz_res, casadi_int *sz_iw, casadi_int *sz_w) {
+CASADI_SYMBOL_EXPORT int ekf_correct_work(casadi_int *sz_arg, casadi_int* sz_res, casadi_int *sz_iw, casadi_int *sz_w) {
   if (sz_arg) *sz_arg = 10;
   if (sz_res) *sz_res = 4;
   if (sz_iw) *sz_iw = 0;
@@ -12739,7 +12739,7 @@ CASADI_SYMBOL_EXPORT int ekf_work(casadi_int *sz_arg, casadi_int* sz_res, casadi
   return 0;
 }
 
-CASADI_SYMBOL_EXPORT int ekf_work_bytes(casadi_int *sz_arg, casadi_int* sz_res, casadi_int *sz_iw, casadi_int *sz_w) {
+CASADI_SYMBOL_EXPORT int ekf_correct_work_bytes(casadi_int *sz_arg, casadi_int* sz_res, casadi_int *sz_iw, casadi_int *sz_w) {
   if (sz_arg) *sz_arg = 10*sizeof(const casadi_real*);
   if (sz_res) *sz_res = 4*sizeof(casadi_real*);
   if (sz_iw) *sz_iw = 0*sizeof(casadi_int);

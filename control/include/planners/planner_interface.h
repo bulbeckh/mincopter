@@ -44,6 +44,7 @@
 
 #include "mcinstance.h"
 #include "mcstate.h"
+
 extern MCInstance mincopter;
 extern MCState mcstate;
 
@@ -58,8 +59,8 @@ class MC_Planner
 	public:
 
 		MC_Planner() :
-			fence(&mcstate.inertial_nav),
-			wp_nav(&mcstate.inertial_nav, &mcstate.ahrs)
+			fence(&mcstate),
+			wp_nav((const EKF*)mcstate.inertial_nav, (const EKF*)mcstate.ahrs)
 		{
 			// Initialised planner states
 			planner_arm_state = PlannerArmState::DISARMED;

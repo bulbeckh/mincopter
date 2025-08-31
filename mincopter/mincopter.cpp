@@ -62,8 +62,11 @@ MCInstance mincopter;
 /* @brief Interface to the scheduler which runs sensor updates and other non-HAL, non-interrupt functions */
 AP_Scheduler scheduler;
 
+#include "ekf.h"
+extern EKF ekf;
+
 /* @brief Interface to the state estimation module */
-MCState mcstate;
+MCState mcstate(&ekf, &ekf);
 
 /* ### CONTROLLER & PLANNER ###
  * We instantiate our chosen controller here so that it can be referenced in other translation units with
@@ -97,11 +100,11 @@ void init_ardupilot();
 /* @brief The state update routine. Will update the AHRS, the Inertial Navigation, and some sensors */
 void state_update()
 {
-	mcstate.ahrs.update();
+	mcstate.ahrs->ahrs_update();
 
-	mcstate.omega = mincopter.ins.get_gyro();
+	//mcstate.omega = mincopter.ins.get_gyro();
 
-	mcstate.inertial_nav.update(mincopter.G_Dt);
+	mcstate.inertial_nav->inav_update();
 
     mcstate.update_trig();
 

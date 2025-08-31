@@ -244,8 +244,8 @@ struct PACKED log_Nav_Tuning {
 void Log_Write_Nav_Tuning()
 {
     const Vector3f &desired_position = planner.wp_nav.get_loiter_target();
-    const Vector3f &position = mcstate.inertial_nav.get_position();
-    const Vector3f &velocity = mcstate.inertial_nav.get_velocity();
+    const Vector3f &position = mcstate.get_position();
+    const Vector3f &velocity = mcstate.get_velocity();
 
     struct log_Nav_Tuning pkt = {
         LOG_PACKET_HEADER_INIT(LOG_NAV_TUNING_MSG),
@@ -378,8 +378,8 @@ void Log_Write_Performance()
 {
     struct log_Performance pkt = {
         LOG_PACKET_HEADER_INIT(LOG_PERFORMANCE_MSG),
-        renorm_count     : mcstate.ahrs.renorm_range_count,
-        renorm_blowup    : mcstate.ahrs.renorm_blowup_count,
+        renorm_count     : 0, /* mcstate.ahrs.renorm_range_count, */
+        renorm_blowup    : 0, /* mcstate.ahrs.renorm_blowup_count, */
         num_long_running : 0, /* perf_info_get_num_long_running(), */
         num_loops        : 0, /* perf_info_get_num_loops(), */
         max_time         : 0, /* perf_info_get_max_time(), */
@@ -438,11 +438,11 @@ void Log_Write_Attitude()
         LOG_PACKET_HEADER_INIT(LOG_ATTITUDE_MSG),
         time_ms         : mincopter.hal.scheduler->millis(),
         control_roll    : (int16_t)controller.control_roll,
-        roll            : (int16_t)mcstate.ahrs.roll_sensor,
+        roll            : (int16_t)mcstate.roll_sensor,
         control_pitch   : (int16_t)controller.control_pitch,
-        pitch           : (int16_t)mcstate.ahrs.pitch_sensor,
+        pitch           : (int16_t)mcstate.pitch_sensor,
         control_yaw     : (uint16_t)controller.control_yaw,
-        yaw             : (uint16_t)mcstate.ahrs.yaw_sensor
+        yaw             : (uint16_t)mcstate.yaw_sensor
     };
     mincopter.DataFlash.WriteBlock(&pkt, sizeof(pkt));
 }

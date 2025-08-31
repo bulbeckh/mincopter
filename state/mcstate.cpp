@@ -11,9 +11,9 @@ extern MCInstance mincopter;
 
 // TODO This is now incorrect as it is potentially created and initialising two EKF instances. Change to pointers instead
 
-MCState::MCState() : 
-		ahrs(),
-		inertial_nav()
+MCState::MCState(MC_AHRS_CLASS* _ahrs, MC_INAV_CLASS* _inav) :
+		ahrs(_ahrs),
+		inertial_nav(_inav)
 		//wp_nav(&this->inertial_nav, &this->ahrs, &mincopter.pi_loiter_lat, &mincopter.pi_loiter_lon, &mincopter.pid_loiter_rate_lat, &mincopter.pid_loiter_rate_lon)
 		//fence(&this->inertial_nav),
 {
@@ -25,8 +25,8 @@ void MCState::init(void)
 	// Pass the _state variable into the ahrs and inertial_nav
 	
 	// TODO Check return value
-	ahrs.ahrs_init(_state);
-	inertial_nav.inav_init(_state);
+	ahrs->ahrs_init(&_state);
+	inertial_nav->inav_init(&_state);
 
 	return;
 }
@@ -36,15 +36,15 @@ void MCState::update(void)
 
 	/* If we are using the EKF, then we run the full update using a call to the inertial_nav and ignore the ahrs update method */
 #ifndef MC_AHRS_EKF
-	ahrs->update();
+	ahrs->ahrs_update();
 #endif
 
 	// TODO Change the function prototype to contain NO dt parameter - this should be taken from accelerometer/gyrometer elasped time
-	inertial_nav->update(0.0f);
+	inertial_nav->inav_update();
 
 	// TODO Check if we are using a drift/bias compensation state in our model and then compensate direct sensor readings
-	_omega = mincopter.ins.get_gyro();
-	_accel = mincopter.ins.get_accel();
+	//_omega = mincopter.ins.get_gyro();
+	//_accel = mincopter.ins.get_accel();
 
 	// TODO I don't think this needs to be called
 	update_trig();
@@ -69,7 +69,7 @@ const Matrix3f& MCState::get_dcm(void)
 void MCState::update_trig(void){
 		Vector2f yawvector;
 		// TODO add this-> infront of class members. more verbose is better
-		const Matrix3f &temp   = ahrs.get_dcm_matrix();
+		const Matrix3f &temp   = get_dcm();
 
 		yawvector.x     = temp.a.x;     // sin
 		yawvector.y     = temp.b.x;         // cos
@@ -99,6 +99,65 @@ void MCState::update_trig(void){
 		// 90° = cos_yaw:  0.00, sin_yaw:  1.00,
 		// 180 = cos_yaw: -1.00, sin_yaw:  0.00,
 		// 270 = cos_yaw:  0.00, sin_yaw: -1.00,
+	
+	// Update the roll,pitch,yaw sensor values
+	_euler = get_euler_angles();
+
+	// TODO Remove the use of <roll,pitch,yaw>_sensor in controller PID - replace with 
+	// TODO Does get_euler_angles express in degrees or radians?
+	// Euler angles as int32 (degc*100)
+	roll_sensor  = (int32_t)(_euler.x*100);
+	pitch_sensor = (int32_t)(_euler.y*100);
+	yaw_sensor   = (int32_t)(_euler.z*100);
+	
+	return;
 }
 
+void MCState::set_altitude(float new_alt)
+{
+	// TODO Implement
+	return;
 
+}
+
+void MCState::set_home_position(int32_t lat, int32_t lng)
+{
+	// TODO Implement
+	return;
+}
+
+bool MCState::position_ok(void) const
+{
+	// TODO Implement
+	return false;
+}
+
+int32_t MCState::get_latitude() const
+{
+	// TODO Implement
+	return 0;
+}
+
+int32_t MCState::get_longitude() const
+{
+	// TODO Implement
+	return 0;
+}
+
+float MCState::get_altitude() const
+{
+	// TODO Implement
+	return 0.0f;
+}
+
+const Vector3f MCState::get_position() const
+{
+	// TODO Implement
+	return Vector3f(0,0,0);
+}
+
+const Vector3f MCState::get_velocity() const
+{
+	// TODO Implement
+	return Vector3f(0,0,0);
+}

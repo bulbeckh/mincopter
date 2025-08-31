@@ -198,7 +198,7 @@ void crash_check()
 
     // check angles
     int32_t lean_max = planner.angle_max + CRASH_CHECK_ANGLE_DEVIATION_CD;
-    if (labs(mcstate.ahrs.roll_sensor) > lean_max || labs(mcstate.ahrs.pitch_sensor) > lean_max) {
+    if (labs(mcstate.roll_sensor) > lean_max || labs(mcstate.pitch_sensor) > lean_max) {
         inverted_count++;
 
         // if we have just become inverted record the baro altitude
@@ -240,8 +240,8 @@ void read_inertia()
 void read_inertial_altitude()
 {
     // with inertial nav we can update the altitude and climb rate at 50hz
-    mcstate.current_loc.alt = mcstate.inertial_nav.get_altitude();
-    controller.climb_rate = mcstate.inertial_nav.get_velocity_z();
+    mcstate.current_loc.alt = mcstate.get_altitude();
+    controller.climb_rate = mcstate.get_velocity().z;
 }
 
 // position_vector.pde
@@ -337,7 +337,7 @@ void init_home()
     // set inertial nav's home position
 	
 	// NOTE During the simulation, the simulated values may be set to zero when this is called
-    mcstate.inertial_nav.set_home_position(mincopter.g_gps->longitude, mincopter.g_gps->latitude);
+    mcstate.set_home_position(mincopter.g_gps->longitude, mincopter.g_gps->latitude);
 
     if (mincopter.log_bitmask & MASK_LOG_CMD)
         Log_Write_Cmd(0, &mcstate.home);
