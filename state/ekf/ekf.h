@@ -50,6 +50,20 @@ class EKF : public AP_AHRS, public MC_InertialNav {
 		 *
 		 */
 
+		/*
+		struct {
+			double dt;
+			double w[3];
+			double a[3];
+			double var_gyro;
+			double var_accel;
+			double cov[100]; // (10,10)
+			double q[4];
+			double x[3];
+			double v[3];
+		} ekf_predict_arg;
+		*/
+
 		// ekf arg/res
 		double dt;
 		double w[3];
@@ -103,9 +117,9 @@ class EKF : public AP_AHRS, public MC_InertialNav {
 			&var_gps_pos,
 			&var_gps_vel};
 
-		// NOTE vt matrix is (10,12) and kgain is (10,10)
-		double vt[120];
-		double kgain[100];
+		// vt is (12,1) and kgain is (10,12)
+		double vt[12];
+		double kgain[120];
 
 		double* ekf_correct_res[4] = {state_out, cov_out, vt, kgain};
 

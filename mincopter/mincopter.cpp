@@ -205,7 +205,7 @@ void loop()
     fast_loopTimer = timer;
 
     // Update state
-    //state_update();
+    state_update();
 
     // Control Determination
     //control_determination();
