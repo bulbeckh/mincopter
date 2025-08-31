@@ -25,7 +25,7 @@ void EKF::inav_update(void)
 	int _result = ekf_predict(ekf_predict_arg, ekf_predict_res, 0, 0, 0);
 
 	// Run correction step
-	int _result = ekf_correct(ekf_correct_arg, ekf_correct_res, 0, 0, 0);
+	_result = ekf_correct(ekf_correct_arg, ekf_correct_res, 0, 0, 0);
 
 	return;
 }
@@ -60,11 +60,19 @@ void EKF::setup_ekf_args(void)
 	return;
 }
 
+
 void EKF::reset(void)
 {
-	// acc2q method from github.com/mayitzin/ahrs
+	// TODO We need to figure out the behaviour when a reset is called. It is 
+	// complicated by the fact that we have two reset methods - one to zero everything
+	// and then another to initialise to an euler angles (RPY) value
 	
-	// TODO Ignored the recover_eulers argument
+	/*
+	
+	// This reset method should reset both the internal EKF state variables
+	// but also the state from the _state struct
+	
+	// acc2q method from github.com/mayitzin/ahrs
 	
 	// Reset covariance matrix to identity matrix
 	for (uint8_t i=0;i<10;i++) {
@@ -104,6 +112,8 @@ void EKF::reset(void)
 	_state._attitude(q[0], q[1], q[2], q[3]);
 	
 	// TODO normalize the _altitude quaternion
+	
+	*/
 
 	return;
 }

@@ -40,6 +40,8 @@ class EKF : public AP_AHRS, public MC_InertialNav {
 		/* @brief Prepare correct and predict arguments vectors */
 		void setup_ekf_args(void);
 
+		/* @brief Internal reset method */
+		void reset(void);
 
 	private:
 		/* Our casadi functions use the following interface:
@@ -124,7 +126,8 @@ class EKF : public AP_AHRS, public MC_InertialNav {
 		/* @brief Update the INS using latest accelerometer readings */
 		void inav_update(void) override;
 
-
+		/* @brief Overrides of the reset methods */
+		// TODO
 
 
 };

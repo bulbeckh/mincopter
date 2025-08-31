@@ -51,13 +51,13 @@ class AP_AHRS
 
 		/* @brief Reset the current attitude representation to zero */
 		virtual void ahrs_reset(void) {
-			_state._attitude(0.0f, 0.0f, 0.0f);
+			_state->_attitude(0.0f, 0.0f, 0.0f, 0.0f);
 			return;
 		}
 
 		/* @brief Reset the current attitude representation to the provided roll, pitch, and yaw */
 		virtual void ahrs_reset_attitude(const float &roll, const float &pitch, const float &yaw) {
-			_state._attitude.from_euler(roll, pitch, yaw);
+			_state->_attitude.from_euler(roll, pitch, yaw);
 			return;
 		}
 

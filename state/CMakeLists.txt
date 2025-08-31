@@ -7,7 +7,6 @@
 
 list(APPEND MC_LIBS_STATE
 	${CMAKE_SOURCE_DIR}/state/mcstate.cpp
-	${CMAKE_SOURCE_DIR}/state/AP_AHRS/ahrs_interface.cpp
 )
 
 if(MC_SIM_TYPE STREQUAL "SIM")
