@@ -129,6 +129,8 @@ class MCState
 		/* @brief Get velocity in earth frame (NED) */
 		const Vector3f get_velocity() const;
 
+		// TODO Add a get_heading method (formerly in Compass.h)
+
 	public:
 		// TODO REMOVE
 		void update_trig(void);

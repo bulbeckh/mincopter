@@ -22,189 +22,149 @@
 // setup default mag orientation for each board type
 # define MAG_BOARD_ORIENTATION ROTATION_NONE
 
-#define COMPASS_MAX_INSTANCES 1
-
 class Compass
 {
-public:
-    int16_t product_id;                         /// product id
-    uint32_t last_update;               ///< micros() time of last update
+	public:
+		Compass();
 
-    /// Constructor
-    ///
-    Compass();
+		/* @brief Time since last valid reading of _field (in microseconds, us) */
+		uint32_t last_update;
 
-    /// Initialize the compass device.
-    ///
-    /// @returns    True if the compass was initialized OK, false if it was not
-    ///             found or is not functioning.
-    ///
-    virtual bool init();
+		/* @brief Initialize the compass device */
+		virtual bool init();
 
-    /// Read the compass and update the mag_ variables.
-    ///
-    virtual bool read(void) = 0;
+		/* @brief Read the compass and update the mag_ variables */
+		virtual bool read(void) = 0;
 
-    
+		/* @brief Use spare CPU cycles to accumulate values from the compass */
+		virtual void accumulate(void) = 0;
 
-    /// use spare CPU cycles to accumulate values from the compass if
-    /// possible
-    virtual void accumulate(void) = 0;
+		/* @brief Get magnetic field in microteslas (uT) in the ENU frame */
+		const Vector3f &get_field(void) const {
+			return _field;
+		}
 
-    /// Calculate the tilt-compensated heading_ variables.
-    ///
-    /// @param dcm_matrix			The current orientation rotation matrix
-    ///
-    /// @returns heading in radians
-    ///
-    float calculate_heading(const Matrix3f &dcm_matrix) const;
+		/* @brief Return the health of a compass */
+		bool healthy(void) const {
+			return _healthy;
+		}
 
-    /// Sets the compass offset x/y/z values.
-    ///
-    /// @param  offsets             Offsets to the raw mag_ values.
-    ///
-    void set_offsets(const Vector3f &offsets);
+		/* @brief Returns the current offset values in microteslas (uT) */
+		const Vector3f &get_offsets(void) const {
+			return _offset;
+		}
 
-    // return the number of compass instances
-    virtual uint8_t get_count(void) const { return 1; }
+		/* @brief Sets the initial location used to get declination
+		 * @param latitude GPS Latitude
+		 * @param longitude GPS Longitude */
+		void set_initial_location(int32_t latitude, int32_t longitude);
 
-    /// Return the current field as a Vector3f
-    const Vector3f &get_field(uint8_t i) const { return _field[i]; }
-    const Vector3f &get_field(void) const { return get_field(_get_primary()); }
+		/* @brief Return true if the compass should be used for yaw calculations */
+		bool use_for_yaw(void) const {
+			return _healthy && _use_for_yaw;
+		}
 
-    /// Return the health of a compass
-    bool healthy(uint8_t i) const { return _healthy[i]; }
-    bool healthy(void) const { return healthy(_get_primary()); }
+		/* @brief Sets the local magnetic field declination
+		 * @param radians Local field declination */
+		void set_declination(float radians);
 
-    /// set the current field as a Vector3f
-    void set_field(const Vector3f &field) { _field[0] = field; }
+		/* @brief Get current magnetic field declination we are using */
+		float get_declination() const;
 
-    /// Returns the current offset values
-    ///
-    /// @returns                    The current compass offsets.
-    ///
-    const Vector3f &get_offsets(uint8_t i) const { return _offset[i]; }
-    const Vector3f &get_offsets(void) const { return get_offsets(_get_primary()); }
+		/* @brief Set overall board orientation */
+		void set_board_orientation(enum Rotation orientation) {
+			_board_orientation = orientation;
+		}
 
-    /// Sets the initial location used to get declination
-    ///
-    /// @param  latitude             GPS Latitude.
-    /// @param  longitude            GPS Longitude.
-    ///
-    void set_initial_location(int32_t latitude, int32_t longitude);
+		/* @brief Set the motor compensation type
+		 * @param comp_type 0 = disabled, 1 = enabled use throttle, 2 = enabled use current */
+		// TODO Change the function signature to set_motor_compensation_type
+		void motor_compensation_type(const uint8_t comp_type) {
+			if (_motor_comp_type <= AP_COMPASS_MOT_COMP_CURRENT && _motor_comp_type != (int8_t)comp_type) {
+				_motor_comp_type = (int8_t)comp_type;
+				_thr_or_curr = 0;                               // set current current or throttle to zero
+				set_motor_compensation(Vector3f(0,0,0));        // clear out invalid compensation vector
+			}
+		}
 
-    /// Program new offset values.
-    ///
-    /// @param  x                   Offset to the raw mag_x value.
-    /// @param  y                   Offset to the raw mag_y value.
-    /// @param  z                   Offset to the raw mag_z value.
-    ///
-    void set_offsets(int x, int y, int z) {
-        set_offsets(Vector3f(x, y, z));
-    }
+		// TODO Change to enum class
+		// TODO Change function signature to get_motor_compensation_type
+		/* @brief Get the motor compensation value */
+		uint8_t motor_compensation_type() const {
+			return _motor_comp_type;
+		}
 
-    /// Perform automatic offset updates
-    ///
-    void null_offsets(void);
+		/* @brief Set the motor compensation factor x/y/z values.
+		 * @param offsets Offsets multiplied by the throttle value and added to the raw mag_ values */
+		void set_motor_compensation(const Vector3f &motor_comp_factor);
 
-    /// return true if the compass should be used for yaw calculations
-    bool use_for_yaw(void) const {
-        return _healthy[0] && _use_for_yaw;
-    }
+		/* @brief Get motor compensation factors as a vector */
+		const Vector3f& get_motor_compensation(void) const {
+			return _motor_compensation;
+		}
 
-    /// Sets the local magnetic field declination.
-    ///
-    /// @param  radians             Local field declination.
-    /// @param save_to_eeprom       true to save to eeprom (false saves only to memory)
-    ///
-    void set_declination(float radians, bool save_to_eeprom = true);
-    float get_declination() const;
+		/* @brief Returns the current motor compensation offset values */
+		const Vector3f &get_motor_offsets(void) const {
+			return _motor_offset;
+		}
 
-    // set overall board orientation
-    void set_board_orientation(enum Rotation orientation) {
-        _board_orientation = orientation;
-    }
+		/* @brief Set the throttle as a percentage from 0.0 to 1.0
+		 * @param thr_pct throttle expressed as a percentage from 0 to 1.0 */
+		void set_throttle(float thr_pct) {
+			if(_motor_comp_type == AP_COMPASS_MOT_COMP_THROTTLE) {
+				_thr_or_curr = thr_pct;
+			}
+		}
 
-    /// Set the motor compensation type
-    ///
-    /// @param  comp_type           0 = disabled, 1 = enabled use throttle, 2 = enabled use current
-    ///
-    void motor_compensation_type(const uint8_t comp_type) {
-        if (_motor_comp_type <= AP_COMPASS_MOT_COMP_CURRENT && _motor_comp_type != (int8_t)comp_type) {
-            _motor_comp_type = (int8_t)comp_type;
-            _thr_or_curr = 0;                               // set current current or throttle to zero
-            set_motor_compensation(Vector3f(0,0,0));        // clear out invalid compensation vector
-        }
-    }
+		/* @brief Set the current used by system in amps
+		 * @param amps current flowing to the motors expressed in amps */
+		void set_current(float amps) {
+			if(_motor_comp_type == AP_COMPASS_MOT_COMP_CURRENT) {
+				_thr_or_curr = amps;
+			}
+		}
 
-    /// get the motor compensation value.
-    uint8_t motor_compensation_type() const {
-        return _motor_comp_type;
-    }
+	protected:
+		/* @brief Whether current compass reading is valid */
+		bool _healthy;
 
-    /// Set the motor compensation factor x/y/z values.
-    ///
-    /// @param  offsets             Offsets multiplied by the throttle value and added to the raw mag_ values.
-    ///
-    void set_motor_compensation(const Vector3f &motor_comp_factor, uint8_t i=0);
+		/* @brief Compass reading in microteslas (uT) in the ENU frame */
+		Vector3f _field;
 
-    /// get motor compensation factors as a vector
-    const Vector3f& get_motor_compensation(uint8_t i) const { return _motor_compensation[i]; }
-    const Vector3f& get_motor_compensation(void) const { return get_motor_compensation(0); }
+		/* @brief Current orientation of the magnetometer (used for rotating to ENU frame */
+		int8_t _orientation;
 
-    /// Returns the current motor compensation offset values
-    ///
-    /// @returns                    The current compass offsets.
-    ///
-    const Vector3f &get_motor_offsets(uint8_t i) const { return _motor_offset[i]; }
-    const Vector3f &get_motor_offsets(void) const { return get_motor_offsets(0); }
+		/* @brief Compass offset in microteslas (uT) in the ENU frame */
+		Vector3f _offset;
 
-    /// Set the throttle as a percentage from 0.0 to 1.0
-    /// @param thr_pct              throttle expressed as a percentage from 0 to 1.0
-    void set_throttle(float thr_pct) {
-        if(_motor_comp_type == AP_COMPASS_MOT_COMP_THROTTLE) {
-            _thr_or_curr = thr_pct;
-        }
-    }
+		// TODO Do we need inclination too?
+		/* @brief Current magnetic declination value in degrees */
+		float _declination;
 
-    /// Set the current used by system in amps
-    /// @param amps                 current flowing to the motors expressed in amps
-    void set_current(float amps) {
-        if(_motor_comp_type == AP_COMPASS_MOT_COMP_CURRENT) {
-            _thr_or_curr = amps;
-        }
-    }
+		/* @brief Whether we are using this compass for yaw calculations */
+		int8_t _use_for_yaw;
 
-    // settable parameters
-    int8_t _learn;                             ///<enable calibration learning
+		///< used by offset correction
+		static const uint8_t _mag_history_size = 20;
+		uint8_t _mag_history_index;
+		Vector3i _mag_history[_mag_history_size];
 
-protected:
-    virtual uint8_t _get_primary(void) const { return 0; }
+		// motor compensation
+	
+		// TODO Change to enum class
+		/* @brief Motor compensation type (0 = disabled, 1 = enabled for throttle, 2 = enabled for current) */
+		int8_t _motor_comp_type;
 
-    bool _healthy[COMPASS_MAX_INSTANCES];
-    Vector3f _field[COMPASS_MAX_INSTANCES];     ///< magnetic field strength
+		/* @brief Factors multiplied by throttle and added to compass outputs */
+		Vector3f _motor_compensation;
 
-    int8_t _orientation;
-    Vector3f _offset[COMPASS_MAX_INSTANCES];
-    float _declination;
-    int8_t _use_for_yaw;                       ///<enable use for yaw calculation
-    int8_t _auto_declination;                  ///<enable automatic declination code
-    int8_t _external;                          ///<compass is external
+		/* @brief Latest compensation added to compass */
+		Vector3f _motor_offset;
 
-    bool _null_init_done;                           ///< first-time-around flag used by offset nulling
+		/* @brief Either throttle expressed as a percentage from 0 ~ 1.0 or current expressed in amps */
+		float _thr_or_curr;
 
-    ///< used by offset correction
-    static const uint8_t _mag_history_size = 20;
-    uint8_t _mag_history_index[COMPASS_MAX_INSTANCES];
-    Vector3i _mag_history[COMPASS_MAX_INSTANCES][_mag_history_size];
-
-    // motor compensation
-    int8_t     _motor_comp_type;               // 0 = disabled, 1 = enabled for throttle, 2 = enabled for current
-    Vector3f    _motor_compensation[COMPASS_MAX_INSTANCES]; // factors multiplied by throttle and added to compass outputs
-    Vector3f    _motor_offset[COMPASS_MAX_INSTANCES]; // latest compensation added to compass
-    float       _thr_or_curr;                   // throttle expressed as a percentage from 0 ~ 1.0 or current expressed in amps
-
-    // board orientation from AHRS
-    enum Rotation _board_orientation;
+		/* @brief board orientation from AHRS */
+		enum Rotation _board_orientation;
 };
 #endif

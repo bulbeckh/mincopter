@@ -320,9 +320,9 @@ struct PACKED log_Compass {
 // Write a Compass packet
 void Log_Write_Compass()
 {
-    const Vector3f &mag_offsets = mincopter.compass.get_offsets(0);
-    const Vector3f &mag_motor_offsets = mincopter.compass.get_motor_offsets(0);
-    const Vector3f &mag = mincopter.compass.get_field(0);
+    const Vector3f &mag_offsets = mincopter.compass.get_offsets();
+    const Vector3f &mag_motor_offsets = mincopter.compass.get_motor_offsets();
+    const Vector3f &mag = mincopter.compass.get_field();
     struct log_Compass pkt = {
         LOG_PACKET_HEADER_INIT(LOG_COMPASS_MSG),
         time_ms         : mincopter.hal.scheduler->millis(),
@@ -337,27 +337,6 @@ void Log_Write_Compass()
         motor_offset_z  : (int16_t)mag_motor_offsets.z
     };
     mincopter.DataFlash.WriteBlock(&pkt, sizeof(pkt));
-#if COMPASS_MAX_INSTANCES > 1
-    if (mincopter.compass.get_count() > 1) {
-        const Vector3f &mag2_offsets = mincopter.compass.get_offsets(1);
-        const Vector3f &mag2_motor_offsets = mincopter.compass.get_motor_offsets(1);
-        const Vector3f &mag2 = mincopter.compass.get_field(1);
-        struct log_Compass pkt2 = {
-            LOG_PACKET_HEADER_INIT(LOG_COMPASS2_MSG),
-            time_ms         : mincopter.hal.scheduler->millis(),
-            mag_x           : (int16_t)mag2.x,
-            mag_y           : (int16_t)mag2.y,
-            mag_z           : (int16_t)mag2.z,
-            offset_x        : (int16_t)mag2_offsets.x,
-            offset_y        : (int16_t)mag2_offsets.y,
-            offset_z        : (int16_t)mag2_offsets.z,
-            motor_offset_x  : (int16_t)mag2_motor_offsets.x,
-            motor_offset_y  : (int16_t)mag2_motor_offsets.y,
-            motor_offset_z  : (int16_t)mag2_motor_offsets.z
-        };
-        mincopter.DataFlash.WriteBlock(&pkt2, sizeof(pkt2));
-    }
-#endif
 }
 
 struct PACKED log_Performance {

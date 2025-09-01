@@ -32,7 +32,7 @@ void AP_Compass_Sim::accumulate(void)
 bool AP_Compass_Sim::init()
 {
 	// perform an initial read
-	_healthy[0] = true;
+	_healthy = true;
 
 	read();
 
@@ -52,9 +52,9 @@ bool AP_Compass_Sim::read()
 
 	if (acc_samples>0) {
 		// Calculate an average field reading
-		_field[0].x = acc_field.x / acc_samples;
-		_field[0].y = acc_field.y / acc_samples;
-		_field[0].z = acc_field.z / acc_samples;
+		_field.x = acc_field.x / acc_samples;
+		_field.y = acc_field.y / acc_samples;
+		_field.z = acc_field.z / acc_samples;
 
 		// Reset accumulated variables
 		acc_field.zero();
@@ -63,7 +63,10 @@ bool AP_Compass_Sim::read()
 		return false;
 	}
 
-	simlog.write_compass_state(_field[0].x, _field[0].y, _field[0].z);
+	simlog.write_compass_state(
+			_field.x,
+			_field.y,
+			_field.z);
 
     return true;
 }

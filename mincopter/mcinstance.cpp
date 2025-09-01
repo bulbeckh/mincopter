@@ -129,7 +129,7 @@ void read_batt_compass(void)
 
 #if HIL_MODE != HIL_MODE_ATTITUDE  // don't execute in HIL mode
 		if (mincopter.compass.read()) {
-				mincopter.compass.null_offsets();
+				//mincopter.compass.null_offsets();
 		}
 		// log compass information
 		if (mincopter.log_bitmask & MASK_LOG_COMPASS) {

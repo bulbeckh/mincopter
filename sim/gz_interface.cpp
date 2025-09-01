@@ -237,7 +237,9 @@ bool GZ_Interface::recv_state_input()
 		int32_t inav_lng = mcstate.get_longitude();
 		int32_t inav_alt = mcstate.get_altitude();
 
-		float c_heading = degrees(mincopter.compass.calculate_heading(mcstate.get_dcm()));
+		// TODO Get heading from mcstate instead
+		//float c_heading = degrees(mincopter.compass.calculate_heading(mcstate.get_dcm()));
+		float c_heading = 0.0f; 
 
 		std::cout << "---------- ITERATION " << frame_counter << " ----\n";
 		std::cout << "(sim/inav) Position X (m): " << pkt->pos_x << " " << inav_pos.x << "\n";

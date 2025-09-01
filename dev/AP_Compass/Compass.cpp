@@ -108,74 +108,47 @@ const AP_Param::GroupInfo Compass::var_info[] PROGMEM = {
 };
 */
 
-// Default constructor.
-// Note that the Vector/Matrix constructors already implicitly zero
-// their values.
-//
 Compass::Compass(void) :
-    product_id(AP_COMPASS_TYPE_UNKNOWN),
-    _null_init_done(false),
-	_learn(1),
 	_use_for_yaw(1),
-	_auto_declination(1),
 	_motor_comp_type(AP_COMPASS_MOT_COMP_DISABLED),
 	_orientation(ROTATION_NONE)
 {
     //AP_Param::setup_object_defaults(this, var_info);
 }
 
-// Default init method, just returns success.
-//
-bool
-Compass::init()
+bool Compass::init()
 {
     return true;
 }
 
-void
-Compass::set_offsets(const Vector3f &offsets)
+void Compass::set_motor_compensation(const Vector3f &motor_comp_factor)
 {
-    _offset[0] = offsets;
+    _motor_compensation = motor_comp_factor;
 }
 
-void
-Compass::set_motor_compensation(const Vector3f &motor_comp_factor, uint8_t i)
+void Compass::set_initial_location(int32_t latitude, int32_t longitude)
 {
-    _motor_compensation[i] = motor_comp_factor;
-}
-
-void
-Compass::set_initial_location(int32_t latitude, int32_t longitude)
-{
-    // if automatic declination is configured, then compute
-    // the declination based on the initial GPS fix
 #if !defined( __AVR_ATmega1280__ )
-    if (_auto_declination) {
-        // Set the declination based on the lat/lng from GPS
-        _declination = radians(
+    // Set the declination based on the lat/lng from GPS
+    _declination = radians(
                 AP_Declination::get_declination(
                     (float)latitude / 10000000,
                     (float)longitude / 10000000));
-    }
 #endif
 }
 
-void
-Compass::set_declination(float radians, bool save_to_eeprom)
+void Compass::set_declination(float radians)
 {
     _declination = radians;
 }
 
-float
-Compass::get_declination() const
+float Compass::get_declination() const
 {
     return _declination;
 }
 
+// NOTE TODO A similar method will be written in mcstate to calculate the current heading. Leaving here for reference.
 /*
-  calculate a compass heading given the attitude from DCM and the mag vector
- */
-float
 Compass::calculate_heading(const Matrix3f &dcm_matrix) const
 {
     float cos_pitch_sq = 1.0f-(dcm_matrix.c.x*dcm_matrix.c.x);
@@ -202,106 +175,5 @@ Compass::calculate_heading(const Matrix3f &dcm_matrix) const
 
     return heading;
 }
+*/
 
-
-/*
- *  this offset nulling algorithm is inspired by this paper from Bill Premerlani
- *
- *  http://gentlenav.googlecode.com/files/MagnetometerOffsetNullingRevisited.pdf
- *
- *  The base algorithm works well, but is quite sensitive to
- *  noise. After long discussions with Bill, the following changes were
- *  made:
- *
- *   1) we keep a history buffer that effectively divides the mag
- *      vectors into a set of N streams. The algorithm is run on the
- *      streams separately
- *
- *   2) within each stream we only calculate a change when the mag
- *      vector has changed by a significant amount.
- *
- *  This gives us the property that we learn quickly if there is no
- *  noise, but still learn correctly (and slowly) in the face of lots of
- *  noise.
- */
-void
-Compass::null_offsets(void)
-{
-    if (_learn == 0) {
-        // auto-calibration is disabled
-        return;
-    }
-
-    // this gain is set so we converge on the offsets in about 5
-    // minutes with a 10Hz compass
-    const float gain = 0.01;
-    const float max_change = 10.0;
-    const float min_diff = 50.0;
-
-    if (!_null_init_done) {
-        // first time through
-        _null_init_done = true;
-        for (uint8_t k=0; k<COMPASS_MAX_INSTANCES; k++) {
-            const Vector3f &ofs = _offset[k];
-            for (uint8_t i=0; i<_mag_history_size; i++) {
-                // fill the history buffer with the current mag vector,
-                // with the offset removed
-                _mag_history[k][i] = Vector3i((_field[k].x+0.5f) - ofs.x, (_field[k].y+0.5f) - ofs.y, (_field[k].z+0.5f) - ofs.z);
-            }
-            _mag_history_index[k] = 0;
-        }
-        return;
-    }
-
-    for (uint8_t k=0; k<COMPASS_MAX_INSTANCES; k++) {
-        const Vector3f &ofs = _offset[k];
-        Vector3f b1, diff;
-        float length;
-
-        // get a past element
-        b1 = Vector3f(_mag_history[k][_mag_history_index[k]].x,
-                      _mag_history[k][_mag_history_index[k]].y,
-                      _mag_history[k][_mag_history_index[k]].z);
-
-        // the history buffer doesn't have the offsets
-        b1 += ofs;
-
-        // get the current vector
-        const Vector3f &b2 = _field[k];
-
-        // calculate the delta for this sample
-        diff = b2 - b1;
-        length = diff.length();
-        if (length < min_diff) {
-            // the mag vector hasn't changed enough - we don't get
-            // enough information from this vector to use it.
-            // Note that we don't put the current vector into the mag
-            // history here. We want to wait for a larger rotation to
-            // build up before calculating an offset change, as accuracy
-            // of the offset change is highly dependent on the size of the
-            // rotation.
-            _mag_history_index[k] = (_mag_history_index[k] + 1) % _mag_history_size;
-            continue;
-        }
-
-        // put the vector in the history
-        _mag_history[k][_mag_history_index[k]] = Vector3i((_field[k].x+0.5f) - ofs.x, 
-                                                          (_field[k].y+0.5f) - ofs.y, 
-                                                          (_field[k].z+0.5f) - ofs.z);
-        _mag_history_index[k] = (_mag_history_index[k] + 1) % _mag_history_size;
-
-        // equation 6 of Bills paper
-        diff = diff * (gain * (b2.length() - b1.length()) / length);
-
-        // limit the change from any one reading. This is to prevent
-        // single crazy readings from throwing off the offsets for a long
-        // time
-        length = diff.length();
-        if (length > max_change) {
-            diff *= max_change / length;
-        }
-
-        // set the new offsets
-        _offset[k] = _offset[k] - diff;
-    }
-}
