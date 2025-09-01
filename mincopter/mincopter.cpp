@@ -146,12 +146,16 @@ void loop()
 		GPS::GPS_Status _status = mincopter.g_gps->status();
 		Vector3f _temp_pos = mcstate.get_position();
 
+		float _pres = mincopter.barometer.get_pressure();
+		float _temperature = mincopter.barometer.get_temperature();
+
 		Quaternion& _temp_att = mcstate._state._attitude;
 
 		printf("[loop %u]\n", _counter);
 		printf("gyr: % 6.2f, % 6.2f, % 6.2f\n", _gyr_meas.x, _gyr_meas.y, _gyr_meas.z);
 		printf("acc: % 6.2f, % 6.2f, % 6.2f\n", _acc_meas.x, _acc_meas.y, _acc_meas.z);
 		printf("mag: % 6.2f, % 6.2f, % 6.2f\n", _mag_meas.x, _mag_meas.y, _mag_meas.z);
+		printf("baro: % 6.2f, % 6.2f\n", _pres, _temperature);
 		printf("gps: %d\n", _status);
 		printf("lat/lng: %d, %d\n", mincopter.g_gps->latitude, mincopter.g_gps->longitude);
 		printf("state x,y,z: %f, %f, %f\n", _temp_pos.x, _temp_pos.y, _temp_pos.z);

@@ -78,6 +78,9 @@ bool AP_Compass_ICM20948::init()
 	// Assign magnetometer as healthy
 	_healthy[0] = true;
 
+	// Do read to get first value
+	read();
+
 	return 0;
 }
 

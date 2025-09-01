@@ -3,6 +3,8 @@
 
 #include <stdio.h>
 
+#include <AP_Math.h>
+
 // MPU6050 Register Definitions
 #define MPU6050_ADDR 0x68
 #define MPU6050_PWR_MGMT_1 0x6B
@@ -65,6 +67,9 @@ uint16_t AP_InertialSensor_MPU6050::_init_sensor(Sample_rate sample_rate)
 	// Register the _poll function to run at xxHz
 	hal.scheduler->register_timer_process(AP_HAL_MEMBERPROC(&AP_InertialSensor_MPU6050::_poll));
 
+	// Run a single _poll during initialisation to get a valid reading
+	_poll();
+
 	// Technically supposed to return the product ID of the IMU
 	return 0;
 }
@@ -96,6 +101,11 @@ void AP_InertialSensor_MPU6050::_poll(void)
 	_accel[0][1] = ay / 16384.0f;
 	_accel[0][2] = az / 16384.0f;
 
+	// Convert from 'g' into m/s2
+	_accel[0][0] *= GRAVITY_MSS;
+	_accel[0][1] *= GRAVITY_MSS;
+	_accel[0][2] *= GRAVITY_MSS;
+
 	/* 2. Gyrometer read and convert */
 
 	status = hal.i2c->readRegisters(MPU6050_ADDR, MPU6050_GYRO_XOUT_H, 6, _read_raw);
@@ -114,6 +124,11 @@ void AP_InertialSensor_MPU6050::_poll(void)
 	_gyro[0][1] = gy / 131.0f;
 	_gyro[0][2] = gz / 131.0f;
 
+	// TODO Scale and conversion to rad/s should be combined
+	_gyro[0][0] *= DEG_TO_RAD;
+	_gyro[0][1] *= DEG_TO_RAD;
+	_gyro[0][2] *= DEG_TO_RAD;
+
 	return;
 }
 
@@ -126,5 +141,4 @@ bool AP_InertialSensor_MPU6050::_reset(void)
 
 	return true;
 }
-
 

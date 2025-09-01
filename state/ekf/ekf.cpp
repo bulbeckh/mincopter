@@ -64,17 +64,31 @@ void EKF::setup_ekf_args(void)
 	// Read dt from gyrometer
 	dt = 0.01; // 100Hz approx.
 	
-	// Get w - latest gyrometer reading
+	// Get w - latest gyrometer reading in rad/s
 	Vector3f gyro = mincopter.ins.get_gyro();
 	w[0] = gyro.x;
 	w[1] = gyro.y;
 	w[2] = gyro.z;
 	
-	// Get a - latest accel reading
+	// Get a - latest accel reading in m/s2
 	Vector3f accel = mincopter.ins.get_accel();
+	Vector3f accel_normalized = accel;
+	
+	accel_normalized.normalize();
+
+	/* NOTE Our EKF is wrong as the functions expect a normalized acceleration vector but we actually need to integrate the
+	 * real acceleration (in m/s2). For now, to get the orientation working, we pass in the normalized vector to use as a
+	 * gravitational measurement, knowing that the pos/vel will not work */
+
+	/* 
 	a[0] = accel.x;
 	a[1] = accel.y;
 	a[2] = accel.z;
+	*/
+
+	a[0] = accel_normalized.x;
+	a[1] = accel_normalized.y;
+	a[2] = accel_normalized.z;
 	
 	// Get accel and gyro variances TODO These should not change and be retrieved during
 	// init from the sensor drivers
@@ -97,6 +111,10 @@ void EKF::setup_ekf_args(void)
 	
 	// Get m - latest magnetometer reading
 	Vector3f field = mincopter.compass.get_field();
+
+	// normalize the magnetic field as we only need it for rotational reference
+	field.normalize();
+
 	m[0] = field.x;
 	m[1] = field.y;
 	m[2] = field.z;
@@ -145,6 +163,13 @@ void EKF::reset(void)
 	for (uint8_t i=0;i<3;i++) x[i] = 0.0f;
 	for (uint8_t i=0;i<3;i++) v[i] = 0.0f;
 
+	// Reset quaternion to unit quaternion
+	q[0] = 1.0f;
+	q[1] = 0.0f;
+	q[2] = 0.0f;
+	q[3] = 0.0f;
+
+	/*
 	// Reset quaternion to latest orientation
 	Vector3f accel_bf = mincopter.ins.get_accel().normalized();
 
@@ -162,6 +187,7 @@ void EKF::reset(void)
 	q[1] = sx2*cy2;
 	q[2] = cx2*sy2;
 	q[3] = -sx2*sy2;
+	*/
 
 	// Update _altitude quaternion
 	_ahrs_state->_attitude(q[0], q[1], q[2], q[3]);
