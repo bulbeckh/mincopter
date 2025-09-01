@@ -66,8 +66,9 @@ void EKF::setup_ekf_args(void)
 	
 	// Get w - latest gyrometer reading in rad/s
 	Vector3f gyro = mincopter.ins.get_gyro();
-	w[0] = gyro.x;
-	w[1] = gyro.y;
+	// NOTE TODO We are deliberately switching (rotating) the axis here because the MPU6050 on my breadboard is backwards
+	w[0] = -gyro.x;
+	w[1] = -gyro.y;
 	w[2] = gyro.z;
 	
 	// Get a - latest accel reading in m/s2
@@ -86,8 +87,9 @@ void EKF::setup_ekf_args(void)
 	a[2] = accel.z;
 	*/
 
-	a[0] = accel_normalized.x;
-	a[1] = accel_normalized.y;
+	// NOTE TODO See above comment about rotations for gyro/accel for MPU6050
+	a[0] = -accel_normalized.x;
+	a[1] = -accel_normalized.y;
 	a[2] = accel_normalized.z;
 	
 	// Get accel and gyro variances TODO These should not change and be retrieved during

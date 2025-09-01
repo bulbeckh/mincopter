@@ -151,6 +151,9 @@ void loop()
 
 		Quaternion& _temp_att = mcstate._state._attitude;
 
+		Matrix3f _temp_rot;
+		_temp_att.rotation_matrix(_temp_rot);
+
 		printf("[loop %u]\n", _counter);
 		printf("gyr: % 6.2f, % 6.2f, % 6.2f\n", _gyr_meas.x, _gyr_meas.y, _gyr_meas.z);
 		printf("acc: % 6.2f, % 6.2f, % 6.2f\n", _acc_meas.x, _acc_meas.y, _acc_meas.z);
@@ -160,6 +163,11 @@ void loop()
 		printf("lat/lng: %d, %d\n", mincopter.g_gps->latitude, mincopter.g_gps->longitude);
 		printf("state x,y,z: %f, %f, %f\n", _temp_pos.x, _temp_pos.y, _temp_pos.z);
 		printf("att q1,q2,q3,q4: %f, %f, %f, %f\n", _temp_att[0], _temp_att[1], _temp_att[2], _temp_att[3]);
+		printf("DCM: -----------\n[%f, %f, %f\n %f, %f, %f,\n%f, %f, %f]\n",
+				_temp_rot[0][0], _temp_rot[0][1], _temp_rot[0][2],
+				_temp_rot[1][0], _temp_rot[1][1], _temp_rot[1][2],
+				_temp_rot[2][0], _temp_rot[2][1], _temp_rot[2][2]);
+
 	}
 
 
