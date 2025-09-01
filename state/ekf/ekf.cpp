@@ -1,7 +1,7 @@
 
 
 #include "ekf.h"
-#include <math.h>
+#include <AP_Math.h>
 
 #include "mcinstance.h"
 extern MCInstance mincopter;
@@ -29,13 +29,22 @@ void EKF::inav_update(void)
 	setup_ekf_args();
 	
 	// Run prediction step (last three args are real/int workspace sizes and memory index, which are all 0)
-	// TODO Not sure why the ekf_predict function requires const double** arg as the arg changes between prediction runs.
+	// NOTE Not sure why the ekf_predict function requires const double** arg as the arg changes between prediction runs.
 	int _result = ekf_predict((const double**)ekf_predict_arg, ekf_predict_res, 0, 0, 0);
 
 	// Run correction step
 	_result = ekf_correct((const double**)ekf_correct_arg, ekf_correct_res, 0, 0, 0);
 
-	// TODO Normalise quaternion before re-assigning
+	// Normalise quaternion before re-assigning
+	float q_norm = safe_sqrt(sq(ekf_correct_res[0][6]) + sq(ekf_correct_res[0][7]) + sq(ekf_correct_res[0][8]) + sq(ekf_correct_res[0][9]));
+
+	// Check that the norm is non-zero
+	if (q_norm > 1e-6) { 
+		ekf_correct_res[0][6] /= q_norm;
+		ekf_correct_res[0][7] /= q_norm;
+		ekf_correct_res[0][8] /= q_norm;
+		ekf_correct_res[0][9] /= q_norm;
+	}
 
 	// Update MCState via _state variable - _result[0] is the state_out as (x,v,q)
 	_ahrs_state->_attitude(
@@ -191,10 +200,12 @@ void EKF::reset(void)
 	q[3] = -sx2*sy2;
 	*/
 
+	// TODO normalize the _altitude quaternion
+
+
 	// Update _altitude quaternion
 	_ahrs_state->_attitude(q[0], q[1], q[2], q[3]);
 	
-	// TODO normalize the _altitude quaternion
 	
 	return;
 }
