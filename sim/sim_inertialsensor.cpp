@@ -45,10 +45,10 @@ bool AP_InertialSensor_Sim::update( void )
     _delta_time_usec = (now - _last_update_ms) * 1000;
     _last_update_ms = now;
 
-	gz_interface.get_imu_gyro_readings(_gyro[0]);
-	gz_interface.get_imu_accel_readings(_accel[0]);
+	gz_interface.get_imu_gyro_readings(_gyro);
+	gz_interface.get_imu_accel_readings(_accel);
 
-	simlog.write_imu_state(_gyro[0], _accel[0]);
+	simlog.write_imu_state(_gyro, _accel);
 
     return true;
 }

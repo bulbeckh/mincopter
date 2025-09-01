@@ -34,7 +34,9 @@ void update_altitude()
 {
 		// read in baro altitude
 		mincopter.barometer.read();
-		planner.baro_alt = mincopter.barometer.get_altitude() * 100.f;
+
+		// TODO What units is this supposed to return/assign
+		planner.baro_alt = mcstate.get_altitude() * 100.f;
 }
 
 // called at 50hz

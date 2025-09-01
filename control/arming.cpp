@@ -230,7 +230,7 @@ void WP_Planner::pre_arm_checks(bool display_failure)
         }
 
         // check accels and gyros are healthy
-        if(!mincopter.ins.healthy()) {
+        if(!mincopter.ins.get_gyro_health() || !mincopter.ins.get_accel_health()) {
             if (display_failure) {
                 //gcs_send_text_P(SEVERITY_HIGH,PSTR("PreArm: INS not healthy"));
             }

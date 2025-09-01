@@ -41,21 +41,26 @@ class AP_InertialSensor_MPU6050 : public AP_InertialSensor
 		// Override Methods
 		
 		/* @brief Update sensor */
-		bool update(void);
+		bool update(void) override;
 
 		/* @brief Returns gyrometer drift rates (in rad/s) */
-		float get_gyro_drift_rate(void);
+		float get_gyro_drift_rate(void) override;
 
 		/* @brief Returns time (in seconds) that the last data read represents */
-		float get_delta_time(void);
+		float get_delta_time(void) override;
 
 		/* @brief Wait for a sample to be available
-		 * @param timeout_ms The period of time (in ms) to wait for before timing out.
-		 */
-		bool wait_for_sample(uint16_t timeout_ms);
+		 * @param timeout_ms The period of time (in ms) to wait for before timing out */
+		bool wait_for_sample(uint16_t timeout_ms) override;
 
 		/* @brief Sensor specific initialisation routine. Called during ::init */
-		uint16_t _init_sensor(Sample_rate sample_rate);
+		uint16_t _init_sensor(Sample_rate sample_rate) override;
+
+		/* @brief Returns true if latest gyro readings are valid */
+		bool get_gyro_health(void) const override;
+		
+		/* @brief Returns true if latest accel readings are valid */
+		bool get_accel_health(void) const override;
 
 	private:
 

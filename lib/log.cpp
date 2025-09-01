@@ -364,7 +364,7 @@ void Log_Write_Performance()
         max_time         : 0, /* perf_info_get_max_time(), */
         pm_test          : 0, /* mincopter.pmTest1, */
         i2c_lockup_count : mincopter.hal.i2c->lockup_count(),
-        ins_error_count  : mincopter.ins.error_count(),
+        ins_error_count  : 0, /* mincopter.ins.error_count(), */
         inav_error_count : 0, /* mcstate.inertial_nav.error_count() */
     };
     mincopter.DataFlash.WriteBlock(&pkt, sizeof(pkt));

@@ -21,6 +21,7 @@
 #include <AP_HAL.h>
 #include <AP_Math.h>
 // HASH include "AP_InertialSensor_UserInteract.h"
+
 /* AP_InertialSensor is an abstraction for gyro and accel measurements
  * which are correctly aligned to the body axes and scaled to SI units.
  *
@@ -30,175 +31,126 @@
  */
 class AP_InertialSensor
 {
-public:
-    AP_InertialSensor();
+	public:
+		AP_InertialSensor();
 
-    enum Start_style {
-        COLD_START = 0,
-        WARM_START
-    };
+		// TODO Change name
+		enum Start_style {
+			COLD_START = 0,
+			WARM_START
+		};
 
-    // the rate that updates will be available to the application
-    enum Sample_rate {
-        RATE_50HZ,
-        RATE_100HZ,
-        RATE_200HZ
-    };
+		/* @brief The rate that updates will be available to the application */
+		// TODO Change name
+		enum Sample_rate {
+			RATE_50HZ,
+			RATE_100HZ,
+			RATE_200HZ
+		};
 
-    /// Perform startup initialisation.
-    ///
-    /// Called to initialise the state of the IMU.
-    ///
-    /// For COLD_START, implementations using real sensors can assume
-    /// that the airframe is stationary and nominally oriented.
-    ///
-    /// For WARM_START, no assumptions should be made about the
-    /// orientation or motion of the airframe.  Calibration should be
-    /// as for the previous COLD_START call.
-    ///
-    /// @param style	The initialisation startup style.
-    ///
-    virtual void init( Start_style style,
-                       Sample_rate sample_rate);
+		/* @brief Perform startup initialisation. For COLD_START, implementations using real sensors can
+		 * assume that the airframe is stationary and nominally oriented.
+		 * For WARM_START, no assumptions should be made about the orientation or motion of the airframe.
+		 * Calibration should be as for the previous COLD_START call.
+		 * @param style	The initialisation startup style. */
+		virtual void init(Start_style style, Sample_rate sample_rate);
 
-    /// Perform cold startup initialisation for just the accelerometers.
-    ///
-    /// @note This should not be called unless ::init has previously
-    ///       been called, as ::init may perform other work.
-    ///
-    virtual void init_accel();
+		/* @brief Perform cold startup initialisation for just the accelerometers. */
+		virtual void init_accel(void);
 
-    /// calibrated - returns true if the accelerometers have been calibrated
-    ///
-    /// @note this should not be called while flying because it reads from the eeprom which can be slow
-    ///
-    bool calibrated();
+		/* @brief Returns true if the accelerometers have been calibrated */
+		bool calibrated(void);
 
-    /// Perform cold-start initialisation for just the gyros.
-    ///
-    /// @note This should not be called unless ::init has previously
-    ///       been called, as ::init may perform other work
-    ///
-    virtual void init_gyro(void);
+		/* @brief Perform cold-start initialisation for just the gyros. */
+		virtual void init_gyro(void);
 
-    /// Fetch the current gyro values
-    ///
-    /// @returns	vector of rotational rates in radians/sec
-    ///
-    const Vector3f     &get_gyro(uint8_t i) const { return _gyro[i]; }
-    const Vector3f     &get_gyro(void) const { return get_gyro(_get_primary_gyro()); }
-    virtual void       set_gyro(const Vector3f &gyro) {}
+		/* @brief Get the current gyro values in rad/s */
+		const Vector3f &get_gyro(void) const {
+			return _gyro;
+		}
 
-    // set gyro offsets in radians/sec
-    const Vector3f &get_gyro_offsets(uint8_t i) const { return _gyro_offset[i]; }
-    const Vector3f &get_gyro_offsets(void) const { return get_gyro_offsets(_get_primary_gyro()); }
+		/* @brief Get gyro offsets in rad/s */
+		const Vector3f &get_gyro_offsets(void) const {
+			return _gyro_offset;
+		}
 
-    /// Fetch the current accelerometer values
-    ///
-    /// @returns	vector of current accelerations in m/s/s
-    ///
-    const Vector3f     &get_accel(uint8_t i) const { return _accel[i]; }
-    const Vector3f     &get_accel(void) const { return get_accel(_get_primary_accel()); }
-    virtual void       set_accel(const Vector3f &accel) {}
+		/* @brief Get the current accelerometer values in m/s2 */
+		const Vector3f &get_accel(void) const {
+			return _accel;
+		}
 
-    // multi-device interface
-    virtual bool get_gyro_health(uint8_t instance) const { return true; }
-    bool get_gyro_health(void) const { return get_gyro_health(_get_primary_gyro()); }
-    virtual uint8_t get_gyro_count(void) const { return 1; };
+		/* @brief Returns true if latest gyro readings are valid */
+		virtual bool get_gyro_health(void) const = 0;
+		
+		/* @brief Returns true if latest accel readings are valid */
+		virtual bool get_accel_health(void) const = 0;
 
-    virtual bool get_accel_health(uint8_t instance) const { return true; }
-    bool get_accel_health(void) const { return get_accel_health(_get_primary_accel()); }
-    virtual uint8_t get_accel_count(void) const { return 1; };
+		/* @brief Get accel offsets in m/s2 */
+		const Vector3f &get_accel_offsets(void) const {
+			return _accel_offset;
+		}
 
-    // get accel offsets in m/s/s
-    const Vector3f &get_accel_offsets(uint8_t i) const { return _accel_offset[i]; }
-    const Vector3f &get_accel_offsets(void) const { return get_accel_offsets(_get_primary_accel()); }
+		/* @brief Get accel scale in units xx */
+		const Vector3f &get_accel_scale(void) const {
+			return _accel_scale;
+		}
 
-    // get accel scale
-    const Vector3f &get_accel_scale(uint8_t i) const { return _accel_scale[i]; }
-    const Vector3f &get_accel_scale(void) const { return get_accel_scale(_get_primary_accel()); }
+		/* @brief Update the sensor data. Returns true if data was updated */
+		virtual bool update(void) = 0;
 
-    /* Update the sensor data, so that getters are nonblocking.
-     * Returns a bool of whether data was updated or not.
-     */
-    virtual bool update() = 0;
+		/* @brief Returns the time period in seconds overwhich the sensor data was collected */
+		virtual float get_delta_time(void) = 0;
 
-    /* get_delta_time returns the time period in seconds
-     * overwhich the sensor data was collected
-     */
-    virtual float get_delta_time() = 0;
+		/* @brief Returns the maximum gyro drift rate in rad/s/s */
+		virtual float get_gyro_drift_rate(void) = 0;
 
-    // return the maximum gyro drift rate in radians/s/s. This
-    // depends on what gyro chips are being used
-    virtual float get_gyro_drift_rate(void) = 0;
+		/* @brief Wait for a sample to be available, with timeout in milliseconds */
+		virtual bool wait_for_sample(uint16_t timeout_ms) = 0;
 
-    // wait for a sample to be available, with timeout in milliseconds
-    virtual bool wait_for_sample(uint16_t timeout_ms) = 0;
+		/* @brief Set overall board orientation */
+		void set_board_orientation(enum Rotation orientation) {
+			_board_orientation = orientation;
+		}
 
-    // class level parameters
-    //static const struct AP_Param::GroupInfo var_info[];
-
-    // set overall board orientation
-    void set_board_orientation(enum Rotation orientation) {
-        _board_orientation = orientation;
-    }
-
-    // override default filter frequency
-    void set_default_filter(float filter_hz) {
-        _mpu6000_filter = filter_hz;
-    }
-
-    virtual uint16_t error_count(void) const { return 0; }
-    virtual bool healthy(void) const { return get_gyro_health() && get_accel_health(); }
-
-protected:
-
-    virtual uint8_t _get_primary_gyro(void) const { return 0; }
-    virtual uint8_t _get_primary_accel(void) const { return 0; }
-
-    // sensor specific init to be overwritten by descendant classes
-    virtual uint16_t        _init_sensor( Sample_rate sample_rate ) = 0;
-
-    // no-save implementations of accel and gyro initialisation routines
-    virtual void  _init_accel();
-
-    virtual void _init_gyro();
+	protected:
+		/* @brief Sensor specific init to be overwritten by descendant classes */
+		virtual uint16_t _init_sensor(Sample_rate sample_rate) = 0;
+		virtual void _init_accel(void);
+		virtual void _init_gyro(void);
 
 #if !defined( __AVR_ATmega1280__ )
-    // Calibration routines borrowed from Rolfe Schmidt
-    // blog post describing the method: http://chionophilous.wordpress.com/2011/10/24/accelerometer-calibration-iv-1-implementing-gauss-newton-on-an-atmega/
-    // original sketch available at http://rolfeschmidt.com/mathtools/skimetrics/adxl_gn_calibration.pde
+		// Calibration routines borrowed from Rolfe Schmidt
+		// blog post describing the method: http://chionophilous.wordpress.com/2011/10/24/accelerometer-calibration-iv-1-implementing-gauss-newton-on-an-atmega/
+		// original sketch available at http://rolfeschmidt.com/mathtools/skimetrics/adxl_gn_calibration.pde
 
-    // _calibrate_accel - perform low level accel calibration
-    virtual bool            _calibrate_accel(Vector3f accel_sample[6], Vector3f& accel_offsets, Vector3f& accel_scale);
-    virtual void            _calibrate_update_matrices(float dS[6], float JS[6][6], float beta[6], float data[3]);
-    virtual void            _calibrate_reset_matrices(float dS[6], float JS[6][6]);
-    virtual void            _calibrate_find_delta(float dS[6], float JS[6][6], float delta[6]);
-    virtual void            _calculate_trim(Vector3f accel_sample, float& trim_roll, float& trim_pitch);
+		// _calibrate_accel - perform low level accel calibration
+		virtual bool _calibrate_accel(Vector3f accel_sample[6], Vector3f& accel_offsets, Vector3f& accel_scale);
+		virtual void _calibrate_update_matrices(float dS[6], float JS[6][6], float beta[6], float data[3]);
+		virtual void _calibrate_reset_matrices(float dS[6], float JS[6][6]);
+		virtual void _calibrate_find_delta(float dS[6], float JS[6][6], float delta[6]);
+		virtual void _calculate_trim(Vector3f accel_sample, float& trim_roll, float& trim_pitch);
 #endif
 
-    // Most recent accelerometer reading obtained by ::update
-    Vector3f _accel[INS_MAX_INSTANCES];
+		/* @brief Most recent accelerometer reading obtained by ::update */
+		Vector3f _accel;
 
-    // previous accelerometer reading obtained by ::update
-    Vector3f _previous_accel[INS_MAX_INSTANCES];
+		/* @brief Previous accelerometer reading obtained by ::update */
+		Vector3f _previous_accel;
 
-    // Most recent gyro reading obtained by ::update
-    Vector3f _gyro[INS_MAX_INSTANCES];
+		/* @brief Most recent gyro reading obtained by ::update */
+		Vector3f _gyro;
 
-    // product id
-    int16_t _product_id;
+		// TODO Remove
+		// product id
+		int16_t _product_id;
 
-    // accelerometer scaling and offsets
-    Vector3f             _accel_scale[INS_MAX_INSTANCES];
-    Vector3f             _accel_offset[INS_MAX_INSTANCES];
-    Vector3f             _gyro_offset[INS_MAX_INSTANCES];
+		/* @brief Accelerometer scaling and offsets */
+		Vector3f _accel_scale;
+		Vector3f _accel_offset;
+		Vector3f _gyro_offset;
 
-    // filtering frequency (0 means default)
-    int8_t                 _mpu6000_filter;
-
-    // board orientation from AHRS
-    enum Rotation			_board_orientation;
+		/* @brief Board orientation from AHRS */
+		enum Rotation _board_orientation;
 };
 
 // HASH include "AP_InertialSensor_Oilpan.h"

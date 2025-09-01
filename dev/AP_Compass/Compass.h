@@ -8,6 +8,7 @@
 #include <AP_Math.h>
 #include <AP_Declination.h> // ArduPilot Mega Declination Helper Library
 
+// TODO Unused - can probably remove
 // compass product id
 #define AP_COMPASS_TYPE_UNKNOWN  0x00
 #define AP_COMPASS_TYPE_HMC5843  0x02

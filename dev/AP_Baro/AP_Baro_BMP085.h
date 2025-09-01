@@ -11,7 +11,6 @@ class AP_Baro_BMP085 : public AP_Baro
 {
 public:
     AP_Baro_BMP085() {
-        _pressure_samples = 1;
     };       // Constructor
 
 

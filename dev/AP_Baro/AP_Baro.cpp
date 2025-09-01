@@ -56,6 +56,12 @@ const AP_Param::GroupInfo AP_Baro::var_info[] PROGMEM = {
 };
 */
 
+void AP_Baro::accumulate()
+{
+	/* Overridden in some drivers so this is default method */
+	return;
+}
+
 // calibrate the barometer. This must be called at least once before
 // the altitude() or climb_rate() interfaces can be used
 void AP_Baro::calibrate()
@@ -65,7 +71,7 @@ void AP_Baro::calibrate()
 
     // reset the altitude offset when we calibrate. The altitude
     // offset is supposed to be for within a flight
-    _alt_offset = 0;
+    //_alt_offset = 0;
 
     {
         uint32_t tstart = hal.scheduler->millis();
@@ -131,9 +137,9 @@ void AP_Baro::update_calibration()
     _ground_temperature = get_temperature();
 }
 
-// return current altitude estimate relative to time that calibrate()
-// was called. Returns altitude in meters
-// note that this relies on read() being called regularly to get new data
+// NOTE TODO This is the calculation used to estimate height from a barometer/pressure reading. Keeping for reference
+// but will be moved to MCState
+/*
 float AP_Baro::get_altitude(void)
 {
     float scaling, temp;
@@ -144,12 +150,11 @@ float AP_Baro::get_altitude(void)
     }
 
 
-	/* NOTE This code was originally used to update for slower CPUs
+	//  NOTE This code was originally used to update for slower CPUs
     // on slower CPUs use a less exact, but faster, calculation
     scaling                                 = (float)_ground_pressure / (float)get_pressure();
     temp                                    = ((float)_ground_temperature) + 273.15f;
     _altitude = logf(scaling) * temp * 29.271267f;
-	*/
 
     // on faster CPUs use a more exact calculation
     scaling                                 = (float)get_pressure() / (float)_ground_pressure;
@@ -166,30 +171,5 @@ float AP_Baro::get_altitude(void)
 
     return _altitude + _alt_offset;
 }
-
-// return current scale factor that converts from equivalent to true airspeed
-// valid for altitudes up to 10km AMSL
-// assumes standard atmosphere lapse rate
-float AP_Baro::get_EAS2TAS(void)
-{
-    if ((fabs(_altitude - _last_altitude_EAS2TAS) < 100.0f) && (_EAS2TAS != 0.0f)) {
-        // not enough change to require re-calculating
-        return _EAS2TAS;
-    }
-
-    float tempK = ((float)_ground_temperature) + 273.15f - 0.0065f * _altitude;
-    _EAS2TAS = safe_sqrt(1.225f / ((float)get_pressure() / (287.26f * tempK)));
-    _last_altitude_EAS2TAS = _altitude;
-    return _EAS2TAS;
-}
-
-// return current climb_rate estimeate relative to time that calibrate()
-// was called. Returns climb rate in meters/s, positive means up
-// note that this relies on read() being called regularly to get new data
-float AP_Baro::get_climb_rate(void)
-{
-    // we use a 7 point derivative filter on the climb rate. This seems
-    // to produce somewhat reasonable results on real hardware
-    return _climb_rate_filter.slope() * 1.0e3f;
-}
+*/
 

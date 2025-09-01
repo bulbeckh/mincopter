@@ -255,31 +255,33 @@ bool AP_InertialSensor_MPU6000::update( void )
         return false;
     }
 
-    _previous_accel[0] = _accel[0];
+    _previous_accel = _accel;
 
     // disable timer procs for mininum time
     hal.scheduler->suspend_timer_procs();
-    _gyro[0]  = Vector3f(_gyro_sum.x, _gyro_sum.y, _gyro_sum.z);
-    _accel[0] = Vector3f(_accel_sum.x, _accel_sum.y, _accel_sum.z);
+    _gyro = Vector3f(_gyro_sum.x, _gyro_sum.y, _gyro_sum.z);
+    _accel = Vector3f(_accel_sum.x, _accel_sum.y, _accel_sum.z);
     _num_samples = _sum_count;
     _accel_sum.zero();
     _gyro_sum.zero();
     _sum_count = 0;
     hal.scheduler->resume_timer_procs();
 
-    _gyro[0].rotate(_board_orientation);
-    _gyro[0] *= _gyro_scale / _num_samples;
-    _gyro[0] -= _gyro_offset[0];
+    _gyro.rotate(_board_orientation);
+    _gyro *= _gyro_scale / _num_samples;
+    _gyro -= _gyro_offset;
 
-    _accel[0].rotate(_board_orientation);
-    _accel[0] *= MPU6000_ACCEL_SCALE_1G / _num_samples;
+    _accel.rotate(_board_orientation);
+    _accel *= MPU6000_ACCEL_SCALE_1G / _num_samples;
 
-    Vector3f accel_scale = _accel_scale[0];
-    _accel[0].x *= accel_scale.x;
-    _accel[0].y *= accel_scale.y;
-    _accel[0].z *= accel_scale.z;
-    _accel[0] -= _accel_offset[0];
+    Vector3f accel_scale = _accel_scale;
+    _accel.x *= accel_scale.x;
+    _accel.y *= accel_scale.y;
+    _accel.z *= accel_scale.z;
+    _accel -= _accel_offset;
 
+	// TODO What is the filtering code we need to check here. Removed in interface
+	/* 
     if (_last_filter_hz != _mpu6000_filter) {
         if (_spi_sem->take(10)) {
             _spi->set_bus_speed(AP_HAL::SPIDeviceDriver::SPI_SPEED_LOW);
@@ -289,6 +291,7 @@ bool AP_InertialSensor_MPU6000::update( void )
             _spi_sem->give();
         }
     }
+	*/
 
     return true;
 }
@@ -512,7 +515,8 @@ bool AP_InertialSensor_MPU6000::_hardware_init(Sample_rate sample_rate)
         break;
     }
 
-    _set_filter_register(_mpu6000_filter, default_filter);
+	// TODO What filter is used here?? Removed from interface
+    //_set_filter_register(_mpu6000_filter, default_filter);
 
     // set sample rate to 200Hz, and use _sample_divider to give
     // the requested rate to the application

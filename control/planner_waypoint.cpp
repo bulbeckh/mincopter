@@ -146,7 +146,8 @@ void WP_Planner::get_origin_roll_pitch(int16_t& c_roll, int16_t& c_pitch)
 	// Part 1. Get current heading
 	
 	// Current heading in radians
-	float curr_heading_rad = mincopter.compass.calculate_heading(mcstate.ahrs.get_dcm_matrix());
+	// TODO Get this from mcstate instead
+	//float curr_heading_rad = mincopter.compass.calculate_heading(mcstate.ahrs.get_dcm_matrix());
 
 	// Current yaw in deg*100
 	//int32_t current_yaw = mcstate.ahrs.yaw_sensor;

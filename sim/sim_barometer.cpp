@@ -35,7 +35,10 @@ uint8_t AP_Baro_Sim::read()
 	temperature_degc = 26;
 
 	// Log read value
-	float baro_alt = mincopter.barometer.get_altitude();
+	//float baro_alt = mincopter.barometer.get_altitude();
+	// TODO If we want altitude here - then get from mcstate
+	float baro_alt = 0.0f;
+
 	simlog.write_barometer_state(temperature_degc, pressure_pa, baro_alt);
 
     return 1;

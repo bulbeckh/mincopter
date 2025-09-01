@@ -664,9 +664,9 @@ void DataFlash_Class::Log_Write_Baro(AP_Baro &baro)
     struct log_BARO pkt = {
         LOG_PACKET_HEADER_INIT(LOG_BARO_MSG),
         timestamp     : hal.scheduler->millis(),
-        altitude      : baro.get_altitude(),
-        pressure	  : baro.get_pressure(),
-        temperature   : (int16_t)(baro.get_temperature() * 100),
+        altitude      : 0, /* baro.get_altitude(), */
+        pressure	  : 0, /* baro.get_pressure(), */
+        temperature   : 0, /* (int16_t)(baro.get_temperature() * 100), */
     };
     WriteBlock(&pkt, sizeof(pkt));
 }
@@ -675,8 +675,8 @@ void DataFlash_Class::Log_Write_Baro(AP_Baro &baro)
 void DataFlash_Class::Log_Write_IMU(const AP_InertialSensor &ins)
 {
     uint32_t tstamp = hal.scheduler->millis();
-    const Vector3f &gyro = ins.get_gyro(0);
-    const Vector3f &accel = ins.get_accel(0);
+    const Vector3f &gyro = ins.get_gyro();
+    const Vector3f &accel = ins.get_accel();
     struct log_IMU pkt = {
         LOG_PACKET_HEADER_INIT(LOG_IMU_MSG),
         timestamp : tstamp,
@@ -688,22 +688,7 @@ void DataFlash_Class::Log_Write_IMU(const AP_InertialSensor &ins)
         accel_z : accel.z
     };
     WriteBlock(&pkt, sizeof(pkt));
-    if (ins.get_gyro_count() < 2 && ins.get_accel_count() < 2) {
-        return;
-    }
-    const Vector3f &gyro2 = ins.get_gyro(1);
-    const Vector3f &accel2 = ins.get_accel(1);
-    struct log_IMU pkt2 = {
-        LOG_PACKET_HEADER_INIT(LOG_IMU2_MSG),
-        timestamp : tstamp,
-        gyro_x  : gyro2.x,
-        gyro_y  : gyro2.y,
-        gyro_z  : gyro2.z,
-        accel_x : accel2.x,
-        accel_y : accel2.y,
-        accel_z : accel2.z
-    };
-    WriteBlock(&pkt2, sizeof(pkt2));
+    return;
 }
 
 // Write a text message to the log

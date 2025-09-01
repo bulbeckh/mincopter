@@ -106,11 +106,9 @@ AP_InertialSensor::init( Start_style style,
     _product_id = _init_sensor(sample_rate);
 
     // check scaling
-    for (uint8_t i=0; i<get_accel_count(); i++) {
-        if (_accel_scale[i].is_zero()) {
-            _accel_scale[i] = Vector3f(1,1,1);
-        }
-    }
+	if (_accel_scale.is_zero()) {
+		_accel_scale = Vector3f(1,1,1);
+	}
 
     if (WARM_START != style) {
         // do cold-start calibration for gyro only
@@ -128,22 +126,19 @@ AP_InertialSensor::init_gyro()
 void
 AP_InertialSensor::_init_gyro()
 {
-    uint8_t num_gyros = ap_min(get_gyro_count(), INS_MAX_INSTANCES);
-    Vector3f last_average[num_gyros], best_avg[num_gyros];
-    float best_diff[num_gyros];
-    bool converged[num_gyros];
+    Vector3f last_average, best_avg;
+    float best_diff;
+    bool converged;
 
     // cold start
     hal.console->print_P(PSTR("GS00-Init Gyro\n"));
 
 
     // remove existing gyro offsets
-    for (uint8_t k=0; k<num_gyros; k++) {
-        _gyro_offset[k] = Vector3f(0,0,0);
-        best_diff[k] = 0;
-        last_average[k].zero();
-        converged[k] = false;
-    }
+	_gyro_offset = Vector3f(0,0,0);
+	best_diff = 0;
+	last_average.zero();
+	converged = false;
 
     for(int8_t c = 0; c < 5; c++) {
         hal.scheduler->delay(5);
@@ -158,49 +153,44 @@ AP_InertialSensor::_init_gyro()
 
     // we try to get a good calibration estimate for up to 10 seconds
     // if the gyros are stable, we should get it in 1 second
-    for (int16_t j = 0; j <= 20 && num_converged < num_gyros; j++) {
-        Vector3f gyro_sum[num_gyros], gyro_avg[num_gyros], gyro_diff[num_gyros];
-        float diff_norm[num_gyros];
+	// TODO num_converged as the name when we had multiple gyros/accels - change it to just converged
+    for (int16_t j = 0; j <= 20 && !num_converged; j++) {
+        Vector3f gyro_sum, gyro_avg, gyro_diff;
+        float diff_norm;
         uint8_t i;
 
         hal.console->print_P(PSTR("*"));
 
-        for (uint8_t k=0; k<num_gyros; k++) {
-            gyro_sum[k].zero();
-        }
+        gyro_sum.zero();
+
         for (i=0; i<50; i++) {
             update();
-            for (uint8_t k=0; k<num_gyros; k++) {
-                gyro_sum[k] += get_gyro(k);
-            }
+            gyro_sum += get_gyro();
             hal.scheduler->delay(5);
         }
-        for (uint8_t k=0; k<num_gyros; k++) {
-            gyro_avg[k] = gyro_sum[k] / i;
-            gyro_diff[k] = last_average[k] - gyro_avg[k];
-            diff_norm[k] = gyro_diff[k].length();
-        }
 
-        for (uint8_t k=0; k<num_gyros; k++) {
-            if (converged[k]) continue;
-            if (j == 0) {
-                best_diff[k] = diff_norm[k];
-                best_avg[k] = gyro_avg[k];
-            } else if (gyro_diff[k].length() < ToRad(0.1f)) {
-                // we want the average to be within 0.1 bit, which is 0.04 degrees/s
-                last_average[k] = (gyro_avg[k] * 0.5f) + (last_average[k] * 0.5f);
-                _gyro_offset[k] = last_average[k];            
-                converged[k] = true;
-                num_converged++;
-            } else if (diff_norm[k] < best_diff[k]) {
-                best_diff[k] = diff_norm[k];
-                best_avg[k] = (gyro_avg[k] * 0.5f) + (last_average[k] * 0.5f);
-            }
-            last_average[k] = gyro_avg[k];
-        }
+		gyro_avg = gyro_sum / i;
+		gyro_diff = last_average - gyro_avg;
+		diff_norm = gyro_diff.length();
+
+		if (converged) continue;
+		if (j == 0) {
+			best_diff = diff_norm;
+			best_avg = gyro_avg;
+		} else if (gyro_diff.length() < ToRad(0.1f)) {
+			// we want the average to be within 0.1 bit, which is 0.04 degrees/s
+			last_average = (gyro_avg * 0.5f) + (last_average * 0.5f);
+			_gyro_offset = last_average;
+			converged = true;
+			num_converged++;
+		} else if (diff_norm < best_diff) {
+			best_diff = diff_norm;
+			best_avg = (gyro_avg * 0.5f) + (last_average * 0.5f);
+		}
+		last_average = gyro_avg;
     }
 
-    if (num_converged == num_gyros) {
+    if (num_converged) {
         // all OK
         return;
     }
@@ -208,13 +198,12 @@ AP_InertialSensor::_init_gyro()
     // we've kept the user waiting long enough - use the best pair we
     // found so far
     hal.console->println();
-    for (uint8_t k=0; k<num_gyros; k++) {
-        if (!converged[k]) {
-            hal.console->printf_P(PSTR("gyro[%u] did not converge: diff=%f dps\n"), 
-                                  (unsigned)k, ToDeg(best_diff[k]));
-            _gyro_offset[k] = best_avg[k];
-        }
-    }
+	if (!converged) {
+		hal.console->printf_P(PSTR("gyro did not converge\n"));
+		_gyro_offset = best_avg;
+	}
+	
+	return;
 }
 
 
@@ -228,12 +217,11 @@ AP_InertialSensor::init_accel()
 void
 AP_InertialSensor::_init_accel()
 {
-    uint8_t num_accels = ap_min(get_accel_count(), INS_MAX_INSTANCES);
     uint8_t flashcount = 0;
-    Vector3f prev[num_accels];
-    Vector3f accel_offset[num_accels];
-    float total_change[num_accels];
-    float max_offset[num_accels];
+    Vector3f prev;
+    Vector3f accel_offset;
+    float total_change;
+    float max_offset;
 
     // cold start
     hal.scheduler->delay(100);
@@ -241,27 +229,23 @@ AP_InertialSensor::_init_accel()
     hal.console->print_P(PSTR("Init Accel"));
 
     // clear accelerometer offsets and scaling
-    for (uint8_t k=0; k<num_accels; k++) {
-        _accel_offset[k] = Vector3f(0,0,0);
-        _accel_scale[k] = Vector3f(1,1,1);
+	_accel_offset = Vector3f(0,0,0);
+	_accel_scale = Vector3f(1,1,1);
 
-        // initialise accel offsets to a large value the first time
-        // this will force us to calibrate accels at least twice
-        accel_offset[k] = Vector3f(500, 500, 500);
-    }
+	// initialise accel offsets to a large value the first time
+	// this will force us to calibrate accels at least twice
+	accel_offset = Vector3f(500, 500, 500);
 
     // loop until we calculate acceptable offsets
     while (true) {
         // get latest accelerometer values
         update();
 
-        for (uint8_t k=0; k<num_accels; k++) {
-            // store old offsets
-            prev[k] = accel_offset[k];
+        // store old offsets
+        prev = accel_offset;
 
-            // get new offsets
-            accel_offset[k] = get_accel(k);
-        }
+        // get new offsets
+     	accel_offset = get_accel();
 
         // We take some readings...
         for(int8_t i = 0; i < 50; i++) {
@@ -270,9 +254,7 @@ AP_InertialSensor::_init_accel()
             update();
 
             // low pass filter the offsets
-            for (uint8_t k=0; k<num_accels; k++) {
-                accel_offset[k] = accel_offset[k] * 0.9f + get_accel(k) * 0.1f;
-            }
+            accel_offset = accel_offset * 0.9f + get_accel() * 0.1f;
 
             // display some output to the user
             if(flashcount >= 10) {
@@ -282,38 +264,32 @@ AP_InertialSensor::_init_accel()
             flashcount++;
         }
 
-        for (uint8_t k=0; k<num_accels; k++) {
-            // null gravity from the Z accel
-            accel_offset[k].z += GRAVITY_MSS;
+		// null gravity from the Z accel
+		accel_offset.z += GRAVITY_MSS;
 
-            total_change[k] = 
-                fabsf(prev[k].x - accel_offset[k].x) + 
-                fabsf(prev[k].y - accel_offset[k].y) + 
-                fabsf(prev[k].z - accel_offset[k].z);
-            max_offset[k] = (accel_offset[k].x > accel_offset[k].y) ? accel_offset[k].x : accel_offset[k].y;
-            max_offset[k] = (max_offset[k] > accel_offset[k].z) ? max_offset[k] : accel_offset[k].z;
-        }
+		total_change = 
+			fabsf(prev.x - accel_offset.x) + 
+			fabsf(prev.y - accel_offset.y) + 
+			fabsf(prev.z - accel_offset.z);
+		max_offset = (accel_offset.x > accel_offset.y) ? accel_offset.x : accel_offset.y;
+		max_offset = (max_offset > accel_offset.z) ? max_offset : accel_offset.z;
 
         uint8_t num_converged = 0;
-        for (uint8_t k=0; k<num_accels; k++) {
-            if (total_change[k] <= AP_INERTIAL_SENSOR_ACCEL_TOT_MAX_OFFSET_CHANGE && 
-                max_offset[k] <= AP_INERTIAL_SENSOR_ACCEL_MAX_OFFSET) {
-                num_converged++;
-            }
-        }
+		if (total_change <= AP_INERTIAL_SENSOR_ACCEL_TOT_MAX_OFFSET_CHANGE && max_offset <= AP_INERTIAL_SENSOR_ACCEL_MAX_OFFSET) {
+			num_converged++;
+		}
 
-        if (num_converged == num_accels) break;
+        if (num_converged) break;
 
         hal.scheduler->delay(500);
     }
 
     // set the global accel offsets
-    for (uint8_t k=0; k<num_accels; k++) {
-        _accel_offset[k] = accel_offset[k];
-    }
+    _accel_offset = accel_offset;
 
     hal.console->print_P(PSTR(" "));
 
+	return;
 }
 
 /// calibrated - returns true if the accelerometers have been calibrated
@@ -475,8 +451,8 @@ void AP_InertialSensor::_calibrate_find_delta(float dS[6], float JS[6][6], float
 void AP_InertialSensor::_calculate_trim(Vector3f accel_sample, float& trim_roll, float& trim_pitch)
 {
     // scale sample and apply offsets
-    Vector3f accel_scale = _accel_scale[0];
-    Vector3f accel_offsets = _accel_offset[0];
+    Vector3f accel_scale = _accel_scale;
+    Vector3f accel_offsets = _accel_offset;
     Vector3f scaled_accels_x( accel_sample.x * accel_scale.x - accel_offsets.x,
                               0,
                               accel_sample.z * accel_scale.z - accel_offsets.z );
@@ -496,6 +472,8 @@ void AP_InertialSensor::_calculate_trim(Vector3f accel_sample, float& trim_roll,
     if( scaled_accels_x.x < 0 ) {
         trim_pitch = -trim_pitch;
     }
+	
+	return;
 }
 
 

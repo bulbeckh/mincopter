@@ -28,6 +28,18 @@ bool AP_InertialSensor_MPU6050::update(void)
 	return true;
 }
 
+bool AP_InertialSensor_MPU6050::get_gyro_health(void) const
+{
+	// TODO Implement
+	return true;
+}
+		
+bool AP_InertialSensor_MPU6050::get_accel_health(void) const
+{
+	// TODO Implement
+	return true;
+}
+
 float AP_InertialSensor_MPU6050::get_gyro_drift_rate()
 {
 
@@ -97,14 +109,14 @@ void AP_InertialSensor_MPU6050::_poll(void)
 	int16_t az = (_read_raw[4] << 8) | _read_raw[5];
 
 	// Convert into actual acceleration values
-	_accel[0][0] = ax / 16384.0f;
-	_accel[0][1] = ay / 16384.0f;
-	_accel[0][2] = az / 16384.0f;
+	_accel[0] = ax / 16384.0f;
+	_accel[1] = ay / 16384.0f;
+	_accel[2] = az / 16384.0f;
 
 	// Convert from 'g' into m/s2
-	_accel[0][0] *= GRAVITY_MSS;
-	_accel[0][1] *= GRAVITY_MSS;
-	_accel[0][2] *= GRAVITY_MSS;
+	_accel[0] *= GRAVITY_MSS;
+	_accel[1] *= GRAVITY_MSS;
+	_accel[2] *= GRAVITY_MSS;
 
 	/* 2. Gyrometer read and convert */
 
@@ -120,14 +132,14 @@ void AP_InertialSensor_MPU6050::_poll(void)
 	int16_t gz = (_read_raw[4] << 8) | _read_raw[5];
 
 	// Convert into actual acceleration values
-	_gyro[0][0] = gx / 131.0f;
-	_gyro[0][1] = gy / 131.0f;
-	_gyro[0][2] = gz / 131.0f;
+	_gyro[0] = gx / 131.0f;
+	_gyro[1] = gy / 131.0f;
+	_gyro[2] = gz / 131.0f;
 
 	// TODO Scale and conversion to rad/s should be combined
-	_gyro[0][0] *= DEG_TO_RAD;
-	_gyro[0][1] *= DEG_TO_RAD;
-	_gyro[0][2] *= DEG_TO_RAD;
+	_gyro[0] *= DEG_TO_RAD;
+	_gyro[1] *= DEG_TO_RAD;
+	_gyro[2] *= DEG_TO_RAD;
 
 	return;
 }
