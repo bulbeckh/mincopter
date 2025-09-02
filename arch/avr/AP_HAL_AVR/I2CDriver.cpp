@@ -34,7 +34,6 @@
  */
 
 #include <AP_HAL.h>
-#if (CONFIG_HAL_BOARD == HAL_BOARD_APM1 || CONFIG_HAL_BOARD == HAL_BOARD_APM2)
 
 #include <inttypes.h>
 
@@ -320,4 +319,3 @@ SIGNAL(TWI_vect)
     }
 }
 
-#endif

@@ -1,7 +1,6 @@
 /// -*- tab-width: 4; Mode: C++; c-basic-offset: 4; indent-tabs-mode: nil -*-
 
 #include <AP_HAL.h>
-#if (CONFIG_HAL_BOARD == HAL_BOARD_APM1 || CONFIG_HAL_BOARD == HAL_BOARD_APM2)
 
 #include <avr/io.h>
 #include <avr/wdt.h>
@@ -256,4 +255,3 @@ void AVRScheduler::set_timer_speed(uint16_t timer_hz)
     _timer2_reset_value = 256 - (62 * (1000 / timer_hz));
 }
 
-#endif

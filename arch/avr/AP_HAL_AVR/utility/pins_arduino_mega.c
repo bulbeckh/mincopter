@@ -1,5 +1,4 @@
 #include <AP_HAL_Boards.h>
-#if CONFIG_HAL_BOARD == HAL_BOARD_APM1 || CONFIG_HAL_BOARD == HAL_BOARD_APM2
 
 #include <avr/io.h>
 #include "pins_arduino_mega.h"
@@ -280,4 +279,3 @@ const uint8_t PROGMEM digital_pin_to_timer_PGM[] = {
     NOT_ON_TIMER	, // PE 6 ** 70 ** APM only
 };
 
-#endif

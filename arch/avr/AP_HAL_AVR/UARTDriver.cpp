@@ -18,7 +18,6 @@
 //      Copyright (c) 2010 Michael Smith. All rights reserved.
 //
 #include <AP_HAL.h>
-#if (CONFIG_HAL_BOARD == HAL_BOARD_APM1 || CONFIG_HAL_BOARD == HAL_BOARD_APM2)
 
 #include <limits.h>
 #include <stdlib.h>
@@ -311,4 +310,3 @@ void AVRUARTDriver::_freeBuffer(Buffer *buffer)
 	}
 }
 
-#endif

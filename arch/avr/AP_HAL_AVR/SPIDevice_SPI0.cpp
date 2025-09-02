@@ -1,5 +1,4 @@
 #include <AP_HAL.h>
-#if (CONFIG_HAL_BOARD == HAL_BOARD_APM1 || CONFIG_HAL_BOARD == HAL_BOARD_APM2)
 
 #include <avr/io.h>
 
@@ -156,4 +155,3 @@ void AVRSPI0DeviceDriver::set_bus_speed(AVRSPI0DeviceDriver::bus_speed speed)
     }
 }
 
-#endif

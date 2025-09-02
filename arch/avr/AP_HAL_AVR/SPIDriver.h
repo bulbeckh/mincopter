@@ -8,18 +8,6 @@
 #include "SPIDevices.h"
 #include "Semaphores.h"
 
-class AP_HAL_AVR::APM1SPIDeviceManager : public AP_HAL::SPIDeviceManager {
-public:
-    void init(void* machtnichts);
-    AP_HAL::SPIDeviceDriver* device(enum AP_HAL::SPIDevice d);
-
-private:
-    AVRSPI0DeviceDriver* _dataflash;
-    AVRSPI0DeviceDriver* _optflow;
-
-    AVRSPI2DeviceDriver* _adc;
-};
-
 class AP_HAL_AVR::APM2SPIDeviceManager : public AP_HAL::SPIDeviceManager {
 public:
     void init(void* machtnichts);

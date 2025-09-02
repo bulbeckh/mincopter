@@ -12,8 +12,6 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-#if (CONFIG_HAL_BOARD == HAL_BOARD_APM1 || CONFIG_HAL_BOARD == HAL_BOARD_APM2)
-
 static const uint32_t *stack_low;
 extern unsigned __brkval;
 
@@ -68,4 +66,3 @@ unsigned memcheck_available_memory(void)
     return (uintptr_t)(stack_low) - __brkval;
 }
 
-#endif // CONFIG_HAL_BOARD

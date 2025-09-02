@@ -1,5 +1,4 @@
 #include <AP_HAL.h>
-#if CONFIG_HAL_BOARD == HAL_BOARD_APM2
 
 #include <avr/interrupt.h>
 
@@ -203,4 +202,3 @@ uint16_t APM2RCOutput::_timer_period(uint16_t speed_hz) {
     return 2000000UL / speed_hz;
 }
 
-#endif
