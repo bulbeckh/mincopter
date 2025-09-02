@@ -12,6 +12,8 @@
 #define HAL_GPIO_LED_OFF          HIGH
 #define HAL_GPIO_USB_MUX_PIN	    23
 
+#define AVR_DIGITALSOURCE_MAX 4
+
 class AP_HAL_AVR::AVRDigitalSource : public AP_HAL::DigitalSource {
 public:
   AVRDigitalSource(uint8_t bit, uint8_t port) : _bit(bit), _port(port) {}
@@ -20,14 +22,20 @@ public:
   void    write(uint8_t value);
   void    toggle();
 
+  void set_bit(uint8_t bit);
+  void set_port(uint8_t port); 
+
 private:
-  const uint8_t _bit;
-  const uint8_t _port;
+
+  uint8_t _bit;
+  uint8_t _port;
+
 };
 
 class AP_HAL_AVR::AVRGPIO : public AP_HAL::GPIO {
 public:
-    AVRGPIO() {}
+    AVRGPIO(void);
+
     void    init() {}
     void    pinMode(uint8_t pin, uint8_t output);
     int8_t  analogPinToDigitalPin(uint8_t pin);
@@ -43,6 +51,14 @@ public:
 
 /* private-ish: only to be used from the appropriate interrupt */
     static AP_HAL::Proc _interrupt_6;
+
+private:
+
+	/* @brief Index to the next free digital source */
+	uint8_t _head;
+
+	AVRDigitalSource _sources[AVR_DIGITALSOURCE_MAX];
+
 };
 
 #endif // __AP_HAL_AVR_GPIO_H__

@@ -37,6 +37,31 @@ SIGNAL(INT6_vect) {
 #define portModeRegister(P) ( (volatile uint8_t *)( pgm_read_word( port_to_mode_PGM + (P))) )
 
 
+AVRGPIO::AVRGPIO(void)
+	: _sources{
+		/* Initialise four digital sources */
+		AVRDigitalSource(0,0),
+		AVRDigitalSource(0,0),
+		AVRDigitalSource(0,0),
+		AVRDigitalSource(0,0)
+	},
+	_head(0)
+{
+
+}
+
+void AVRDigitalSource::set_bit(uint8_t bit)
+{
+	_bit = bit;
+	return;
+}
+
+void AVRDigitalSource::set_port(uint8_t port)
+{
+	_port = port;
+	return;
+}
+
 void AVRGPIO::pinMode(uint8_t pin, uint8_t mode) {
     uint8_t bit = digitalPinToBitMask(pin);
     uint8_t port = digitalPinToPort(pin);
@@ -139,7 +164,13 @@ AP_HAL::DigitalSource* AVRGPIO::channel(uint16_t pin) {
     uint8_t bit = digitalPinToBitMask(pin);
     uint8_t port = digitalPinToPort(pin);
     if (port == NOT_A_PIN) return NULL;
-    return new AVRDigitalSource(bit, port);
+
+	_sources[_head].set_bit(bit);
+	_sources[_head].set_port(port);
+
+	_head++;
+
+    return &(_sources[_head-1]);
 }
 
 void AVRDigitalSource::mode(uint8_t output) {

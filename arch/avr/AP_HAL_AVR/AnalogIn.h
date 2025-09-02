@@ -71,9 +71,12 @@ public:
 
 protected: 
     ADCSource* _create_channel(int16_t num);
-    void _register_channel(ADCSource*);
+    ADCSource* _register_channel(int16_t);
     void _timer_event(void);
-    ADCSource* _channels[AVR_INPUT_MAX_CHANNELS];
+
+	// NOTE Changed this now to an array of 12 channels
+    ADCSource _channels[AVR_INPUT_MAX_CHANNELS];
+
     int16_t _num_channels;
     int16_t _active_channel;
     uint16_t _channel_repeat_count;
