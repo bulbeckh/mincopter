@@ -19,13 +19,13 @@ APM2SPIDeviceManager::APM2SPIDeviceManager(void)
 	: AP_HAL::SPIDeviceManager(),
 
 	mpu6k_cs(_BV(0), PB),
-    _mpu6k(&mpu6k_cs, SPI0_SPCR_500kHz, SPI0_SPCR_8MHz, SPI0_SPSR_8MHz),
+    _mpu6k(mpu6k_cs, SPI0_SPCR_500kHz, SPI0_SPCR_8MHz, SPI0_SPSR_8MHz),
 
     ms5611_cs(_BV(1), PG),
-    _ms5611(&ms5611_cs, SPI0_SPCR_500kHz, SPI0_SPCR_8MHz, SPI0_SPSR_8MHz),
+    _ms5611(ms5611_cs, SPI0_SPCR_500kHz, SPI0_SPCR_8MHz, SPI0_SPSR_8MHz),
 
     df_cs(_BV(6), PA),
-    _dataflash(&df_cs, 0, 0)
+    _dataflash(df_cs, 0, 0)
 {
 
 }
@@ -47,13 +47,13 @@ void APM2SPIDeviceManager::init(void* machtnichts) {
     /* mpu6k: run clock at 8MHz in high speed mode and 512kHz for low
      * speed */
     //_mpu6k = new AVRSPI0DeviceDriver(mpu6k_cs, SPI0_SPCR_500kHz, SPI0_SPCR_8MHz, SPI0_SPSR_8MHz);
-    _mpu6k.init();
+    _mpu6k->init();
 
     /* ms5611 cs is on Arduino pin 40, PORTG1 */
     //AVRDigitalSource* ms5611_cs = new AVRDigitalSource(_BV(1), PG);
     /* ms5611: run clock at 8MHz */
     //_ms5611 = new AVRSPI0DeviceDriver(ms5611_cs, SPI0_SPCR_500kHz, SPI0_SPCR_8MHz, SPI0_SPSR_8MHz);
-    _ms5611.init();
+    _ms5611->init();
    
 	// NOTE All optflow removed
     /* optflow cs is on Arduino pin A3, PORTF3 */
@@ -69,7 +69,7 @@ void APM2SPIDeviceManager::init(void* machtnichts) {
      * ucsr3c = 0 
      * ubrr3 = 0 */
     //_dataflash = new AVRSPI3DeviceDriver(df_cs, 0, 0);
-    _dataflash.init();
+    _dataflash->init();
 
     /* optflow uses mode 3 and a clock of 2mhz
      * ucsr3c = _BV(UCPHA3N)|_BV(UCPOL3) = 3

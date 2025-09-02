@@ -30,7 +30,7 @@
 	#define HAL_BOARD_NAME "stm32"
 
 #elif CONFIG_HAL_BOARD == HAL_BOARD_AVR
-	#define AP_HAL_BOARD_DRIVER AP_HAL_AVR
+	#define AP_HAL_BOARD_DRIVER AP_HAL_AVR_APM2
 	#define HAL_BOARD_NAME "avr"
 
 #else

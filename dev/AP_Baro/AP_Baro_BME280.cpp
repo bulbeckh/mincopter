@@ -5,8 +5,6 @@
 #include <AP_HAL.h>
 #include "AP_Baro_BME280.h"
 
-#include <stdio.h>
-
 // BME280 Register Definitions
 #define BME280_ADDR  0x77
 #define BME280_ID 0xD0
@@ -45,7 +43,7 @@ bool AP_Baro_BME280::init()
 {
 	// Wake-up BME280
     if (hal.i2c->writeRegister(BME280_ADDR, BME280_RESET, 0xB6) != 0) {
-        fprintf(stderr, "Failed to reset BME-280\n");
+        hal.scheduler->panic(PSTR("Failed to reset BME-280\n"));
 		return false;
 	}
 
@@ -145,7 +143,7 @@ uint8_t AP_Baro_BME280::init_compensation_parameters(void)
 
 	/* Reading Temperature and Pressure compensation parameters */
 	if (hal.i2c->readRegisters(BME280_ADDR, DIG_T_START, 24, comp_reading)) {
-		fprintf(stderr, "Failed to read compensation parameter data.\n");
+		hal.scheduler->panic(PSTR("Failed to read compensation parameter data.\n"));
 		return 1;
 	}
 

@@ -16,6 +16,7 @@ target_include_directories(mc-common PUBLIC
 target_link_libraries(mc-common PUBLIC
 	mc-control
 	mc-arch
+	mc-dev
 	)
 
 

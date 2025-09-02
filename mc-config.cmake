@@ -19,7 +19,7 @@ set(MC_SIM_LEVEL "2") ##
 
 ## Specify control/planning here
 set(MC_CONTROLLER_TYPE "PID")
-set(MC_PLANNER_TYPE "NONE")
+set(MC_PLANNER_TYPE "NONE") ## (NONE, WAYPOINT)
 
 ## Specify state here
 ## TODO Change these names
@@ -32,7 +32,7 @@ set(MC_GPS_TYPE "UBLOX") ## (NONE, UBLOX)
 set(MC_IMU_TYPE "MPU6050")
 set(MC_COMP_TYPE "ICM20948") ## (ICM20948, HMC5843)
 set(MC_BARO_TYPE "BME280")
-set(MC_STORAGE_TYPE "FILE")
+set(MC_STORAGE_TYPE "DATAFLASH") ## (FILE, DATAFLASH)
 set(MC_ADC_TYPE "NONE") ## ('SIM', 'ADS7844')
 
 ## Specify wiring for each peripheral (ignored for sim)

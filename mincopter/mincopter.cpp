@@ -56,9 +56,12 @@
 #endif
 
 // TODO Remove - not board specific
-#include <stdio.h>
-#include <AP_Math.h>
 
+#ifdef TARGET_ARCH_RPI
+	#include <stdio.h>
+#endif
+
+#include <AP_Math.h>
 #include <AP_GPS.h>
 
 /* @brief Interface to the object storing each sensor and other hardware abstraction (DataFlash, Battery, ..) */
@@ -157,6 +160,7 @@ void loop()
 		Matrix3f _temp_rot;
 		_temp_att.rotation_matrix(_temp_rot);
 
+#if TARGET_ARCH_RPI
 		printf("[loop %u]\n", _counter);
 		printf("gyr: % 6.2f, % 6.2f, % 6.2f\n", _gyr_meas.x, _gyr_meas.y, _gyr_meas.z);
 		printf("acc: % 6.2f, % 6.2f, % 6.2f\n", _acc_meas.x, _acc_meas.y, _acc_meas.z);
@@ -171,6 +175,7 @@ void loop()
 				_temp_rot[0][0], _temp_rot[0][1], _temp_rot[0][2],
 				_temp_rot[1][0], _temp_rot[1][1], _temp_rot[1][2],
 				_temp_rot[2][0], _temp_rot[2][1], _temp_rot[2][2]);
+#endif
 
 	}
 

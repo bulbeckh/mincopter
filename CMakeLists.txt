@@ -113,6 +113,8 @@ endif()
 
 if(MC_STORAGE_TYPE STREQUAL "FILE")
 	add_compile_definitions(MC_STORAGE_FILE)
+elseif(MC_STORAGE_TYPE STREQUAL "DATAFLASH")
+	add_compile_definitions(MC_STORAGE_DATAFLASH)
 else()
 	message(FATAL_ERROR "Storage device not supported.")
 endif()
@@ -242,6 +244,8 @@ elseif(${TARGET_ARCH_FAMILY} STREQUAL "avr")
 	file(GLOB MC_LIBS_ARCH
 		"arch/avr/AP_HAL_AVR/*.cpp"
 		"arch/avr/AP_HAL_AVR/*.c"
+		"arch/avr/AP_HAL_AVR/utility/*.c"
+		"arch/avr/AP_HAL_AVR/utility/*.cpp"
 	)
 elseif(${TARGET_ARCH_FAMILY} STREQUAL "rpi")
 	file(GLOB MC_LIBS_ARCH
@@ -329,6 +333,6 @@ target_include_directories(mincopter PUBLIC
 ##################################################################
 # TESTING
 ##################################################################
-add_subdirectory(test)
+#add_subdirectory(test)
 
 

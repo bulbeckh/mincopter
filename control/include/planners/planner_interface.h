@@ -69,7 +69,7 @@ class MC_Planner
 
 		/* @brief Entry point for planner function
 		 */
-		virtual void run() = 0;
+		virtual void run(void) = 0;
 
 		PlannerArmState planner_arm_state;
 

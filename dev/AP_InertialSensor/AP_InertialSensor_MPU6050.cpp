@@ -1,8 +1,6 @@
 
 #include "AP_InertialSensor_MPU6050.h"
 
-#include <stdio.h>
-
 #include <AP_Math.h>
 
 // MPU6050 Register Definitions
@@ -99,7 +97,7 @@ void AP_InertialSensor_MPU6050::_poll(void)
 	// Read a contiguous block of 6 bytes
 	uint8_t status = hal.i2c->readRegisters(MPU6050_ADDR, MPU6050_ACCEL_XOUT_H, 6, _read_raw);
 	if (status) {
-		printf("MPU6050 bad I2C read\n");
+		//printf("MPU6050 bad I2C read\n");
 		return;
 	}
 
@@ -122,7 +120,7 @@ void AP_InertialSensor_MPU6050::_poll(void)
 
 	status = hal.i2c->readRegisters(MPU6050_ADDR, MPU6050_GYRO_XOUT_H, 6, _read_raw);
 	if (status) {
-		printf("MPU6050 bad I2C read\n");
+		//printf("MPU6050 bad I2C read\n");
 		return;
 	}
 

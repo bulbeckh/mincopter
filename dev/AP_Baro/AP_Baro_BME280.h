@@ -10,7 +10,7 @@
 class AP_Baro_BME280 : public AP_Baro
 {
 	public:
-		AP_Baro_BME280() {};
+		AP_Baro_BME280() : AP_Baro() { }
 
 		bool init() override;
 

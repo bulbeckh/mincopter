@@ -47,7 +47,7 @@ bool AP_Compass_ICM20948::init()
 {
 	// Retrieve SPI device
 	_spi = hal.spi->device(AP_HAL::SPIDevice_ICM20948);
-	if (_spi==NULL) hal.scheduler->panic("ICM Init: no SPI device\n");
+	if (_spi==NULL) hal.scheduler->panic(PSTR("ICM Init: no SPI device\n"));
 
 	// TODO For now, initialise both gyro/accel and magnetometer but change to separate init functions soon
 	

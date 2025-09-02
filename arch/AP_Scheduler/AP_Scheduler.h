@@ -25,6 +25,7 @@
 
 #include <stdint.h>
 
+#define AP_SCHEDULER_MAX_TASKS 32
 
 /*
   A task scheduler for APM main loops
@@ -86,7 +87,7 @@ private:
 	uint16_t _tick_counter;
 
 	// tick counter at the time we last ran each task
-	uint16_t *_last_run;
+	uint16_t _last_run[AP_SCHEDULER_MAX_TASKS];
 
 	// number of microseconds allowed for the current task
 	uint32_t _task_time_allowed;

@@ -7,8 +7,6 @@
 #include <AP_HAL.h>
 #include "GPS.h"
 
-#include <stdio.h>
-
 extern const AP_HAL::HAL& hal;
 
 #define GPS_DEBUGGING 0

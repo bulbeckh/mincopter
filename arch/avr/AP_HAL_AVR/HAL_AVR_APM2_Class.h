@@ -7,7 +7,6 @@
 /* To save linker space, we need to make sure the HAL_AVR_APM2 class
  * is built iff we are building for HAL_BOARD_APM2. These defines must
  * wrap the whole HAL_AVR_APM2 class declaration and definition. */
-#if CONFIG_HAL_BOARD == HAL_BOARD_APM2
 
 #include <AP_HAL_AVR.h>
 #include "AP_HAL_AVR_Namespace.h"
@@ -28,6 +27,5 @@ public:
  */
 extern const HAL_AVR_APM2 AP_HAL_AVR_APM2;
 
-#endif // CONFIG_HAL_BOARD == HAL_BOARD_APM2
 #endif // __AP_HAL_AVR_APM2_HAL_AVR_H__
 
