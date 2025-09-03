@@ -36,7 +36,7 @@ void update_altitude()
 		mincopter.barometer.read();
 
 		// TODO What units is this supposed to return/assign
-		planner.baro_alt = mcstate.get_altitude() * 100.f;
+		//planner.baro_alt = mcstate.get_altitude() * 100.f;
 }
 
 // called at 50hz
@@ -167,7 +167,8 @@ void one_hz_loop()
 		/* planner.wp_nav.set_althold_kP(controller.pi_alt_hold.kP()); */
 
 		// update latest lean angle to navigation controller
-		planner.wp_nav.set_lean_angle_max(planner.angle_max);
+		
+		//planner.wp_nav.set_lean_angle_max(planner.angle_max);
 
 		// TODO Move arming to btree
 		// perform pre-arm checks & display failures every 30 seconds

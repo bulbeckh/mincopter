@@ -20,7 +20,7 @@ class MCState
 		 *
 		 * @param mci (MCInstance*) Pointer to an MCInstance object containing interfaces to sensor inputs and control outputs
 		 */
-		MCState(MC_AHRS_CLASS* _ahrs, MC_INAV_CLASS* _inav);
+		MCState(void);
 
 		/* MCState should contain the entire state vector:
 		 * 
@@ -46,10 +46,10 @@ class MCState
 		// the inertial_nav and ignore the ahrs object.
 		
 		/* @brief ahrs Used to estimate the copter orientation */
-		MC_AHRS_CLASS* ahrs;
+		MC_AHRS_CLASS ahrs;
 
 		/* @brief inertial_nav Used to estimate position and velocity */
-		MC_INAV_CLASS* inertial_nav;
+		MC_INAV_CLASS inertial_nav;
 
 		/* @brief Initialise the MCState */
 		void init(void);

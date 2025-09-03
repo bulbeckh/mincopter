@@ -42,6 +42,9 @@ void AVRAnalogIn::init(void* machtnichts)
     hal.scheduler->register_timer_process(AP_HAL_MEMBERPROC(&AVRAnalogIn::_timer_event));
     /* Register each private channel with AVRAnalogIn. */
     _register_channel(ANALOG_INPUT_BOARD_VCC);
+
+	// Setup pins for each channel during initialisation
+	for (uint8_t i=0;i<12;i++) _channels[i].set_pin(0);
 }
 
 // NOTE I have heavily modified this to remove the use of new. We instead instantiate all ADCSource with a

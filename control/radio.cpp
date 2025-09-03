@@ -125,6 +125,9 @@ void output_min()
 #define FS_COUNTER 3        // radio failsafe kicks in after 3 consecutive throttle values below failsafe_throttle_value
 void set_throttle_and_failsafe(uint16_t throttle_pwm)
 {
+	// TODO Define behaviour of this entire function
+	
+	/*
     // if failsafe not enabled pass through throttle and exit
     if(planner.failsafe_throttle == FS_THR_DISABLED) {
         mincopter.rc_3.set_pwm(throttle_pwm);
@@ -162,5 +165,7 @@ void set_throttle_and_failsafe(uint16_t throttle_pwm)
         // pass through throttle
         mincopter.rc_3.set_pwm(throttle_pwm);
     }
+	*/
+
 }
 

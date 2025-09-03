@@ -243,7 +243,7 @@ struct PACKED log_Nav_Tuning {
 // Write an Nav Tuning packet
 void Log_Write_Nav_Tuning()
 {
-    const Vector3f &desired_position = planner.wp_nav.get_loiter_target();
+    const Vector3f &desired_position = Vector3f(0,0,0); /* planner.wp_nav.get_loiter_target();*/
     const Vector3f &position = mcstate.get_position();
     const Vector3f &velocity = mcstate.get_velocity();
 
@@ -254,12 +254,12 @@ void Log_Write_Nav_Tuning()
         desired_pos_y   : desired_position.y,
         pos_x           : position.x,
         pos_y           : position.y,
-        desired_vel_x   : planner.wp_nav.desired_vel.x,
-        desired_vel_y   : planner.wp_nav.desired_vel.y,
+        desired_vel_x   : 0, /* planner.wp_nav.desired_vel.x, */
+        desired_vel_y   : 0, /* planner.wp_nav.desired_vel.y, */
         vel_x           : velocity.x,
         vel_y           : velocity.y,
-        desired_accel_x : planner.wp_nav.desired_accel.x,
-        desired_accel_y : planner.wp_nav.desired_accel.y
+        desired_accel_x : 0, /* planner.wp_nav.desired_accel.x, */
+        desired_accel_y : 0  /* planner.wp_nav.desired_accel.y */
     };
     mincopter.DataFlash.WriteBlock(&pkt, sizeof(pkt));
 }
@@ -292,12 +292,12 @@ void Log_Write_Control_Tuning()
         throttle_out        : mincopter.rc_3.servo_out,
         desired_alt         : 0.0, // NOTE rmeoved the following function: get_target_alt_for_reporting() / 100.0f,
         inav_alt            : mcstate.current_loc.alt / 100.0f,
-        baro_alt            : planner.baro_alt,
+        baro_alt            : 0, /* planner.baro_alt, */
 				/*
         desired_sonar_alt   : (int16_t)target_sonar_alt,
         sonar_alt           : sonar_alt,
 				*/
-        desired_climb_rate  : planner.desired_climb_rate,
+        desired_climb_rate  : 0, /* planner.desired_climb_rate, */
         climb_rate          : controller.climb_rate
     };
     mincopter.DataFlash.WriteBlock(&pkt, sizeof(pkt));
@@ -644,6 +644,8 @@ void Log_Read(uint16_t log_num, uint16_t start_page, uint16_t end_page)
 // start a new log
 void start_logging() 
 {
+	// TODO Why is the logging check/status in planner?
+	/*
     if (mincopter.log_bitmask != 0) {
         if (!planner.ap.logging_started) {
             planner.ap.logging_started = true;
@@ -668,6 +670,7 @@ void start_logging()
         // enable writes
         mincopter.DataFlash.EnableWrites(true);
     }
+	*/
 }
 
 #else // LOGGING_ENABLED

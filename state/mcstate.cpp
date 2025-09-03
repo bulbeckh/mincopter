@@ -11,22 +11,15 @@ extern MCInstance mincopter;
 
 // TODO This is now incorrect as it is potentially created and initialising two EKF instances. Change to pointers instead
 
-MCState::MCState(MC_AHRS_CLASS* _ahrs, MC_INAV_CLASS* _inav) :
-		ahrs(_ahrs),
-		inertial_nav(_inav)
-		//wp_nav(&this->inertial_nav, &this->ahrs, &mincopter.pi_loiter_lat, &mincopter.pi_loiter_lon, &mincopter.pid_loiter_rate_lat, &mincopter.pid_loiter_rate_lon)
-		//fence(&this->inertial_nav),
-{
-
-}
+MCState::MCState(void) { }
 
 void MCState::init(void)
 {
 	// Pass the _state variable into the ahrs and inertial_nav
 	
 	// TODO Check return value
-	ahrs->ahrs_init(&_state);
-	inertial_nav->inav_init(&_state);
+	ahrs.ahrs_init(&_state);
+	inertial_nav.inav_init(&_state);
 
 	return;
 }
@@ -36,11 +29,11 @@ void MCState::update(void)
 
 	/* If we are using the EKF, then we run the full update using a call to the inertial_nav and ignore the ahrs update method */
 #ifndef MC_AHRS_EKF
-	ahrs->ahrs_update();
+	ahrs.ahrs_update();
 #endif
 
 	// TODO Change the function prototype to contain NO dt parameter - this should be taken from accelerometer/gyrometer elasped time
-	inertial_nav->inav_update();
+	inertial_nav.inav_update();
 
 	// TODO Check if we are using a drift/bias compensation state in our model and then compensate direct sensor readings
 	//_omega = mincopter.ins.get_gyro();

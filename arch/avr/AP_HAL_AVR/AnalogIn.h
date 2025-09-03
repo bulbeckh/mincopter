@@ -17,7 +17,7 @@ public:
     /* implement AnalogSource virtual api: */
     float read_average();
     float read_latest();
-    void set_pin(uint8_t p);
+    void set_pin(uint8_t);
     float voltage_average();
     float voltage_latest();
     float voltage_average_ratiometric();
