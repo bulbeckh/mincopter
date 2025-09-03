@@ -12,9 +12,15 @@
 #elif MC_AHRS_SIM
 	#include "ahrs_sim.h"
 	#define MC_AHRS_CLASS AHRS_sim
+	extern AHRS_sim ahrs_obj;
 #elif MC_AHRS_EKF
 	#include "ekf.h"
 	#define MC_AHRS_CLASS EKF
+	extern EKF ahrs_obj;
+#elif MC_AHRS_NONE
+	#include "ahrs_none.h"
+	#define MC_AHRS_CLASS AHRS_None
+	extern AHRS_None ahrs_obj;
 /* Add additional AHRS here
  *
  */

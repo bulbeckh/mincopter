@@ -10,6 +10,9 @@
 #elif MC_INAV_EKF
 	#include "ekf.h"
 	#define MC_INAV_CLASS EKF
+#elif MC_INAV_NONE
+	#include "inav_none.h"
+	#define MC_INAV_CLASS InertialNav_None
 /* Add remaining implementations here */
 #else
 	#error No INAV implementation selected

@@ -70,11 +70,10 @@ MCInstance mincopter;
 /* @brief Interface to the scheduler which runs sensor updates and other non-HAL, non-interrupt functions */
 AP_Scheduler scheduler;
 
-#include "ekf.h"
-extern EKF ekf;
-
+#include "ahrs.h"
+#include "inav.h"
 /* @brief Interface to the state estimation module */
-MCState mcstate(&ekf, &ekf);
+MCState mcstate(&ahrs_obj, &inav_obj);
 
 /* ### CONTROLLER & PLANNER ###
  * We instantiate our chosen controller here so that it can be referenced in other translation units with
@@ -327,10 +326,10 @@ void setup()
 // AP_HAL_MAIN() body
 extern "C" {
   int main (void) {
-		mincopter.hal.init(0, NULL);
+	mincopter.hal.init(0, NULL);
     setup();
     mincopter.hal.scheduler->system_initialized();
-    for(;;) loop();
+	for(;;) loop();
     return 0;
 	}
 }

@@ -23,11 +23,23 @@ if(MC_SIM_TYPE STREQUAL "SIM")
 			)
 		endif()
 
+		if(MC_AHRS_TYPE STREQUAL "NONE")
+			list(APPEND MC_LIBS_STATE
+				${CMAKE_SOURCE_DIR}/state/AP_AHRS/ahrs_none.cpp
+			)
+		endif()
+
 		# INAV DEFAULT Removed
 		if(MC_INAV_TYPE STREQUAL "DEFAULT")
 			list(APPEND MC_LIBS_STATE
 				#${CMAKE_SOURCE_DIR}/state/AP_InertialNav/inav_default.cpp
 			)
+		endif()
+
+		if(MC_INAV_TYPE STREQUAL "NONE")
+			list(APPEND MC_LIBS_STATE
+				${CMAKE_SOURCE_DIR}/state/AP_InertialNav/inav_none.cpp
+				)
 		endif()
 
 		## The EKF class implements both the AHRS and the INAV so we check the flag for either of them
@@ -47,6 +59,12 @@ else()
 		)
 	endif()
 
+	if(MC_AHRS_TYPE STREQUAL "NONE")
+		list(APPEND MC_LIBS_STATE
+			${CMAKE_SOURCE_DIR}/state/AP_AHRS/ahrs_none.cpp
+		)
+	endif()
+
 	## TODO Change name of this
 	if(MC_INAV_TYPE STREQUAL "DEFAULT")
 		## INAV DEFAULT Removed
@@ -55,12 +73,19 @@ else()
 		)
 	endif()
 
+	if(MC_INAV_TYPE STREQUAL "NONE")
+		list(APPEND MC_LIBS_STATE
+			${CMAKE_SOURCE_DIR}/state/AP_InertialNav/inav_none.cpp
+			)
+	endif()
+
 	if(MC_INAV_TYPE STREQUAL "EKF" OR MC_AHRS_TYPE STREQUAL "EKF")
 		list(APPEND MC_LIBS_STATE
 			${CMAKE_SOURCE_DIR}/state/ekf/ekf.cpp
 			${CMAKE_SOURCE_DIR}/state/ekf/ekf_predict.c
 			${CMAKE_SOURCE_DIR}/state/ekf/ekf_correct.c
 		)
+
 	endif()
 endif()
 

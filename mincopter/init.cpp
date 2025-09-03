@@ -52,9 +52,10 @@ void init_ardupilot()
     }
 #endif
 
-
     // Console serial port
     mincopter.hal.uartB->begin(SERIAL0_BAUD, 512, 128);
+
+	mincopter.hal.console->printf_P(PSTR("INITIALISATION START\n"));
 
 #ifdef TARGET_ARCH_RPI
 	printf("[INIT] uartB initialised\n");
@@ -384,6 +385,11 @@ void init_ardupilot()
 		end = micros()-start_time;
 		mincopter.cliSerial->printf_P(PSTR("TEST5-%uus\n"), end);
 		*/
+
+		mincopter.hal.uartA->printf_P(PSTR("UARTA init\n"));
+		mincopter.hal.uartB->printf_P(PSTR("UARTB init\n"));
+		mincopter.hal.uartC->printf_P(PSTR("UARTC init\n"));
+		mincopter.hal.uartD->printf_P(PSTR("UARTD init\n"));
 
 }
 

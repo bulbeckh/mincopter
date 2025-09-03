@@ -1,6 +1,8 @@
 
 #pragma once
 
+#include "mcstate_state.h"
+
 class MC_InertialNav
 {
 	public:

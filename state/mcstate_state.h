@@ -1,6 +1,7 @@
 
 #pragma once
 
+#include <AP_Math.h>
 
 /* @brief State struct containing full system state. This struct is passed to ahrs and inertial_nav */
 typedef struct {

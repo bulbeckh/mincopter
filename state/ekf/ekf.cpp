@@ -13,7 +13,7 @@ extern MCState mcstate;
 // NOTE We forward declare the generated ekf casadi methods here rather than using a header file
 
 // TODO This is bad - need to formalise the way be define MCState and pass AHRS and INAV objects
-EKF ekf;
+EKF ahrs_obj;
 
 // Casadi generated c functions for ekf prediction and correction steps
 extern "C" {
