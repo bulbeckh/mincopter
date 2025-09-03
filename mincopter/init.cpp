@@ -31,16 +31,9 @@ void run_cli(void);
 
 void init_ardupilot()
 {
+	mincopter.hal.console->printf_P(PSTR("INITIALISATION STARTED\n"));
 
-#ifdef TARGET_ARCH_LINUX
-		std::cout << "Target linux: Initialise started\n";
-#endif
-
-#ifdef TARGET_ARCH_RPI
-	printf("[INIT] Init started\n");
-#endif
-
-// Run for anything except simulation
+	// Run for anything except simulation
 #ifndef TARGET_ARCH_LINUX
     if (!mincopter.hal.gpio->usb_connected()) {
         // USB is not connected, this means UART0 may be a Xbee, with
@@ -55,24 +48,26 @@ void init_ardupilot()
     // Console serial port
     mincopter.hal.uartB->begin(SERIAL0_BAUD, 512, 128);
 
-	mincopter.hal.console->printf_P(PSTR("INITIALISATION START\n"));
-
 #ifdef TARGET_ARCH_RPI
 	printf("[INIT] uartB initialised\n");
 #endif
 
-    // GPS serial port
+    // GPS UART/Serial port initialisation
 #if GPS_PROTOCOL != GPS_PROTOCOL_IMU
-    // standard gps running. Note that we need a 256 byte buffer for some
+	// NOTE We use uartC for GPS on AVR, otherwise, for boards like RPI we
+	// re-use uartA for GPS
+#ifdef TARGET_ARCH_AVR
+	if (mincopter.hal.uartC != NULL) mincopter.hal.uartC->begin(38400, 256, 16);
+	mincopter.hal.console->printf_P(PSTR("[INIT] uartC initialised\n"));
+#else
 	if (mincopter.hal.uartA != NULL) mincopter.hal.uartA->begin(38400, 256, 16);
-#ifdef TARGET_ARCH_RPI
-	printf("[INIT] uartA initialised\n");
+	mincopter.hal.console->printf_P(PSTR("[INIT] uartA initialised\n"));
 #endif
 
 #endif
 
 	// Send initialisation string
-    mincopter.cliSerial->printf_P(PSTR("PS00-Init, Free RAM: %u\n"), mincopter.hal.util->available_memory());
+    //mincopter.cliSerial->printf_P(PSTR("PS00-Init, Free RAM: %u\n"), mincopter.hal.util->available_memory());
 
 #if CONFIG_HAL_BOARD == HAL_BOARD_APM2
     /*
@@ -88,17 +83,13 @@ void init_ardupilot()
 
     // initialise battery monitor
     mincopter.battery.init();
-#ifdef TARGET_ARCH_RPI
-	printf("[INIT] Battery monitor initialised\n");
-#endif
+	mincopter.hal.console->printf_P(PSTR("[INIT] Battery monitor initialised\n"));
 
     mincopter.rssi_analog_source      = mincopter.hal.analogin->channel(mincopter.rssi_pin);
     mincopter.board_vcc_analog_source = mincopter.hal.analogin->channel(ANALOG_INPUT_BOARD_VCC);
 
     mincopter.barometer.init();
-#ifdef TARGET_ARCH_RPI
-	printf("[INIT] Barometer initialised\n");
-#endif
+	mincopter.hal.console->printf_P(PSTR("[INIT] Barometer initialised\n"));
 
     // we start by assuming USB connected, as we initialed the serial
     // port with SERIAL0_BAUD. check_usb_mux() fixes this if need be.
@@ -106,26 +97,24 @@ void init_ardupilot()
 
     //check_usb_mux();
 
-#if CONFIG_HAL_BOARD != HAL_BOARD_APM2
+#if CONFIG_HAL_BOARD != HAL_BOARD_AVR
     // we have a 2nd serial port for telemetry on all boards except
     // APM2. We actually do have one on APM2 but it isn't necessary as
     // a MUX is used
 	
 	// TODO Replace this with the board configuration that checks how many UARTs are enabled 
-	if (mincopter.hal.uartC != NULL) {
-    	mincopter.hal.uartC->begin(SERIAL1_BAUD, 128, 128);
-#ifdef TARGET_ARCH_RPI
-		printf("[INIT] uartC initialised\n");
-#endif
+	if (mincopter.hal.uartB != NULL) {
+    	mincopter.hal.uartB->begin(SERIAL1_BAUD, 128, 128);
+		mincopter.hal.console->printf_P(PSTR("[INIT] uartC initialised\n"));
 	}
+
     //gcs[1].init(hal.uartC);
 #endif
+
 #if MAVLINK_COMM_NUM_BUFFERS > 2
     if (mincopter.hal.uartD != NULL) {
         mincopter.hal.uartD->begin(SERIAL2_BAUD, 128, 128);
-#ifdef TARGET_ARCH_RPI
-		printf("[INIT] uartD initialised\n");
-#endif
+		mincopter.hal.console->printf_P(PSTR("[INIT] uartD initialised\n"));
         //gcs[2].init(hal.uartD);
     }
 #endif
@@ -187,12 +176,15 @@ void init_ardupilot()
     // Do GPS init
     mincopter.g_gps = &mincopter.g_gps_driver;
 
-    // GPS Initialization
+    // GPS Initialization with correct UART
+#ifdef TARGET_ARCH_AVR
+	if (mincopter.hal.uartC != NULL) {
+    	mincopter.g_gps->init(mincopter.hal.uartC, GPS::GPS_ENGINE_AIRBORNE_1G);
+#else
 	if (mincopter.hal.uartA != NULL) {
     	mincopter.g_gps->init(mincopter.hal.uartA, GPS::GPS_ENGINE_AIRBORNE_1G);
-#ifdef TARGET_ARCH_RPI
-		printf("[INIT] GPS initialised\n");
 #endif
+		mincopter.hal.console->printf_P(PSTR("[INIT] GPS initialised\n"));
 	}
 
     //init_compass();
@@ -327,7 +319,7 @@ void init_ardupilot()
 
 		// Start Menu
 		// NOTE cliSerial is an alias for hal.uartA I think
-		init_cli(mincopter.hal.uartB);
+		//init_cli(mincopter.hal.uartB);
 
 		// Finally, run the profiling test functions that measure approximate time taken to
 		// publish serial messages and log messages of different format
@@ -386,10 +378,6 @@ void init_ardupilot()
 		mincopter.cliSerial->printf_P(PSTR("TEST5-%uus\n"), end);
 		*/
 
-		mincopter.hal.uartA->printf_P(PSTR("UARTA init\n"));
-		mincopter.hal.uartB->printf_P(PSTR("UARTB init\n"));
-		mincopter.hal.uartC->printf_P(PSTR("UARTC init\n"));
-		mincopter.hal.uartD->printf_P(PSTR("UARTD init\n"));
 
 }
 

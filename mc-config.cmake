@@ -27,13 +27,12 @@ set(MC_INAV_TYPE "NONE") ## (DEFAULT, EKF, NONE)
 set(MC_AHRS_TYPE "NONE") ## (DCM, EKF, NONE)
 
 ## Specify backend dev (ignored for sim)
-## TODO Get ride of this
-set(MC_GPS_TYPE "UBLOX") ## (NONE, UBLOX)
-set(MC_IMU_TYPE "MPU6050")
-set(MC_COMP_TYPE "ICM20948") ## (ICM20948, HMC5843)
-set(MC_BARO_TYPE "BME280")
-set(MC_STORAGE_TYPE "DATAFLASH") ## (FILE, DATAFLASH)
-set(MC_ADC_TYPE "NONE") ## ('SIM', 'ADS7844')
+set(MC_GPS_TYPE "UBLOX") 			## (NONE, UBLOX, xxxx)
+set(MC_IMU_TYPE "MPU6000") 			## (MPU6050, MPU6000)
+set(MC_COMP_TYPE "HMC5843") 		## (ICM20948, HMC5843)
+set(MC_BARO_TYPE "MS5611")  		## (BME280, MS5611, BMP085)
+set(MC_STORAGE_TYPE "DATAFLASH") 	## (FILE, DATAFLASH)
+set(MC_ADC_TYPE "ADS7844") 			## ('SIM', 'ADS7844', NONE)
 
 ## Specify wiring for each peripheral (ignored for sim)
 # TODO
