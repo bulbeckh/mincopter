@@ -176,6 +176,10 @@ void loop()
 
 	}
 
+	if (_counter%100==0) {
+		mincopter.hal.console->printf_P(PSTR("[LOOP] 100ms\n"));
+	}
+
 
     uint32_t timer = micros();
 
