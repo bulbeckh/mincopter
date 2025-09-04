@@ -47,10 +47,7 @@ void init_ardupilot()
 
     // Console serial port
     mincopter.hal.uartB->begin(SERIAL0_BAUD, 512, 128);
-
-#ifdef TARGET_ARCH_RPI
-	printf("[INIT] uartB initialised\n");
-#endif
+	mincopter.hal.console->printf_P(PSTR("[INIT] uartB initialised\n"));
 
     // GPS UART/Serial port initialisation
 #if GPS_PROTOCOL != GPS_PROTOCOL_IMU
@@ -134,10 +131,7 @@ void init_ardupilot()
     //DataFlash.Init(log_structure, sizeof(log_structure)/sizeof(log_structure[0]));
 		/* NOTE: Using 23 different structures instead of counting due to issue in separation of log_structure object */
     mincopter.DataFlash.Init(log_structure, 22);
-#ifdef TARGET_ARCH_RPI
-	printf("[INIT] DataFlash initialised\n");
-#endif
-
+	mincopter.hal.console->printf_P(PSTR("[INIT] DataFlash initialised\n"));
 
     if (!mincopter.DataFlash.CardInserted()) {
         //gcs_send_text_P(SEVERITY_LOW, PSTR("No dataflash inserted"));
@@ -166,9 +160,7 @@ void init_ardupilot()
  #if CONFIG_ADC == ENABLED
     // begin filtering the ADC Gyros
     mincopter.adc.Init();           // APM ADC library initialization
-#ifdef TARGET_ARCH_RPI
-	printf("[INIT] ADC initialised\n");
-#endif
+	mincopter.hal.console->printf_P(PSTR("[INIT] ADC initialised\n"));
 
  #endif // CONFIG_ADC
 #endif // HIL_MODE
@@ -190,18 +182,11 @@ void init_ardupilot()
     //init_compass();
 	// NOTE TODO Check whether the compass init was successful
     mincopter.compass.init();
-#ifdef TARGET_ARCH_RPI
-	printf("[INIT] Compass initialised\n");
-#endif
+	mincopter.hal.console->printf_P(PSTR("[INIT] Compass initialised\n"));
 	//mincopter.compass.read();
 	
     //mcstate.ahrs.set_compass(&mincopter.compass);
 
-	// Should initialise both ahrs and inertial_nav
-    mcstate.init();
-#ifdef TARGET_ARCH_RPI
-	printf("[INIT] MCState initialised\n");
-#endif
 
 #if CLI_ENABLED == ENABLED
     //const prog_char_t *msg = PSTR("\nPress ENTER 3 times to start interactive setup\n");
@@ -247,9 +232,7 @@ void init_ardupilot()
     // Warm up and read Gyro offsets
     // -----------------------------
     mincopter.ins.init(AP_InertialSensor::COLD_START, AP_InertialSensor::RATE_100HZ);
-#ifdef TARGET_ARCH_RPI
-	printf("[INIT] IMU initialised\n");
-#endif
+	mincopter.hal.console->printf_P(PSTR("[INIT] IMU initialised\n"));
 
     // setup fast AHRS gains to get right attitude
     //mcstate.ahrs.set_fast_gains(true);
@@ -261,13 +244,14 @@ void init_ardupilot()
     Log_Write_Startup();
 #endif
 
+	// Should initialise both ahrs and inertial_nav
+    mcstate.init();
+	mincopter.hal.console->printf_P(PSTR("[INIT] MCState initialised\n"));
+
 #if TARGET_ARCH_LINUX
     // In simulation so setup port
     gz_interface.setup_sim_socket();
-#ifdef TARGET_ARCH_RPI
-	printf("[INIT] GZ interface initialised\n");
-#endif
-
+	mincopter.hal.console->printf_P(PSTR("[INIT] GZ interface initialised\n"));
 #endif
 
 	/* Dump Log on start */
@@ -289,7 +273,6 @@ void init_ardupilot()
 		*/
 
 		// Send initialisation synchronisation string. Now ready for CLI
-		mincopter.cliSerial->println_P(PSTR("PS00-Initialisation Complete"));
 
 		/* -- Transmission statistics --
 			- Send 100 packets of the same string and measure tranmission time
@@ -378,6 +361,7 @@ void init_ardupilot()
 		mincopter.cliSerial->printf_P(PSTR("TEST5-%uus\n"), end);
 		*/
 
-
+	mincopter.hal.console->printf_P(PSTR("[INIT] Initialisation complete.\n"));
+	return;
 }
 

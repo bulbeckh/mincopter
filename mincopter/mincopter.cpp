@@ -139,7 +139,7 @@ uint32_t _counter=0;
 void loop()
 {
 	_counter++;
-	if (_counter%100==0) {
+	if (_counter%1000==0) {
 		Vector3f _gyr_meas = mincopter.ins.get_gyro();
 		Vector3f _acc_meas = mincopter.ins.get_accel();
 		Vector3f _mag_meas = mincopter.compass.get_field();
@@ -157,26 +157,26 @@ void loop()
 		Matrix3f _temp_rot;
 		_temp_att.rotation_matrix(_temp_rot);
 
-#if TARGET_ARCH_RPI
-		printf("[loop %u]\n", _counter);
-		printf("gyr: % 6.2f, % 6.2f, % 6.2f\n", _gyr_meas.x, _gyr_meas.y, _gyr_meas.z);
-		printf("acc: % 6.2f, % 6.2f, % 6.2f\n", _acc_meas.x, _acc_meas.y, _acc_meas.z);
-		printf("mag: % 6.2f, % 6.2f, % 6.2f\n", _mag_meas.x, _mag_meas.y, _mag_meas.z);
-		printf("baro: % 6.2f, % 6.2f\n", _pres, _temperature);
-		printf("gps: %d\n", _status);
-		printf("lat/lng: %d, %d\n", mincopter.g_gps->latitude, mincopter.g_gps->longitude);
-		printf("state x,y,z: %f, %f, %f\n", _temp_pos.x, _temp_pos.y, _temp_pos.z);
-		printf("att q1,q2,q3,q4: %f, %f, %f, %f\n", _temp_att[0], _temp_att[1], _temp_att[2], _temp_att[3]);
-		printf("eul r,p,y: %f, %f, %f\n", roll, pitch, yaw);
-		printf("DCM: -----------\n[%f, %f, %f\n %f, %f, %f,\n%f, %f, %f]\n",
+		mincopter.hal.console->printf_P(PSTR("[loop %u]\n"), _counter);
+		mincopter.hal.console->printf_P(PSTR("gyr: % 6.2f, % 6.2f, % 6.2f\n"), _gyr_meas.x, _gyr_meas.y, _gyr_meas.z);
+		mincopter.hal.console->printf_P(PSTR("acc: % 6.2f, % 6.2f, % 6.2f\n"), _acc_meas.x, _acc_meas.y, _acc_meas.z);
+		mincopter.hal.console->printf_P(PSTR("mag: % 6.2f, % 6.2f, % 6.2f\n"), _mag_meas.x, _mag_meas.y, _mag_meas.z);
+		mincopter.hal.console->printf_P(PSTR("baro: % 6.2f, % 6.2f\n"), _pres, _temperature);
+		mincopter.hal.console->printf_P(PSTR("gps: %d\n"), _status);
+		mincopter.hal.console->printf_P(PSTR("lat/lng: %d, %d\n"), mincopter.g_gps->latitude, mincopter.g_gps->longitude);
+		/*
+		mincopter.hal.console->printf_P(PSTR("state x,y,z: %f, %f, %f\n"), _temp_pos.x, _temp_pos.y, _temp_pos.z);
+		mincopter.hal.console->printf_P(PSTR("att q1,q2,q3,q4: %f, %f, %f, %f\n"), _temp_att[0], _temp_att[1], _temp_att[2], _temp_att[3]);
+		mincopter.hal.console->printf_P(PSTR("eul r,p,y: %f, %f, %f\n"), roll, pitch, yaw);
+		mincopter.hal.console->printf_P(PSTR("DCM: -----------\n[%f, %f, %f\n %f, %f, %f,\n%f, %f, %f]\n"),
 				_temp_rot[0][0], _temp_rot[0][1], _temp_rot[0][2],
 				_temp_rot[1][0], _temp_rot[1][1], _temp_rot[1][2],
 				_temp_rot[2][0], _temp_rot[2][1], _temp_rot[2][2]);
-#endif
+		*/
 
 	}
 
-	if (_counter%100==0) {
+	if (_counter%1000==0) {
 		mincopter.hal.console->printf_P(PSTR("[LOOP] 100ms\n"));
 	}
 
@@ -192,6 +192,8 @@ void loop()
         Log_Write_Error(ERROR_SUBSYSTEM_MAIN, ERROR_CODE_MAIN_INS_DELAY);
 		return;
     }
+
+	mincopter.ins.update();
 
 
 #ifdef TARGET_ARCH_LINUX
