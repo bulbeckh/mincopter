@@ -20,7 +20,7 @@
 //
 #include <stdint.h>
 
-#include <stdio.h>
+// HASH include <stdio.h>
 
 #include <AP_HAL.h>
 
@@ -47,7 +47,10 @@ const uint8_t AP_GPS_UBLOX::_ublox_set_binary_size = sizeof(AP_GPS_UBLOX::_ublox
 void
 AP_GPS_UBLOX::init(AP_HAL::UARTDriver *s, enum GPS_Engine_Setting nav_setting)
 {
+	hal.console->printf_P(PSTR("Starting UBLOX GPS init.\n"));
+
 	_port = s;
+	if (!_port->is_initialized()) hal.console->printf_P(PSTR("uartC NOT INITIALISED\n"));
 
     // XXX it might make sense to send some CFG_MSG,CFG_NMEA messages to get the
     // right reporting configuration.
@@ -75,7 +78,8 @@ void
 AP_GPS_UBLOX::send_next_rate_update(void)
 {
     if (_port->txspace() < (int16_t)(sizeof(struct ubx_header)+sizeof(struct ubx_cfg_nav_rate)+2)) {
-        // not enough space - do it next time
+        // not enough space - do it next tim
+		hal.console->printf_P(PSTR("Not enough TX space: %d\n"),_port->txspace());
         return;
     }
 
@@ -127,12 +131,15 @@ AP_GPS_UBLOX::read(void)
     }
 
     numc = _port->available();
+
+	//if (numc>0) hal.console->printf_P(PSTR("char found:%d\n"), numc);
+		
     for (int16_t i = 0; i < numc; i++) {        // Process bytes received
 
         // read the next byte
         data = _port->read();
 
-		//printf("%02X\n", data);
+		hal.console->printf("%02X\n", data);
 		//continue;
 
 	reset:

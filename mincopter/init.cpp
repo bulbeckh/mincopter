@@ -102,7 +102,7 @@ void init_ardupilot()
 	// TODO Replace this with the board configuration that checks how many UARTs are enabled 
 	if (mincopter.hal.uartB != NULL) {
     	mincopter.hal.uartB->begin(SERIAL1_BAUD, 128, 128);
-		mincopter.hal.console->printf_P(PSTR("[INIT] uartC initialised\n"));
+		mincopter.hal.console->printf_P(PSTR("[INIT] uartB initialised\n"));
 	}
 
     //gcs[1].init(hal.uartC);

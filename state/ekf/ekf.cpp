@@ -13,20 +13,20 @@ extern MCState mcstate;
 // NOTE We forward declare the generated ekf casadi methods here rather than using a header file
 
 // TODO This is bad - need to formalise the way be define MCState and pass AHRS and INAV objects
-EKF ahrs_obj;
+//EKF ahrs_obj;
 
 // Casadi generated c functions for ekf prediction and correction steps
 extern "C" {
-	int ekf_predict(const double** arg, double** res, long long int* iw, double* w, int mem);
-	int ekf_correct(const double** arg, double** res, long long int* iw, double* w, int mem);
+	int ekf_predict(const EKF_DATA_TYPE** arg, EKF_DATA_TYPE** res, long long int* iw, EKF_DATA_TYPE* w, int mem);
+	int ekf_correct(const EKF_DATA_TYPE** arg, EKF_DATA_TYPE** res, long long int* iw, EKF_DATA_TYPE* w, int mem);
 }
 
 /* NOTE TODO The following are two placeholders for the predict, correct functions while we reduce size */
-int _none_ekf_predict(const double** arg, double** res, long long int* iw, double* w, int mem) {
+int _none_ekf_predict(const EKF_DATA_TYPE** arg, EKF_DATA_TYPE** res, long long int* iw, EKF_DATA_TYPE* w, int mem) {
 	return 0;
 }
 
-int _none_ekf_correct(const double** arg, double** res, long long int* iw, double* w, int mem)
+int _none_ekf_correct(const EKF_DATA_TYPE** arg, EKF_DATA_TYPE** res, long long int* iw, EKF_DATA_TYPE* w, int mem)
 {
 	return 0;
 }
@@ -43,11 +43,11 @@ void EKF::inav_update(void)
 	// NOTE Not sure why the ekf_predict function requires const double** arg as the arg changes between prediction runs.
 	
 	//int _result = ekf_predict((const double**)ekf_predict_arg, ekf_predict_res, 0, 0, 0);
-	int _result = _none_ekf_predict((const double**)ekf_predict_arg, ekf_predict_res, 0, 0, 0);
+	int _result = _none_ekf_predict((const EKF_DATA_TYPE**)ekf_predict_arg, ekf_predict_res, 0, 0, 0);
 
 	// Run correction step
 	//_result = ekf_correct((const double**)ekf_correct_arg, ekf_correct_res, 0, 0, 0);
-	_result = _none_ekf_correct((const double**)ekf_correct_arg, ekf_correct_res, 0, 0, 0);
+	_result = _none_ekf_correct((const EKF_DATA_TYPE**)ekf_correct_arg, ekf_correct_res, 0, 0, 0);
 
 	// Normalise quaternion before re-assigning
 	float q_norm = safe_sqrt(sq(ekf_correct_res[0][6]) + sq(ekf_correct_res[0][7]) + sq(ekf_correct_res[0][8]) + sq(ekf_correct_res[0][9]));

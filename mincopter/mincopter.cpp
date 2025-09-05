@@ -157,14 +157,15 @@ void loop()
 		Matrix3f _temp_rot;
 		_temp_att.rotation_matrix(_temp_rot);
 
-		mincopter.hal.console->printf_P(PSTR("[loop %u]\n"), _counter);
+		uint16_t avail_mem = mincopter.hal.util->available_memory();
+
+		mincopter.hal.console->printf_P(PSTR("[loop %u] remaining_ram=%u\n"), _counter, avail_mem);
 		mincopter.hal.console->printf_P(PSTR("gyr: % 6.2f, % 6.2f, % 6.2f\n"), _gyr_meas.x, _gyr_meas.y, _gyr_meas.z);
 		mincopter.hal.console->printf_P(PSTR("acc: % 6.2f, % 6.2f, % 6.2f\n"), _acc_meas.x, _acc_meas.y, _acc_meas.z);
 		mincopter.hal.console->printf_P(PSTR("mag: % 6.2f, % 6.2f, % 6.2f\n"), _mag_meas.x, _mag_meas.y, _mag_meas.z);
 		mincopter.hal.console->printf_P(PSTR("baro: % 6.2f, % 6.2f\n"), _pres, _temperature);
 		mincopter.hal.console->printf_P(PSTR("gps: %d\n"), _status);
 		mincopter.hal.console->printf_P(PSTR("lat/lng: %d, %d\n"), mincopter.g_gps->latitude, mincopter.g_gps->longitude);
-		/*
 		mincopter.hal.console->printf_P(PSTR("state x,y,z: %f, %f, %f\n"), _temp_pos.x, _temp_pos.y, _temp_pos.z);
 		mincopter.hal.console->printf_P(PSTR("att q1,q2,q3,q4: %f, %f, %f, %f\n"), _temp_att[0], _temp_att[1], _temp_att[2], _temp_att[3]);
 		mincopter.hal.console->printf_P(PSTR("eul r,p,y: %f, %f, %f\n"), roll, pitch, yaw);
@@ -172,8 +173,6 @@ void loop()
 				_temp_rot[0][0], _temp_rot[0][1], _temp_rot[0][2],
 				_temp_rot[1][0], _temp_rot[1][1], _temp_rot[1][2],
 				_temp_rot[2][0], _temp_rot[2][1], _temp_rot[2][2]);
-		*/
-
 	}
 
 	if (_counter%1000==0) {
@@ -331,6 +330,11 @@ void setup()
 extern "C" {
   int main (void) {
 	mincopter.hal.init(0, NULL);
+
+	/* Print initial RAM available */
+	uint16_t _mem_left = mincopter.hal.util->available_memory();
+	mincopter.hal.console->printf_P(PSTR("Pre-init RAM:%u\n"), _mem_left);
+
     setup();
     mincopter.hal.scheduler->system_initialized();
 	for(;;) loop();

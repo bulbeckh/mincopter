@@ -30,6 +30,8 @@
 #include <ahrs_interface.h>
 #include <inav_interface.h>
 
+#define EKF_DATA_TYPE float
+
 // TODO Why do we have 'AP' for AHRS but 'MC' for InertialNav
 
 class EKF : public AP_AHRS, public MC_InertialNav {
@@ -51,34 +53,34 @@ class EKF : public AP_AHRS, public MC_InertialNav {
 		 */
 
 		// ekf arg/res
-		double dt;
-		double w[3];
-		double a[3];
-		double m[3];
-		double var_gyro;
-		double var_accel;
-		double var_mag;
+		EKF_DATA_TYPE dt;
+		EKF_DATA_TYPE w[3];
+		EKF_DATA_TYPE a[3];
+		EKF_DATA_TYPE m[3];
+		EKF_DATA_TYPE var_gyro;
+		EKF_DATA_TYPE var_accel;
+		EKF_DATA_TYPE var_mag;
 
 		// NOTE Covariance matrix (10,10)
-		double cov[100];
-		double q[4];
-		double x[3];
-		double v[3];
+		EKF_DATA_TYPE cov[100];
+		EKF_DATA_TYPE q[4];
+		EKF_DATA_TYPE x[3];
+		EKF_DATA_TYPE v[3];
 
 		// NOTE TODO These are duplicates with the above state - change into a single struct/union so that one can be re-used
-		double state_out[10];
-		double cov_out[100];
+		EKF_DATA_TYPE state_out[10];
+		EKF_DATA_TYPE cov_out[100];
 
 		// NOTE In very constrained system, we could point this directly to the memory location of current GPS position and velocity
-		double gps_pos[3];
-		double gps_vel[3];
-		double var_gps_pos;
-		double var_gps_vel;
+		EKF_DATA_TYPE gps_pos[3];
+		EKF_DATA_TYPE gps_vel[3];
+		EKF_DATA_TYPE var_gps_pos;
+		EKF_DATA_TYPE var_gps_vel;
 
-		double state_est[10];
-		double cov_est[100];
+		EKF_DATA_TYPE state_est[10];
+		EKF_DATA_TYPE cov_est[100];
 
-		double* ekf_predict_arg[9] = {
+		EKF_DATA_TYPE* ekf_predict_arg[9] = {
 			&dt,
 			w,
 			a,
@@ -89,9 +91,9 @@ class EKF : public AP_AHRS, public MC_InertialNav {
 			x,
 			v};
 
-		double* ekf_predict_res[2] = {state_est, cov_est};
+		EKF_DATA_TYPE* ekf_predict_res[2] = {state_est, cov_est};
 
-		double* ekf_correct_arg[10] = {
+		EKF_DATA_TYPE* ekf_correct_arg[10] = {
 			state_est, // Re-use state_est and cov_est from ekf_predict
 			cov_est,
 			a,
@@ -104,10 +106,10 @@ class EKF : public AP_AHRS, public MC_InertialNav {
 			&var_gps_vel};
 
 		// vt is (12,1) and kgain is (10,12)
-		double vt[12];
-		double kgain[120];
+		EKF_DATA_TYPE vt[12];
+		EKF_DATA_TYPE kgain[120];
 
-		double* ekf_correct_res[4] = {state_out, cov_out, vt, kgain};
+		EKF_DATA_TYPE* ekf_correct_res[4] = {state_out, cov_out, vt, kgain};
 
 	public:
 		// Implementation of AP_AHRS methods
