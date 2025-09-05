@@ -46,16 +46,16 @@ void init_ardupilot()
 #endif
 
     // Console serial port
-    mincopter.hal.uartB->begin(SERIAL0_BAUD, 512, 128);
-	mincopter.hal.console->printf_P(PSTR("[INIT] uartB initialised\n"));
+    //mincopter.hal.uartB->begin(SERIAL0_BAUD, 512, 128);
+	//mincopter.hal.console->printf_P(PSTR("[INIT] uartB initialised\n"));
 
     // GPS UART/Serial port initialisation
 #if GPS_PROTOCOL != GPS_PROTOCOL_IMU
-	// NOTE We use uartC for GPS on AVR, otherwise, for boards like RPI we
+	// NOTE We use uartB for GPS on AVR, otherwise, for boards like RPI we
 	// re-use uartA for GPS
 #ifdef TARGET_ARCH_AVR
-	if (mincopter.hal.uartC != NULL) mincopter.hal.uartC->begin(38400, 256, 16);
-	mincopter.hal.console->printf_P(PSTR("[INIT] uartC initialised\n"));
+	if (mincopter.hal.uartB != NULL) mincopter.hal.uartB->begin(38400, 256, 16);
+	mincopter.hal.console->printf_P(PSTR("[INIT] uartB initialised\n"));
 #else
 	if (mincopter.hal.uartA != NULL) mincopter.hal.uartA->begin(38400, 256, 16);
 	mincopter.hal.console->printf_P(PSTR("[INIT] uartA initialised\n"));
@@ -101,8 +101,8 @@ void init_ardupilot()
 	
 	// TODO Replace this with the board configuration that checks how many UARTs are enabled 
 	if (mincopter.hal.uartB != NULL) {
-    	mincopter.hal.uartB->begin(SERIAL1_BAUD, 128, 128);
-		mincopter.hal.console->printf_P(PSTR("[INIT] uartB initialised\n"));
+    	//mincopter.hal.uartB->begin(SERIAL1_BAUD, 128, 128);
+		//mincopter.hal.console->printf_P(PSTR("[INIT] uartB initialised\n"));
 	}
 
     //gcs[1].init(hal.uartC);
@@ -170,8 +170,8 @@ void init_ardupilot()
 
     // GPS Initialization with correct UART
 #ifdef TARGET_ARCH_AVR
-	if (mincopter.hal.uartC != NULL) {
-    	mincopter.g_gps->init(mincopter.hal.uartC, GPS::GPS_ENGINE_AIRBORNE_1G);
+	if (mincopter.hal.uartB != NULL) {
+    	mincopter.g_gps->init(mincopter.hal.uartB, GPS::GPS_ENGINE_AIRBORNE_1G);
 #else
 	if (mincopter.hal.uartA != NULL) {
     	mincopter.g_gps->init(mincopter.hal.uartA, GPS::GPS_ENGINE_AIRBORNE_1G);

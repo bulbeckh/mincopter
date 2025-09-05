@@ -5,5 +5,8 @@
 add_subdirectory(unit/barometer)
 add_subdirectory(unit/imu)
 add_subdirectory(unit/compass)
+add_subdirectory(unit/gps)
+
+
 
 

@@ -132,14 +132,14 @@ AP_GPS_UBLOX::read(void)
 
     numc = _port->available();
 
-	//if (numc>0) hal.console->printf_P(PSTR("char found:%d\n"), numc);
+	//hal.console->printf_P(PSTR("BYTES RECEIVED:%d\n"), numc);
 		
     for (int16_t i = 0; i < numc; i++) {        // Process bytes received
 
         // read the next byte
         data = _port->read();
 
-		hal.console->printf("%02X\n", data);
+		//hal.console->printf("%02X\n", data);
 		//continue;
 
 	reset:
