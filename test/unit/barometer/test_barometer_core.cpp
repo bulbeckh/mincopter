@@ -3,8 +3,6 @@
 #include <AP_HAL/AP_HAL.h>
 #include <AP_HAL/HAL_Interface.h>
 
-#include <stdio.h>
-
 // NOTE This is not a reference to a hal that already exists (like the one defined in mincopter.cpp). We need to create our own here.
 const AP_HAL::HAL& hal = AP_HAL_BOARD_DRIVER;
 
@@ -15,7 +13,7 @@ uint8_t run_unit_tests(AP_Baro& _barometer)
 	bool init_status = _barometer.init();
 
 	if (!init_status) {
-		printf("Error in baro initialisation\n");
+		hal.console->printf("Error in baro initialisation\n");
 		return 1;
 	}
 
@@ -24,14 +22,14 @@ uint8_t run_unit_tests(AP_Baro& _barometer)
 		uint8_t status = _barometer.read();
 
 		if (status!=0) {
-			printf("Error in barometer read\n");
+			hal.console->printf("Error in barometer read\n");
 			return 1;
 		}
 
 		float _temp = _barometer.get_temperature();
 		float _pressure = _barometer.get_pressure();
 
-		printf("T %f P %f\n", _temp, _pressure);
+		hal.console->printf("T %f P %f\n", _temp, _pressure);
 
 		// Delay 10ms
 		hal.scheduler->delay(10);
@@ -46,7 +44,7 @@ int main()
 	hal.init(0, NULL);
 	
 #if defined(MC_BARO_MS5611) || defined(MC_TEST_BARO_ALL)
-	AP_Baro_MS5611 barometer_instance;
+	AP_Baro_MS5611 barometer_instance(&AP_Baro_MS5611::spi);
 	run_unit_tests(barometer_instance);
 #elif defined(MC_BARO_BME280) || defined(MC_TEST_BARO_ALL)
 	AP_Baro_BME280 barometer_instance;

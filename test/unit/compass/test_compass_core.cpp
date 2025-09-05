@@ -5,8 +5,6 @@
 
 #include <AP_Math.h>
 
-#include <stdio.h>
-
 // NOTE This is not a reference to a hal that already exists (like the one defined in mincopter.cpp). We need to create our own here.
 const AP_HAL::HAL& hal = AP_HAL_BOARD_DRIVER;
 
@@ -21,13 +19,13 @@ uint8_t run_unit_tests(Compass& _compass)
 		bool status = _compass.read();
 
 		if (!status) {
-			printf("Error in compass read\n");
+			hal.console->printf("Error in compass read\n");
 			return 1;
 		}
 
 		Vector3f field = _compass.get_field();
 
-		printf("X: %f, Y: %f, Z: %f\n", field.x, field.y, field.z);
+		hal.console->printf("X: %f, Y: %f, Z: %f\n", field.x, field.y, field.z);
 
 		// Delay 10ms
 		hal.scheduler->delay(10);

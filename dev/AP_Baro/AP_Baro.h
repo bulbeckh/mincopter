@@ -3,6 +3,8 @@
 #ifndef __AP_BARO_H__
 #define __AP_BARO_H__
 
+#include <stdint.h>
+
 class AP_Baro
 {
 	public:

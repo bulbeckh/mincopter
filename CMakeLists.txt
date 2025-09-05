@@ -337,6 +337,6 @@ target_include_directories(mincopter PUBLIC
 ##################################################################
 # TESTING
 ##################################################################
-#add_subdirectory(test)
+add_subdirectory(test)
 
 
