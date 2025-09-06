@@ -157,9 +157,7 @@ void loop()
 		Matrix3f _temp_rot;
 		_temp_att.rotation_matrix(_temp_rot);
 
-		uint16_t avail_mem = mincopter.hal.util->available_memory();
-
-		mincopter.hal.console->printf_P(PSTR("[loop %u] remaining_ram=%u\n"), _counter, avail_mem);
+		mincopter.hal.console->printf("[loop %lu] remaining_ram=%u\n", _counter, mincopter.hal.util->available_memory());
 		mincopter.hal.console->printf_P(PSTR("gyr: % 6.2f, % 6.2f, % 6.2f\n"), _gyr_meas.x, _gyr_meas.y, _gyr_meas.z);
 		mincopter.hal.console->printf_P(PSTR("acc: % 6.2f, % 6.2f, % 6.2f\n"), _acc_meas.x, _acc_meas.y, _acc_meas.z);
 		mincopter.hal.console->printf_P(PSTR("mag: % 6.2f, % 6.2f, % 6.2f\n"), _mag_meas.x, _mag_meas.y, _mag_meas.z);

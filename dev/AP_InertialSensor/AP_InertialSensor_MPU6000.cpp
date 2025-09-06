@@ -347,6 +347,7 @@ void AP_InertialSensor_MPU6000::_poll_data(void)
                      "failed to take SPI semaphore synchronously"));
         }
     }
+
 }
 
 

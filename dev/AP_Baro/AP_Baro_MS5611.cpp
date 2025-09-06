@@ -338,6 +338,7 @@ void AP_Baro_MS5611::_update(void)
     }
 
     _serial->sem_give();
+
 }
 
 uint8_t AP_Baro_MS5611::read()

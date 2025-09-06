@@ -22,6 +22,7 @@ add_compile_definitions(
 	#CONTROLLER_NONE
 	#PLANNER_WAYPOINT
 	#PLANNER_NONE
+
 )
 
 set(MCU atmega2560)

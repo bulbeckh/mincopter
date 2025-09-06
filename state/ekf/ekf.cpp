@@ -42,12 +42,12 @@ void EKF::inav_update(void)
 	// Run prediction step (last three args are real/int workspace sizes and memory index, which are all 0)
 	// NOTE Not sure why the ekf_predict function requires const double** arg as the arg changes between prediction runs.
 	
-	//int _result = ekf_predict((const double**)ekf_predict_arg, ekf_predict_res, 0, 0, 0);
-	int _result = _none_ekf_predict((const EKF_DATA_TYPE**)ekf_predict_arg, ekf_predict_res, 0, 0, 0);
+	int _result = ekf_predict((const EKF_DATA_TYPE**)ekf_predict_arg, ekf_predict_res, 0, 0, 0);
+	//int _result = _none_ekf_predict((const EKF_DATA_TYPE**)ekf_predict_arg, ekf_predict_res, 0, 0, 0);
 
 	// Run correction step
-	//_result = ekf_correct((const double**)ekf_correct_arg, ekf_correct_res, 0, 0, 0);
-	_result = _none_ekf_correct((const EKF_DATA_TYPE**)ekf_correct_arg, ekf_correct_res, 0, 0, 0);
+	_result = ekf_correct((const EKF_DATA_TYPE**)ekf_correct_arg, ekf_correct_res, 0, 0, 0);
+	//_result = _none_ekf_correct((const EKF_DATA_TYPE**)ekf_correct_arg, ekf_correct_res, 0, 0, 0);
 
 	// Normalise quaternion before re-assigning
 	float q_norm = safe_sqrt(sq(ekf_correct_res[0][6]) + sq(ekf_correct_res[0][7]) + sq(ekf_correct_res[0][8]) + sq(ekf_correct_res[0][9]));

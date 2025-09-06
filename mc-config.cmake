@@ -23,7 +23,7 @@ set(MC_PLANNER_TYPE "NONE") ## (NONE, WAYPOINT)
 
 ## Specify state here
 ## TODO Change these names
-set(MC_INAV_TYPE "NONE") ## (DEFAULT, EKF, NONE)
+set(MC_INAV_TYPE "EKF") ## (DEFAULT, EKF, NONE)
 set(MC_AHRS_TYPE "NONE") ## (DCM, EKF, NONE)
 
 ## Specify backend dev (ignored for sim)
