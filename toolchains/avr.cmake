@@ -57,6 +57,7 @@ set(COMMON_FLAGS
 	-ffunction-sections
 	-fdata-sections
 	-fsigned-char
+	-fstack-usage
 )
 message("AVR Architecture - common flags: ${COMMON_FLAGS}")
 

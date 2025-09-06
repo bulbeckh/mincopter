@@ -361,7 +361,7 @@ void init_ardupilot()
 		mincopter.cliSerial->printf_P(PSTR("TEST5-%uus\n"), end);
 		*/
 
-	mincopter.hal.console->printf_P(PSTR("[INIT] Initialisation complete.\n"));
+	mincopter.hal.console->printf_P(PSTR("[INIT] Initialisation complete, post-init RAM:%u\n"), mincopter.hal.util->available_memory());
 	return;
 }
 

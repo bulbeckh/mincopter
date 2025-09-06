@@ -247,6 +247,8 @@ void loop()
     // call until scheduler.tick() is called again
     uint32_t time_available = (timer + 10000) - micros();
 
+	if (_counter<3) mincopter.hal.console->printf("STACK pre-loop:%u\n", mincopter.hal.util->available_memory());
+
 #ifdef TARGET_ARCH_LINUX
 	/* NOTE In the simulated environment, the round of 10 GZ sensor updates takes about 10ms
 	 * so we run the scheduled run to account for this */
@@ -256,6 +258,8 @@ void loop()
 #else
     scheduler.run(time_available - 300);
 #endif
+
+	if (_counter<3) mincopter.hal.console->printf("STACK post-loop:%u\n", mincopter.hal.util->available_memory());
 
     uint32_t time_elapsed = micros() - timer;
     // Delay if we have time remaining (i.e. time took less than 10000us)

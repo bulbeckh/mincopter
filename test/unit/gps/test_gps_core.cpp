@@ -24,6 +24,8 @@ uint8_t run_unit_tests(GPS& _gps)
 
 	/* Run GPS read */
 	while(true) {
+		hal.console->printf("TEST inloop-RAM:%u\n", hal.util->available_memory());
+
 		uint8_t status = _gps.status();
 
 		hal.console->printf("[GPS Update @ 1Hz, status=%u, ram=%u]\n", status, hal.util->available_memory());
@@ -43,6 +45,8 @@ int main()
 {
 	// Core setup before actual testing
 	hal.init(0, NULL);
+
+	hal.console->printf("TEST pre-RAM:%u\n", hal.util->available_memory());
 	
 	// Initialise correct UART for GPS
 	
