@@ -7,6 +7,7 @@ add_subdirectory(unit/imu)
 add_subdirectory(unit/compass)
 add_subdirectory(unit/gps)
 
+add_subdirectory(integration/state)
 
 
 
