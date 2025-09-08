@@ -15,6 +15,18 @@ class ComplementaryFilter:
         ''' *reading* is a dictionary entry with all sensor readings
         idx is the iteration number'''
 
+        ## 1. Convert Mag into NED
+        mag_reading = np.array([-reading['mz'], reading['mx'], -reading['my']]).reshape((3,1))
+
+        ## Rotate Mag with -68deg inclination & 11deg declination 
+        mag_ned = np.array([
+            [math.cos(68*math.pi/180), 0, math.sin(68*math.pi/180)],
+            [0, 1, 0],
+            [-math.sin(68*math.pi/180), 0, math.cos(68*math.pi/180)]], dtype=np.float64) @ np.array([
+                [math.cos(11*math.pi/180), -math.sin(11*math.pi/180), 0],
+                [math.sin(11*math.pi/180), math.cos(11*math.pi/180), 0],
+                [0, 0, 1]], dtype=np.float64) @ mag_reading
+
 
         theta_mag = [math.atan2(reading['ay'], reading['az']),
                      math.atan2(-reading['ax'], math.sqrt(reading['ay']**2+reading['az']**2)),
@@ -27,18 +39,18 @@ class ComplementaryFilter:
             [0, math.cos(theta_mag[1]), -math.sin(theta_mag[1])],
             [-math.sin(theta_mag[0]), math.cos(theta_mag[0])*math.sin(theta_mag[1]), math.cos(theta_mag[0])*math.cos(theta_mag[1])]], dtype=np.float64)
 
-        b_val = b_mat @ np.array([reading['mx'], reading['my'], reading['mz']]).reshape(3,-1)
+        #b_val = b_mat @ np.array([reading['mx'], reading['my'], reading['mz']]).reshape(3,-1)
+        b_val = b_mat @ mag_ned
 
         ## TODO NOTE There is a computationally shorter way of finding theta_z
         theta_z = math.atan2(-b_val[1], b_val[0])
-
 
         theta_gyro = [self.att[0] + reading['gx']*(reading['dt']*1e-6),
                       self.att[1] + reading['gy']*(reading['dt']*1e-6),
                       self.att[2] + reading['gz']*(reading['dt']*1e-6)]
 
 
-        alpha = 0.5
+        alpha = 0.8
 
         ## Fuse on everything excep first run
         if idx==0:

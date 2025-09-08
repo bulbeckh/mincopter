@@ -21,6 +21,10 @@
 	#include "ahrs_none.h"
 	#define MC_AHRS_CLASS AHRS_None
 	extern AHRS_None ahrs_obj;
+#elif MC_AHRS_COMPLEMENTARY
+	#include "ahrs_complementary.h"
+	#define MC_AHRS_CLASS AHRS_Complementary
+	extern AHRS_Complementary ahrs_obj;
 /* Add additional AHRS here
  *
  */

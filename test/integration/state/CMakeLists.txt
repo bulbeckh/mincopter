@@ -40,3 +40,24 @@ target_link_libraries(test_compensation PUBLIC
 target_include_directories(test_compensation PUBLIC
 	${MC_INCLUDE_DIRS}
 )
+
+## Complementary Integration Testing
+add_executable(test_state_complementary
+	test_state_complementary.cpp
+
+	## Again, referencing AP_Math to avoid linking with mc-common
+	${math_srcs}
+)
+
+## Link
+target_link_libraries(test_state_complementary PUBLIC
+	mc-dev
+	mc-arch
+	mc-state
+	mc-common
+	## gtest libs
+)
+
+target_include_directories(test_state_complementary PUBLIC
+	${MC_INCLUDE_DIRS}
+)
