@@ -23,4 +23,20 @@ target_include_directories(test_state PUBLIC
 )
 
 
+add_executable(test_compensation
+	test_sensor_compensation.cpp
 
+	## Again, referencing AP_Math to avoid linking with mc-common
+	${math_srcs}
+)
+
+## Link
+target_link_libraries(test_compensation PUBLIC
+	mc-dev
+	mc-arch
+	## gtest libs
+)
+
+target_include_directories(test_compensation PUBLIC
+	${MC_INCLUDE_DIRS}
+)
