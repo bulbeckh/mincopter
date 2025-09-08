@@ -5,9 +5,9 @@
 **MinCopter** is a modular end-to-end UAV quadrotor flight system, optimized for speed and size. Designed to work across multiple backend architectures, **MinCopter** contains high-performance planners, controllers, and state estimation libraries. **MinCopter** uses multiple abstraction layers, allowing users to easily switch between controller, planner, and state estimation implementations. Through use of a hardware abstraction layer, both the physical sensors and the underlying MCU are decoupled from the flight software.
 
 <p align="center">
-  <img src="./docs/dronegif.gif" alt="GIF 1" width="250" style="margin-right: 10px;"/>
-  <img src="./docs/dronegif.gif" alt="GIF 2" width="250" style="margin-right: 10px;"/>
-  <img src="./docs/dronegif.gif" alt="GIF 3" width="250"/>
+  <picture><img src="./docs/dronegif.gif" alt="GIF 1" width="250" style="margin-right: 10px;"/></picture>
+  <picture><img src="./docs/dronegif.gif" alt="GIF 2" width="250" style="margin-right: 10px;"/></picture>
+  <picture><img src="./docs/dronegif.gif" alt="GIF 3" width="250"/></picture>
 </p>
 
 ## Performance
