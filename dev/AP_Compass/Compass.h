@@ -32,7 +32,7 @@ class Compass
 		uint32_t last_update;
 
 		/* @brief Initialize the compass device */
-		virtual bool init();
+		virtual bool init(void);
 
 		/* @brief Read the compass and update the mag_ variables */
 		virtual bool read(void) = 0;

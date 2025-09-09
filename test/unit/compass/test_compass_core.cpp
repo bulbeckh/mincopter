@@ -15,20 +15,21 @@ uint8_t run_unit_tests(Compass& _compass)
 	_compass.init();
 
 	/* Test 1. Read value */
-	for (int i=0;i<8;i++) {
+	for (int i=0;i<1e6;i++) {
 		bool status = _compass.read();
 
 		if (!status) {
 			hal.console->printf("Error in compass read\n");
 			return 1;
 		}
+		//
 
 		Vector3f field = _compass.get_field();
 
 		hal.console->printf("X: %f, Y: %f, Z: %f\n", field.x, field.y, field.z);
 
-		// Delay 10ms
-		hal.scheduler->delay(10);
+		// Delay 500ms
+		hal.scheduler->delay(500);
 	}
 
 	return 0;

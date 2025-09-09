@@ -91,15 +91,23 @@ bool AP_Compass_HMC5843::read_raw()
         return false;
     }
 
+	/* On the HMC5883L, the register buffers is (in increasing addresses): X_HIGH, X_LOW,
+	 * Z_HIGH, Z_LOW, Y_HIGH, Y_LOW.
+	 *
+	 * We read into corresponding x,y,z buffers with no rotations yet here */
+
     int16_t rx, ry, rz;
     rx = (((int16_t)buff[0]) << 8) | buff[1];
 	/* TODO Replaced product_id
     if (product_id == AP_COMPASS_TYPE_HMC5883L) {
+	*/
         rz = (((int16_t)buff[2]) << 8) | buff[3];
         ry = (((int16_t)buff[4]) << 8) | buff[5];
-    } else { */
+	/*
+    } else {
         ry = (((int16_t)buff[2]) << 8) | buff[3];
         rz = (((int16_t)buff[4]) << 8) | buff[5];
+	*/
     //}
 	
     if (rx == -4096 || ry == -4096 || rz == -4096) {
@@ -107,9 +115,17 @@ bool AP_Compass_HMC5843::read_raw()
         return false;
     }
 
+	// TODO REMOVED THIS ROTATION
+	/*
     _mag_x = -rx;
     _mag_y =  ry;
     _mag_z = -rz;
+	*/
+
+	// Use standard frame for now
+	_mag_x = rx;
+	_mag_y = ry;
+	_mag_z = rz;
 
     return true;
 }
