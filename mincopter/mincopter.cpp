@@ -119,6 +119,45 @@ void state_update()
 /* @brief The control update routine. Runs the planner and then the controller. */
 void control_determination()
 {
+	/* Our planner algorithm updates the desired roll and pitch based on our position from desired
+	 * waypoint as well as our velocity.
+	 *
+	 * The control flow is as follows:
+	 *
+	 * - planner.run
+	 *   - update_nav_mode (planner)
+	 *   	- update_wpnav
+	 *   		- advance_target_along_track
+	 *   		- get_loiter_position_to_velocity
+	 *   		- get_loiter_velocity_to_acceleration
+	 *   		- get_loiter_acceleration_to_lean_angles
+	 *
+	 *   	OR 
+	 *   	- update_loiter
+	 *   - wp_nav.get_desired_roll
+	 *   - wp_nav.get_desired_pitch
+	 *   - get_yaw_slew
+	 *   - get_throttle_althold_with_slew
+	 * 
+	 * ## update_wpnav control flow
+	 *
+	 * **get_loiter_position_to_velocity**
+	 * Calculates _desired_vel (x and y) by K controller w error as (_target - _curr). Uses
+	 * the lat and lon PID controllers. Also feeds-forward _target_vel (x and y) into _desired_vel.
+	 *
+	 * **get_loiter_velocity_to_acceleration**
+	 * Calculates _desired_accel (x and y) by PID controller w error as (_desired_vel - vel_curr).
+	 * Feeds-forward an accel estimate based on the difference between the previous iterations
+	 * desired velocity and this iterations desired velocity (multiplied by dt).
+	 * 
+	 * **get_loiter_acceleration_to_lean_angles**
+	 * Calculates desired_roll and desired_pitch from the (yaw-corrected) desired accelerations.
+	 * These are inputs into the controller.
+	 *
+	 * ## update_loiter control flow
+	 *
+	 */
+
 	// The planner should run at every iteration but the controller should only run when armed
     planner.run();
 

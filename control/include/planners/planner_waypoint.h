@@ -49,6 +49,8 @@
 #include "planner_interface.h"
 #include "config.h"
 
+#include <AC_WPNav.h>
+
 enum class WP_FLIGHT_STATE
 {
 		FS_TAKEOFF,
@@ -130,9 +132,10 @@ class WP_Planner : public MC_Planner
 
 		// The Commanded Throttle from the autopilot.
 		int16_t nav_throttle;    // 0-1000 for throttle control
-														 //
-														 //
-
+	
+	private:
+		/* @brief Waypoint Navigation library instance */
+		AC_WPNav wp_nav;
 
 	private:
 
@@ -191,7 +194,7 @@ class WP_Planner : public MC_Planner
 
 		/* @brief Checks run before motors are armed
 		*/
-		void pre_arm_checks(bool display_failure);
+		void pre_arm_checks(void);
 
 		/* @brief Reduces rate-of-change of yaw to a maximum value
 		* @param current_yaw The current yaw value. Usually control_yaw
@@ -202,15 +205,10 @@ class WP_Planner : public MC_Planner
 
 		void get_throttle_althold_with_slew(int32_t target_alt, int16_t min_climb_rate, int16_t max_climb_rate);
 		
-		/* @brief Simple controller to determine roll and pitch to navigate to origin
-		 * @param c_roll Reference to controller roll
-		 * @param c_pitch Reference to controller pitch
-		 */
-		void get_origin_roll_pitch(int16_t& c_roll, int16_t& c_pitch);
-
 	private:
-		bool pre_arm_gps_checks(bool display_failure);
-		bool arm_checks(bool display_failure);
+		bool pre_arm_gps_checks(void);
+
+		bool arm_checks(void);
 
 		/****** Failsafe Functions ******/
 
@@ -229,7 +227,6 @@ class WP_Planner : public MC_Planner
 		/* @brief Called when GPS returns signal
 		*/
 		void failsafe_gps_off_event(void);
-
 		void failsafe_gps_check(void);
 
 		void fence_check();

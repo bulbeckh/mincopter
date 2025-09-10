@@ -106,11 +106,13 @@ void WP_Planner::init_arm_motors()
     init_barometer(false);
 #endif
 
+	// TODO Remove these two mcstate function calls
+	
     // go back to normal AHRS gains
-    mcstate.ahrs.set_fast_gains(false);
+    //mcstate.ahrs.set_fast_gains(false);
 
     // enable gps velocity based centrefugal force compensation
-    mcstate.ahrs.set_correct_centrifugal(true);
+    //mcstate.ahrs.set_correct_centrifugal(true);
 
     // set hover throttle
     //mincopter.motors.set_mid_throttle(mincopter.throttle_mid);
@@ -136,7 +138,7 @@ void WP_Planner::init_arm_motors()
 }
 
 // perform pre-arm checks and set ap.pre_arm_check flag
-void WP_Planner::pre_arm_checks(bool display_failure)
+void WP_Planner::pre_arm_checks(void)
 {
     // exit immediately if we've already successfully performed the pre-arm check
     if (ap.pre_arm_check) {
@@ -153,16 +155,10 @@ void WP_Planner::pre_arm_checks(bool display_failure)
     if ((mincopter.arming_check == ARMING_CHECK_ALL) || (mincopter.arming_check & ARMING_CHECK_BARO)) {
         // barometer health check
         if(!mincopter.barometer.healthy) {
-            if (display_failure) {
-                //gcs_send_text_P(SEVERITY_HIGH,PSTR("PreArm: Baro not healthy"));
-            }
             return;
         }
         // check Baro & inav alt are within 1m
-        if(fabs(mcstate.inertial_nav.get_altitude() - baro_alt) > 100) {
-            if (display_failure) {
-                //gcs_send_text_P(SEVERITY_HIGH,PSTR("PreArm: Alt disparity"));
-            }
+        if(fabs(mcstate.get_altitude() - baro_alt) > 100) {
             return;
         }
     }
@@ -171,35 +167,25 @@ void WP_Planner::pre_arm_checks(bool display_failure)
     if ((mincopter.arming_check == ARMING_CHECK_ALL) || (mincopter.arming_check & ARMING_CHECK_COMPASS)) {
         // check the compass is healthy
         if(!mincopter.compass.healthy()) {
-            if (display_failure) {
-                //gcs_send_text_P(SEVERITY_HIGH,PSTR("PreArm: Compass not healthy"));
-            }
             return;
         }
 
         // check compass learning is on or offsets have been set
         Vector3f offsets = mincopter.compass.get_offsets();
-        if(!mincopter.compass._learn && offsets.length() == 0) {
-            if (display_failure) {
-                //gcs_send_text_P(SEVERITY_HIGH,PSTR("PreArm: Compass not calibrated"));
-            }
+		/*
+        if(offsets.length() == 0) {
             return;
         }
+		*/
 
         // check for unreasonable compass offsets
         if(offsets.length() > 500) {
-            if (display_failure) {
-                //gcs_send_text_P(SEVERITY_HIGH,PSTR("PreArm: Compass offsets too high"));
-            }
             return;
         }
 
         // check for unreasonable mag field length
         float mag_field = mincopter.compass.get_field().length();
         if (mag_field > COMPASS_MAGFIELD_EXPECTED*1.65 || mag_field < COMPASS_MAGFIELD_EXPECTED*0.35) {
-            if (display_failure) {
-                //gcs_send_text_P(SEVERITY_HIGH,PSTR("PreArm: Check mag field"));
-            }
             return;
         }
     }
@@ -207,13 +193,10 @@ void WP_Planner::pre_arm_checks(bool display_failure)
     // check GPS
     if ((mincopter.arming_check == ARMING_CHECK_ALL) || (mincopter.arming_check & ARMING_CHECK_GPS)) {
         // check gps is ok if required - note this same check is repeated again in arm_checks
-        if (!pre_arm_gps_checks(display_failure)) {
-            return;
-        }
 
 #if AC_FENCE == ENABLED
         // check fence is initialised
-        if(!fence.pre_arm_check() || (((fence.get_enabled_fences() & AC_FENCE_TYPE_CIRCLE) != 0) && !pre_arm_gps_checks(display_failure))) {
+        if(!fence.pre_arm_check() || (((fence.get_enabled_fences() & AC_FENCE_TYPE_CIRCLE) != 0) && !pre_arm_gps_checks())) {
             return;
         }
 #endif
@@ -223,17 +206,11 @@ void WP_Planner::pre_arm_checks(bool display_failure)
     if ((mincopter.arming_check == ARMING_CHECK_ALL) || (mincopter.arming_check & ARMING_CHECK_INS)) {
         // check accelerometers have been calibrated
         if(!mincopter.ins.calibrated()) {
-            if (display_failure) {
-                //gcs_send_text_P(SEVERITY_HIGH,PSTR("PreArm: INS not calibrated"));
-            }
             return;
         }
 
         // check accels and gyros are healthy
         if(!mincopter.ins.get_gyro_health() || !mincopter.ins.get_accel_health()) {
-            if (display_failure) {
-                //gcs_send_text_P(SEVERITY_HIGH,PSTR("PreArm: INS not healthy"));
-            }
             return;
         }
     }
@@ -245,18 +222,12 @@ void WP_Planner::pre_arm_checks(bool display_failure)
         if (failsafe_throttle) {
             // check throttle min is above throttle failsafe trigger and that the trigger is above ppm encoder's loss-of-signal value of 900
             if (mincopter.rc_3.radio_min <= failsafe_throttle_value+10 || failsafe_throttle_value < 910) {
-                if (display_failure) {
-                    //gcs_send_text_P(SEVERITY_HIGH,PSTR("PreArm: Check FS_THR_VALUE"));
-                }
                 return;
             }
         }
 
         // lean angle parameter check
         if (angle_max < 1000 || angle_max > 8000) {
-            if (display_failure) {
-                //gcs_send_text_P(SEVERITY_HIGH,PSTR("PreArm: Check ANGLE_MAX"));
-            }
             return;
         }
     }
@@ -266,15 +237,12 @@ void WP_Planner::pre_arm_checks(bool display_failure)
 }
 
 // performs pre_arm gps related checks and returns true if passed
-bool WP_Planner::pre_arm_gps_checks(bool display_failure)
+bool WP_Planner::pre_arm_gps_checks(void)
 {
-    float speed_cms = mcstate.inertial_nav.get_velocity().length();     // speed according to inertial nav in cm/s
+    float speed_cms = mcstate.get_velocity().length();     // speed according to inertial nav in cm/s
 
     // ensure GPS is ok and our speed is below 50cm/s
     if (!GPS_ok() || mincopter.gps_glitch.glitching() || speed_cms == 0 || speed_cms > PREARM_MAX_VELOCITY_CMS) {
-        if (display_failure) {
-            //gcs_send_text_P(SEVERITY_HIGH,PSTR("PreArm: Bad GPS Pos"));
-        }
         return false;
     }
 
@@ -284,7 +252,7 @@ bool WP_Planner::pre_arm_gps_checks(bool display_failure)
 
 // arm_checks - perform final checks before arming
 // always called just before arming.  Return true if ok to arm
-bool WP_Planner::arm_checks(bool display_failure)
+bool WP_Planner::arm_checks(void)
 {
     // succeed if arming checks are disabled
     if (mincopter.arming_check == ARMING_CHECK_NONE) {
@@ -293,47 +261,32 @@ bool WP_Planner::arm_checks(bool display_failure)
 
     // check Baro & inav alt are within 1m
     if ((mincopter.arming_check == ARMING_CHECK_ALL) || (mincopter.arming_check & ARMING_CHECK_BARO)) {
-        if(fabs(mcstate.inertial_nav.get_altitude() - baro_alt) > 100) {
-            if (display_failure) {
-                //gcs_send_text_P(SEVERITY_HIGH,PSTR("Arm: Alt disparity"));
-            }
+        if(fabs(mcstate.get_altitude() - baro_alt) > 100) {
             return false;
         }
     }
 
     // check gps is ok if required - note this same check is also done in pre-arm checks
     if ((mincopter.arming_check == ARMING_CHECK_ALL) || (mincopter.arming_check & ARMING_CHECK_GPS)) {
-        if (!pre_arm_gps_checks(display_failure)) {
-            return false;
-        }
     }
 
     // check parameters
     if ((mincopter.arming_check == ARMING_CHECK_ALL) || (mincopter.arming_check & ARMING_CHECK_PARAMETERS)) {
         // check throttle is above failsafe throttle
         if (failsafe_throttle != FS_THR_DISABLED && mincopter.rc_3.radio_in < failsafe_throttle_value) {
-            if (display_failure) {
-                //gcs_send_text_P(SEVERITY_HIGH,PSTR("Arm: Thr below FS"));
-            }
             return false;
         }
     }
 
     // check lean angle
     if ((mincopter.arming_check == ARMING_CHECK_ALL) || (mincopter.arming_check & ARMING_CHECK_INS)) {
-        if (labs(mcstate.ahrs.roll_sensor) > angle_max || labs(mcstate.ahrs.pitch_sensor) > angle_max) {
-            if (display_failure) {
-                //gcs_send_text_P(SEVERITY_HIGH,PSTR("Arm: Leaning"));
-            }
+        if (labs(mcstate.roll_sensor) > angle_max || labs(mcstate.pitch_sensor) > angle_max) {
             return false;
         }
     }
 
     // check if safety switch has been pushed
     if (mincopter.hal.util->safety_switch_state() == AP_HAL::Util::SAFETY_DISARMED) {
-        if (display_failure) {
-            //gcs_send_text_P(SEVERITY_HIGH,PSTR("Arm: Safety Switch"));
-        }
         return false;
     }
 
@@ -362,7 +315,7 @@ void WP_Planner::init_disarm_motors()
     set_takeoff_complete(false);
     
     // setup fast AHRS gains to get right attitude
-    mcstate.ahrs.set_fast_gains(true);
+    //mcstate.ahrs.set_fast_gains(true);
 
     // log disarm to the dataflash
     Log_Write_Event(DATA_DISARMED);
@@ -372,6 +325,6 @@ void WP_Planner::init_disarm_motors()
     mincopter.DataFlash.EnableWrites(false);
 
     // disable gps velocity based centrefugal force compensation
-    mcstate.ahrs.set_correct_centrifugal(false);
+    //mcstate.ahrs.set_correct_centrifugal(false);
 }
 

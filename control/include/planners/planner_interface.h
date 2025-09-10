@@ -38,7 +38,7 @@
  */
 
 #include <AC_Fence.h>
-#include <AC_WPNav.h>
+// HASH include <AC_WPNav.h>
 
 #include "failsafe.h"
 
@@ -99,8 +99,7 @@ class MC_Planner
 		float scaleLongDown = 1;
 
 		/* Failsafe Parameters */
-		// NOTE TODO Removed - don't need to be part of planner interface
-		/*
+		// TODO How does this relate to the above AP_FAILSAFE_T failsafe??
 		int8_t         failsafe_battery_enabled;   // battery failsafe enabled
 		float          fs_batt_voltage;            // battery voltage below which failsafe will be triggered
 		float          fs_batt_mah;                // battery capacity (in mah) below which failsafe will be triggered
@@ -108,6 +107,5 @@ class MC_Planner
 		int8_t         failsafe_gcs;               // ground station failsafe behavior
 		int8_t         failsafe_throttle;
 		int16_t        failsafe_throttle_value;
-		*/
 };
 

@@ -24,6 +24,7 @@ list(APPEND mc-control-none
 list(APPEND mc-planner-waypoint
 	${CMAKE_SOURCE_DIR}/control/planner_waypoint.cpp
 	${CMAKE_SOURCE_DIR}/control/arming.cpp
+	${CMAKE_SOURCE_DIR}/control/failsafe.cpp
 )
 
 list(APPEND mc-planner-none

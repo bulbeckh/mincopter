@@ -9,10 +9,10 @@ extern const AP_HAL::HAL& hal;
 // their values.
 //
 
-AC_WPNav::AC_WPNav(const MC_INAV_CLASS *inav, const MC_AHRS_CLASS *ahrs)
+AC_WPNav::AC_WPNav(/* const MC_INAV_CLASS *inav, const MC_AHRS_CLASS *ahrs */)
 	:
-    _inav(inav),
-    _ahrs(ahrs),
+    //_inav(inav),
+    //_ahrs(ahrs),
     _loiter_last_update(0),
     _wpnav_last_update(0),
     _cos_yaw(1.0),
@@ -47,11 +47,11 @@ AC_WPNav::AC_WPNav(const MC_INAV_CLASS *inav, const MC_AHRS_CLASS *ahrs)
 	_wp_accel_cms(100.0f),
 
 	/* Position controller P, I, and IMAX terms */
-	_pid_pos_lat(1.0f, 0.0f, 0.0f),
-	_pid_pos_lon(1.0f, 0.0f, 0.0f),
+	_pid_pos_lat(1.0f, 0.0f, 0.0f, 0.0f),
+	_pid_pos_lon(1.0f, 0.0f, 0.0f, 0.0f),
 	/* Rate controllers P, I, and IMAX terms */
-	_pid_rate_lat(1.0f, 0.5f, 400),
-	_pid_rate_lon(1.0f, 0.5f, 400)
+	_pid_rate_lat(1.0f, 0.5f, 0.0f, 400),
+	_pid_rate_lon(1.0f, 0.5f, 0.0f, 400)
 {
     //AP_Param::setup_object_defaults(this, var_info);
 
@@ -493,7 +493,7 @@ int32_t AC_WPNav::get_bearing_to_destination()
 /// update_wpnav - run the wp controller - should be called at 10hz
 void AC_WPNav::update_wpnav()
 {
-    // calculate dt
+    // calculate dt (seconds)
     uint32_t now = hal.scheduler->millis();
     float dt = (now - _wpnav_last_update) / 1000.0f;
 

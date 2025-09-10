@@ -43,9 +43,8 @@ public:
 
 	// TODO Fix this
 
-	AC_WPNav(const MC_INAV_CLASS *inav,
+	AC_WPNav(/* const MC_INAV_CLASS *inav,
 				const MC_AHRS_CLASS *ahrs
-				/*
 				AC_PID* pid_pos_lat,
 				AC_PID* pid_pos_lon,
 				AC_PID* pid_rate_lat,
@@ -72,6 +71,7 @@ public:
     void init_loiter_target(const Vector3f& position, const Vector3f& velocity);
 
     /// move_loiter_target - move destination using pilot input
+	/// TODO Can remove
     void move_loiter_target(float control_roll, float control_pitch, float dt);
 
     /// get_distance_to_target - get horizontal distance to loiter target in cm
@@ -81,6 +81,7 @@ public:
     int32_t get_bearing_to_target() const;
 
     /// update_loiter - run the loiter controller - should be called at 10hz
+	/// TODO Can remove
     void update_loiter();
 
     /// get_stopping_point - returns vector to stopping point based on a horizontal position and velocity
@@ -203,8 +204,11 @@ protected:
     void calculate_wp_leash_length(bool climb);
 
     // references to inertial nav and ahrs libraries
+	// NOTE Replaced with a reference to mcstate where orientation and position are retrieved
+	/*
 	const MC_INAV_CLASS *const _inav;
     const MC_AHRS_CLASS *const _ahrs;
+	*/
 
     // pid controllers
     AC_PID _pid_pos_lat;
