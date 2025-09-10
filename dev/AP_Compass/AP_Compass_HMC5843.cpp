@@ -326,10 +326,8 @@ AP_Compass_HMC5843::init()
 	_healthy = true;
 	read();
 
-#if 0
     hal.console->printf_P(PSTR("CalX: %.2f CalY: %.2f CalZ: %.2f\n"), 
                           calibration[0], calibration[1], calibration[2]);
-#endif
 
     return success;
 }

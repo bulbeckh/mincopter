@@ -48,14 +48,18 @@ uint8_t run_unit_tests(void)
 			_temp_att.to_euler(&roll, &pitch, &yaw);
 
 			// IN NED
-			hal.console->printf("<RPY>%f,%f,%f", roll, pitch, yaw);
+			hal.console->printf("<RPY>% 8.3f,% 8.3f,% 8.3f\n", roll, pitch, yaw);
+			hal.console->printf("<MAG>% 8.3f,% 8.3f,% 8.3f\n", mag_field.x, mag_field.y, mag_field.z);
+			hal.console->printf("<ACC>% 8.3f,% 8.3f,% 8.3f\n", accel.x, accel.y, accel.z);
+			hal.console->printf("<GYR>% 8.3f,% 8.3f,% 8.3f\n", gyro.x, gyro.y, gyro.z);
+
 		}
 
 		// 
 		uint32_t loop_us = hal.scheduler->micros()-ts_start;
 
 		// 50Hz = 20,000us
-		int32_t delay_us = 20000-(int32_t)loop_us;
+		int32_t delay_us = 10000-(int32_t)loop_us;
 
 		if (i%50==0) {
 			hal.console->printf("(loop, delay): %lu, %ld\n", loop_us, delay_us);

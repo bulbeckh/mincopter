@@ -22,21 +22,9 @@ void AHRS_Complementary::ahrs_update(void)
 	Vector3f accel_reading = mincopter.ins.get_accel();
 	Vector3f gyro_reading = mincopter.ins.get_gyro();
 
-	// Convert gyro to ENU
-	float gyro_temp_x = gyro_reading.x;
-	gyro_reading.x = gyro_reading.y;
-	gyro_reading.y = gyro_temp_x;
-	gyro_reading.z = -gyro_reading.z;
-
 	// Add offset constant for z-axis
 	accel_reading.z += 3.57;
 	accel_reading.normalize();
-
-	// Convert accel to ENU
-	float enu_accel_x = accel_reading.x;
-	accel_reading.x = accel_reading.y;
-	accel_reading.y = enu_accel_x;
-	accel_reading.z = -accel_reading.z;
 
 	// Get elapsed gyrometer time for use in integration of gyros
 	float ins_time_s= mincopter.ins.get_delta_time();
@@ -66,14 +54,13 @@ void AHRS_Complementary::ahrs_update(void)
 			mag_reading.x*0.071478 + mag_reading.y*0.981627 + mag_reading.z*0.176915,
 			-mag_reading.x*0.927183 + mag_reading.z*0.374606);
 
-	// Convert magnetometer back into ENU
-	mag_reading.x = mag_ned.y;
-	mag_reading.y = mag_ned.x;
-	mag_reading.z = -mag_ned.z;
+	// TODO UPDATED
+	// Estimate **roll** and **pitch** from accelerometer gravity vector by also multiplying by sign of y
+	float theta_magx = atan2f(-accel_reading.y, -accel_reading.z);
 
-	// Estimate **roll** and **pitch** from accelerometer gravity vector
-	float theta_magx = atan2f(accel_reading.y, accel_reading.z);
-	float theta_magy = atan2f(-accel_reading.x,
+	// TODO UPDATED
+	// NOTE This is a valid pitch reading in the NED frame, between [-pi/2, pi/2]
+	float theta_magy = atan2f(accel_reading.x,
 			safe_sqrt(accel_reading.y*accel_reading.y + accel_reading.z*accel_reading.z));
 
 	// Our yaw calculation uses magnetometer readings
@@ -96,13 +83,6 @@ void AHRS_Complementary::ahrs_update(void)
 		euler_internal.y = alpha*theta_gyroy + (1-alpha)*theta_magy;
 		euler_internal.z = alpha*theta_gyroz + (1-alpha)*theta_magz;
 	}
-
-	// Convert euler_internal back into NED
-	
-	float temp_x_euler = euler_internal.x;
-	euler_internal.x = euler_internal.y;
-	euler_internal.y = temp_x_euler;
-	euler_internal.z = -euler_internal.z;
 
 	// Compute and update quaternion (in NED frame)
 	_ahrs_state->_attitude.from_euler(
