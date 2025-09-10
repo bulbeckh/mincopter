@@ -22,7 +22,7 @@ uint8_t run_unit_tests(AP_InertialSensor& _imu, Compass& _compass)
 	_compass.init();
 
 	/* Test 1. Read value */
-	for (int i=0;i<250;i++) {
+	for (int i=0;i<1e6;i++) {
 		// Loop for 5 seconds at 50Hz
 		uint32_t ts_start = hal.scheduler->micros();
 
@@ -39,7 +39,7 @@ uint8_t run_unit_tests(AP_InertialSensor& _imu, Compass& _compass)
 
 		Vector3f mag_field = _compass.get_field();
 
-		hal.console->printf("%f,%f,%f,%f,%f,%f,%f,%f,%f,%lu\n",
+		hal.console->printf("% 8.3f,% 8.3f,% 8.3f,% 8.3f,% 8.3f,% 8.3f,% 8.3f,% 8.3f,% 8.3f,%lu\n",
 				accel.x, accel.y, accel.z,
 				gyro.x, gyro.y, gyro.z,
 				mag_field.x, mag_field.y, mag_field.z,

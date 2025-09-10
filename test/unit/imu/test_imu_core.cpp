@@ -15,7 +15,7 @@ uint8_t run_unit_tests(AP_InertialSensor& _imu)
 	_imu.init(AP_InertialSensor::COLD_START, AP_InertialSensor::RATE_100HZ);
 
 	/* Test 1. Read value */
-	for (int i=0;i<8;i++) {
+	for (int i=0;i<1e6;i++) {
 		bool status = _imu.update();
 
 		if (!status) {
@@ -27,8 +27,8 @@ uint8_t run_unit_tests(AP_InertialSensor& _imu)
 
 		hal.console->printf("X: %f, Y: %f, Z: %f\n", accel.x, accel.y, accel.z);
 
-		// Delay 10ms
-		hal.scheduler->delay(10);
+		// Delay 500ms
+		hal.scheduler->delay(500);
 	}
 
 	return 0;

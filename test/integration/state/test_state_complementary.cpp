@@ -47,6 +47,7 @@ uint8_t run_unit_tests(void)
 			float roll,pitch,yaw;
 			_temp_att.to_euler(&roll, &pitch, &yaw);
 
+			// IN NED
 			hal.console->printf("<RPY>%f,%f,%f", roll, pitch, yaw);
 		}
 
