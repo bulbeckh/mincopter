@@ -56,39 +56,9 @@ public:
     /// simple loiter controller
     ///
 
-    /// get_loiter_target - get loiter target as position vector (from home in cm)
-    const Vector3f &get_loiter_target() const { return _target; }
-
 	/* MINCOPTER ADDS */
-	// get current loiter step 
-	uint8_t get_loiter_step() { return _loiter_step; }
+
 	Vector3f get_wp_nav_target() { return _target; }
-
-    /// set_loiter_target in cm from home
-    void set_loiter_target(const Vector3f& position);
-
-    /// init_loiter_target - set initial loiter target based on current position and velocity
-    void init_loiter_target(const Vector3f& position, const Vector3f& velocity);
-
-    /// move_loiter_target - move destination using pilot input
-	/// TODO Can remove
-    void move_loiter_target(float control_roll, float control_pitch, float dt);
-
-    /// get_distance_to_target - get horizontal distance to loiter target in cm
-    float get_distance_to_target() const;
-
-    /// get_bearing_to_target - get bearing to loiter target in centi-degrees
-    int32_t get_bearing_to_target() const;
-
-    /// update_loiter - run the loiter controller - should be called at 10hz
-	/// TODO Can remove
-    void update_loiter();
-
-    /// get_stopping_point - returns vector to stopping point based on a horizontal position and velocity
-    void get_stopping_point(const Vector3f& position, const Vector3f& velocity, Vector3f &target) const;
-
-    /// set_loiter_velocity - allows main code to pass the maximum velocity for loiter
-    void set_loiter_velocity(float velocity_cms) { _loiter_speed_cms = velocity_cms; };
 
     ///
     /// waypoint controller
@@ -108,6 +78,10 @@ public:
 
     /// get_distance_to_destination - get horizontal distance to destination in cm
     float get_distance_to_destination();
+
+	float get_distance_to_target(void) const;
+
+	int32_t get_bearing_to_target(void) const;
 
     /// get_bearing_to_destination - get bearing to next waypoint in centi-degrees
     int32_t get_bearing_to_destination();
@@ -196,9 +170,6 @@ protected:
     /// reset_I - clears I terms from loiter PID controller
     void reset_I();
 
-    /// calculate_loiter_leash_length - calculates the maximum distance in cm that the target position may be from the current location
-    void calculate_loiter_leash_length();
-
     /// calculate_wp_leash_length - calculates horizontal and vertical leash lengths for waypoint controller
     ///    set climb param to true if track climbs vertically, false if descending
     void calculate_wp_leash_length(bool climb);
@@ -217,17 +188,13 @@ protected:
     AC_PID _pid_rate_lon;
 
     // parameters
-    float   _loiter_speed_cms;      // maximum horizontal speed in cm/s while in loiter
     float   _wp_speed_cms;          // maximum horizontal speed in cm/s during missions
     float   _wp_speed_up_cms;       // climb speed target in cm/s
     float   _wp_speed_down_cms;     // descent speed target in cm/s
     float   _wp_radius_cm;          // distance from a waypoint in cm that, when crossed, indicates the wp has been reached
     float   _wp_accel_cms;          // acceleration in cm/s/s during missions
-    uint8_t     _loiter_step;           // used to decide which portion of loiter controller to run during this iteration
     uint8_t     _wpnav_step;            // used to decide which portion of wpnav controller to run during this iteration
-    uint32_t	_loiter_last_update;    // time of last update_loiter call
     uint32_t	_wpnav_last_update;     // time of last update_wpnav call
-    float       _loiter_dt;             // time difference since last loiter call
     float       _wpnav_dt;              // time difference since last loiter call
     float       _cos_yaw;               // short-cut to save on calcs required to convert roll-pitch frame to lat-lon frame
     float       _sin_yaw;
@@ -237,16 +204,6 @@ protected:
     // output from controller
     int32_t     _desired_roll;          // fed to stabilize controllers at 50hz
     int32_t     _desired_pitch;         // fed to stabilize controllers at 50hz
-
-    // loiter controller internal variables
-    Vector3f    _target;   		        // loiter's target location in cm from home
-    int16_t     _pilot_vel_forward_cms; // pilot's desired velocity forward (body-frame)
-    int16_t     _pilot_vel_right_cms;   // pilot's desired velocity right (body-frame)
-    Vector3f    _target_vel;            // pilot's latest desired velocity in earth-frame
-    Vector3f    _vel_last;              // previous iterations velocity in cm/s
-    float       _loiter_leash;          // loiter's horizontal leash length in cm.  used to stop the pilot from pushing the target location too far from the current location
-    float       _loiter_accel_cms;      // loiter's acceleration in cm/s/s
-    int16_t     _lean_angle_max_cd;     // maximum lean angle in centi-degrees
 
     // waypoint controller internal variables
     Vector3f    _origin;                // starting point of trip to next waypoint in cm from home (equivalent to next_WP)
@@ -261,6 +218,12 @@ protected:
     float       _track_accel;           // acceleration along track
     float       _track_speed;           // speed in cm/s along track
     float       _track_leash_length;    // leash length along track
+
+	Vector3f _target;
+	Vector3f _target_vel;
+	Vector3f _vel_last;
+
+	int16_t _lean_angle_max_cd;
 
 public:
     // for logging purposes

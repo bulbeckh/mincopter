@@ -226,16 +226,6 @@ void WP_Planner::update_nav_mode()
 
     switch( nav_mode ) {
 
-		case WP_FLIGHT_STATE::FS_LOITER:
-			// reset target if we are still on the ground
-			if (ap.land_complete) {
-				wp_nav.init_loiter_target(mcstate.get_position(),mcstate.get_velocity());
-			}else{
-				// call loiter controller
-				wp_nav.update_loiter();
-			}
-			break;
-
 		case WP_FLIGHT_STATE::FS_WAYPOINT:
 			// call waypoint controller
 			wp_nav.update_wpnav();
@@ -249,9 +239,6 @@ void WP_Planner::update_nav_mode()
 				/* Add 10 metres to target position */
 				nav_target_position.z += 1000;
 
-				// TODO Why does this take two separate calls
-				//wp_nav.init_loiter_target(nav_current_position,mcstate.inertial_nav.get_velocity());
-				//wp_nav.set_loiter_target(nav_current_position);
 				wp_nav.set_destination(nav_target_position);
 
 				// TODO Fix the name (its a target, and not a current position) and fix why this is happening here

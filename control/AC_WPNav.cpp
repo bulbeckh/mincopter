@@ -13,7 +13,6 @@ AC_WPNav::AC_WPNav(/* const MC_INAV_CLASS *inav, const MC_AHRS_CLASS *ahrs */)
 	:
     //_inav(inav),
     //_ahrs(ahrs),
-    _loiter_last_update(0),
     _wpnav_last_update(0),
     _cos_yaw(1.0),
     _sin_yaw(0.0),
@@ -22,12 +21,8 @@ AC_WPNav::AC_WPNav(/* const MC_INAV_CLASS *inav, const MC_AHRS_CLASS *ahrs */)
     _desired_roll(0),
     _desired_pitch(0),
     _target(0,0,0),
-    _pilot_vel_forward_cms(0),
-    _pilot_vel_right_cms(0),
     _target_vel(0,0,0),
     _vel_last(0,0,0),
-    _loiter_leash(WPNAV_MIN_LEASH_LENGTH),
-    _loiter_accel_cms(WPNAV_LOITER_ACCEL_MAX),
     _lean_angle_max_cd(MAX_LEAN_ANGLE),
     _wp_leash_xy(WPNAV_MIN_LEASH_LENGTH),
     _wp_leash_z(WPNAV_MIN_LEASH_LENGTH),
@@ -43,7 +38,6 @@ AC_WPNav::AC_WPNav(/* const MC_INAV_CLASS *inav, const MC_AHRS_CLASS *ahrs */)
 	_wp_speed_up_cms(250.0f),
 	_wp_speed_down_cms(150.0f),
 	_wp_radius_cm(200.0f),
-	_loiter_speed_cms(500.0f),
 	_wp_accel_cms(100.0f),
 
 	/* Position controller P, I, and IMAX terms */
@@ -56,150 +50,9 @@ AC_WPNav::AC_WPNav(/* const MC_INAV_CLASS *inav, const MC_AHRS_CLASS *ahrs */)
     //AP_Param::setup_object_defaults(this, var_info);
 
     // initialise leash lengths
+	
+	// NOTE TODO Should this really be called in the constructor??
     calculate_wp_leash_length(true);
-    calculate_loiter_leash_length();
-}
-
-///
-/// simple loiter controller
-///
-
-/// get_stopping_point - returns vector to stopping point based on a horizontal position and velocity
-void AC_WPNav::get_stopping_point(const Vector3f& position, const Vector3f& velocity, Vector3f &target) const
-{
-    float linear_distance;      // half the distace we swap between linear and sqrt and the distace we offset sqrt.
-    float linear_velocity;      // the velocity we swap between linear and sqrt.
-    float vel_total;
-    float target_dist;
-    float kP = _pid_pos_lat.kP();
-
-    // calculate current velocity
-    vel_total = safe_sqrt(velocity.x*velocity.x + velocity.y*velocity.y);
-
-    // avoid divide by zero by using current position if the velocity is below 10cm/s, kP is very low or acceleration is zero
-    if (vel_total < 10.0f || kP <= 0.0f || _wp_accel_cms <= 0.0f) {
-        target = position;
-        return;
-    }
-
-    // calculate point at which velocity switches from linear to sqrt
-    linear_velocity = _wp_accel_cms/kP;
-
-    // calculate distance within which we can stop
-    if (vel_total < linear_velocity) {
-        target_dist = vel_total/kP;
-    } else {
-        linear_distance = _wp_accel_cms/(2.0f*kP*kP);
-        target_dist = linear_distance + (vel_total*vel_total)/(2.0f*_wp_accel_cms);
-    }
-    target_dist = constrain_float(target_dist, 0, _wp_leash_xy);
-
-    target.x = position.x + (target_dist * velocity.x / vel_total);
-    target.y = position.y + (target_dist * velocity.y / vel_total);
-    target.z = position.z;
-}
-
-/// set_loiter_target in cm from home
-void AC_WPNav::set_loiter_target(const Vector3f& position)
-{
-    _target = position;
-    _target_vel.x = 0;
-    _target_vel.y = 0;
-}
-
-/// init_loiter_target - set initial loiter target based on current position and velocity
-void AC_WPNav::init_loiter_target(const Vector3f& position, const Vector3f& velocity)
-{
-    // set target position and velocity based on current pos and velocity
-    _target.x = position.x;
-    _target.y = position.y;
-    _target_vel.x = velocity.x;
-    _target_vel.y = velocity.y;
-
-    // initialise desired roll and pitch to current roll and pitch.  This avoids a random twitch between now and when the loiter controller is first run
-	// TODO AHRS
-    _desired_roll = constrain_int32(0 /* _ahrs->roll_sensor */, -_lean_angle_max_cd,_lean_angle_max_cd);
-    _desired_pitch = constrain_int32(0 /* _ahrs->pitch_sensor */, -_lean_angle_max_cd,_lean_angle_max_cd);
-
-    // initialise pilot input
-    _pilot_vel_forward_cms = 0;
-    _pilot_vel_right_cms = 0;
-
-    // set last velocity to current velocity
-    // To-Do: remove the line below by instead forcing reset_I to be called on the first loiter_update call
-	
-	// TODO INAV
-    //_vel_last = _inav->get_velocity();
-}
-
-/// move_loiter_target - move loiter target by velocity provided in front/right directions in cm/s
-void AC_WPNav::move_loiter_target(float control_roll, float control_pitch, float dt)
-{
-    // convert pilot input to desired velocity in cm/s
-    _pilot_vel_forward_cms = -control_pitch * _loiter_accel_cms / 4500.0f;
-    _pilot_vel_right_cms = control_roll * _loiter_accel_cms / 4500.0f;
-}
-
-/// translate_loiter_target_movements - consumes adjustments created by move_loiter_target
-void AC_WPNav::translate_loiter_target_movements(float nav_dt)
-{
-    Vector2f target_vel_adj;
-    float vel_total;
-
-    // range check nav_dt
-    if( nav_dt < 0 ) {
-        return;
-    }
-
-    // check loiter speed and avoid divide by zero
-    if( _loiter_speed_cms < 100.0f) {
-        _loiter_speed_cms = 100.0f;
-    }
-
-    // rotate pilot input to lat/lon frame
-    target_vel_adj.x = (_pilot_vel_forward_cms*_cos_yaw - _pilot_vel_right_cms*_sin_yaw);
-    target_vel_adj.y = (_pilot_vel_forward_cms*_sin_yaw + _pilot_vel_right_cms*_cos_yaw);
-
-    // add desired change in velocity to current target velocit
-    _target_vel.x += target_vel_adj.x*nav_dt;
-    _target_vel.y += target_vel_adj.y*nav_dt;
-    if(_target_vel.x > 0 ) {
-        _target_vel.x -= (_loiter_accel_cms-WPNAV_LOITER_ACCEL_MIN)*nav_dt*_target_vel.x/_loiter_speed_cms;
-        _target_vel.x = ap_max(_target_vel.x - WPNAV_LOITER_ACCEL_MIN*nav_dt, 0);
-    }else if(_target_vel.x < 0) {
-        _target_vel.x -= (_loiter_accel_cms-WPNAV_LOITER_ACCEL_MIN)*nav_dt*_target_vel.x/_loiter_speed_cms;
-        _target_vel.x = ap_min(_target_vel.x + WPNAV_LOITER_ACCEL_MIN*nav_dt, 0);
-    }
-    if(_target_vel.y > 0 ) {
-        _target_vel.y -= (_loiter_accel_cms-WPNAV_LOITER_ACCEL_MIN)*nav_dt*_target_vel.y/_loiter_speed_cms;
-        _target_vel.y = ap_max(_target_vel.y - WPNAV_LOITER_ACCEL_MIN*nav_dt, 0);
-    }else if(_target_vel.y < 0) {
-        _target_vel.y -= (_loiter_accel_cms-WPNAV_LOITER_ACCEL_MIN)*nav_dt*_target_vel.y/_loiter_speed_cms;
-        _target_vel.y = ap_min(_target_vel.y + WPNAV_LOITER_ACCEL_MIN*nav_dt, 0);
-    }
-
-    // constrain the velocity vector and scale if necessary
-    vel_total = safe_sqrt(_target_vel.x*_target_vel.x + _target_vel.y*_target_vel.y);
-    if (vel_total > _loiter_speed_cms && vel_total > 0.0f) {
-        _target_vel.x = _loiter_speed_cms * _target_vel.x/vel_total;
-        _target_vel.y = _loiter_speed_cms * _target_vel.y/vel_total;
-    }
-
-    // update target position
-    _target.x += _target_vel.x * nav_dt;
-    _target.y += _target_vel.y * nav_dt;
-
-    // constrain target position to within reasonable distance of current location
-	// TODO INAV
-    //Vector3f curr_pos = _inav->get_position();
-    Vector3f curr_pos = Vector3f(0,0,0);
-	
-    Vector3f distance_err = _target - curr_pos;
-    float distance = safe_sqrt(distance_err.x*distance_err.x + distance_err.y*distance_err.y);
-    if (distance > _loiter_leash && distance > 0.0f) {
-        _target.x = curr_pos.x + _loiter_leash * distance_err.x/distance;
-        _target.y = curr_pos.y + _loiter_leash * distance_err.y/distance;
-    }
 }
 
 /// get_distance_to_target - get horizontal distance to loiter target in cm
@@ -214,89 +67,6 @@ int32_t AC_WPNav::get_bearing_to_target() const
 	// TODO INAV
     //return get_bearing_cd(_inav->get_position(), _target);
 	return 0;
-}
-
-/// update_loiter - run the loiter controller - should be called at 10hz
-void AC_WPNav::update_loiter()
-{
-    // calculate dt
-    uint32_t now = hal.scheduler->millis();
-    float dt = (now - _loiter_last_update) / 1000.0f;
-
-    // catch if we've just been started
-    if( dt >= 1.0f ) {
-        dt = 0.0f;
-        reset_I();
-        _loiter_step = 0;
-    }
-
-    // reset step back to 0 if 0.1 seconds has passed and we completed the last full cycle
-    if (dt > 0.095f && _loiter_step > 3) {
-        _loiter_step = 0;
-    }
-
-    // run loiter steps
-    switch (_loiter_step) {
-        case 0:
-            // capture time since last iteration
-            _loiter_dt = dt;
-            _loiter_last_update = now;
-
-            // translate any adjustments from pilot to loiter target
-            translate_loiter_target_movements(_loiter_dt);
-            _loiter_step++;
-            break;
-        case 1:
-            // run loiter's position to velocity step
-            get_loiter_position_to_velocity(_loiter_dt, WPNAV_LOITER_SPEED_MAX_TO_CORRECT_ERROR);
-            _loiter_step++;
-            break;
-        case 2:
-            // run loiter's velocity to acceleration step
-            get_loiter_velocity_to_acceleration(desired_vel.x, desired_vel.y, _loiter_dt);
-            _loiter_step++;
-            break;
-        case 3:
-            // run loiter's acceleration to lean angle step
-            get_loiter_acceleration_to_lean_angles(desired_accel.x, desired_accel.y);
-            _loiter_step++;
-            break;
-    }
-}
-
-/// calculate_loiter_leash_length - calculates the maximum distance in cm that the target position may be from the current location
-void AC_WPNav::calculate_loiter_leash_length()
-{
-    // get loiter position P
-    float kP = _pid_pos_lat.kP();
-
-    // check loiter speed
-    if( _loiter_speed_cms < 100.0f) {
-        _loiter_speed_cms = 100.0f;
-    }
-
-    // set loiter acceleration to 1/2 loiter speed
-    _loiter_accel_cms = _loiter_speed_cms / 2.0f;
-
-    // avoid divide by zero
-    if (kP <= 0.0f || _wp_accel_cms <= 0.0f) {
-        _loiter_leash = WPNAV_MIN_LEASH_LENGTH;
-        return;
-    }
-
-    // calculate horizontal leash length
-    if(WPNAV_LOITER_SPEED_MAX_TO_CORRECT_ERROR <= _wp_accel_cms / kP) {
-        // linear leash length based on speed close in
-        _loiter_leash = WPNAV_LOITER_SPEED_MAX_TO_CORRECT_ERROR / kP;
-    }else{
-        // leash length grows at sqrt of speed further out
-        _loiter_leash = (_wp_accel_cms / (2.0f*kP*kP)) + (WPNAV_LOITER_SPEED_MAX_TO_CORRECT_ERROR*WPNAV_LOITER_SPEED_MAX_TO_CORRECT_ERROR / (2.0f*_wp_accel_cms));
-    }
-
-    // ensure leash is at least 1m long
-    if( _loiter_leash < WPNAV_MIN_LEASH_LENGTH ) {
-        _loiter_leash = WPNAV_MIN_LEASH_LENGTH;
-    }
 }
 
 ///
