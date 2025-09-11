@@ -219,8 +219,13 @@ protected:
     float       _track_speed;           // speed in cm/s along track
     float       _track_leash_length;    // leash length along track
 
+	/* @brief Position target */
 	Vector3f _target;
+
+	/* @brief Velocity target - TODO Fed forward into controllers and updated manually so should be public */
 	Vector3f _target_vel;
+
+	/* @brief Previous iteration desired velocity. Integrated with _desired_vel to feed forward an acceleration */
 	Vector3f _vel_last;
 
 	int16_t _lean_angle_max_cd;

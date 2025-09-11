@@ -287,6 +287,8 @@ void PID_Controller::update_throttle_cruise(int16_t throttle)
         throttle_avg = throttle_avg * 0.99f + (float)throttle * 0.01f;
         throttle_cruise = throttle_avg;
     }
+
+	return;
 }
 
 // get_angle_boost - returns a throttle including compensation for roll/pitch angle
