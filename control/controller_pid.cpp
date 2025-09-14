@@ -57,15 +57,12 @@ void PID_Controller::run()
     // check auto_armed status
     update_auto_armed();
 
-		///////////////////////////////////////
-
     update_rate_controller_targets();
 
-		run_rate_controllers();
+	run_rate_controllers();
 
-
-		// TODO The motors current get their target value from rc_*.servo_out but it should really pull
-		// directly from a set of controller parameters
+	// TODO The motors current get their target value from rc_*.servo_out but it should really pull
+	// directly from a set of controller parameters
     mincopter.motors.output();
 
 #ifdef TARGET_ARCH_LINUX

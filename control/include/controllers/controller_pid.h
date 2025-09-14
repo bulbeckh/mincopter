@@ -42,7 +42,7 @@ class PID_Controller : public MC_Controller
 
 	public:
 
-		void run() override;
+		void run(void) override;
 
 		/* Controller runs in the following way, using inputs
 		 *
