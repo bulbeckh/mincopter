@@ -65,10 +65,10 @@ public:
     bool healthy(void) const { return true; }
 
 	/* @brief Get Gyro health. Always true for simulation */
-    bool get_gyro_health(uint8_t instance) const { return true; }
+    bool get_gyro_health(void) const { return true; }
 
 	/* @brief Get accel health. Always true for simulation */
-    bool get_accel_health(uint8_t instance) const { return true; }
+    bool get_accel_health(void) const { return true; }
 
 	/* @brief Initialise sensor. Does nothing for simulated IMU */
 	uint16_t _init_sensor( Sample_rate sample_rate ) override;

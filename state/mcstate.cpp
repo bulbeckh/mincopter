@@ -85,7 +85,7 @@ void MCState::update_trig(void){
 
 		// TODO If this is used by wp_nav then it needs to pull from here
 		// update wp_nav controller with trig values
-		wp_nav.set_cos_sin_yaw(cos_yaw, sin_yaw, cos_pitch_x);
+		//wp_nav.set_cos_sin_yaw(cos_yaw, sin_yaw, cos_pitch_x);
 
 		//flat:
 		// 0 ° = cos_yaw:  1.00, sin_yaw:  0.00,

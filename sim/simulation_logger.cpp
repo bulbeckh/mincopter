@@ -77,19 +77,21 @@ void SimulationLogger::write_planner_state()
 	if (!simlog_flags.log_planner || lines_written>max_lines) return;
 
 	/* Write loiter step */
-	Vector3f nav_target = planner.wp_nav.get_wp_nav_target();
+	//Vector3f nav_target = planner.wp_nav.get_wp_nav_target();
+	Vector3f nav_target(0,0,0);
 
-	int32_t d_roll = planner.wp_nav.get_desired_roll();
-	int32_t d_pitch = planner.wp_nav.get_desired_pitch();
+	//int32_t d_roll = planner.wp_nav.get_desired_roll();
+	//int32_t d_pitch = planner.wp_nav.get_desired_pitch();
 
     simulation_out << "p,"
 		<< iteration_count << ","
-		<< (int)planner.wp_nav.get_loiter_step() << ","
+		//<< (int)planner.wp_nav.get_loiter_step() << ","
 		<< nav_target.x << ","
 		<< nav_target.y << ","
 		<< nav_target.z << ","
-		<< d_roll << ","
-		<< d_pitch << "\n";
+		//<< d_roll << ","
+		//<< d_pitch << "\n";
+		<< "\n";
 
 	lines_written++;
 }

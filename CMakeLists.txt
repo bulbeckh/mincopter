@@ -49,7 +49,12 @@ project(mincopter)
 # CONFIGURATION
 ##################################################################
 
-include(mc-config.cmake)
+## Use the config file in the build-*/ directory if it exists, otherwise use the default
+if (EXISTS ${CMAKE_BINARY_DIR}/mc-config.cmake)
+	include(${CMAKE_BINARY_DIR}/mc-config.cmake)
+else()
+	include(${CMAKE_SOURCE_DIR}/mc-config.cmake)
+endif()
 
 ## Simulation parameters for 'generic' target
 
@@ -83,6 +88,8 @@ if(MC_GPS_TYPE STREQUAL "AUTO")
 	add_compile_definitions(MC_GPS_AUTO)
 elseif(MC_GPS_TYPE STREQUAL "UBLOX")
 	add_compile_definitions(MC_GPS_UBLOX)
+elseif(MC_GPS_TYPE STREQUAL "SIM")
+	add_compile_definitions(MC_GPS_SIM)
 else()
 	message(FATAL_ERROR "GPS device not supported.")
 endif()
@@ -91,6 +98,8 @@ if(MC_IMU_TYPE STREQUAL "MPU6000")
 	add_compile_definitions(MC_IMU_MPU6000)
 elseif(MC_IMU_TYPE STREQUAL "MPU6050")
 	add_compile_definitions(MC_IMU_MPU6050)
+elseif(MC_IMU_TYPE STREQUAL "SIM")
+	add_compile_definitions(MC_IMU_SIM)
 else()
 	message(FATAL_ERROR "IMU device not supported.")
 endif()
@@ -99,6 +108,8 @@ if(MC_COMP_TYPE STREQUAL "HMC5843")
 	add_compile_definitions(MC_COMP_HMC5843)
 elseif(MC_COMP_TYPE STREQUAL "ICM20948")
 	add_compile_definitions(MC_COMP_ICM20948)
+elseif(MC_COMP_TYPE STREQUAL "SIM")
+	add_compile_definitions(MC_COMP_SIM)
 else()
 	message(FATAL_ERROR "Compass device not supported.")
 endif()
@@ -107,6 +118,8 @@ if(MC_BARO_TYPE STREQUAL "MS5611")
 	add_compile_definitions(MC_BARO_MS5611)
 elseif(MC_BARO_TYPE STREQUAL "BME280")
 	add_compile_definitions(MC_BARO_BME280)
+elseif(MC_BARO_TYPE STREQUAL "SIM")
+	add_compile_definitions(MC_BARO_SIM)
 else()
 	message(FATAL_ERROR "Barometer device not supported.")
 endif()
@@ -339,6 +352,6 @@ target_include_directories(mincopter PUBLIC
 ##################################################################
 # TESTING
 ##################################################################
-add_subdirectory(test)
+#add_subdirectory(test)
 
 

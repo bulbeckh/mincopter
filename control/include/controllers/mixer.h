@@ -11,13 +11,21 @@ class Mixer {
 	public:
 		Mixer(void) :
 			_pwm_min_us(1000),
-			_pwm_max_us(2000)
+			_pwm_max_us(2000),
+			// TODO For now, align the maximum rotor velocity with the PWM @ 2000rad/s
+			_rotor_vel_max_rads(2000)
 		{ }
 
 	public:
+
 		/* @brief Motor output method that calculates the required PWM signal for each motor ESC based
 		 * on the controller output - force, <roll,pitch,yaw> torque */
 		void output(float total_force_n, float roll_t_nm, float pitch_t_nm, float yaw_t_nm);
+
+	private:
+
+		/* @brief Write calculated PWM signal to corresponding RC channel (ESC) */
+		void write_pwm_channel(void);
 
 	private:
 
@@ -29,6 +37,10 @@ class Mixer {
 		/* @brief Individual motor velocity maximums in rad/s. Used to constrain and scale the calculated
 		 * rotor speeds to a PWM value */
 		float _rotor_vel_max_rads;
+
+		/* @brief The PWM signals for each motor/ESC in the range [1000,2000] */
+		// TODO Remove the hardcoded 4 for num motors
+		int16_t _motor_pwm_us[4];
 
 		/* @brief Inverse (psuedo-) of mixer allocation to calculate indivudal motor speeds. NOTE Allocation
 		 * is row-major */
@@ -55,6 +67,8 @@ class Mixer {
 			-6097560.97560976
 		};
 
+		/* @brief Mapping from each motor to the corresponding RC channel (output pin) where the PWM signal is sent */
+		uint8_t _motor_to_channel_map[4];
 
 };
 

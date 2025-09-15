@@ -3,7 +3,6 @@
 #ifndef __AP_BARO_SIM_H__
 #define __AP_BARO_SIM_H__
 
-#include <AP_HAL.h>
 #include "AP_Baro.h"
 
 /* Barometer measurements are received from the simulation in units of Pascals (Pa).
