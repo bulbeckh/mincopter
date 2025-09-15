@@ -302,11 +302,6 @@ add_subdirectory( ${CMAKE_SOURCE_DIR}/state )
 
 add_subdirectory( ${CMAKE_SOURCE_DIR}/dev )
 
-## TODO Fix this
-if(TARGET_ARCH STREQUAL "generic")
-	add_subdirectory( ${CMAKE_SOURCE_DIR}/sim )
-endif()
-
 ##################################################################
 # COMMON (lib/)
 ##################################################################
@@ -329,12 +324,6 @@ target_link_libraries(mincopter
 	mc-state
 	mc-common
 )
-
-if(TARGET_ARCH STREQUAL "generic")
-	target_link_libraries(mincopter
-		mc-sim
-	)
-endif()
 
 target_include_directories(mincopter PUBLIC
 	## TODO Need to separate private and public include directories (e.g. backend and interface)

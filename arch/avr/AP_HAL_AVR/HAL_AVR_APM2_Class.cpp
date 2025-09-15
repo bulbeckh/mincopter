@@ -45,7 +45,8 @@ HAL_AVR_APM2::HAL_AVR_APM2() :
         &apm2RCInput,
         &apm2RCOutput,
         &avrScheduler,
-        &avrUtil )
+        &avrUtil,
+		NULL /* AP_HAL::Sim */ )
 {}
 
 void HAL_AVR_APM2::init(int argc, char * const argv[]) const {

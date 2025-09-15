@@ -2,19 +2,9 @@
 #include <stdint.h>
 #include <AP_HAL.h>
 
-// NOTE normally these includes should be guarded by HASH ifdef TARGET_ARCH_LINUX but this file should
-// only be included from simulated backend (TARGET_ARCH_LINUX)
-#include <iostream>
-
-#include "gz_interface.h"
-extern GZ_Interface gz_interface;
-
 extern const AP_HAL::HAL& hal;
 
 #include "sim_gps.h"
-
-
-extern const AP_HAL::HAL& hal;
 
 void AP_GPS_Sim::init(AP_HAL::UARTDriver *s, enum GPS_Engine_Setting nav_setting)
 {
@@ -25,8 +15,9 @@ void AP_GPS_Sim::init(AP_HAL::UARTDriver *s, enum GPS_Engine_Setting nav_setting
 bool AP_GPS_Sim::read(void)
 {
 	// Retrieve sensor readings from GZ interface
-	gz_interface.update_gps_position(latitude, longitude, altitude_cm);
-	gz_interface.update_gps_velocities(_vel_north, _vel_east, _vel_down);
+	// TODO Retrieve directly
+	//hal.sim->update_gps_position(latitude, longitude, altitude_cm);
+	//hal.sim->update_gps_velocities(_vel_north, _vel_east, _vel_down);
 	
 	num_sats = 10;
 	hdop = 200;

@@ -26,6 +26,8 @@ namespace AP_HAL {
     class RCOutput;
     class Scheduler;
     class Semaphore;
+
+	class Sim;
     
     class Util;
 

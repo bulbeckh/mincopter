@@ -48,7 +48,8 @@ HAL_RPI::HAL_RPI() :
         &rcinDriver,
         &rcoutDriver,
         &schedulerInstance,
-        &utilInstance)
+        &utilInstance,
+		NULL /* AP_HAL::Sim */ )
 {
 }
 

@@ -9,6 +9,8 @@
 #include <arch/linux/generic/RCInput.h>
 #include <arch/linux/generic/RCOutput.h>
 
+#include <arch/linux/generic/gz_interface.h>
+
 #include <arch/linux/Storage.h>
 #include <arch/linux/Semaphores.h>
 #include <arch/linux/Scheduler.h>

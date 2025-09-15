@@ -8,6 +8,7 @@
 class HAL_Generic : public AP_HAL::HAL {
 	public:
 		HAL_Generic();
+
 		void init(int argc, char * const * argv) const;
 };
 

@@ -3,12 +3,6 @@
 
 #include "sim_barometer.h"
 
-#include "gz_interface.h"
-extern GZ_Interface gz_interface;
-
-#include "simulation_logger.h"
-extern SimulationLogger simlog;
-
 #include "mcinstance.h"
 extern MCInstance mincopter;
 
@@ -30,7 +24,8 @@ uint8_t AP_Baro_Sim::read()
 
 	_last_update = hal.scheduler->millis();
 
-	gz_interface.get_barometer_pressure(pressure_pa);
+	// TODO Retrieve from data member directly
+	//hal.sim->get_barometer_pressure(pressure_pa);
 
 	temperature_degc = 26;
 
@@ -39,7 +34,7 @@ uint8_t AP_Baro_Sim::read()
 	// TODO If we want altitude here - then get from mcstate
 	float baro_alt = 0.0f;
 
-	simlog.write_barometer_state(temperature_degc, pressure_pa, baro_alt);
+	//simlog.write_barometer_state(temperature_degc, pressure_pa, baro_alt);
 
     return 1;
 }

@@ -22,6 +22,8 @@
 #include <AP_HAL/Semaphores.h>
 #include <AP_HAL/Util.h>
 
+#include <AP_HAL/Sim.h>
+
 #include <AP_HAL/utility/Print.h>
 #include <AP_HAL/utility/Stream.h>
 #include <AP_HAL/utility/BetterStream.h>

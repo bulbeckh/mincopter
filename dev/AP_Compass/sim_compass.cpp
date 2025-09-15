@@ -5,12 +5,6 @@
 
 #include "sim_compass.h"
 
-#include "simulation_logger.h"
-extern SimulationLogger simlog; 
-
-#include "gz_interface.h"
-extern GZ_Interface gz_interface;
-
 extern const AP_HAL::HAL& hal;
 
 void AP_Compass_Sim::accumulate(void)
@@ -20,7 +14,9 @@ void AP_Compass_Sim::accumulate(void)
 	
 	/* Read latest field into temporary vector */
 	Vector3f temp_field;
-	gz_interface.get_compass_field(temp_field);
+
+	// TODO Retrieve directly
+	//hal.sim->get_compass_field(temp_field);
 
 	// Add to the accumulated field
 	acc_field += temp_field;
@@ -63,10 +59,12 @@ bool AP_Compass_Sim::read()
 		return false;
 	}
 
+	/*
 	simlog.write_compass_state(
 			_field.x,
 			_field.y,
 			_field.z);
+			*/
 
     return true;
 }

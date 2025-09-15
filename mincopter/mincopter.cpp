@@ -49,11 +49,6 @@
 #include "mcinstance.h"
 #include "mcstate.h"
 
-#ifdef TARGET_ARCH_LINUX
-    #include <iostream>
-    #include "gz_interface.h"
-    GZ_Interface gz_interface;
-#endif
 
 // TODO Remove - not board specific
 
@@ -83,15 +78,7 @@ MCState mcstate;
 #include "control.h"
 #include "planner.h"
 
-/* ### SIMULATION LOGGER ###
- * In the simulation, we often want to log certain states of function variables and class variables.
- * Like the planner and the controller, we instantiate an object here an call it's methods when we want
- * to log.
- */
-#ifdef TARGET_ARCH_LINUX
-    #include "simulation_logger.h"
-    SimulationLogger simlog(true);
-#endif
+// TODO Removed simulation logger - use another logging class
 
 // NOTE Bad hack to resolve linking errors as AP_Scheduler library uses an extern hal reference as original HAL was defined globally
 // TODO Remove all direct references to hal and just keep mincopter.hal
@@ -164,10 +151,6 @@ void control_determination()
 	// Run controller only if ARMED
 	if (planner.planner_arm_state==PlannerArmState::ARMED) controller.run();
 
-#ifdef TARGET_ARCH_LINUX
-    simlog.write_controller_state();
-    simlog.write_planner_state();
-#endif
 
 	return;
 }
@@ -219,10 +202,6 @@ void loop()
 
     uint32_t timer = micros();
 
-#ifdef TARGET_ARCH_LINUX
-    simlog.increase_iteration();
-#endif
-
     // wait for an INS sample
     if (!mincopter.ins.wait_for_sample(1000)) {
         Log_Write_Error(ERROR_SUBSYSTEM_MAIN, ERROR_CODE_MAIN_INS_DELAY);
@@ -232,6 +211,8 @@ void loop()
 	mincopter.ins.update();
 
 
+	// TODO This is the wrong compiler flag - need to check if we are using Generic (simulation) rather than a Linux
+	// distribution as our HAL because RPI/Beaglebone do not use simulation
 #ifdef TARGET_ARCH_LINUX
     /* NOTE This is where the simulation is progressed. This loop is meant to run at 10ms
      * but the gazebo simulation uses a step size of 1ms. The workaround is to send/receive
@@ -243,7 +224,6 @@ void loop()
      * with linux based boards like Raspberry PI.
      */
 
-	// NOTE TODO I have updated the gz_interface to only call at 100Hz so no need to bucket the calls together like this
 	
     // Repeat 10x times
     // 1. Setup and send control output packet (x4 motor vel)
@@ -257,10 +237,13 @@ void loop()
 	
 	// TODO Check for call to a pose update
 	
-	// NOTE This is taking ~10ms to send/receive 10 times
 	uint32_t st = micros();
-	gz_interface.send_control_output();
-	gz_interface.recv_state_input();
+	
+	// Step the simulation by the desired microseconds (us)
+	hal.sim->tick(10000);
+
+	//gz_interface.send_control_output();
+	//gz_interface.recv_state_input();
 	uint32_t gz_elapsed = micros()-st;
 #endif
 

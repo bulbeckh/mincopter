@@ -11,12 +11,6 @@ extern MCState mcstate;
 #include "planner.h"
 #include "control.h"
 
-#ifdef TARGET_ARCH_LINUX
-	#include <iostream>
-	#include "simulation_logger.h"
-	extern SimulationLogger simlog;
-#endif
-
 #include "defines.h"
 #include "util.h"
 #include "log.h"
@@ -47,16 +41,6 @@ void update_GPS(void)
 		bool report_gps_glitch;
 
 		mincopter.g_gps->update();
-
-#ifdef TARGET_ARCH_LINUX
-		Vector3f vgps = mincopter.g_gps->velocity_vector();
-		simlog.write_gps_state(mincopter.g_gps->latitude,
-				mincopter.g_gps->longitude,
-				mincopter.g_gps->altitude_cm,
-				vgps.x,
-				vgps.y,
-				vgps.z);
-#endif
 
 		// logging and glitch protection run after every gps message
 		if (mincopter.g_gps->last_message_time_ms() != last_gps_reading) {
@@ -146,10 +130,6 @@ void read_batt_compass(void)
 // one_hz_loop - runs at 1Hz
 void one_hz_loop()
 {
-
-#ifdef TARGET_ARCH_LINUX
-		std::cout << "In one hz loop\n";
-#endif
 
 		// from serial.h
 		//print_GPS();

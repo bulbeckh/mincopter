@@ -5,12 +5,6 @@
 #include "sim_inertialsensor.h"
 #include "AP_Math.h"
 
-#include "gz_interface.h"
-extern GZ_Interface gz_interface;
-
-#include "simulation_logger.h"
-extern SimulationLogger simlog;
-
 extern const AP_HAL::HAL& hal;
 
 AP_InertialSensor_Sim::AP_InertialSensor_Sim() : 
@@ -45,10 +39,11 @@ bool AP_InertialSensor_Sim::update( void )
     _delta_time_usec = (now - _last_update_ms) * 1000;
     _last_update_ms = now;
 
-	gz_interface.get_imu_gyro_readings(_gyro);
-	gz_interface.get_imu_accel_readings(_accel);
+	// TODO Retrieve directly
+	//hal.sim->get_imu_gyro_readings(_gyro);
+	//hal.sim->get_imu_accel_readings(_accel);
 
-	simlog.write_imu_state(_gyro, _accel);
+	//simlog.write_imu_state(_gyro, _accel);
 
     return true;
 }

@@ -14,17 +14,6 @@ extern MCState mcstate;
 #include "util.h"
 #include "log.h"
 
-#ifdef TARGET_ARCH_LINUX
-    #include <iostream>
-    #include "gz_interface.h"
-    extern GZ_Interface gz_interface;
-#endif
-
-// TODO Not available on some boards - switch
-#ifdef TARGET_ARCH_RPI
-	#include <stdio.h>
-#endif
-
 // Forward Declaration - TODO move menu.cpp code to a class and include
 void init_cli(AP_HAL::UARTDriver* port);
 void run_cli(void);
@@ -248,12 +237,6 @@ void init_ardupilot()
     mcstate.init();
 	mincopter.hal.console->printf_P(PSTR("[INIT] MCState initialised\n"));
 
-#if TARGET_ARCH_LINUX
-    // In simulation so setup port
-    gz_interface.setup_sim_socket();
-	mincopter.hal.console->printf_P(PSTR("[INIT] GZ interface initialised\n"));
-#endif
-
 	/* Dump Log on start */
 
 		/*
@@ -310,13 +293,11 @@ void init_ardupilot()
 		// We run during `init_ardupilot` because it is guaranteed to be 'single-threaded'.
 
 #ifdef TARGET_ARCH_LINUX
-		std::cout << "Initialise finish\nBeginning delay test\n";
 
 		uint32_t ts_now_us = mincopter.hal.scheduler->micros();
 		// Delay 1s
 		mincopter.hal.scheduler->delay(1000);
 		
-		std::cout << "Delay took: " << mincopter.hal.scheduler->micros()-ts_now_us << " (us)\n";
 #endif
 
 		/*

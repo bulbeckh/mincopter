@@ -5,7 +5,7 @@
  *
  */
 
-#include "gz_interface.h"
+#include <arch/linux/generic/gz_interface.h>
 
 #include <iostream>
 #include <cstring>
@@ -18,22 +18,30 @@
 
 #include <AP_Math.h>
 
-#include "mcinstance.h"
-extern MCInstance mincopter;
+using namespace generic;
 
-#include "mcstate.h"
-extern MCState mcstate;
+extern const AP_HAL::HAL& hal;
 
-bool GZ_Interface::setup_sim_socket()
+void GenericGZInterface::tick(uint32_t tick_us)
 {
-    // Initialisation
-    //
+	// TODO This is where we all **send_control_output** and **recv_state_input**
+	// TODO Use the tick_us param to drive the simulation step
+	
+	send_control_output();
 
+	recv_state_input();
+
+	return;
+}
+
+
+bool GenericGZInterface::setup_sim_socket(void)
+{
     // Create a UDP socket with arbitrary port
     sockfd = socket(AF_INET, SOCK_DGRAM, 0);
     if (sockfd < 0 ) {
-	std::cout << "Error: creating UDP socket\n";
-	return false;
+		hal.console->printf("Error: creating UDP socket\n");
+		return false;
     }
 
     memset(&servaddr, 0, sizeof(servaddr));
@@ -45,17 +53,17 @@ bool GZ_Interface::setup_sim_socket()
     servaddr.sin_port = htons(0);
 
     if (bind(sockfd, (const struct sockaddr*)&servaddr, sizeof(servaddr)) < 0) {
-	std::cout << "Error: binding to UDP port\n";
-	close(sockfd);
-	return false;
+		hal.console->printf("Error: binding to UDP port\n");
+		close(sockfd);
+		return false;
     }
 
-    std::cout << "Socket created successfully at 127.0.0.1\n";
+	hal.console->printf("Socket created successfully at 127.0.0.1\n");
 
     return true;
 }
 
-bool GZ_Interface::send_control_output()
+bool GenericGZInterface::send_control_output(void)
 {
     /* These hold the roll, pitch, and yaw outputs but these are interpreted by the
      * motors class into actual motor values.
@@ -71,10 +79,10 @@ bool GZ_Interface::send_control_output()
     control_pkt.frame_count = frame_counter;
     control_pkt.frame_rate  = 1001;
 
-    static int send_counter=0;
-
     for (int16_t i=0;i<16;i++) {
-		int16_t m_out = mincopter.motors.get_raw_motor_out(i);
+		// TODO Change how motor PWM signal is retrived - should be the output of mixer but unclear whether to use RCOutput PWM or elsewhere
+		//int16_t m_out = mincopter.motors.get_raw_motor_out(i);
+		int16_t m_out = 0;
 
 		// NOTE The pkt entry is int16_t whereas m_out uint16_t
 		//control_pkt.pwm[i] = m_out;
@@ -115,23 +123,12 @@ bool GZ_Interface::send_control_output()
     cliaddr.sin_port = htons(9002);
 
     socklen_t len = sizeof(cliaddr);
-    sendto(sockfd, &control_pkt, sizeof(servo_packet_16), 0,
-	    (const struct sockaddr*)&cliaddr, len);
+    sendto(sockfd, &control_pkt, sizeof(servo_packet_16), 0, (const struct sockaddr*)&cliaddr, len);
     
-    send_counter++;
-
-    if (send_counter%100==0) {
-	for (int i=0;i<4;i++) {
-	    //std::cout << "Motor " << i << ": " << mincopter.motors.get_raw_motor_out(i) << ", ";
-	}
-	//std::cout << "\n";
-	send_counter=0;
-    }
-
     return false;
 }
 
-bool GZ_Interface::recv_state_input()
+bool GenericGZInterface::recv_state_input(void)
 {
 
     socklen_t len = sizeof(servaddr);
@@ -148,6 +145,8 @@ bool GZ_Interface::recv_state_input()
     // For now, just create a copy of the structure but maybe in future can have a more elegant solution
     // like separate structs for each sensor type
     sensor_states[state_buffer_index] = *pkt;
+	
+	// TODO We should really just be stopping here and exposing state retrieval functions for each of the sim driver in dev/
 	
 	// For the IMU sensor, we need to simulate the DLPF by updating a proportion of the previous filter reading
 	uint8_t temp_idx=0;
@@ -175,6 +174,7 @@ bool GZ_Interface::recv_state_input()
 
 
 	// sense check readings
+	/*
 	if (false && frame_counter%100==0) {
 		std::cout << " Timestamp (s): " << pkt->timestamp << " ********************************\n";
 
@@ -218,8 +218,9 @@ bool GZ_Interface::recv_state_input()
 			<< pkt->lng_deg << " "
 			<< pkt->alt_met << "\n";
 	}
+	*/
 
-	if (false && frame_counter%1000==0) {
+	//if (false && frame_counter%1000==0) {
 		/* pkt->pos_<x,y,z> is the simulated position in metres
 		 *
 		 *
@@ -230,6 +231,8 @@ bool GZ_Interface::recv_state_input()
 		 * is a position **estimate** by the inav relative to the home location. The home location
 		 * is set during a call to mcstate.inertial_nav.set_home_position during the init_home function
 		 * which is called during arming. In the simulation, this should be the (0,0,0) position. */
+
+		/*
 		Vector3f inav_pos = mcstate.get_position();
 		inav_pos *= 0.01;
 
@@ -254,21 +257,22 @@ bool GZ_Interface::recv_state_input()
 		std::cout << "(sim/inav) Altitude (cm): " << (int32_t)((100)*pkt->alt_met) << " " <<  inav_alt << "\n";
 		std::cout << "timestamp " << pkt->timestamp << "\n";
 
-		/*
 		std::cout << "INAV   POS: " << inav_pos.x << " " << inav_pos.y << " " << inav_pos.z << "\n";
 		std::cout << "ERROR     : " << pkt->pos_x - inav_pos.x << " " << pkt->pos_y - inav_pos.y << " " << pkt->pos_z - inav_pos.z << "\n";
 		std::cout << "ACTUAL GPS (deg*1e7, ded*1e7, cm): " << (1e7)*pkt->lat_deg << " " << (1e7)*pkt->lng_deg << " " << (100)*pkt->alt_met << "\n";
 		std::cout << "INAV   GPS: 						 " << inav_lat << " " << inav_lng << " " << mcstate.inertial_nav.get_altitude() << "\n";
 		*/
 
-	}
 
     return true;
 }
 
-void GZ_Interface::get_barometer_pressure(float& pressure)
+// TODO Move all of this conversion/rotation code into the dev/ specific sim drivers. This class should just retrieve raw simulation state from Gazebo
+
+/*
+void GenericGZInterface::get_barometer_pressure(float& pressure)
 {
-	/* Both in Pascals so no need for unit conversion */
+	// Both in Pascals so no need for unit conversion
 
 	// NOTE During barometer calibration, it checks for a non-zero pressure reading from the sensor
 	// and will trigger a HAL panic if it doesn't get one. Sometimes in the early stage of the simulation
@@ -280,17 +284,17 @@ void GZ_Interface::get_barometer_pressure(float& pressure)
 	}
 }
 
-void GZ_Interface::get_compass_field(Vector3f& field)
+void GenericGZInterface::get_compass_field(Vector3f& field)
 {
 	// We average the compass reads
 	
-	/* Both fields are in Tesla */
+	// Both fields are in Tesla
 	field.x = (float)last_sensor_state.field_x;
 	field.y = (float)last_sensor_state.field_y;
 	field.z = (float)last_sensor_state.field_z;
 }
 
-void GZ_Interface::get_imu_gyro_readings(Vector3f& gyro_rate)
+void GenericGZInterface::get_imu_gyro_readings(Vector3f& gyro_rate)
 {
 	// We average the IMU and gyro readings
 	
@@ -308,7 +312,7 @@ void GZ_Interface::get_imu_gyro_readings(Vector3f& gyro_rate)
 	gyro_rate.z = (float)(avg_imu_gyro_z / GZ_INTERFACE_STATE_BUFFER_LENGTH);
 }
 
-void GZ_Interface::get_imu_accel_readings(Vector3f& accel)
+void GenericGZInterface::get_imu_accel_readings(Vector3f& accel)
 {
 	double avg_imu_accel_x=0;
 	double avg_imu_accel_y=0;
@@ -324,7 +328,7 @@ void GZ_Interface::get_imu_accel_readings(Vector3f& accel)
 	accel.z = (float)(avg_imu_accel_z / GZ_INTERFACE_STATE_BUFFER_LENGTH);
 }
 
-void GZ_Interface::update_gps_position(int32_t& latitude, int32_t& longitude, int32_t& altitude)
+void GenericGZInterface::update_gps_position(int32_t& latitude, int32_t& longitude, int32_t& altitude)
 {
 	double intermediate_lat = 1e7*last_sensor_state.lat_deg;
 	double intermediate_lng = 1e7*last_sensor_state.lng_deg;
@@ -332,15 +336,19 @@ void GZ_Interface::update_gps_position(int32_t& latitude, int32_t& longitude, in
 	latitude = (int32_t)(intermediate_lat);
 	longitude = (int32_t)(intermediate_lng);
 
-	/* Simulation altitude is in m but we store in cm */
+	// Simulation altitude is in m but we store in cm
 	altitude = (int32_t)(100*last_sensor_state.alt_met);
 
 }
 
-void GZ_Interface::update_gps_velocities(int32_t& vel_north, int32_t& vel_east, int32_t& vel_down)
+void GenericGZInterface::update_gps_velocities(int32_t& vel_north, int32_t& vel_east, int32_t& vel_down)
 {
 	vel_east = (int32_t)(last_sensor_state.vel_east*100.0f);
 	vel_north = (int32_t)(last_sensor_state.vel_north*100.0f);
 	vel_down = (int32_t)(-100.0f*last_sensor_state.vel_up);
 
 }
+
+*/
+
+

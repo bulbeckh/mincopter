@@ -30,6 +30,7 @@ static generic::GenericGPIO gpioDriver;
 static generic::GenericRCInput rcinDriver;
 static generic::GenericRCOutput rcoutDriver;
 
+static generic::GenericGZInterface simDriver;
 
 HAL_Generic::HAL_Generic() :
     AP_HAL::HAL(
@@ -46,7 +47,8 @@ HAL_Generic::HAL_Generic() :
         &rcinDriver,
         &rcoutDriver,
         &schedulerInstance,
-        &utilInstance)
+        &utilInstance,
+		&simDriver)
 {}
 
 void HAL_Generic::init(int argc,char* const argv[]) const 
@@ -54,9 +56,18 @@ void HAL_Generic::init(int argc,char* const argv[]) const
 	// No CLAs for now
 	
     scheduler->init(NULL);
+	
+	// TODO Really, we should initialise the UART which was specified as the console/default UART rather than uartA explicitly
+	// Start the console UART so we can log HAL initialisation messages from all other classes
     uartA->begin(115200);
+
     i2c->begin();
+
     spi->init(NULL);
+
+	// Initialise simulation
+	sim->setup_sim_socket();
+
 }
 
 const HAL_Generic AP_HAL_Generic;
