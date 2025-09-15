@@ -14,6 +14,8 @@
 #include <assert.h>
 #include <sys/ioctl.h>
 
+#include <iostream>
+
 /*
   buffer handling macros
  */
@@ -98,11 +100,20 @@ int16_t GenericUARTDriver::read()
 
 size_t GenericUARTDriver::write(uint8_t c) 
 { 
-    return 0;
+	if (_rd_fd==0 && _wr_fd==1) {
+		// We are in the console UART and hence write directly to stdout
+		::printf("%c", (char)c);
+	}
+
+    return 1;
 }
 
 size_t GenericUARTDriver::write(const uint8_t *buffer, size_t size)
 {
+	if (_rd_fd==0 && _wr_fd==1) {
+		// We are in the console UART and hence write directly to stdout
+		::printf("%.*s", size, (const char*)buffer);
+	}
     return 0;
 }
 

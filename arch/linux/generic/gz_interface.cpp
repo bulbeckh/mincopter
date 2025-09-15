@@ -37,6 +37,8 @@ void GenericGZInterface::tick(uint32_t tick_us)
 
 bool GenericGZInterface::setup_sim_socket(void)
 {
+	hal.console->printf("Initialising connection to Gazebo Simulator...\n");
+
     // Create a UDP socket with arbitrary port
     sockfd = socket(AF_INET, SOCK_DGRAM, 0);
     if (sockfd < 0 ) {
