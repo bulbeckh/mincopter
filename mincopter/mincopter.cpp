@@ -160,8 +160,14 @@ uint32_t _counter=0;
 /* Core Loop - Meant to run every 10ms (10,000 microseconds) */
 void loop()
 {
+	// Loop heartbeat
+	if (_counter%100==0) {
+		hal.console->printf("Looping..\n");
+	}
+
 	_counter++;
-	if (_counter%1000==0) {
+
+	if (_counter%100==0) {
 		Vector3f _gyr_meas = mincopter.ins.get_gyro();
 		Vector3f _acc_meas = mincopter.ins.get_accel();
 		Vector3f _mag_meas = mincopter.compass.get_field();
@@ -194,11 +200,6 @@ void loop()
 				_temp_rot[1][0], _temp_rot[1][1], _temp_rot[1][2],
 				_temp_rot[2][0], _temp_rot[2][1], _temp_rot[2][2]);
 	}
-
-	if (_counter%1000==0) {
-		mincopter.hal.console->printf_P(PSTR("[LOOP] 100ms\n"));
-	}
-
 
     uint32_t timer = micros();
 
@@ -251,8 +252,8 @@ void loop()
     mincopter.G_Dt = (float)(timer - fast_loopTimer) / 1000000.f;
     fast_loopTimer = timer;
 
-    // Update state
-    state_update();
+    // Update state (wait 10 iterations to gather compass and IMU data
+	if (_counter>10) state_update();
 
     // Control Determination
     //control_determination();

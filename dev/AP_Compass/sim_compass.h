@@ -82,7 +82,10 @@ public:
 private:
 	
 	Vector3f acc_field;
+
 	uint16_t acc_samples;
 
 };
 #endif
+
+

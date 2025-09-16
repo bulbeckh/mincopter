@@ -1,5 +1,4 @@
 
-
 #include <AP_Math.h>
 #include <AP_HAL.h>
 
@@ -12,11 +11,13 @@ void AP_Compass_Sim::accumulate(void)
 	// Called at 50z
 	// TODO This should be calling the gz_interface to retrieve magnetometer values
 	
-	/* Read latest field into temporary vector */
-	Vector3f temp_field;
-
-	// TODO Retrieve directly
-	//hal.sim->get_compass_field(temp_field);
+	// Read latest field into temporary vector
+	// TODO Downcast from double to float
+	Vector3f temp_field(
+			hal.sim->last_sensor_state.field_x,
+			hal.sim->last_sensor_state.field_y,
+			hal.sim->last_sensor_state.field_z
+			);
 
 	// Add to the accumulated field
 	acc_field += temp_field;
@@ -25,7 +26,7 @@ void AP_Compass_Sim::accumulate(void)
 	return;
 }
 
-bool AP_Compass_Sim::init()
+bool AP_Compass_Sim::init(void)
 {
 	// perform an initial read
 	_healthy = true;
@@ -35,7 +36,7 @@ bool AP_Compass_Sim::init()
   	return true;
 }
 
-bool AP_Compass_Sim::read()
+bool AP_Compass_Sim::read(void)
 {
 	// Called at 10Hz
 	// This should be calculating an average of the accumulate values
@@ -44,6 +45,7 @@ bool AP_Compass_Sim::read()
 		accumulate();
 	}
 
+	// TODO Change to simulation timing
 	last_update = hal.scheduler->micros();
 
 	if (acc_samples>0) {
@@ -56,15 +58,9 @@ bool AP_Compass_Sim::read()
 		acc_field.zero();
 		acc_samples = 0;
 	} else {
+		// TODO Report error with compass read/accumulate
 		return false;
 	}
-
-	/*
-	simlog.write_compass_state(
-			_field.x,
-			_field.y,
-			_field.z);
-			*/
 
     return true;
 }

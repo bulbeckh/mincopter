@@ -14,7 +14,7 @@ set print pretty on
 #break update_GPS
 #break AP_AHRS_DCM::update
 #break AHRS_sim::update
-break state_update
+#break state_update
 #break AP_InertialSensor_Sim::update
 #break AP_AHRS_DCM::drift_correction
 #break WP_Planner::run
@@ -41,6 +41,9 @@ break state_update
 #break AP_Motors::output
 
 #break GZ_Interface::send_control_output
+
+#break generic::GenericGZInterface::tick
+break AHRS_Complementary::ahrs_update
 
 run > /dev/null 2>&1
 

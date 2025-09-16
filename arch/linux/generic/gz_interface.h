@@ -9,89 +9,32 @@
 #include <AP_Math.h>
 
 /* @brief The buffer length used to buffer readings from the simulation */
-#define GZ_INTERFACE_STATE_BUFFER_LENGTH 10
 
 class generic::GenericGZInterface : public AP_HAL::Sim {
-    public:
-	
-	/* @brief Defines a socket connection between the Gazebo simulation and the mincopter runtime
-	 */
-	GenericGZInterface() : frame_counter(0)
-	{ }
-	
-	/* @brief Simulation state struct TODO */
-    public:
-	struct mc_sim_state_packet {
-	    double timestamp;
 
-		/* IMU */
-	    double imu_gyro_x;
-	    double imu_gyro_y;
-	    double imu_gyro_z;
-	    double imu_accel_x;
-	    double imu_accel_y;
-	    double imu_accel_z;
-
-	    double pos_x;
-	    double pos_y;
-	    double pos_z;
-
-		// Is this now intrisic or extrinsic rotation?? In which order?
-		double wldAbdyA_eul_x; // Roll
-		double wldAbdyA_eul_y; // Pitch
-		double wldAbdyA_eul_z; // Yaw
-
-	    double vel_x;
-	    double vel_y;
-	    double vel_z;
-
-		/* Magnetometer */
-	    double field_x;
-	    double field_y;
-	    double field_z;
-
-		/* Barometer */
-	    double pressure;
-
-		/* NavSat (GPS) */
-		double lat_deg;
-		double lng_deg;
-		double alt_met;
-		double vel_east;
-		double vel_north;
-		double vel_up;
-
-	};
-
-	/* @brief The struct containing all sensor information. This is accessed by each of the sim_* 
-	 * simulated sensor classes */
-	mc_sim_state_packet sensor_states[GZ_INTERFACE_STATE_BUFFER_LENGTH];
-
-	mc_sim_state_packet last_sensor_state;
-
-	/* @brief The index in the buffer that we will next read sensor states to */
-	uint8_t state_buffer_index=0;
-
+	public:
+		/* @brief Defines a socket connection between the Gazebo simulation and the mincopter runtime */
+		GenericGZInterface() : frame_counter(0) { }
 
     private:
-	/* @brief Struct to hold a control input (motor speeds) packet */
-	struct servo_packet_16 {
-	    uint16_t magic = 18458; // constant magic value
-	    uint16_t frame_rate;
-	    uint32_t frame_count;
-	    uint16_t pwm[16];
-	};
+		/* @brief Struct to hold a control input (motor speeds) packet */
+		struct servo_packet_16 {
+			uint16_t magic = 18458; // constant magic value
+			uint16_t frame_rate;
+			uint32_t frame_count;
+			uint16_t pwm[16];
+		};
 
-	struct sockaddr_in servaddr;
+		struct sockaddr_in servaddr;
 
-	/* @brief Number of iterations in the simulation */
-	uint32_t frame_counter;
+		/* @brief Number of iterations in the simulation */
+		uint32_t frame_counter;
 
-	/* @brief File descriptor for socket */
-	int sockfd;
+		/* @brief File descriptor for socket */
+		int sockfd;
 
-	/* @brief Holds the raw memory stream from a UDP packet */
-	char buffer[1024];
+		/* @brief Holds the raw memory stream from a UDP packet */
+		char buffer[1024];
 
 	public:
 		/* @brief Holds the control PWM signals when using direct updates rather than via AP_Motors */
@@ -107,9 +50,16 @@ class generic::GenericGZInterface : public AP_HAL::Sim {
 		/* @brief Receive, parse, and store a GZ simulation state packet */
 		bool recv_state_input(void) override;
 
+		/* @brief Iterate the simulation by the specified microseconds */
 		void tick(uint32_t tick_us) override;
 
-		
+		/* @brief Reset the simulation back to default configuration including all model poses and simulation time */
+		void reset(void) override;
+
+		/* @brief Update the pose of the copter in the Gazebo simulation. This should zero all velocities/accelerations/momentum */
+		void set_mincopter_pose(float x_ned_m, float y_ned_m, float z_ned_m, float roll_rad, float pitch_rad, float yaw_rad) override;
+
+
 
 };
 

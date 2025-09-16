@@ -12,7 +12,7 @@ AP_InertialSensor_Sim::AP_InertialSensor_Sim() :
 {
 }
 
-float AP_InertialSensor_Sim::get_delta_time()
+float AP_InertialSensor_Sim::get_delta_time(void)
 {
 	// TODO This hardcoded method 
 	// Flight loop runs at 100hz and call is updated
@@ -35,15 +35,37 @@ float AP_InertialSensor_Sim::get_gyro_drift_rate()
 
 bool AP_InertialSensor_Sim::update( void )
 {
+	// TODO Change this to simulation timestamp
     uint32_t now = hal.scheduler->millis();
     _delta_time_usec = (now - _last_update_ms) * 1000;
     _last_update_ms = now;
 
-	// TODO Retrieve directly
-	//hal.sim->get_imu_gyro_readings(_gyro);
-	//hal.sim->get_imu_accel_readings(_accel);
+	// Retrieve gyro readings in rad/s from Gazebo simulation
+	// TODO The imu_gyro_* objects are of type double so this is implicitly downcasting
+	Vector3f simulation_gyro_reading(
+			hal.sim->last_sensor_state.imu_gyro_x,
+			hal.sim->last_sensor_state.imu_gyro_y,
+			hal.sim->last_sensor_state.imu_gyro_z
+			);
 
-	//simlog.write_imu_state(_gyro, _accel);
+	// Apply rotations
+	// NOTE See docs for discussion on gazebo reference frames used for Compass and IMU
+	simulation_gyro_reading.y *= -1;
+	simulation_gyro_reading.z *= -1;
+
+	_gyro = simulation_gyro_reading;
+
+	Vector3f simulation_accel_reading(
+			hal.sim->last_sensor_state.imu_accel_x,
+			hal.sim->last_sensor_state.imu_accel_y,
+			hal.sim->last_sensor_state.imu_accel_z
+			);
+
+	// Apply rotations
+	simulation_accel_reading.y *= -1;
+	simulation_accel_reading.z *= -1;
+	
+	_accel = simulation_accel_reading;
 
     return true;
 }

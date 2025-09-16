@@ -9,6 +9,8 @@
 // Rather, use a generic ::read method that takes a reading type enum or something 
 // and then implementing the 'reading' functionality in the HAL subclasses (like Generic)
 
+#define GZ_INTERFACE_STATE_BUFFER_LENGTH 10
+
 class AP_HAL::Sim
 {
 	public:
@@ -26,6 +28,68 @@ class AP_HAL::Sim
 
 		/* @brief Steps the simulation by the desired microseconds */
 		virtual void tick(uint32_t tick_us) = 0;
+
+	public:
+		/* @brief Simulation state struct */
+		struct mc_sim_state_packet {
+			double timestamp;
+
+			/* IMU */
+			double imu_gyro_x;
+			double imu_gyro_y;
+			double imu_gyro_z;
+			double imu_accel_x;
+			double imu_accel_y;
+			double imu_accel_z;
+
+			double pos_x;
+			double pos_y;
+			double pos_z;
+
+			// Is this now intrisic or extrinsic rotation?? In which order?
+			double wldAbdyA_eul_x; // Roll
+			double wldAbdyA_eul_y; // Pitch
+			double wldAbdyA_eul_z; // Yaw
+
+			double vel_x;
+			double vel_y;
+			double vel_z;
+
+			/* Magnetometer */
+			double field_x;
+			double field_y;
+			double field_z;
+
+			/* Barometer */
+			double pressure;
+
+			/* NavSat (GPS) */
+			double lat_deg;
+			double lng_deg;
+			double alt_met;
+			double vel_east;
+			double vel_north;
+			double vel_up;
+
+		};
+
+		/* @brief The struct containing all sensor information. This is accessed by each of the sim_* 
+		 * simulated sensor classes */
+		mc_sim_state_packet sensor_states[GZ_INTERFACE_STATE_BUFFER_LENGTH];
+
+		mc_sim_state_packet last_sensor_state;
+
+		/* @brief The index in the buffer that we will next read sensor states to */
+		uint8_t state_buffer_index=0;
+
+	public:
+
+		/* @brief Reset the simulation back to default configuration including all model poses and simulation time */
+		virtual void reset(void) = 0;
+
+		/* @brief Update the pose of the copter in the Gazebo simulation. This should zero all velocities/accelerations/momentum.
+		 * Pose is specified in the MinCopter frame (NED, extrinsic X-Y-Z orientation) with position in metres and orientation in radians */
+		virtual void set_mincopter_pose(float x_ned_m, float y_ned_m, float z_ned_m, float roll_rad, float pitch_rad, float yaw_rad) = 0;
 
 	public:
 		/*

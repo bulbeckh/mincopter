@@ -2281,7 +2281,7 @@ void gz::sim::systems::ArduPilotPlugin::CreateStateJSON(
     // MinCopter - update state struct
     this->dataPtr->sim_pkt.timestamp = timestamp;
 
-	angularVel = bdyAToBdyG.Rot()*angularVel;
+	//angularVel = bdyAToBdyG.Rot()*angularVel;
     this->dataPtr->sim_pkt.imu_gyro_x = angularVel.X();
     this->dataPtr->sim_pkt.imu_gyro_y = angularVel.Y();
     this->dataPtr->sim_pkt.imu_gyro_z = angularVel.Z();
@@ -2301,7 +2301,8 @@ void gz::sim::systems::ArduPilotPlugin::CreateStateJSON(
 	 * in the mincopter body frame */
 
 	//linearAccel = bdyAToBdyG.Rot() * linearAccel;
-    this->dataPtr->sim_pkt.imu_accel_x = -1*linearAccel.X();
+    //this->dataPtr->sim_pkt.imu_accel_x = -1*linearAccel.X();
+    this->dataPtr->sim_pkt.imu_accel_x = linearAccel.X();
     this->dataPtr->sim_pkt.imu_accel_y = linearAccel.Y();
     this->dataPtr->sim_pkt.imu_accel_z = linearAccel.Z();
 
@@ -2327,7 +2328,8 @@ void gz::sim::systems::ArduPilotPlugin::CreateStateJSON(
 		compassMsg.field_tesla().y(),
 		compassMsg.field_tesla().z()
 	};
-	compass_field = bdyAToBdyG.Rot() * compass_field;
+
+	//compass_field = bdyAToBdyG.Rot() * compass_field;
 	
     this->dataPtr->sim_pkt.field_x = compass_field.X();
     this->dataPtr->sim_pkt.field_y = compass_field.Y();

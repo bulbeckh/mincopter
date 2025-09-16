@@ -51,11 +51,13 @@ void MCState::update(void)
 const Vector3f& MCState::get_euler_angles(void)
 {
 	/* TODO Compute euler angles from quaternion */
+	return _euler;
 }
 
 const Matrix3f& MCState::get_dcm(void)
 {
 	/* TODO Compute DCM matrix from quaternion */
+	return _dcm;
 }
 
 // TODO REMOVE

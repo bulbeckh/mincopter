@@ -20,6 +20,9 @@
 
 using namespace generic;
 
+/* TODO A far better way is to re-cast this hal object to the HAL_Generic class and then 
+ * call methods from the .sim object, rather than have a base AP_HAL::Sim class that will only
+ * ever really be implemented by the HAL Generic. */
 extern const AP_HAL::HAL& hal;
 
 void GenericGZInterface::tick(uint32_t tick_us)
@@ -33,7 +36,6 @@ void GenericGZInterface::tick(uint32_t tick_us)
 
 	return;
 }
-
 
 bool GenericGZInterface::setup_sim_socket(void)
 {
@@ -267,6 +269,20 @@ bool GenericGZInterface::recv_state_input(void)
 
 
     return true;
+}
+
+void GenericGZInterface::reset(void)
+{
+	// TODO Implement
+	
+	return;
+}
+
+void GenericGZInterface::set_mincopter_pose(float x_ned_m, float y_ned_m, float z_ned_m, float roll_rad, float pitch_rad, float yaw_rad)
+{
+	// TODO Implement
+	
+	return;
 }
 
 // TODO Move all of this conversion/rotation code into the dev/ specific sim drivers. This class should just retrieve raw simulation state from Gazebo

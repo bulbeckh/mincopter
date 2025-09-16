@@ -23,7 +23,9 @@ void AHRS_Complementary::ahrs_update(void)
 	Vector3f gyro_reading = mincopter.ins.get_gyro();
 
 	// Add offset constant for z-axis
+#ifdef TARGET_ARCH_AVR
 	accel_reading.z += 3.57;
+#endif
 	accel_reading.normalize();
 
 	// Get elapsed gyrometer time for use in integration of gyros
@@ -36,23 +38,33 @@ void AHRS_Complementary::ahrs_update(void)
 	Vector3f mag_reading = mincopter.compass.get_field();
 
 	// Add mag offsets
+#ifdef TARGET_ARCH_AVR
 	mag_reading.x += 49.5;
 	mag_reading.y += 157;
 	mag_reading.z -= 17;
+#endif
 	mag_reading.normalize();
 
 	// Convert mag into NED
+#ifdef TARGET_ARCH_AVR
 	float temp_x = mag_reading.x;
 	mag_reading.x = -mag_reading.y;
 	mag_reading.y = -temp_x;
 	mag_reading.z = -mag_reading.z;
+#endif
 
 	// TODO This should definitely be done in the compass class instead
 	// Correct for declination/inclination (using -68deg inc and +11deg dec)
+#ifdef TARGET_ARCH_AVR
 	Vector3f mag_ned(
 			mag_reading.x*0.36772402 -mag_reading.y*0.190809 + mag_reading.z*0.9101488,
 			mag_reading.x*0.071478 + mag_reading.y*0.981627 + mag_reading.z*0.176915,
 			-mag_reading.x*0.927183 + mag_reading.z*0.374606);
+#else
+	// Copy mag_reading
+	Vector3f mag_ned = mag_reading;
+#endif
+
 
 	// TODO UPDATED
 	// Estimate **roll** and **pitch** from accelerometer gravity vector by also multiplying by sign of y
