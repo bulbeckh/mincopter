@@ -12,6 +12,9 @@
 #elif CONTROLLER_PID
 	#include "controller_pid.h"
 	extern PID_Controller controller;
+#elif CONTROLLER_LQR
+	#include "controller_lqr.h"
+	extern LQR_Controller controller;
 #elif CONTROLLER_NONE
 	#include "controller_none.h"
 	extern None_Controller controller;

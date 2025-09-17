@@ -151,11 +151,13 @@ const Vector3f MCState::get_position() const
 	return Vector3f(
 			_state._position[0],
 			_state._position[1],
-			_state._position[3]);
+			_state._position[2]);
 }
 
 const Vector3f MCState::get_velocity() const
 {
-	// TODO Implement
-	return Vector3f(0,0,0);
+	return Vector3f(
+			_state._velocity[0],
+			_state._velocity[1],
+			_state._velocity[2]);
 }

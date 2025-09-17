@@ -149,7 +149,8 @@ void control_determination()
     planner.run();
 
 	// Run controller only if ARMED
-	if (planner.planner_arm_state==PlannerArmState::ARMED) controller.run();
+	//if (planner.planner_arm_state==PlannerArmState::ARMED) controller.run();
+	controller.run();
 
 
 	return;
@@ -172,7 +173,9 @@ void loop()
 		Vector3f _acc_meas = mincopter.ins.get_accel();
 		Vector3f _mag_meas = mincopter.compass.get_field();
 		GPS::GPS_Status _status = mincopter.g_gps->status();
+
 		Vector3f _temp_pos = mcstate.get_position();
+		Vector3f _temp_vel = mcstate.get_velocity();
 
 		float _pres = mincopter.barometer.get_pressure();
 		float _temperature = mincopter.barometer.get_temperature();
@@ -192,7 +195,8 @@ void loop()
 		mincopter.hal.console->printf_P(PSTR("baro: % 6.2f, % 6.2f\n"), _pres, _temperature);
 		mincopter.hal.console->printf_P(PSTR("gps: %d\n"), _status);
 		mincopter.hal.console->printf_P(PSTR("lat/lng: %d, %d\n"), mincopter.g_gps->latitude, mincopter.g_gps->longitude);
-		mincopter.hal.console->printf_P(PSTR("state x,y,z: %f, %f, %f\n"), _temp_pos.x, _temp_pos.y, _temp_pos.z);
+		mincopter.hal.console->printf_P(PSTR("pos x,y,z: %f, %f, %f\n"), _temp_pos.x, _temp_pos.y, _temp_pos.z);
+		mincopter.hal.console->printf_P(PSTR("vel x,y,z: %f, %f, %f\n"), _temp_vel.x, _temp_vel.y, _temp_vel.z);
 		mincopter.hal.console->printf_P(PSTR("att q1,q2,q3,q4: %f, %f, %f, %f\n"), _temp_att[0], _temp_att[1], _temp_att[2], _temp_att[3]);
 		mincopter.hal.console->printf_P(PSTR("eul r,p,y: %f, %f, %f\n"), roll, pitch, yaw);
 		mincopter.hal.console->printf_P(PSTR("DCM: -----------\n[%f, %f, %f\n %f, %f, %f,\n%f, %f, %f]\n"),
@@ -256,7 +260,7 @@ void loop()
 	if (_counter>10) state_update();
 
     // Control Determination
-    //control_determination();
+    control_determination();
 
     // tell the scheduler one tick has passed
     scheduler.tick();

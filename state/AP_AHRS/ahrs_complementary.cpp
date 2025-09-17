@@ -53,7 +53,7 @@ void AHRS_Complementary::ahrs_update(void)
 	mag_reading.z = -mag_reading.z;
 #endif
 
-	// TODO This should definitely be done in the compass class instead
+	// TODO Remove this whole thing - we do magnetic declination correction AFTER we calculate the yaw
 	// Correct for declination/inclination (using -68deg inc and +11deg dec)
 #ifdef TARGET_ARCH_AVR
 	Vector3f mag_ned(
@@ -86,6 +86,8 @@ void AHRS_Complementary::ahrs_update(void)
 			-1*mag_reading.y*cos(theta_magx) + mag_reading.z*sin(theta_magx),
 			mag_reading.x*cos(theta_magy) + mag_reading.y*sin(theta_magy)*sin(theta_magx) + mag_reading.z*sin(theta_magy)*cos(theta_magx)
 			);
+
+	// TODO Now is where we correct for magnetic declination
 
 	if (_first_update) {
 		// Don't fuse on first update

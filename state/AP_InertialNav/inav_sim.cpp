@@ -1,25 +1,28 @@
 
+#include <AP_HAL.h>
+
 #include "inav_sim.h"
 
-#ifdef MC_GZ_INTERFACE
-#include "gz_interface.h"
-extern GZ_Interface gz_interface;
-#endif
-
-#ifdef MC_SIMLOG
-#include "simulation_logger.h"
-extern SimulationLogger simlog;
-#endif
+extern const AP_HAL::HAL& hal;
 
 void MC_InertialNav_Sim::_inav_init_internal(void)
 {
 	return;
 }
 
-void MC_InertialNav_Sim::inav_update(float dt)
+void MC_InertialNav_Sim::inav_update(void)
 {
 	// TODO Need to update to match new interface (i.e update _state._position and _state._velocity)
 	
+	// TODO Possible downcast here from double to float
+	_inav_state->_position[0] = hal.sim->last_sensor_state.pos_x;
+	_inav_state->_position[1] = hal.sim->last_sensor_state.pos_y;
+	_inav_state->_position[2] = hal.sim->last_sensor_state.pos_z;
+
+	_inav_state->_velocity[0] = hal.sim->last_sensor_state.vel_x;
+	_inav_state->_velocity[1] = hal.sim->last_sensor_state.vel_y;
+	_inav_state->_velocity[2] = hal.sim->last_sensor_state.vel_z;
+
 	/* Normally this would use integrations of the accelerometer readings and 
 	 * then correct with the GPS and baro but in simulation, we have these
 	 * measurements directly */
@@ -40,10 +43,6 @@ void MC_InertialNav_Sim::inav_update(float dt)
 	inav_vel.y = 100.0f*gz_interface.last_sensor_state.vel_y;
 	inav_vel.z = 100.0f*gz_interface.last_sensor_state.vel_z;
 	*/
-
-#ifdef MC_SIMLOG
-	//simlog.write_inav_state(inav_pos, inav_vel);
-#endif
 
 	return;
 }

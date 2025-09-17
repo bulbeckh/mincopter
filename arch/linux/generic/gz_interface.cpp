@@ -83,6 +83,11 @@ bool GenericGZInterface::send_control_output(void)
     control_pkt.frame_count = frame_counter;
     control_pkt.frame_rate  = 1001;
 
+	/* TODO NOTE We are now going to get the PWM signals directly from hal.rcout instead of mincopter.motors.get_raw_motor_out
+	 * as this makes it easy to work across multiple backends and also eliminate the need for AP_Motors */
+	
+	// TODO Update this
+
     for (int16_t i=0;i<16;i++) {
 		// TODO Change how motor PWM signal is retrived - should be the output of mixer but unclear whether to use RCOutput PWM or elsewhere
 		//int16_t m_out = mincopter.motors.get_raw_motor_out(i);

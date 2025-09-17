@@ -6,6 +6,7 @@ list(APPEND mc-control-common
 	${CMAKE_SOURCE_DIR}/control/AC_PID.cpp
 	${CMAKE_SOURCE_DIR}/control/AC_WPNav.cpp
 	${CMAKE_SOURCE_DIR}/control/radio.cpp
+	${CMAKE_SOURCE_DIR}/control/mixer.cpp
 )
 
 list(APPEND mc-control-mpc
@@ -15,6 +16,10 @@ list(APPEND mc-control-mpc
 
 list(APPEND mc-control-pid
 	${CMAKE_SOURCE_DIR}/control/controller_pid.cpp
+)
+
+list(APPEND mc-control-lqr
+	${CMAKE_SOURCE_DIR}/control/controller_lqr.cpp
 )
 
 list(APPEND mc-control-none
@@ -52,6 +57,10 @@ if(MC_CONTROLLER_TYPE STREQUAL "MPC")
 elseif(MC_CONTROLLER_TYPE STREQUAL "PID")
 	target_sources(mc-control PUBLIC
 		${mc-control-pid}
+	)
+elseif(MC_CONTROLLER_TYPE STREQUAL "LQR")
+	target_sources(mc-control PUBLIC
+		${mc-control-lqr}
 	)
 elseif(MC_CONTROLLER_TYPE STREQUAL "NONE")
 	target_sources(mc-control PUBLIC
