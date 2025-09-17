@@ -31,8 +31,8 @@
     <plugin filename="gz-sim-air-pressure-system"
 	name="gz::sim::systems::AirPressure">
     </plugin>
-    <plugin filename="gz-sim-magnetometer-system"
-	name="gz::sim::systems::Magnetometer">
+	<plugin filename="gz-sim-magnetometer-system" name="gz::sim::systems::Magnetometer">
+		<use_earth_frame_ned>false</use_earth_frame_ned>
     </plugin>
 
     <scene>
@@ -47,7 +47,7 @@
       <elevation>584</elevation>
       <heading_deg>0</heading_deg>
       <surface_model>EARTH_WGS84</surface_model>
-    </spherical_coordinates>
+  	</spherical_coordinates>
 
     <light type="directional" name="sun">
       <cast_shadows>true</cast_shadows>

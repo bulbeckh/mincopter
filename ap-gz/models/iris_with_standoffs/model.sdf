@@ -160,7 +160,7 @@
 		  <!--pose degrees="true">0 0 0 0 0 -70</pose-->
 		  <pose degrees="true">0 0 0 0 0 0</pose>
         <always_on>1</always_on>
-        <update_rate>1000.0</update_rate>
+		<update_rate>1000.0</update_rate>
       </sensor>
     </link>
 
@@ -239,8 +239,8 @@
     </joint>
 
     <joint name='compass_joint' type='fixed'>
-	<child>compass_link</child>
 	<parent>base_link</parent>
+	<child>compass_link</child>
 	<axis>
 	    <xyz>0 0 1</xyz>
 	    <limit>
