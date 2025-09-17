@@ -11,6 +11,9 @@ void AP_Compass_Sim::accumulate(void)
 	// Called at 50z
 	// TODO This should be calling the gz_interface to retrieve magnetometer values
 	
+	// TODO Check that the units used here are correct - I believe currently GZ is using gauss for magnetic
+	// field readings which is not necessarily the units we chose for compass readings in MinCopter
+	
 	// Read latest field into temporary vector
 	// TODO Downcast from double to float
 	Vector3f temp_field(

@@ -77,8 +77,15 @@ void AHRS_Complementary::ahrs_update(void)
 
 	// TODO Update this calculation as our roll, pitch, yaw euler angles are now EXTRINSIC and hence this rotation may no longer be valid
 	// Our yaw calculation uses magnetometer readings
-	float theta_magz = atan2f(mag_reading.z*sin(theta_magy) - mag_reading.y*cos(theta_magy),
+	/*
+	 * float theta_magz = atan2f(mag_reading.z*sin(theta_magy) - mag_reading.y*cos(theta_magy),
 			mag_reading.x*cos(theta_magx) + sin(theta_magx)*(mag_reading.y*sin(theta_magy) + mag_reading.z*cos(theta_magy)));
+	*/
+
+	float theta_magz = atan2f(
+			-1*mag_reading.y*cos(theta_magx) + mag_reading.z*sin(theta_magx),
+			mag_reading.x*cos(theta_magy) + mag_reading.y*sin(theta_magy)*sin(theta_magx) + mag_reading.z*sin(theta_magy)*cos(theta_magx)
+			);
 
 	if (_first_update) {
 		// Don't fuse on first update
