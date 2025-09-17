@@ -82,6 +82,9 @@ class AP_HAL::Sim
 		/* @brief The index in the buffer that we will next read sensor states to */
 		uint8_t state_buffer_index=0;
 
+		// TODO This is a very bad quick hack to get the motor output - should really be taking this from hal.rcout
+		int16_t motor_out[4];
+
 	public:
 
 		/* @brief Reset the simulation back to default configuration including all model poses and simulation time */

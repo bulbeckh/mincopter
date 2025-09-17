@@ -15,7 +15,44 @@ class Mixer {
 			_pwm_max_us(2000),
 			// TODO For now, align the maximum rotor velocity with the PWM @ 2000rad/s
 			_rotor_vel_max_rads(2000)
-		{ }
+		{
+			// Params with kt=2.05e-6
+			/*
+			float c1 = 121951.2195122;
+			float c2 = 609756.09756097;
+			float c3 = 609756.09756098;
+			float c4 = 6097560.97560976;
+			*/
+
+			// kt=1.5e-6
+			float c1 = 238095;
+			float c2 = 1190476;
+			float c3 = 1190476; 
+			float c4 = 11904761;
+
+			// Setup allocation
+			
+			_allocation[0] = c1;
+			_allocation[1] = -c2;
+			_allocation[2] = c3;
+			_allocation[3] = c4;
+
+			_allocation[4] = c1;
+			_allocation[5] = c2;
+			_allocation[6] = -c3;
+			_allocation[7] = c1;
+
+			_allocation[8] = c1;
+			_allocation[9] = -c2;
+			_allocation[10] = -c3;
+			_allocation[11] = -c4;
+
+			_allocation[12] = c1;
+			_allocation[13] = c2;
+			_allocation[14] = c3;
+			_allocation[15] = -c4;
+
+		}
 
 	public:
 
@@ -45,28 +82,7 @@ class Mixer {
 
 		/* @brief Inverse (psuedo-) of mixer allocation to calculate indivudal motor speeds. NOTE Allocation
 		 * is row-major */
-		float _allocation[16] = {
-			// Row 0
-			121951.2195122,
-			-609756.09756097,
-			609756.09756098,
-			6097560.97560976,
-			// Row 1
-			121951.2195122,
-			609756.09756098,
-			-609756.09756097,
-			6097560.97560976,
-			// Row 2
-			121951.2195122,
-			-609756.09756098,
-			-609756.09756098,
-			-6097560.97560976,
-			// Row 3
-			121951.2195122,
-			609756.09756097,
-			609756.09756097,
-			-6097560.97560976
-		};
+		float _allocation[16];
 
 		/* @brief Mapping from each motor to the corresponding RC channel (output pin) where the PWM signal is sent */
 		uint8_t _motor_to_channel_map[4];

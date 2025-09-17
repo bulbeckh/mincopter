@@ -65,6 +65,9 @@ void LQR_Controller::control_output(float* _state)
 	// Offset by a target of Z=-20
 	_state[2] -= -20;
 
+	// Offset yaw by ~11degc because we haven't yet offset the yaw from magnetometer
+	_state[5] -= -0.19;
+
 	float control_out[4] = {0,0,0,0};
 
 	for (uint8_t i=0;i<4;i++) {
@@ -76,8 +79,7 @@ void LQR_Controller::control_output(float* _state)
 		control_out[i] *= -1;
 	}
 
-	// Add back our gravity vector
-	
+	// Add back our gravity vector * mass
 	control_out[0] += 2.23f + GRAVITY_MSS;
 
 	// Call mixer
