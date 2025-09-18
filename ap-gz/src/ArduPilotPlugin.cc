@@ -1630,6 +1630,7 @@ void gz::sim::systems::ArduPilotPlugin::ApplyMotorForces(
 
     gz::sim::components::JointForceCmd* jfcComp = nullptr;
     gz::sim::components::JointVelocityCmd* jvcComp = nullptr;
+
     if (this->dataPtr->controls[i].useForce ||
         this->dataPtr->controls[i].type == "EFFORT")
     {

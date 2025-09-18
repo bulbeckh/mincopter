@@ -24,11 +24,11 @@ class Mixer {
 			float c4 = 6097560.97560976;
 			*/
 
-			// kt=1.5e-6
-			float c1 = 238095;
-			float c2 = 1190476;
-			float c3 = 1190476; 
-			float c4 = 11904761;
+			// kt=2.3e-6
+			float c1 = 108695;
+			float c2 = 494071;
+			float c3 = 836120;
+			float c4 = 5434782;
 
 			// Setup allocation
 			

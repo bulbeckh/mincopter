@@ -1,8 +1,9 @@
 
-
 #include "mixer.h"
 
 #include "mcinstance.h"
+extern MCInstance mincopter;
+
 void Mixer::output(float total_force_n, float roll_t_nm, float pitch_t_nm, float yaw_t_nm)
 {
 	float allocation_out;

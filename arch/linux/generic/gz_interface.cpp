@@ -109,10 +109,19 @@ bool GenericGZInterface::send_control_output(void)
 		control_pkt.pwm[3] = control_pwm[2];
 		*/
 
+		/*
 		control_pkt.pwm[0] = hal.sim->motor_out[0];
 		control_pkt.pwm[1] = hal.sim->motor_out[1]; 
 		control_pkt.pwm[2] = hal.sim->motor_out[3];
 		control_pkt.pwm[3] = hal.sim->motor_out[2];
+		*/
+
+		int16_t glim = 1600;
+		control_pkt.pwm[0] = glim;
+		control_pkt.pwm[1] = glim;
+		control_pkt.pwm[2] = glim;
+		control_pkt.pwm[3] = glim;
+
 	} else {
 		/*
 		control_pkt.pwm[0] = mincopter.motors.get_raw_motor_out(0);

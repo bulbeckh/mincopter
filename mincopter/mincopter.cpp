@@ -257,10 +257,11 @@ void loop()
     fast_loopTimer = timer;
 
     // Update state (wait 10 iterations to gather compass and IMU data
-	if (_counter>10) state_update();
-
-    // Control Determination
-    control_determination();
+	if (_counter>10) {
+		state_update();
+		// Control Determination
+		control_determination();
+	}
 
     // tell the scheduler one tick has passed
     scheduler.tick();

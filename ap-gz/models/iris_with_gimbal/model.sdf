@@ -11,6 +11,42 @@
       <pose degrees="true">0 -0.01 -0.124923 90 0 90</pose>    
   </include>
 
+
+  <!--link name="anchor_link">
+	  <pose>0 0 0 0 0 0</pose>
+	  <static>true</static>
+      <inertial>
+        <pose>0 0 0 0 0 0</pose>
+        <mass>10000000</mass>
+        <inertia>
+          <ixx>0.008</ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>0.015</iyy>
+          <iyz>0</iyz>
+          <izz>0.017</izz>
+        </inertia>
+      </inertial>
+  </link>
+
+  <joint name="z_only_joint" type="prismatic">
+	  <parent>anchor_link</parent>
+	  <child>iris_with_standoffs::base_link</child>
+	  <axis>
+		  <xyz> 0 0 1</xyz>
+		  <limit><lower>-100</lower></limit>
+	  </axis>
+	  <physics>
+		  <ode>
+			  <limit>
+				  <cfm>0.0</cfm>
+				  <erp>0.9</erp>
+			  </limit>
+			  <damping>5.0</damping>
+		  </ode>
+	  </physics>
+  </joint-->
+
   <!-- HAVE ADDED THIS TO CONSTRAIN VERTICAL MOTION
   <joint name="z_only_joint" type="prismatic">
 	  <parent>world</parent>
