@@ -80,7 +80,7 @@ void LQR_Controller::control_output(float* _state)
 	}
 
 	// Add back our gravity vector * mass
-	control_out[0] += 2.23f + GRAVITY_MSS;
+	control_out[0] += 2.43f*GRAVITY_MSS;
 
 	// Call mixer
 	mixer.output(control_out[0], control_out[1], control_out[2], control_out[3]);

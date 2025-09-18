@@ -1666,9 +1666,12 @@ void gz::sim::systems::ArduPilotPlugin::ApplyMotorForces(
         {
             const double vel = vComp->Data()[0];
             const double error = vel - velTarget;
+
             const double force = this->dataPtr->controls[i].pid.Update(
                 error, std::chrono::duration<double>(_dt));
             jfcComp->Data()[0] = force;
+
+			gzwarn << "ROTOR(vel, err, for): " << vel << " " << error << " " << force << "\n";
         }
       }
       else if (this->dataPtr->controls[i].type == "POSITION")
@@ -1984,10 +1987,9 @@ void gz::sim::systems::ArduPilotPlugin::UpdateMotorCommands(
                 // bound incoming cmd between 0 and 1
                 double raw_cmd = (pwm - pwm_min)/(pwm_max - pwm_min);
                 raw_cmd = gz::math::clamp(raw_cmd, 0.0, 1.0);
-                this->dataPtr->controls[i].cmd =
-                    multiplier * (raw_cmd + offset);
-
-#if 0
+                this->dataPtr->controls[i].cmd = multiplier * (raw_cmd + offset);
+				
+#if 1
                 gzdbg << "apply input chan["
                     << this->dataPtr->controls[i].channel
                     << "] to control chan[" << i
