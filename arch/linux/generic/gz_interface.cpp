@@ -115,10 +115,10 @@ bool GenericGZInterface::send_control_output(void)
 		control_pkt.pwm[3] = hal.sim->motor_out[2];
 
 		/*
-		control_pkt.pwm[0] = 1360;
-		control_pkt.pwm[1] = 1360;
-		control_pkt.pwm[2] = 1360;
-		control_pkt.pwm[3] = 1360;
+		control_pkt.pwm[0] = 0;
+		control_pkt.pwm[1] = 0;
+		control_pkt.pwm[2] = 2000;
+		control_pkt.pwm[3] = 2000;
 		*/
 
 	} else {

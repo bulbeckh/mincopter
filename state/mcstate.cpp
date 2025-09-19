@@ -50,7 +50,12 @@ void MCState::update(void)
 
 const Vector3f& MCState::get_euler_angles(void)
 {
-	/* TODO Compute euler angles from quaternion */
+	_state._attitude.to_euler(
+			&_euler.x,
+			&_euler.y,
+			&_euler.z
+	);
+
 	return _euler;
 }
 
