@@ -20,7 +20,6 @@ void AHRS_Complementary::ahrs_update(void)
 	// TODO Can these return a const reference instead?
 	// Accelerometer and Gyrometer readings in NED frame
 	Vector3f accel_reading = mincopter.ins.get_accel();
-	Vector3f gyro_reading = mincopter.ins.get_gyro();
 
 	// Add offset constant for z-axis
 #ifdef TARGET_ARCH_AVR
@@ -87,7 +86,14 @@ void AHRS_Complementary::ahrs_update(void)
 			mag_reading.x*cos(theta_magy) + mag_reading.y*sin(theta_magy)*sin(theta_magx) + mag_reading.z*sin(theta_magy)*cos(theta_magx)
 			);
 
-	// TODO Now is where we correct for magnetic declination
+	// TODO Now is where we correct for magnetic declination (yaw)
+	
+	Vector3f gyro_reading = mincopter.ins.get_gyro();
+	
+	// Update euler rates ahead of gyro integration below
+	_ahrs_state->_euler_rates.x = gyro_reading.x + gyro_reading.y*sin(_ahrs_state->_euler.x)*tan(_ahrs_state->_euler.y) + gyro_reading.z*cos(_ahrs_state->_euler.x)*tan(_ahrs_state->_euler.y);
+	_ahrs_state->_euler_rates.y = gyro_reading.y*cos(_ahrs_state->_euler.x) - gyro_reading.z*sin(_ahrs_state->_euler.x);
+	_ahrs_state->_euler_rates.z = gyro_reading.y*sin(_ahrs_state->_euler.x) / cos(_ahrs_state->_euler.y) + gyro_reading.z*cos(_ahrs_state->_euler.x) / cos(_ahrs_state->_euler.y);
 
 	if (_first_update) {
 		// Don't fuse on first update
@@ -97,9 +103,10 @@ void AHRS_Complementary::ahrs_update(void)
 		_first_update = 0;
 	} else {
 		// Fuse with gyro
-		float theta_gyrox = euler_internal.x + gyro_reading.x*ins_time_s;
-		float theta_gyroy = euler_internal.y + gyro_reading.y*ins_time_s;
-		float theta_gyroz = euler_internal.z + gyro_reading.z*ins_time_s;
+		// TODO Change gyro_reading to the euler rate for integration
+		float theta_gyrox = euler_internal.x + _ahrs_state->_euler_rates.x*ins_time_s;
+		float theta_gyroy = euler_internal.y + _ahrs_state->_euler_rates.y*ins_time_s;
+		float theta_gyroz = euler_internal.z + _ahrs_state->_euler_rates.z*ins_time_s;
 
 		euler_internal.x = alpha*theta_gyrox + (1-alpha)*theta_magx;
 		euler_internal.y = alpha*theta_gyroy + (1-alpha)*theta_magy;
@@ -111,6 +118,9 @@ void AHRS_Complementary::ahrs_update(void)
 			euler_internal.x,
 			euler_internal.y,
 			euler_internal.z);
+
+	// Update the euler angles
+	_ahrs_state->_euler = euler_internal;
 
 	return;
 }

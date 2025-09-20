@@ -40,11 +40,19 @@ void LQR_Controller::run(void)
 	// TODO We should move this calculation to the AHRS or state library
 	Vector3f bf_angular_vel = mincopter.ins.get_gyro();
 
+	Vector3f e_rates = mcstate.get_euler_rates();
+
+	_state[9] = e_rates.x;
+	_state[10] = e_rates.y;
+	_state[11] = e_rates.z;
+
 	// NOTE There are singularities introduced here, particularly with the divison by cos(pitch) and the multiplication by tan(pitch)
 	// despite both being constrained between -pi/2 - pi/2
+	/* This has been moved to the mcstate class
 	_state[9] = bf_angular_vel.x + bf_angular_vel.y*sin(state_orientation[0])*tan(state_orientation[1]) + bf_angular_vel.z*cos(state_orientation[0])*tan(state_orientation[1]);
 	_state[10] = bf_angular_vel.y*cos(state_orientation[0]) - bf_angular_vel.z*sin(state_orientation[0]);
 	_state[11] = bf_angular_vel.y*sin(state_orientation[0]) / cos(state_orientation[1]) + bf_angular_vel.z*cos(state_orientation[0]) / cos(state_orientation[1]);
+	*/
 
 	// Calculate control vector and call mixer
 	

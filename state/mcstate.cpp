@@ -48,15 +48,20 @@ void MCState::update(void)
 	return;
 }
 
+const Vector3f& MCState::get_euler_rates(void)
+{
+	return _state._euler_rates;
+}
+
 const Vector3f& MCState::get_euler_angles(void)
 {
 	_state._attitude.to_euler(
-			&_euler.x,
-			&_euler.y,
-			&_euler.z
+			&_state._euler.x,
+			&_state._euler.y,
+			&_state._euler.z
 	);
 
-	return _euler;
+	return _state._euler;
 }
 
 const Matrix3f& MCState::get_dcm(void)
@@ -101,14 +106,14 @@ void MCState::update_trig(void){
 		// 270 = cos_yaw:  0.00, sin_yaw: -1.00,
 	
 	// Update the roll,pitch,yaw sensor values
-	_euler = get_euler_angles();
+	_state._euler = get_euler_angles();
 
 	// TODO Remove the use of <roll,pitch,yaw>_sensor in controller PID - replace with 
 	// TODO Does get_euler_angles express in degrees or radians?
 	// Euler angles as int32 (degc*100)
-	roll_sensor  = (int32_t)(_euler.x*100);
-	pitch_sensor = (int32_t)(_euler.y*100);
-	yaw_sensor   = (int32_t)(_euler.z*100);
+	roll_sensor  = (int32_t)(_state._euler.x*100);
+	pitch_sensor = (int32_t)(_state._euler.y*100);
+	yaw_sensor   = (int32_t)(_state._euler.z*100);
 	
 	return;
 }

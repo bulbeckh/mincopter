@@ -83,7 +83,7 @@ class MCState
 
 	private:
 		/* @brief Euler angle <R,P,Y> representation of orientation. Retrieved through get_euler_angles in order to ensure on-demand computation */
-		Vector3f _euler;
+		//Vector3f _euler;
 
 		/* @brief DCM Matrix representation of orientation. Computed on demand */
 		Matrix3f _dcm;
@@ -93,6 +93,9 @@ class MCState
 
 		/* @brief Get euler angle representation of orientation */
 		const Vector3f &get_euler_angles(void);
+
+		/* @brief Get euler rates which are body-frame gyro readings converted to euler rates */ 
+		const Vector3f &get_euler_rates(void);
 
 		/* @brief Get DCM matrix representation of orientation */
 		const Matrix3f &get_dcm(void);

@@ -14,6 +14,12 @@ typedef struct {
 	Vector3f _omega;
 	Vector3f _accel;
 
+	// Euler angle representation
+	Vector3f _euler;
+
+	// Euler rates representation
+	Vector3f _euler_rates;
+
 	// TODO Add bias states
 } MCStateData;
 
