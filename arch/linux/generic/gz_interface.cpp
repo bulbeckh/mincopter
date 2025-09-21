@@ -8,10 +8,13 @@
 #include <arch/linux/generic/gz_interface.h>
 
 #include <iostream>
+#include <fstream>
 #include <cstring>
 #include <string.h>
 
+#include <sys/stat.h>
 #include <sys/socket.h>
+#include <fcntl.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <unistd.h>
@@ -197,7 +200,6 @@ bool GenericGZInterface::recv_state_input(void)
 
 	last_sensor_state = *pkt;
 
-
 	// sense check readings
 	/*
 	if (false && frame_counter%100==0) {
@@ -303,6 +305,50 @@ void GenericGZInterface::set_mincopter_pose(float x_ned_m, float y_ned_m, float 
 {
 	// TODO Implement
 	
+	return;
+}
+
+bool GenericGZInterface::setup_log_pipe(const char* pipeaddr)
+{
+	// Create pipe if it doesn't already exist
+	mkfifo(pipeaddr, 0666);
+
+	// NOTE This will block until we open the pipe on the other side
+	logfd = open(pipeaddr, O_WRONLY);
+
+	if (logfd < 0 ) {
+		hal.console->printf("bad fd for logging\n");
+		hal.scheduler->panic("Could not open pipe for logging\n");
+	}
+
+	return true;
+}
+
+void GenericGZInterface::log_state(uint8_t* data, uint8_t len, uint8_t type)
+{
+	if (len==0) {
+		hal.console->printf("Log state called with len=0. Ignoring\n");
+		return;
+	}
+
+	uint8_t packet[len+4];
+
+	// Sync bytes
+	packet[0] = 0x2A;
+	packet[1] = 0x4E;
+
+	// TODO Change this to some sort of shared enum that represents the packet type;
+	packet[2] = type;
+	packet[3] = len;
+
+	// TODO Change to memcpy?
+	for (uint8_t i=0;i<len;i++) {
+		packet[i+4] = data[i];
+	}
+
+	// Log to pipe
+	write(logfd, packet, len+4);
+
 	return;
 }
 

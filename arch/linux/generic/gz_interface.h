@@ -36,6 +36,9 @@ class generic::GenericGZInterface : public AP_HAL::Sim {
 		/* @brief Holds the raw memory stream from a UDP packet */
 		char buffer[1024];
 
+		/* @brief File descriptor for log pipe */
+		int logfd;
+
 	public:
 		/* @brief Holds the control PWM signals when using direct updates rather than via AP_Motors */
 		uint16_t control_pwm[4];
@@ -43,6 +46,10 @@ class generic::GenericGZInterface : public AP_HAL::Sim {
     public:
 		/* @brief Set up UDP socket between this and GZ server process */
 		bool setup_sim_socket(void) override;
+
+		bool setup_log_pipe(const char*) override;
+
+		void log_state(uint8_t* data, uint8_t len, uint8_t type) override;
 
 		/* @brief Send a motor control output PWM */
 		bool send_control_output(void) override;

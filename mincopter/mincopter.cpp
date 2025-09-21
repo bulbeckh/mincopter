@@ -165,45 +165,62 @@ void loop()
 	if (_counter%100==0) {
 		hal.console->printf("Looping..\n");
 	}
-
 	_counter++;
 
-	if (_counter%100==0) {
-		Vector3f _gyr_meas = mincopter.ins.get_gyro();
-		Vector3f _acc_meas = mincopter.ins.get_accel();
-		Vector3f _mag_meas = mincopter.compass.get_field();
-		GPS::GPS_Status _status = mincopter.g_gps->status();
+#ifdef TARGET_ARCH_LINUX
+	Vector3f _gyr_meas = mincopter.ins.get_gyro();
+	Vector3f _acc_meas = mincopter.ins.get_accel();
+	Vector3f _mag_meas = mincopter.compass.get_field();
+	GPS::GPS_Status _status = mincopter.g_gps->status();
 
-		Vector3f _temp_pos = mcstate.get_position();
-		Vector3f _temp_vel = mcstate.get_velocity();
+	Vector3f _temp_pos = mcstate.get_position();
+	Vector3f _temp_vel = mcstate.get_velocity();
+	Vector3f _temp_eul = mcstate.get_euler_angles();
 
-		float _pres = mincopter.barometer.get_pressure();
-		float _temperature = mincopter.barometer.get_temperature();
+	float _pres = mincopter.barometer.get_pressure();
+	float _temperature = mincopter.barometer.get_temperature();
 
-		Quaternion& _temp_att = mcstate._state._attitude;
+	Quaternion& _temp_att = mcstate._state._attitude;
 
-		float roll,pitch,yaw;
-		_temp_att.to_euler(&roll, &pitch, &yaw);
+	float roll,pitch,yaw;
+	_temp_att.to_euler(&roll, &pitch, &yaw);
 
-		Matrix3f _temp_rot;
-		_temp_att.rotation_matrix(_temp_rot);
+	Matrix3f _temp_rot;
+	_temp_att.rotation_matrix(_temp_rot);
 
-		mincopter.hal.console->printf("[loop %lu] remaining_ram=%u\n", _counter, mincopter.hal.util->available_memory());
-		mincopter.hal.console->printf_P(PSTR("gyr: % 6.2f, % 6.2f, % 6.2f\n"), _gyr_meas.x, _gyr_meas.y, _gyr_meas.z);
-		mincopter.hal.console->printf_P(PSTR("acc: % 6.2f, % 6.2f, % 6.2f\n"), _acc_meas.x, _acc_meas.y, _acc_meas.z);
-		mincopter.hal.console->printf_P(PSTR("mag: % 6.2f, % 6.2f, % 6.2f\n"), _mag_meas.x, _mag_meas.y, _mag_meas.z);
-		mincopter.hal.console->printf_P(PSTR("baro: % 6.2f, % 6.2f\n"), _pres, _temperature);
-		mincopter.hal.console->printf_P(PSTR("gps: %d\n"), _status);
-		mincopter.hal.console->printf_P(PSTR("lat/lng: %d, %d\n"), mincopter.g_gps->latitude, mincopter.g_gps->longitude);
-		mincopter.hal.console->printf_P(PSTR("pos x,y,z: %f, %f, %f\n"), _temp_pos.x, _temp_pos.y, _temp_pos.z);
-		mincopter.hal.console->printf_P(PSTR("vel x,y,z: %f, %f, %f\n"), _temp_vel.x, _temp_vel.y, _temp_vel.z);
-		mincopter.hal.console->printf_P(PSTR("att q1,q2,q3,q4: %f, %f, %f, %f\n"), _temp_att[0], _temp_att[1], _temp_att[2], _temp_att[3]);
-		mincopter.hal.console->printf_P(PSTR("eul r,p,y: %f, %f, %f\n"), roll, pitch, yaw);
-		mincopter.hal.console->printf_P(PSTR("DCM: -----------\n[%f, %f, %f\n %f, %f, %f,\n%f, %f, %f]\n"),
-				_temp_rot[0][0], _temp_rot[0][1], _temp_rot[0][2],
-				_temp_rot[1][0], _temp_rot[1][1], _temp_rot[1][2],
-				_temp_rot[2][0], _temp_rot[2][1], _temp_rot[2][2]);
+	// Dump to pipe @100Hz
+	uint8_t log_packet[3*4];
+	uint8_t* orptr = (uint8_t*)&roll;
+	for (uint8_t li=0;li<4;li++){
+		log_packet[li] = *(orptr+li);
 	}
+	orptr = (uint8_t*)&pitch;
+	for (uint8_t li=0;li<4;li++){
+		log_packet[4+li] = *(orptr+li);
+	}
+	orptr = (uint8_t*)&yaw;
+	for (uint8_t li=0;li<4;li++){
+		log_packet[8+li] = *(orptr+li);
+	}
+	mincopter.hal.sim->log_state(log_packet, 12, 0x01);
+
+	// Dump to console @1Hz
+	if (_counter%100==0) {
+		mincopter.hal.console->printf("[loop %lu] remaining_ram=%u\n", _counter, mincopter.hal.util->available_memory());
+		mincopter.hal.console->printf_P(PSTR("[RAW]\n"));
+		mincopter.hal.console->printf_P(PSTR("gyr : % 6.2f, % 6.2f, % 6.2f\n"), _gyr_meas.x, _gyr_meas.y, _gyr_meas.z);
+		mincopter.hal.console->printf_P(PSTR("acc : % 6.2f, % 6.2f, % 6.2f\n"), _acc_meas.x, _acc_meas.y, _acc_meas.z);
+		mincopter.hal.console->printf_P(PSTR("mag : % 6.2f, % 6.2f, % 6.2f\n"), _mag_meas.x, _mag_meas.y, _mag_meas.z);
+		mincopter.hal.console->printf_P(PSTR("baro: % 6.2f, % 6.2f\n"), _pres, _temperature);
+		mincopter.hal.console->printf_P(PSTR("gps : %d\n"), _status);
+		mincopter.hal.console->printf_P(PSTR("lat/lng: %d, %d\n"), mincopter.g_gps->latitude, mincopter.g_gps->longitude);
+		mincopter.hal.console->printf_P(PSTR("[STATE]\n"));
+		mincopter.hal.console->printf_P(PSTR("pos x,y,z      : %f, %f, %f\n"), _temp_pos.x, _temp_pos.y, _temp_pos.z);
+		mincopter.hal.console->printf_P(PSTR("vel x,y,z      : %f, %f, %f\n"), _temp_vel.x, _temp_vel.y, _temp_vel.z);
+		mincopter.hal.console->printf_P(PSTR("att q1,q2,q3,q4: %f, %f, %f, %f\n"), _temp_att[0], _temp_att[1], _temp_att[2], _temp_att[3]);
+		mincopter.hal.console->printf_P(PSTR("eul r,p,y      : %f, %f, %f\n"), roll, pitch, yaw);
+	}
+#endif
 
     uint32_t timer = micros();
 

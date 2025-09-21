@@ -68,6 +68,9 @@ void HAL_Generic::init(int argc,char* const argv[]) const
 	// Initialise simulation
 	sim->setup_sim_socket();
 
+	// Initialise logging over pipe
+	sim->setup_log_pipe("/tmp/mincopter_log");
+
 }
 
 const HAL_Generic AP_HAL_Generic;

@@ -20,6 +20,9 @@ class AP_HAL::Sim
 		/* @brief Set up UDP socket between this and GZ server process */
 		virtual bool setup_sim_socket(void) = 0;
 
+		/* @brief Set up the pipe to log current state to other processes */
+		virtual bool setup_log_pipe(const char* pipeaddr) = 0;
+
 		/* @brief Send a motor control output PWM */
 		virtual bool send_control_output(void) = 0;
 
@@ -93,6 +96,12 @@ class AP_HAL::Sim
 		/* @brief Update the pose of the copter in the Gazebo simulation. This should zero all velocities/accelerations/momentum.
 		 * Pose is specified in the MinCopter frame (NED, extrinsic X-Y-Z orientation) with position in metres and orientation in radians */
 		virtual void set_mincopter_pose(float x_ned_m, float y_ned_m, float z_ned_m, float roll_rad, float pitch_rad, float yaw_rad) = 0;
+
+	public:
+
+		/* @brief Log state data to the pipe */
+		virtual void log_state(uint8_t* data, uint8_t len, uint8_t type) = 0;
+
 
 	public:
 		/*
