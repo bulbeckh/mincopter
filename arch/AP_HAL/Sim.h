@@ -87,6 +87,7 @@ class AP_HAL::Sim
 
 		// TODO This is a very bad quick hack to get the motor output - should really be taking this from hal.rcout
 		int16_t motor_out[4];
+		float control_input[4];
 
 	public:
 

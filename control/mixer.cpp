@@ -32,6 +32,11 @@ void Mixer::output(float total_force_n, float roll_t_nm, float pitch_t_nm, float
 
 	// TODO Logging
 	
+	mincopter.hal.sim->control_input[0] = total_force_n;
+	mincopter.hal.sim->control_input[1] = roll_t_nm;
+	mincopter.hal.sim->control_input[2] = pitch_t_nm;
+	mincopter.hal.sim->control_input[3] = yaw_t_nm;
+	
 	static uint32_t cnt=0;
 	if (cnt%100==0) {
 		mincopter.hal.console->printf("allocation: %d,%d,%d,%d\n", _motor_pwm_us[0], _motor_pwm_us[1], _motor_pwm_us[2], _motor_pwm_us[3]);

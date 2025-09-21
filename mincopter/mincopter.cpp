@@ -56,6 +56,11 @@
 	#include <stdio.h>
 #endif
 
+// To enable logging over named pipe
+#ifdef TARGET_ARCH_LINUX
+	#include <cstring>
+#endif
+
 #include <AP_Math.h>
 #include <AP_GPS.h>
 
@@ -177,6 +182,8 @@ void loop()
 	Vector3f _temp_vel = mcstate.get_velocity();
 	Vector3f _temp_eul = mcstate.get_euler_angles();
 
+	Vector3f _temp_e_rates = mcstate.get_euler_rates();
+
 	float _pres = mincopter.barometer.get_pressure();
 	float _temperature = mincopter.barometer.get_temperature();
 
@@ -189,20 +196,55 @@ void loop()
 	_temp_att.rotation_matrix(_temp_rot);
 
 	// Dump to pipe @100Hz
-	uint8_t log_packet[3*4];
-	uint8_t* orptr = (uint8_t*)&roll;
-	for (uint8_t li=0;li<4;li++){
-		log_packet[li] = *(orptr+li);
-	}
-	orptr = (uint8_t*)&pitch;
-	for (uint8_t li=0;li<4;li++){
-		log_packet[4+li] = *(orptr+li);
-	}
-	orptr = (uint8_t*)&yaw;
-	for (uint8_t li=0;li<4;li++){
-		log_packet[8+li] = *(orptr+li);
-	}
+	uint8_t log_packet[16];
+
+	/* In place of an enum, we use the following type IDs for log messages
+	 * 0x01 RPY (euler)
+	 * 0x02 Position
+	 * 0x03 Velocity
+	 * 0x04 Euler Rates
+	 * 0x05 Control Input
+	 * 0x06 Motor velocities
+	 *
+	 */
+
+	// RPY
+	std::memcpy(log_packet, &roll, 4);
+	std::memcpy(log_packet+4, &pitch, 4);
+	std::memcpy(log_packet+8, &yaw, 4);
 	mincopter.hal.sim->log_state(log_packet, 12, 0x01);
+
+	// Position
+	std::memcpy(log_packet, &_temp_pos.x, 4);
+	std::memcpy(log_packet+4, &_temp_pos.y, 4);
+	std::memcpy(log_packet+8, &_temp_pos.z, 4);
+	mincopter.hal.sim->log_state(log_packet, 12, 0x02);
+
+	// Velocity
+	std::memcpy(log_packet, &_temp_vel.x, 4);
+	std::memcpy(log_packet+4, &_temp_vel.y, 4);
+	std::memcpy(log_packet+8, &_temp_vel.z, 4);
+	mincopter.hal.sim->log_state(log_packet, 12, 0x03);
+
+	// Euler rates
+	std::memcpy(log_packet, &_temp_e_rates.x, 4);
+	std::memcpy(log_packet+4, &_temp_e_rates.y, 4);
+	std::memcpy(log_packet+8, &_temp_e_rates.z, 4);
+	mincopter.hal.sim->log_state(log_packet, 12, 0x04);
+
+	// Control Input (Force,Torque)
+	std::memcpy(log_packet, &mincopter.hal.sim->control_input[0], 4);
+	std::memcpy(log_packet+4, &mincopter.hal.sim->control_input[1], 4);
+	std::memcpy(log_packet+8, &mincopter.hal.sim->control_input[2], 4);
+	std::memcpy(log_packet+12, &mincopter.hal.sim->control_input[3], 4);
+	mincopter.hal.sim->log_state(log_packet, 16, 0x05);
+
+	// Motor Velocities PWM
+	std::memcpy(log_packet, &mincopter.hal.sim->motor_out[0], 2);
+	std::memcpy(log_packet+2, &mincopter.hal.sim->motor_out[1], 2);
+	std::memcpy(log_packet+4, &mincopter.hal.sim->motor_out[2], 2);
+	std::memcpy(log_packet+6, &mincopter.hal.sim->motor_out[3], 2);
+	mincopter.hal.sim->log_state(log_packet, 8, 0x06);
 
 	// Dump to console @1Hz
 	if (_counter%100==0) {
