@@ -22,6 +22,10 @@ list(APPEND mc-control-lqr
 	${CMAKE_SOURCE_DIR}/control/controller_lqr.cpp
 )
 
+list(APPEND mc-control-csc
+	${CMAKE_SOURCE_DIR}/control/controller_csc.cpp
+)
+
 list(APPEND mc-control-none
 	${CMAKE_SOURCE_DIR}/control/controller_none.cpp
 )
@@ -61,6 +65,10 @@ elseif(MC_CONTROLLER_TYPE STREQUAL "PID")
 elseif(MC_CONTROLLER_TYPE STREQUAL "LQR")
 	target_sources(mc-control PUBLIC
 		${mc-control-lqr}
+	)
+elseif(MC_CONTROLLER_TYPE STREQUAL "CSC")
+	target_sources(mc-control PUBLIC
+		${mc-control-csc}
 	)
 elseif(MC_CONTROLLER_TYPE STREQUAL "NONE")
 	target_sources(mc-control PUBLIC

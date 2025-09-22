@@ -79,7 +79,7 @@ if __name__=="__main__":
 
     plt.ion()
 
-    fig, ax = plt.subplots(10,2, figsize=(8, 12))
+    fig, ax = plt.subplots(10,2, figsize=(16, 24))
 
     locs = {'roll': (0,0),
               'pitch': (1,0),

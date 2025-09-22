@@ -15,6 +15,9 @@
 #elif CONTROLLER_LQR
 	#include "controller_lqr.h"
 	extern LQR_Controller controller;
+#elif CONTROLLER_CSC
+	#include "controller_csc.h"
+	extern CSC_Controller controller;
 #elif CONTROLLER_NONE
 	#include "controller_none.h"
 	extern None_Controller controller;
