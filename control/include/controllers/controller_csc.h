@@ -25,6 +25,10 @@ class CSC_Controller : public MC_Controller
 		void run(void) override;
 
 	private:
+
+		/* @brief Counter to ensure outer runs at 20Hz */
+		uint32_t csc_counter;
+
 		/* @brief Controller mixer algorithm */
 		Mixer mixer;
 
@@ -36,6 +40,10 @@ class CSC_Controller : public MC_Controller
 		AC_PID error_roll;
 		AC_PID error_pitch;
 		AC_PID error_yaw;
+
+		float roll_rate_target;
+		float pitch_rate_target;
+		float yaw_rate_target;
 
 };
 

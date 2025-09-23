@@ -13,8 +13,7 @@ class Mixer {
 		Mixer(void) :
 			_pwm_min_us(1000),
 			_pwm_max_us(2000),
-			// TODO For now, align the maximum rotor velocity with the PWM @ 2000rad/s
-			_rotor_vel_max_rads(2000)
+			_rotor_vel_max_rads(500)
 		{
 			// Params with kt=2.05e-6
 			/*
@@ -36,6 +35,14 @@ class Mixer {
 			float c2 = 98814;
 			float c3 = 167224;
 			float c4 = 1086956;
+			*/
+
+			// kt = 30e-5
+			/*
+			float c1 = 833;
+			float c2 = 3787;
+			float c3 = 6410;
+			float c4 = 41666;
 			*/
 
 			// Setup allocation

@@ -79,7 +79,7 @@ if __name__=="__main__":
 
     plt.ion()
 
-    fig, ax = plt.subplots(10,2, figsize=(16, 24))
+    fig, ax = plt.subplots(10,2, figsize=(8, 8))
 
     locs = {'roll': (0,0),
               'pitch': (1,0),
@@ -109,6 +109,9 @@ if __name__=="__main__":
         ctx['lines'][e], = ax[locs[e][0],locs[e][1]].plot([],[], color='red')
 
         ax[locs[e][0], locs[e][1]].set_title(e)
+
+        if e in ['m0', 'm1', 'm2', 'm3']:
+            ax[locs[e][0], locs[e][1]].set_ylim(950, 2050)
 
     plt.pause(0.5)
 

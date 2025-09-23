@@ -19,7 +19,7 @@ void Mixer::output(float total_force_n, float roll_t_nm, float pitch_t_nm, float
 		float candidate_rotor_vel = safe_sqrt(allocation_out);
 
 		// Scale the desired rotor velocity to be between the minimum and maximum ESC PWM signal (default is [1000, 2000])
-		candidate_rotor_vel = (candidate_rotor_vel/_rotor_vel_max_rads)*(_pwm_max_us - _pwm_min_us) + _pwm_min_us;
+		candidate_rotor_vel = ( (candidate_rotor_vel-250)/_rotor_vel_max_rads)*(_pwm_max_us - _pwm_min_us) + _pwm_min_us;
 
 		// Constrain and convert to int16_t
 		int16_t motor_out = constrain_int16((int16_t)candidate_rotor_vel, _pwm_min_us, _pwm_max_us);

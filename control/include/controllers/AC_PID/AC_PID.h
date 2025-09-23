@@ -11,6 +11,8 @@
 #include <stdlib.h>
 #include <math.h>               // for fabs()
 
+#define AC_PID_ERROR_DTYPE float
+
 /// @class	AC_PID
 /// @brief	Object managing one PID control
 class AC_PID {
@@ -56,12 +58,12 @@ public:
     ///
     /// @returns		The updated control output.
     ///
-    int32_t         get_pid(int32_t error, float dt);
-    int32_t         get_pi(int32_t error, float dt);
-    int32_t         get_p(int32_t error);
-    int32_t         get_i(int32_t error, float dt);
-    int32_t         get_d(int32_t error, float dt);
-	int32_t 		get_leaky_i(int32_t error, float dt, float leak_rate);
+    AC_PID_ERROR_DTYPE         get_pid(AC_PID_ERROR_DTYPE error, float dt);
+    AC_PID_ERROR_DTYPE         get_pi(AC_PID_ERROR_DTYPE error, float dt);
+    AC_PID_ERROR_DTYPE         get_p(AC_PID_ERROR_DTYPE error);
+    AC_PID_ERROR_DTYPE         get_i(AC_PID_ERROR_DTYPE error, float dt);
+    AC_PID_ERROR_DTYPE         get_d(AC_PID_ERROR_DTYPE error, float dt);
+	AC_PID_ERROR_DTYPE 		get_leaky_i(AC_PID_ERROR_DTYPE error, float dt, float leak_rate);
 
 
     /// Reset the PID integrator
@@ -121,7 +123,7 @@ private:
     int16_t        _imax;
 
     float           _integrator;                                ///< integrator value
-    int32_t         _last_input;                                ///< last input for derivative
+    AC_PID_ERROR_DTYPE         _last_input;                                ///< last input for derivative
     float           _last_derivative;                           ///< last derivative for low-pass filter
 
     /// Low pass filter cut frequency for derivative calculation.

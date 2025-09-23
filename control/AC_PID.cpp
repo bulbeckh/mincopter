@@ -15,12 +15,12 @@
 const float  AC_PID::_filter = 7.9577e-3; // Set to  "1 / ( 2 * PI * f_cut )";
 
 
-int32_t AC_PID::get_p(int32_t error)
+AC_PID_ERROR_DTYPE AC_PID::get_p(AC_PID_ERROR_DTYPE error)
 {
     return (float)error * _kp;
 }
 
-int32_t AC_PID::get_i(int32_t error, float dt)
+AC_PID_ERROR_DTYPE AC_PID::get_i(AC_PID_ERROR_DTYPE error, float dt)
 {
     if((_ki != 0) && (dt != 0)) {
         _integrator += ((float)error * _ki) * dt;
@@ -37,7 +37,7 @@ int32_t AC_PID::get_i(int32_t error, float dt)
 // This is an integrator which tends to decay to zero naturally
 // if the error is zero.
 
-int32_t AC_PID::get_leaky_i(int32_t error, float dt, float leak_rate)
+AC_PID_ERROR_DTYPE AC_PID::get_leaky_i(AC_PID_ERROR_DTYPE error, float dt, float leak_rate)
 {
 	if((_ki != 0) && (dt != 0)){
 		_integrator -= (float)_integrator * leak_rate;
@@ -53,7 +53,7 @@ int32_t AC_PID::get_leaky_i(int32_t error, float dt, float leak_rate)
 	return 0;
 }
 
-int32_t AC_PID::get_d(int32_t input, float dt)
+AC_PID_ERROR_DTYPE AC_PID::get_d(AC_PID_ERROR_DTYPE input, float dt)
 {
     if ((_kd != 0) && (dt != 0)) {
         float derivative;
@@ -83,13 +83,13 @@ int32_t AC_PID::get_d(int32_t input, float dt)
     return 0;
 }
 
-int32_t AC_PID::get_pi(int32_t error, float dt)
+AC_PID_ERROR_DTYPE AC_PID::get_pi(AC_PID_ERROR_DTYPE error, float dt)
 {
     return get_p(error) + get_i(error, dt);
 }
 
 
-int32_t AC_PID::get_pid(int32_t error, float dt)
+AC_PID_ERROR_DTYPE AC_PID::get_pid(AC_PID_ERROR_DTYPE error, float dt)
 {
     return get_p(error) + get_i(error, dt) + get_d(error, dt);
 }
