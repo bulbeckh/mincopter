@@ -47,12 +47,14 @@
 #include <gz/sim/components/JointVelocity.hh>
 #include <gz/sim/components/JointVelocityCmd.hh>
 #include <gz/sim/components/LinearVelocity.hh>
+#include <gz/sim/components/AngularVelocity.hh>
 #include <gz/sim/components/Link.hh>
 #include <gz/sim/components/Name.hh>
 #include <gz/sim/components/Pose.hh>
 #include <gz/sim/components/Sensor.hh>
 #include <gz/sim/components/World.hh>
 #include <gz/sim/Model.hh>
+#include <gz/sim/Link.hh>
 #include <gz/sim/World.hh>
 #include <gz/sim/Util.hh>
 #include <gz/math/Filter.hh>
@@ -1534,6 +1536,39 @@ void gz::sim::systems::ArduPilotPlugin::PreUpdate(
 				// keep this function running every iteration (1000Hz) even though the motor
 				// commands will be updated at 100Hz
                 this->ApplyMotorForces(dt, _ecm);
+
+				// We can ignore the motor forces and then just update the link pose here
+			
+				// Retrieve the iris_with_standoffs model
+				auto standoffs_m = gz::sim::Model(
+						this->dataPtr->model.ModelByName(_ecm, std::string("iris_with_standoffs"))
+						);
+
+				gz::sim::Entity baselink_e = standoffs_m.LinkByName(_ecm, std::string("base_link"));
+
+				gz::sim::Link baselink_l = gz::sim::Link(baselink_e);
+
+				// Set linear velocity to 0
+				baselink_l.SetLinearVelocity(_ecm,
+						gz::math::Vector3d(0,0,0)
+						);
+
+				// Set angular velocity as needed
+				baselink_l.SetAngularVelocity(_ecm,
+						gz::math::Vector3d(1.57,0,1.57)
+						);
+
+				auto baselink_worldpose = baselink_l.WorldPose(_ecm);
+
+				// Set pose to be constant
+				this->dataPtr->model.SetWorldPoseCmd(_ecm,
+						gz::math::Pose3d(0,0,5,
+							baselink_worldpose->Roll(),
+							baselink_worldpose->Pitch(),
+							baselink_worldpose->Yaw()
+						)
+					);
+
             }
         }
     }
@@ -2201,6 +2236,25 @@ void gz::sim::systems::ArduPilotPlugin::CreateStateJSON(
     const gz::sim::components::WorldLinearVelocity* worldLinearVel =
         _ecm.Component<gz::sim::components::WorldLinearVelocity>(
             this->dataPtr->imuLink);
+
+	const gz::sim::components::WorldAngularVelocity* worldAngVel =
+		_ecm.Component<gz::sim::components::WorldAngularVelocity>(
+			this->dataPtr->imuLink);
+
+	auto coptermodelentity = _ecm.EntityByName(std::string("iris_with_standoffs"));
+
+	if (coptermodelentity) {
+		gz::sim::Model coptermodel(*coptermodelentity);
+		const gz::sim::Entity base_link_ent = coptermodel.LinkByName(_ecm, std::string("base_link"));
+
+		gzdbg << "baselink has ang vel: " << _ecm.EntityHasComponentType(base_link_ent, gz::sim::components::WorldAngularVelocity::typeId) << "\n";
+		gzdbg << "baselink has lin vel: " << _ecm.EntityHasComponentType(base_link_ent, gz::sim::components::WorldLinearVelocity::typeId) << "\n";
+	} else {
+		gzdbg << "COPTERMODEL NOT FOUND\n";
+	}
+
+
+	//gzdbg << "WLD Ang Vel: " << worldAngVel->Data().X() << " " << worldAngVel->Data().Y() << " " << worldAngVel->Data().Z() << "\n";
 
     // position and orientation transform (Aircraft world to Aircraft body)
     gz::math::Pose3d bdyAToBdyG =
