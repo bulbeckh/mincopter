@@ -11,6 +11,8 @@
 
 //using namespace Linux;
 
+#define USE_LOG_FILE
+
 // TODO For generic linux (and maybe embedded linux too), one UART should redirect to stdout or some other
 // device file and the rest should be NULL, or we have separate device files for each of the 4 UARTs
 
@@ -69,7 +71,11 @@ void HAL_Generic::init(int argc,char* const argv[]) const
 	sim->setup_sim_socket();
 
 	// Initialise logging over pipe
-	sim->setup_log_pipe("/tmp/mincopter_log");
+#if defined(USE_LOG_PIPE)
+	sim->setup_log_source("/tmp/mincopter_log", AP_HAL::Sim::LogSource::PIPE);
+#elif defined(USE_LOG_FILE)
+	sim->setup_log_source("./mincopter_log.txt", AP_HAL::Sim::LogSource::LOGFILE);
+#endif
 
 }
 

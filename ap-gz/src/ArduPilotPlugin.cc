@@ -1548,15 +1548,6 @@ void gz::sim::systems::ArduPilotPlugin::PreUpdate(
 
 				gz::sim::Link baselink_l = gz::sim::Link(baselink_e);
 
-				// Set linear velocity to 0
-				baselink_l.SetLinearVelocity(_ecm,
-						gz::math::Vector3d(0,0,0)
-						);
-
-				// Set angular velocity as needed
-				baselink_l.SetAngularVelocity(_ecm,
-						gz::math::Vector3d(1.57,0,1.57)
-						);
 
 				auto baselink_worldpose = baselink_l.WorldPose(_ecm);
 
@@ -1568,6 +1559,17 @@ void gz::sim::systems::ArduPilotPlugin::PreUpdate(
 							baselink_worldpose->Yaw()
 						)
 					);
+
+				// Set linear velocity to 0
+				baselink_l.SetLinearVelocity(_ecm,
+						gz::math::Vector3d(0,0,0)
+						);
+
+				// Set angular velocity as needed
+				baselink_l.SetAngularVelocity(_ecm,
+						gz::math::Vector3d(0,0,1.57)
+						);
+
 
             }
         }

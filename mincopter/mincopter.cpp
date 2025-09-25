@@ -196,7 +196,7 @@ void loop()
 	_temp_att.rotation_matrix(_temp_rot);
 
 	// Dump to pipe @100Hz
-	uint8_t log_packet[16];
+	uint8_t log_packet[48];
 
 	/* In place of an enum, we use the following type IDs for log messages
 	 * 0x01 RPY (euler)
@@ -205,6 +205,8 @@ void loop()
 	 * 0x04 Euler Rates
 	 * 0x05 Control Input
 	 * 0x06 Motor velocities
+	 *
+	 * 0x07 Full sensor state (3x imu accel, 3x imu gyro, 3x compass)
 	 *
 	 */
 
@@ -245,6 +247,35 @@ void loop()
 	std::memcpy(log_packet+4, &mincopter.hal.sim->motor_out[2], 2);
 	std::memcpy(log_packet+6, &mincopter.hal.sim->motor_out[3], 2);
 	mincopter.hal.sim->log_state(log_packet, 8, 0x06);
+
+	// NOTE Downcast to float
+	float imu_a_x = (float)mincopter.hal.sim->last_sensor_state.imu_accel_x;
+	float imu_a_y = (float)mincopter.hal.sim->last_sensor_state.imu_accel_y;
+	float imu_a_z = (float)mincopter.hal.sim->last_sensor_state.imu_accel_z;
+
+	float imu_g_x = (float)mincopter.hal.sim->last_sensor_state.imu_gyro_x;
+	float imu_g_y = (float)mincopter.hal.sim->last_sensor_state.imu_gyro_y;
+	float imu_g_z = (float)mincopter.hal.sim->last_sensor_state.imu_gyro_z;
+
+	float comp_x = (float)mincopter.hal.sim->last_sensor_state.field_x;
+	float comp_y = (float)mincopter.hal.sim->last_sensor_state.field_y;
+	float comp_z = (float)mincopter.hal.sim->last_sensor_state.field_z;
+
+	// TODO Change this to the sensor variables and not the simulation variables
+	// Sensor state ( (3+3+3)*4)
+	std::memcpy(log_packet, &imu_a_x, 4);
+	std::memcpy(log_packet+4, &imu_a_y, 4);
+	std::memcpy(log_packet+8, &imu_a_z, 4);
+
+	std::memcpy(log_packet+12, &imu_g_x, 4);
+	std::memcpy(log_packet+16, &imu_g_y, 4);
+	std::memcpy(log_packet+20, &imu_g_z, 4);
+
+	std::memcpy(log_packet+24, &comp_x, 4);
+	std::memcpy(log_packet+28, &comp_y, 4);
+	std::memcpy(log_packet+32, &comp_z, 4);
+
+	mincopter.hal.sim->log_state(log_packet, 36, 0x07);
 
 	// Dump to console @1Hz
 	if (_counter%100==0) {

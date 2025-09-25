@@ -5,6 +5,7 @@ Because we are using a 'soft' HAL abstraction/interface, one approach we can tak
 
 We want to log the following information from the gazebo simulation
 
+NOTE: LOGSTREAMER is not currently working
 
 ## Simulation information
 - int32_t simulation time (s)

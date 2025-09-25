@@ -16,12 +16,18 @@ class AP_HAL::Sim
 	public:
 		Sim() {}
 
+	public:
+		enum class LogSource {
+			PIPE,
+			LOGFILE
+		};
+
     public:
 		/* @brief Set up UDP socket between this and GZ server process */
 		virtual bool setup_sim_socket(void) = 0;
 
 		/* @brief Set up the pipe to log current state to other processes */
-		virtual bool setup_log_pipe(const char* pipeaddr) = 0;
+		virtual bool setup_log_source(const char* addr, LogSource source) = 0;
 
 		/* @brief Send a motor control output PWM */
 		virtual bool send_control_output(void) = 0;

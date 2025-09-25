@@ -47,7 +47,7 @@ class generic::GenericGZInterface : public AP_HAL::Sim {
 		/* @brief Set up UDP socket between this and GZ server process */
 		bool setup_sim_socket(void) override;
 
-		bool setup_log_pipe(const char*) override;
+		bool setup_log_source(const char*, LogSource source) override;
 
 		void log_state(uint8_t* data, uint8_t len, uint8_t type) override;
 

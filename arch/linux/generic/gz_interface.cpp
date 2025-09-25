@@ -308,13 +308,19 @@ void GenericGZInterface::set_mincopter_pose(float x_ned_m, float y_ned_m, float 
 	return;
 }
 
-bool GenericGZInterface::setup_log_pipe(const char* pipeaddr)
+bool GenericGZInterface::setup_log_source(const char* addr, LogSource source)
 {
-	// Create pipe if it doesn't already exist
-	mkfifo(pipeaddr, 0666);
+	if (source==LogSource::PIPE) {
+		// Create pipe if it doesn't already exist
+		mkfifo(addr, 0666);
 
-	// NOTE This will block until we open the pipe on the other side
-	logfd = open(pipeaddr, O_WRONLY);
+		// NOTE This will block until we open the pipe on the other side
+		logfd = open(addr, O_WRONLY);
+	} else if (source==LogSource::LOGFILE) {
+		// Create file in current directory
+		logfd = open(addr, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+	}
+
 
 	if (logfd < 0 ) {
 		hal.console->printf("bad fd for logging\n");
