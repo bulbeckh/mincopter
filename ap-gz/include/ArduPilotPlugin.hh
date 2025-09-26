@@ -66,6 +66,11 @@ struct mc_sim_state_packet {
 	double wldAToBdyA_euler_y;
 	double wldAToBdyA_euler_z;
 
+	// Angular velocities
+	double euler_rate_x;
+	double euler_rate_y;
+	double euler_rate_z;
+
     double vel_x;
     double vel_y;
     double vel_z;

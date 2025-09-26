@@ -27,8 +27,10 @@ void AP_Compass_Sim::accumulate(void)
 	 * to rotate into NED frame */
 
 	// Rotate into NED frame
+	/*
 	temp_field.y *= -1;
 	temp_field.z *= -1;
+	*/
 
 	// Add to the accumulated field
 	acc_field += temp_field;

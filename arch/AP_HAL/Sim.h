@@ -59,6 +59,10 @@ class AP_HAL::Sim
 			double wldAbdyA_eul_x; // Roll
 			double wldAbdyA_eul_y; // Pitch
 			double wldAbdyA_eul_z; // Yaw
+			
+			double euler_rate_x;
+			double euler_rate_y;
+			double euler_rate_z;
 
 			double vel_x;
 			double vel_y;

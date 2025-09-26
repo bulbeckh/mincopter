@@ -1078,6 +1078,22 @@ void gz::sim::systems::ArduPilotPlugin::PreUpdate(
     const gz::sim::UpdateInfo &_info,
     gz::sim::EntityComponentManager &_ecm)
 {
+
+	// Enable velocity checks for base link
+	auto coptermodelentity = _ecm.EntityByName(std::string("iris_with_standoffs"));
+
+	if (coptermodelentity) {
+		gz::sim::Model coptermodel(*coptermodelentity);
+
+		const gz::sim::Entity base_link_ent = coptermodel.LinkByName(_ecm, std::string("base_link"));
+
+		// Set velocity checks for the base link
+		auto base_link_l = gz::sim::Link(base_link_ent);
+		base_link_l.EnableVelocityChecks(_ecm, true);
+	}
+
+
+
     static bool calledInitAnemometerOnce{false};
     if (!this->dataPtr->anemometerName.empty() &&
         !this->dataPtr->anemometerInitialized &&
@@ -1534,11 +1550,13 @@ void gz::sim::systems::ArduPilotPlugin::PreUpdate(
 				// NOTE This will read the current setpoint of the motor velocities which are
 				// updates during the call to ReceiveServoPacket via UpdateMotorCommands. We
 				// keep this function running every iteration (1000Hz) even though the motor
-				// commands will be updated at 100Hz
+				// commands will be updated at 100HzS
+				
                 this->ApplyMotorForces(dt, _ecm);
 
 				// We can ignore the motor forces and then just update the link pose here
 			
+				 
 				// Retrieve the iris_with_standoffs model
 				auto standoffs_m = gz::sim::Model(
 						this->dataPtr->model.ModelByName(_ecm, std::string("iris_with_standoffs"))
@@ -1552,11 +1570,15 @@ void gz::sim::systems::ArduPilotPlugin::PreUpdate(
 				auto baselink_worldpose = baselink_l.WorldPose(_ecm);
 
 				// Set pose to be constant
+				/*
 				this->dataPtr->model.SetWorldPoseCmd(_ecm,
 						gz::math::Pose3d(0,0,5,
-							baselink_worldpose->Roll(),
-							baselink_worldpose->Pitch(),
-							baselink_worldpose->Yaw()
+							0.55, // Roll
+							0.55, // Pitch
+							0     // Yaw
+							//baselink_worldpose->Roll(),
+							//baselink_worldpose->Pitch(),
+							//baselink_worldpose->Yaw()
 						)
 					);
 
@@ -1569,6 +1591,7 @@ void gz::sim::systems::ArduPilotPlugin::PreUpdate(
 				baselink_l.SetAngularVelocity(_ecm,
 						gz::math::Vector3d(0,0,1.57)
 						);
+				*/
 
 
             }
@@ -2247,7 +2270,16 @@ void gz::sim::systems::ArduPilotPlugin::CreateStateJSON(
 
 	if (coptermodelentity) {
 		gz::sim::Model coptermodel(*coptermodelentity);
+
 		const gz::sim::Entity base_link_ent = coptermodel.LinkByName(_ecm, std::string("base_link"));
+
+		// Get angular velocity
+		if ( _ecm.EntityHasComponentType(base_link_ent, gz::sim::components::WorldAngularVelocity::typeId) ) {
+			const gz::sim::components::WorldAngularVelocity* base_link_ang_vel = _ecm.Component<gz::sim::components::WorldAngularVelocity>( base_link_ent );
+			this->dataPtr->sim_pkt.euler_rate_x = base_link_ang_vel->Data().X();
+			this->dataPtr->sim_pkt.euler_rate_y = base_link_ang_vel->Data().Y();
+			this->dataPtr->sim_pkt.euler_rate_z = base_link_ang_vel->Data().Z();
+		}
 
 		gzdbg << "baselink has ang vel: " << _ecm.EntityHasComponentType(base_link_ent, gz::sim::components::WorldAngularVelocity::typeId) << "\n";
 		gzdbg << "baselink has lin vel: " << _ecm.EntityHasComponentType(base_link_ent, gz::sim::components::WorldLinearVelocity::typeId) << "\n";
@@ -2256,11 +2288,14 @@ void gz::sim::systems::ArduPilotPlugin::CreateStateJSON(
 	}
 
 
+
+
 	//gzdbg << "WLD Ang Vel: " << worldAngVel->Data().X() << " " << worldAngVel->Data().Y() << " " << worldAngVel->Data().Z() << "\n";
 
     // position and orientation transform (Aircraft world to Aircraft body)
-    gz::math::Pose3d bdyAToBdyG =
-        this->dataPtr->modelXYZToAirplaneXForwardZDown.Inverse();
+
+	/* Transform from MinCopter body to Gazebo body. NOTE This transform is involutory(??) meaning it's inverse is the same itself */
+    gz::math::Pose3d bdyAToBdyG = this->dataPtr->modelXYZToAirplaneXForwardZDown.Inverse();
 
     /// \todo(srmainwaring) check for error.
     /// The inverse may be incorrect. The error is not evident when using
@@ -2269,19 +2304,27 @@ void gz::sim::systems::ArduPilotPlugin::CreateStateJSON(
     /// but is when using the correct transform which is
     ///   <gazeboXYZToNED>0 0 0 GZ_PI 0 GZ_PI/2</gazeboXYZToNED>
     ///
-    //gz::math::Pose3d wldAToWldG = this->dataPtr->gazeboXYZToNED.Inverse();
-    gz::math::Pose3d wldAToWldG = this->dataPtr->gazeboXYZToNED;
+    
+	/* Transform from MinCopter world to Gazebo world - this is the first transform in the chain from MinCopter world to MinCopter body */
+	gz::math::Pose3d wldAToWldG = this->dataPtr->gazeboXYZToNED.Inverse();
+    //gz::math::Pose3d wldAToWldG = this->dataPtr->gazeboXYZToNED;
 
+	/* Transform from Gazebo world to Gazebo body - NOTE As per the SDF, at the start of the simulation this is simply a +90deg yaw */
     gz::math::Pose3d wldGToBdyG = worldPose->Data();
-    gz::math::Pose3d wldAToBdyA =
-        wldAToWldG * wldGToBdyG * bdyAToBdyG.Inverse();
 
-	gzwarn << "WORLDPOSE: " << worldPose->Data() << "\n";
-	gzwarn << "mincopterPOSE: " << wldAToBdyA << "\n";
+	/* The full transformation of position from MinCopter world to MinCopter body */
+    gz::math::Pose3d wldAToBdyA = wldAToWldG * wldGToBdyG * bdyAToBdyG.Inverse();
 
-    // velocity transformation
+	if (false) {
+		gzwarn << "WORLDPOSE: " << worldPose->Data() << "\n";
+		gzwarn << "mincopterPOSE: " << wldAToBdyA << "\n";
+	}
+
+	// IMU/BaseLink Linear Velocity
     gz::math::Vector3d velWldG = worldLinearVel->Data();
-    gz::math::Vector3d velWldA = wldAToWldG.Rot() * velWldG + wldAToWldG.Pos();
+    gz::math::Vector3d velWldA = wldAToWldG.Rot() * velWldG; /* + wldAToWldG.Pos(); */
+
+	// TODO IMU/BaseLink Angular Velocity
 
     // require the duration since sim start in seconds
     double timestamp = _simTime;
@@ -2340,7 +2383,7 @@ void gz::sim::systems::ArduPilotPlugin::CreateStateJSON(
     // MinCopter - update state struct
     this->dataPtr->sim_pkt.timestamp = timestamp;
 
-	//angularVel = bdyAToBdyG.Rot()*angularVel;
+	angularVel = bdyAToBdyG.Rot()*angularVel;
     this->dataPtr->sim_pkt.imu_gyro_x = angularVel.X();
     this->dataPtr->sim_pkt.imu_gyro_y = angularVel.Y();
     this->dataPtr->sim_pkt.imu_gyro_z = angularVel.Z();
@@ -2359,8 +2402,7 @@ void gz::sim::systems::ArduPilotPlugin::CreateStateJSON(
 	 * We instead negate certain readings - in this case the X-reading to get the data
 	 * in the mincopter body frame */
 
-	//linearAccel = bdyAToBdyG.Rot() * linearAccel;
-    //this->dataPtr->sim_pkt.imu_accel_x = -1*linearAccel.X();
+	linearAccel = bdyAToBdyG.Rot() * linearAccel;
     this->dataPtr->sim_pkt.imu_accel_x = linearAccel.X();
     this->dataPtr->sim_pkt.imu_accel_y = linearAccel.Y();
     this->dataPtr->sim_pkt.imu_accel_z = linearAccel.Z();
@@ -2388,8 +2430,7 @@ void gz::sim::systems::ArduPilotPlugin::CreateStateJSON(
 		compassMsg.field_tesla().z()
 	};
 
-	//compass_field = bdyAToBdyG.Rot() * compass_field;
-	
+	compass_field = bdyAToBdyG.Rot() * compass_field;
     this->dataPtr->sim_pkt.field_x = compass_field.X();
     this->dataPtr->sim_pkt.field_y = compass_field.Y();
     this->dataPtr->sim_pkt.field_z = compass_field.Z();

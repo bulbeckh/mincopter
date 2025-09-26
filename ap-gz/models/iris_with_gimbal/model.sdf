@@ -267,7 +267,7 @@
         -->
       <control channel="0">
         <jointName>iris_with_standoffs::rotor_0_joint</jointName>
-		<useForce>0</useForce>
+		<useForce>1</useForce>
 
         <multiplier>500</multiplier>
 		<offset>0.5</offset>
@@ -292,7 +292,7 @@
 
       <control channel="1">
         <jointName>iris_with_standoffs::rotor_1_joint</jointName>
-		<useForce>0</useForce>
+		<useForce>1</useForce>
 
         <multiplier>500</multiplier>
 		<offset>0.5</offset>
@@ -317,7 +317,7 @@
 
       <control channel="2">
         <jointName>iris_with_standoffs::rotor_2_joint</jointName>
-		<useForce>0</useForce>
+		<useForce>1</useForce>
 
         <multiplier>-500</multiplier>
 		<offset>0.5</offset>
@@ -342,7 +342,7 @@
 
       <control channel="3">
         <jointName>iris_with_standoffs::rotor_3_joint</jointName>
-		<useForce>0</useForce>
+		<useForce>1</useForce>
 
         <multiplier>-500</multiplier>
 		<offset>0.5</offset>

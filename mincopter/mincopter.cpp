@@ -173,16 +173,19 @@ void loop()
 	_counter++;
 
 #ifdef TARGET_ARCH_LINUX
+	// Sensor readings
 	Vector3f _gyr_meas = mincopter.ins.get_gyro();
 	Vector3f _acc_meas = mincopter.ins.get_accel();
 	Vector3f _mag_meas = mincopter.compass.get_field();
 	GPS::GPS_Status _status = mincopter.g_gps->status();
 
+	// Estimated state
 	Vector3f _temp_pos = mcstate.get_position();
 	Vector3f _temp_vel = mcstate.get_velocity();
 	Vector3f _temp_eul = mcstate.get_euler_angles();
-
 	Vector3f _temp_e_rates = mcstate.get_euler_rates();
+
+	// Actual state
 
 	float _pres = mincopter.barometer.get_pressure();
 	float _temperature = mincopter.barometer.get_temperature();
@@ -207,7 +210,7 @@ void loop()
 	 * 0x06 Motor velocities
 	 *
 	 * 0x07 Full sensor state (3x imu accel, 3x imu gyro, 3x compass)
-	 *
+	 * 0x08 Actual state (from gazebo)
 	 */
 
 	// RPY
@@ -276,6 +279,44 @@ void loop()
 	std::memcpy(log_packet+32, &comp_z, 4);
 
 	mincopter.hal.sim->log_state(log_packet, 36, 0x07);
+
+	float pos_x_actual = (float)mincopter.hal.sim->last_sensor_state.pos_x;
+	float pos_y_actual = (float)mincopter.hal.sim->last_sensor_state.pos_y;
+	float pos_z_actual = (float)mincopter.hal.sim->last_sensor_state.pos_z;
+
+	float vel_x_actual = (float)mincopter.hal.sim->last_sensor_state.vel_x;
+	float vel_y_actual = (float)mincopter.hal.sim->last_sensor_state.vel_y;
+	float vel_z_actual = (float)mincopter.hal.sim->last_sensor_state.vel_z;
+
+	float euler_x_actual = (float)mincopter.hal.sim->last_sensor_state.wldAbdyA_eul_x;
+	float euler_y_actual = (float)mincopter.hal.sim->last_sensor_state.wldAbdyA_eul_y;
+	float euler_z_actual = (float)mincopter.hal.sim->last_sensor_state.wldAbdyA_eul_z;
+
+	float euler_rate_x = (float)mincopter.hal.sim->last_sensor_state.euler_rate_x;
+	float euler_rate_y = (float)mincopter.hal.sim->last_sensor_state.euler_rate_y;
+	float euler_rate_z = (float)mincopter.hal.sim->last_sensor_state.euler_rate_z;
+
+	// TODO Repeat for actual angular rates
+	
+	std::memcpy(log_packet, &pos_x_actual, 4);
+	std::memcpy(log_packet+4, &pos_y_actual, 4);
+	std::memcpy(log_packet+8, &pos_z_actual, 4);
+
+	std::memcpy(log_packet+12, &vel_x_actual, 4);
+	std::memcpy(log_packet+16, &vel_y_actual, 4);
+	std::memcpy(log_packet+20, &vel_z_actual, 4);
+
+	std::memcpy(log_packet+24, &euler_x_actual, 4);
+	std::memcpy(log_packet+28, &euler_y_actual, 4);
+	std::memcpy(log_packet+32, &euler_z_actual, 4);
+
+	std::memcpy(log_packet+36, &euler_rate_x, 4);
+	std::memcpy(log_packet+40, &euler_rate_y, 4);
+	std::memcpy(log_packet+44, &euler_rate_z, 4);
+
+	mincopter.hal.sim->log_state(log_packet, 48, 0x08);
+
+	// Log actual state
 
 	// Dump to console @1Hz
 	if (_counter%100==0) {

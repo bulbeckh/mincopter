@@ -50,8 +50,10 @@ bool AP_InertialSensor_Sim::update( void )
 
 	// Apply rotations
 	// NOTE See docs for discussion on gazebo reference frames used for Compass and IMU
+	/*
 	simulation_gyro_reading.y *= -1;
 	simulation_gyro_reading.z *= -1;
+	*/
 
 	_gyro = simulation_gyro_reading;
 
@@ -62,9 +64,11 @@ bool AP_InertialSensor_Sim::update( void )
 			);
 
 	// Apply rotations
+	/*
 	simulation_accel_reading.y *= -1;
 	simulation_accel_reading.z *= -1;
-	
+	*/
+
 	_accel = simulation_accel_reading;
 
     return true;
