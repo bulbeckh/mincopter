@@ -2395,14 +2395,6 @@ void gz::sim::systems::ArduPilotPlugin::CreateStateJSON(
     this->dataPtr->sim_pkt.imu_gyro_y = angularVel.Y();
     this->dataPtr->sim_pkt.imu_gyro_z = angularVel.Z();
 
-	/*
-	gzdbg << "ROTMATRIX: " << bdyAToBdyG.Rot().Euler().X() << " "
-		<< bdyAToBdyG.Rot().Euler().Y() << " "
-		<< bdyAToBdyG.Rot().Euler().Z() << " "
-		<< linearAccel.X() << " " 
-		<< linearAccel.Y() << " " 
-		<< linearAccel.Z() << "\n";
-	*/ 
 
 	/* NOTE The IMU is in a strange reference frame where each axis has the negative
 	 * reading. This is a non-standard frame and hence we cannot apply a rotation matrix.
@@ -2410,6 +2402,12 @@ void gz::sim::systems::ArduPilotPlugin::CreateStateJSON(
 	 * in the mincopter body frame */
 
 	linearAccel = bdyAToBdyG.Rot() * linearAccel;
+
+	gzdbg << "Accelerometer: "
+		<< linearAccel.X() << " " 
+		<< linearAccel.Y() << " " 
+		<< linearAccel.Z() << "\n";
+
     this->dataPtr->sim_pkt.imu_accel_x = linearAccel.X();
     this->dataPtr->sim_pkt.imu_accel_y = linearAccel.Y();
     this->dataPtr->sim_pkt.imu_accel_z = linearAccel.Z();
@@ -2438,6 +2436,7 @@ void gz::sim::systems::ArduPilotPlugin::CreateStateJSON(
 	};
 
 	compass_field = bdyAToBdyG.Rot() * compass_field;
+
     this->dataPtr->sim_pkt.field_x = compass_field.X();
     this->dataPtr->sim_pkt.field_y = compass_field.Y();
     this->dataPtr->sim_pkt.field_z = compass_field.Z();

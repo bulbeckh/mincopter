@@ -25,7 +25,7 @@ class AHRS_Complementary : public AP_AHRS
 
 		// TODO Alpha should be passed in as an initialised value somehow
 		/* @brief The alpha value of the complementary filter */
-		float alpha = 0.5;
+		float alpha = 0.0;
 
 
 

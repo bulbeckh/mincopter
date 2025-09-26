@@ -3,12 +3,6 @@
 
 #include "AP_Math.h"
 
-#include "gz_interface.h"
-extern GZ_Interface gz_interface;
-
-#include "simulation_logger.h"
-extern SimulationLogger simlog;
-
 #include "mcinstance.h"
 extern MCInstance mincopter;
 
@@ -55,6 +49,20 @@ void AHRS_sim::ahrs_update()
 	
 	*/
 
+	_ahrs_state->_attitude.from_euler(
+			mincopter.hal.sim->last_sensor_state.wldAbdyA_eul_x,
+			mincopter.hal.sim->last_sensor_state.wldAbdyA_eul_y,
+			mincopter.hal.sim->last_sensor_state.wldAbdyA_eul_z
+			);
+
+	_ahrs_state->_euler.x = mincopter.hal.sim->last_sensor_state.wldAbdyA_eul_x;
+	_ahrs_state->_euler.y = mincopter.hal.sim->last_sensor_state.wldAbdyA_eul_y;
+	_ahrs_state->_euler.z = mincopter.hal.sim->last_sensor_state.wldAbdyA_eul_z;
+
+	_ahrs_state->_euler_rates.x = mincopter.hal.sim->last_sensor_state.euler_rate_x;
+	_ahrs_state->_euler_rates.y = mincopter.hal.sim->last_sensor_state.euler_rate_y;
+	_ahrs_state->_euler_rates.z = mincopter.hal.sim->last_sensor_state.euler_rate_z;
+			
 	return;
 }
 
