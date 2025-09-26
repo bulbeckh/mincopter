@@ -2266,26 +2266,6 @@ void gz::sim::systems::ArduPilotPlugin::CreateStateJSON(
 		_ecm.Component<gz::sim::components::WorldAngularVelocity>(
 			this->dataPtr->imuLink);
 
-	auto coptermodelentity = _ecm.EntityByName(std::string("iris_with_standoffs"));
-
-	if (coptermodelentity) {
-		gz::sim::Model coptermodel(*coptermodelentity);
-
-		const gz::sim::Entity base_link_ent = coptermodel.LinkByName(_ecm, std::string("base_link"));
-
-		// Get angular velocity
-		if ( _ecm.EntityHasComponentType(base_link_ent, gz::sim::components::WorldAngularVelocity::typeId) ) {
-			const gz::sim::components::WorldAngularVelocity* base_link_ang_vel = _ecm.Component<gz::sim::components::WorldAngularVelocity>( base_link_ent );
-			this->dataPtr->sim_pkt.euler_rate_x = base_link_ang_vel->Data().X();
-			this->dataPtr->sim_pkt.euler_rate_y = base_link_ang_vel->Data().Y();
-			this->dataPtr->sim_pkt.euler_rate_z = base_link_ang_vel->Data().Z();
-		}
-
-		gzdbg << "baselink has ang vel: " << _ecm.EntityHasComponentType(base_link_ent, gz::sim::components::WorldAngularVelocity::typeId) << "\n";
-		gzdbg << "baselink has lin vel: " << _ecm.EntityHasComponentType(base_link_ent, gz::sim::components::WorldLinearVelocity::typeId) << "\n";
-	} else {
-		gzdbg << "COPTERMODEL NOT FOUND\n";
-	}
 
 
 
@@ -2324,7 +2304,34 @@ void gz::sim::systems::ArduPilotPlugin::CreateStateJSON(
     gz::math::Vector3d velWldG = worldLinearVel->Data();
     gz::math::Vector3d velWldA = wldAToWldG.Rot() * velWldG; /* + wldAToWldG.Pos(); */
 
-	// TODO IMU/BaseLink Angular Velocity
+	// IMU/BaseLink Angular Velocity
+	auto coptermodelentity = _ecm.EntityByName(std::string("iris_with_standoffs"));
+
+	if (coptermodelentity) {
+		gz::sim::Model coptermodel(*coptermodelentity);
+
+		const gz::sim::Entity base_link_ent = coptermodel.LinkByName(_ecm, std::string("base_link"));
+
+		// Get angular velocity
+		if ( _ecm.EntityHasComponentType(base_link_ent, gz::sim::components::WorldAngularVelocity::typeId) ) {
+			const gz::sim::components::WorldAngularVelocity* base_link_ang_vel = _ecm.Component<gz::sim::components::WorldAngularVelocity>( base_link_ent );
+
+			// Get World Angular velocity of the base link (NOTE Should maybe use IMU Link instead to keep consistent but both are rigidly fixed anyway)
+			gz::math::Vector3d bl_ang_vel = base_link_ang_vel->Data();
+
+			// Convert from GZ World to MinCopter World
+			bl_ang_vel = wldAToWldG.Rot() * bl_ang_vel;
+
+			this->dataPtr->sim_pkt.euler_rate_x = bl_ang_vel.X();
+			this->dataPtr->sim_pkt.euler_rate_y = bl_ang_vel.Y();
+			this->dataPtr->sim_pkt.euler_rate_z = bl_ang_vel.Z();
+		}
+
+		gzdbg << "baselink has ang vel: " << _ecm.EntityHasComponentType(base_link_ent, gz::sim::components::WorldAngularVelocity::typeId) << "\n";
+		gzdbg << "baselink has lin vel: " << _ecm.EntityHasComponentType(base_link_ent, gz::sim::components::WorldLinearVelocity::typeId) << "\n";
+	} else {
+		gzdbg << "COPTERMODEL NOT FOUND\n";
+	}
 
     // require the duration since sim start in seconds
     double timestamp = _simTime;
