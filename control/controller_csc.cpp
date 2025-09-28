@@ -19,17 +19,17 @@ CSC_Controller::CSC_Controller()
 	rate_roll(0.5, 0.1, 0, CSC_PID_IMAX),
 	rate_pitch(0.5, 0.1, 0, CSC_PID_IMAX),
 	rate_yaw(0.5, 0.1, 0, CSC_PID_IMAX),
+	error_roll(20, 0.1, 0, CSC_PID_IMAX),
+	error_pitch(20, 0.1, 0, CSC_PID_IMAX),
+	error_yaw(20, 0.1, 0, CSC_PID_IMAX),
+
+	/*
+	rate_roll(0.5, 0.1, 0, CSC_PID_IMAX),
+	rate_pitch(0.5, 0.1, 0, CSC_PID_IMAX),
+	rate_yaw(0.5, 0.1, 0, CSC_PID_IMAX),
 	error_roll(1, 0.1, 0, CSC_PID_IMAX),
 	error_pitch(1, 0.1, 0, CSC_PID_IMAX),
 	error_yaw(1, 0.1, 0, CSC_PID_IMAX),
-
-	/*
-	rate_roll(0.05, 0, 0, CSC_PID_IMAX),
-	rate_pitch(0.05, 0, 0, CSC_PID_IMAX),
-	rate_yaw(0.05, 0, 0, CSC_PID_IMAX),
-	error_roll(0.05, 0, 0, CSC_PID_IMAX),
-	error_pitch(0.05, 0, 0, CSC_PID_IMAX),
-	error_yaw(0.05, 0, 0, CSC_PID_IMAX),
 	*/
 
 	csc_counter(0)
