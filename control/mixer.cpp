@@ -61,6 +61,9 @@ void Mixer::output(float total_force_n, float roll_t_nm, float pitch_t_nm, float
 	allocations[0] -= delta*scale;
 	allocations[2] -= delta*scale; 
 
+	// TODO We can't just do this in sequence like this as the modifications below for the pitch may invalidate the above roll changes
+	// NOTE, In practice, this actually works just fine but still may need tweaking
+	
 	// 3. Increase/decrease the rotor velocities for pitch
 	delta = pitch_t_nm / (4*2.05e-5*0.2);
 	scale = 1.0f;
@@ -70,6 +73,14 @@ void Mixer::output(float total_force_n, float roll_t_nm, float pitch_t_nm, float
 	allocations[2] -= delta*scale; 
 
 	// 4. Yaw - ignore for now
+	// NOTE Yaw coefficient is 0.02*kt
+	delta = yaw_t_nm / (4*0.02*2.05e-5);
+	scale = 0.1f;
+
+	allocations[0] += delta*scale;
+	allocations[1] += delta*scale;
+	allocations[2] -= delta*scale;
+	allocations[3] -= delta*scale;
 	
 	for (uint8_t i=0;i<4;i++) {
 

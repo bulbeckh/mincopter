@@ -45,5 +45,12 @@ class CSC_Controller : public MC_Controller
 		float pitch_rate_target;
 		float yaw_rate_target;
 
+
+		// Throttle controllers/variables
+		float vert_vel_target;
+
+		AC_PID pos_throttle;
+		AC_PID vel_throttle;
+
 };
 
