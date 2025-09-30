@@ -25,7 +25,9 @@ void AHRS_Complementary::ahrs_update(void)
 #ifdef TARGET_ARCH_AVR
 	accel_reading.z += 3.57;
 #endif
-	accel_reading.normalize();
+
+	// NOTE No need to normalise accel
+	//accel_reading.normalize();
 
 	// Get elapsed gyrometer time for use in integration of gyros
 	float ins_time_s= mincopter.ins.get_delta_time();
@@ -87,6 +89,7 @@ void AHRS_Complementary::ahrs_update(void)
 			);
 
 	// TODO Now is where we correct for magnetic declination (yaw)
+	theta_magz += 0.19;
 	
 	Vector3f gyro_reading = mincopter.ins.get_gyro();
 	
@@ -110,7 +113,7 @@ void AHRS_Complementary::ahrs_update(void)
 
 		euler_internal.x = alpha*theta_gyrox + (1-alpha)*theta_magx;
 		euler_internal.y = alpha*theta_gyroy + (1-alpha)*theta_magy;
-		euler_internal.z = alpha*theta_gyroz + (1-alpha)*theta_magz;
+		euler_internal.z = alpha_yaw*theta_gyroz + (1-alpha_yaw)*theta_magz;
 	}
 
 	// Compute and update quaternion (in NED frame)

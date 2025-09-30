@@ -27,10 +27,11 @@ CSC_Controller::CSC_Controller()
 	pos_throttle(1.0,0,0, CSC_PID_IMAX),
 
 	// Navigation Controllers - TODO May be moved
-	nav_x_pos(1.0, 0, 0, CSC_PID_IMAX),
-	nav_y_pos(1.0, 0, 0, CSC_PID_IMAX),
-	nav_x_vel(1, 0, 0, CSC_PID_IMAX),
-	nav_y_vel(1, 0, 0, CSC_PID_IMAX),
+	// TODO Modify gains - significant overshoot in x,y waypoint response
+	nav_x_pos(0.6, 0, 0, CSC_PID_IMAX),
+	nav_y_pos(0.6, 0, 0, CSC_PID_IMAX),
+	nav_x_vel(3, 0, 0, CSC_PID_IMAX),
+	nav_y_vel(3, 0, 0, CSC_PID_IMAX),
 
 	/*
 	rate_roll(0.5, 0.1, 0, CSC_PID_IMAX),
@@ -64,10 +65,15 @@ void CSC_Controller::run(void)
 	Vector3f vel = mcstate.get_velocity();
 
 	if (csc_counter%25==0) {
+
+		// TODO We actually need to first convert the targeted (x,y) position into a 'body-yaw' aligned frame first as
+		// this frames x,y axes are what the roll,pitch will impact
+
 		// Run outer nav loop at 4Hz
 		// NOTE Target of x=10m, y=10m
+
 		x_vel_target = nav_x_pos.get_pi(/* X-Target */ 10 - pos.x, 0.25);
-		y_vel_target = nav_y_pos.get_pi(/* Y-Target */ 10 - pos.y, 0.25);
+		y_vel_target = nav_y_pos.get_pi(/* Y-Target */ 0 - pos.y, 0.25);
 	}
 
 	if (csc_counter%5==0) {
@@ -90,8 +96,6 @@ void CSC_Controller::run(void)
 		desired_pitch = safe_asin(desired_pitch);
 
 		// Run angle error controllers (outer)
-		//roll_rate_target = error_roll.get_pi(0 - orientation.x, 0.05);
-		//pitch_rate_target = error_pitch.get_pi(0 - orientation.y, 0.05);
 
 		// In the first 2secs, we just zero the roll and pitch when we 'takeoff'
 		if (csc_counter<200) {
@@ -102,11 +106,12 @@ void CSC_Controller::run(void)
 			pitch_rate_target = error_pitch.get_pi(desired_pitch - orientation.y, 0.05);
 		}
 
+		// Desired yaw is set to zero
 		yaw_rate_target = error_yaw.get_pi(0 - orientation.z, 0.05);
 
 		// Throttle ctrl
 		// NOTE We have set a target of 20m here
-		vert_vel_target = pos_throttle.get_pi(-20 - pos.z, 0.05);
+		vert_vel_target = pos_throttle.get_pi(-10 - pos.z, 0.05);
 	}
 
 	float rt = rate_roll.get_pi(roll_rate_target - gyros.x, 0.01);
