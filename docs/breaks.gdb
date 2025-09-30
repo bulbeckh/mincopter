@@ -43,8 +43,10 @@ set print pretty on
 #break GZ_Interface::send_control_output
 
 #break generic::GenericGZInterface::tick
-break AHRS_Complementary::ahrs_update
+#break AHRS_Complementary::ahrs_update
 #break LQR_Controller::run
+
+break MCState::init
 
 run > /dev/null 2>&1
 

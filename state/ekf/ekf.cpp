@@ -61,7 +61,7 @@ void EKF::inav_update(void)
 	}
 
 	// Update MCState via _state variable - _result[0] is the state_out as (x,v,q)
-	_ahrs_state->_attitude(
+	_inav_state->_attitude(
 			ekf_correct_res[0][6],
 			ekf_correct_res[0][7],
 			ekf_correct_res[0][8],
@@ -218,8 +218,7 @@ void EKF::reset(void)
 
 
 	// Update _altitude quaternion
-	_ahrs_state->_attitude(q[0], q[1], q[2], q[3]);
-	
+	_inav_state->_attitude(q[0], q[1], q[2], q[3]);
 	
 	return;
 }
@@ -227,8 +226,13 @@ void EKF::reset(void)
 
 void EKF::_ahrs_init_internal(void)
 {
+	/* Even though this method will be called, we don't initialise anything as all EKF 
+	 * updates and initialisation is handled via the inav */
+
+	// TODO Figure out a better way to handle this
+	
 	// Initialise quaternion state
-	reset();
+	//reset();
 
 	return;
 }

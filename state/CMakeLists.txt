@@ -50,10 +50,10 @@ endif()
 if(MC_INAV_TYPE STREQUAL "EKF" OR MC_AHRS_TYPE STREQUAL "EKF")
 	list(APPEND MC_LIBS_STATE
 		${CMAKE_SOURCE_DIR}/state/ekf/ekf.cpp
-		#${CMAKE_SOURCE_DIR}/state/ekf/ekf_predict.c
-		#${CMAKE_SOURCE_DIR}/state/ekf/ekf_correct.c
-		${CMAKE_SOURCE_DIR}/state/ekf/ekf_predict_mx.c
-		${CMAKE_SOURCE_DIR}/state/ekf/ekf_correct_mx.c
+		${CMAKE_SOURCE_DIR}/state/ekf/ekf_predict.c
+		${CMAKE_SOURCE_DIR}/state/ekf/ekf_correct.c
+		#${CMAKE_SOURCE_DIR}/state/ekf/ekf_predict_mx.c
+		#${CMAKE_SOURCE_DIR}/state/ekf/ekf_correct_mx.c
 	)
 endif()
 
