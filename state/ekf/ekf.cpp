@@ -67,6 +67,13 @@ void EKF::inav_update(void)
 			ekf_correct_res[0][8],
 			ekf_correct_res[0][9]);
 
+	// Also update euler angles
+	_inav_state->_attitude.to_euler(
+			&_inav_state->_euler.x,
+			&_inav_state->_euler.y,
+			&_inav_state->_euler.z
+			);
+
 	_inav_state->_position[0] = ekf_correct_res[0][0];
 	_inav_state->_position[1] = ekf_correct_res[0][1];
 	_inav_state->_position[2] = ekf_correct_res[0][2];
@@ -89,10 +96,13 @@ void EKF::setup_ekf_args(void)
 	
 	// Get w - latest gyrometer reading in rad/s
 	Vector3f gyro = mincopter.ins.get_gyro();
+
 	// NOTE TODO We are deliberately switching (rotating) the axis here because the MPU6050 on my breadboard is backwards
+	/*
 	w[0] = -gyro.x;
 	w[1] = -gyro.y;
 	w[2] = gyro.z;
+	*/
 	
 	// Get a - latest accel reading in m/s2
 	Vector3f accel = mincopter.ins.get_accel();
@@ -100,27 +110,32 @@ void EKF::setup_ekf_args(void)
 	
 	accel_normalized.normalize();
 
-	/* NOTE Our EKF is wrong as the functions expect a normalized acceleration vector but we actually need to integrate the
+	/* NOTE TODO Our EKF is wrong as the functions expect a normalized acceleration vector but we actually need to integrate the
 	 * real acceleration (in m/s2). For now, to get the orientation working, we pass in the normalized vector to use as a
 	 * gravitational measurement, knowing that the pos/vel will not work */
 
-	/* 
 	a[0] = accel.x;
 	a[1] = accel.y;
 	a[2] = accel.z;
-	*/
 
 	// NOTE TODO See above comment about rotations for gyro/accel for MPU6050
+	/*
 	a[0] = -accel_normalized.x;
 	a[1] = -accel_normalized.y;
 	a[2] = accel_normalized.z;
+	*/
 	
 	// Get accel and gyro variances TODO These should not change and be retrieved during
 	// init from the sensor drivers
 	
+	/* 
 	var_gyro = 0.3*0.3;
 	var_accel = 0.5*0.5;
 	var_mag = 0.8*0.8;
+	*/
+	var_gyro = 0.01*0.01;
+	var_accel = 1000*1000;
+	var_mag = 0.01*0.01;
 	
 	// Get state (q,x,v) from _state
 	// TODO FIx this - should not really be using mcstate directly for state here - should be passed in from somewhere else
@@ -154,8 +169,8 @@ void EKF::setup_ekf_args(void)
 	gps_vel[1] = 0.0f;
 	gps_vel[2] = 0.0f;
 
-	var_gps_pos = 0.1;
-	var_gps_vel = 0.1;
+	var_gps_pos = 100;
+	var_gps_vel = 100;
 	
 	return;
 }
