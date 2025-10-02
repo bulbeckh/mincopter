@@ -101,6 +101,10 @@ class MCState
 		const Matrix3f &get_dcm(void);
 
 	public:
+		// TODO These should be private and retrieved via get_pos or get_home
+		
+		bool home_set{false};
+		
 		/* @brief home Location (lat/lng/alt) where we first have arm the copter (after achieving GPS lock) */
 		struct   Location home;
 

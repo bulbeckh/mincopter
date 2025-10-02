@@ -124,7 +124,7 @@ void EKF::setup_ekf_args(void)
 	a[1] = -accel_normalized.y;
 	a[2] = accel_normalized.z;
 	*/
-	
+
 	// Get accel and gyro variances TODO These should not change and be retrieved during
 	// init from the sensor drivers
 	
@@ -161,8 +161,19 @@ void EKF::setup_ekf_args(void)
 	
 	// Get gps pos/vel/variances
 	// TODO I don't even think GPS is fused in the function call - need to check
-	gps_pos[0] = 0.0f;
-	gps_pos[1] = 0.0f;
+	
+
+	// TODO Check this calculation
+	// GPS delta from home location in centi-degrees (deg*1e7)
+	int32_t lat_offset = mincopter.g_gps->latitude - mcstate.home.lat;
+	int32_t lon_offset = mincopter.g_gps->latitude - mcstate.home.lng;
+
+	// The (very simple) model we are using is 1deg lat = 111.32km (north-south)
+	//
+	// For longitude, we do 
+
+	gps_pos[0] = (lat_offset*111320) / (1e7); // North (x)
+	gps_pos[1] = (lon_offset*40075000) * cos(mincopter.g_gps->latitude/1e7) / (1e7); // East (y)
 	gps_pos[2] = 0.0f;
 
 	gps_vel[0] = 0.0f;

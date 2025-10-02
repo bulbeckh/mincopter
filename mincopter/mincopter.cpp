@@ -211,6 +211,8 @@ void loop()
 	 *
 	 * 0x07 Full sensor state (3x imu accel, 3x imu gyro, 3x compass)
 	 * 0x08 Actual state (from gazebo)
+	 *
+	 * 0x09 GPS position and velocity
 	 */
 
 	// RPY
@@ -316,7 +318,18 @@ void loop()
 
 	mincopter.hal.sim->log_state(log_packet, 48, 0x08);
 
-	// Log actual state
+	// GPS
+	std::memcpy(log_packet, &mincopter.g_gps->latitude, 4);
+	std::memcpy(log_packet+4, &mincopter.g_gps->longitude, 4);
+	std::memcpy(log_packet+8, &mincopter.g_gps->altitude_cm, 4);
+
+	Vector3f gps_vel_vector = mincopter.g_gps->velocity_vector();
+
+	std::memcpy(log_packet+12, &gps_vel_vector.x, 4);
+	std::memcpy(log_packet+16, &gps_vel_vector.y, 4);
+	std::memcpy(log_packet+20, &gps_vel_vector.z, 4);
+
+	mincopter.hal.sim->log_state(log_packet, 24, 0x09);
 
 	// Dump to console @1Hz
 	if (_counter%100==0) {
@@ -326,13 +339,17 @@ void loop()
 		mincopter.hal.console->printf_P(PSTR("acc : % 6.2f, % 6.2f, % 6.2f\n"), _acc_meas.x, _acc_meas.y, _acc_meas.z);
 		mincopter.hal.console->printf_P(PSTR("mag : % 6.2f, % 6.2f, % 6.2f\n"), _mag_meas.x, _mag_meas.y, _mag_meas.z);
 		mincopter.hal.console->printf_P(PSTR("baro: % 6.2f, % 6.2f\n"), _pres, _temperature);
-		mincopter.hal.console->printf_P(PSTR("gps : %d\n"), _status);
-		mincopter.hal.console->printf_P(PSTR("lat/lng: %d, %d\n"), mincopter.g_gps->latitude, mincopter.g_gps->longitude);
+		mincopter.hal.console->printf_P(PSTR("gpss: %d\n"), _status);
+		mincopter.hal.console->printf_P(PSTR("gll : %d, %d\n"), mincopter.g_gps->latitude, mincopter.g_gps->longitude);
+		mincopter.hal.console->printf_P(PSTR("galt: %d\n"), mincopter.g_gps->altitude_cm);
+		
 		mincopter.hal.console->printf_P(PSTR("[STATE]\n"));
 		mincopter.hal.console->printf_P(PSTR("pos x,y,z      : %f, %f, %f\n"), _temp_pos.x, _temp_pos.y, _temp_pos.z);
 		mincopter.hal.console->printf_P(PSTR("vel x,y,z      : %f, %f, %f\n"), _temp_vel.x, _temp_vel.y, _temp_vel.z);
 		mincopter.hal.console->printf_P(PSTR("att q1,q2,q3,q4: %f, %f, %f, %f\n"), _temp_att[0], _temp_att[1], _temp_att[2], _temp_att[3]);
 		mincopter.hal.console->printf_P(PSTR("eul r,p,y      : %f, %f, %f\n"), roll, pitch, yaw);
+		mincopter.hal.console->printf_P(PSTR("homelng/lat/alt: %d, %d, %d\n"), mcstate.home.lat, mcstate.home.lng, mcstate.home.alt);
+
 	}
 #endif
 

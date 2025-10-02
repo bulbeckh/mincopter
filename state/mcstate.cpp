@@ -26,6 +26,15 @@ void MCState::init(void)
 
 void MCState::update(void)
 {
+	if (!home_set && mincopter.g_gps->status()==GPS::GPS_Status::GPS_OK_FIX_3D) {
+		home.lat = mincopter.g_gps->latitude;
+		home.lng = mincopter.g_gps->longitude;
+
+		// Convert from cm (from GPS) to metres
+		home.alt = mincopter.g_gps->altitude_cm / 100.0f;
+
+		home_set = true;
+	}
 
 	/* If we are using the EKF, then we run the full update using a call to the inertial_nav and ignore the ahrs update method */
 #ifndef MC_AHRS_EKF
