@@ -20,6 +20,14 @@ namespace stm32 {
 
 	/* No AP_HAL::Storage class for STM32 targets */
 	/* No AP_HAL::Sim class for STM32 targets */
+
+	enum class UART {
+		MC_USART2,
+		MC_USART3,
+		MC_USART4,
+		MC_USART5
+	};
+
 }
 
 

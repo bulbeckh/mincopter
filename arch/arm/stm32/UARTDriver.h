@@ -4,9 +4,11 @@
 #include <AP_HAL/AP_HAL.h>
 #include <arch/arm/stm32/AP_HAL_STM32_Namespace.h>
 
+#include "stm32f4xx_hal.h"
+
 class stm32::STM32UARTDriver : public AP_HAL::UARTDriver {
 	public:
-		STM32UARTDriver(bool default_console);
+		STM32UARTDriver(bool default_console, stm32::UART utype);
 
 		/* Generic implementations of UARTDriver virtual methods */
 		void begin(uint32_t b);
@@ -37,6 +39,13 @@ class stm32::STM32UARTDriver : public AP_HAL::UARTDriver {
 		void _timer_tick(void);
 
 	private:
+		/* @brief USART number of this UARTDriver */
+		stm32::UART _utype;
+
+		/* @brief STM32 HAL Handle for this UART */
+		UART_HandleTypeDef mc_uart;
+
+		/*
 		// TODO Update these data members
 		const char *device_path;
 		int _rd_fd;
@@ -64,5 +73,6 @@ class stm32::STM32UARTDriver : public AP_HAL::UARTDriver {
 		int _write_fd(const uint8_t *buf, uint16_t n);
 		int _read_fd(uint8_t *buf, uint16_t n);
 		uint64_t _last_write_time;
+		*/
 };
 

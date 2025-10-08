@@ -14,17 +14,16 @@ extern const AP_HAL::HAL& hal;
 
 using namespace stm32;
 
-STM32UARTDriver::STM32UARTDriver(bool default_console) :
-    device_path(NULL),
-    _rd_fd(-1),
-    _wr_fd(-1)
+STM32UARTDriver::STM32UARTDriver(bool default_console, stm32::UART utype)
+	: _utype(utype)
 {
 	// TODO
 }
 
 void STM32UARTDriver::set_device_path(const char *path)
 {
-    device_path = path;
+	// TODO
+	return;
 }
 
 void STM32UARTDriver::begin(uint32_t b) 
@@ -34,7 +33,30 @@ void STM32UARTDriver::begin(uint32_t b)
 
 void STM32UARTDriver::begin(uint32_t b, uint16_t rxS, uint16_t txS) 
 {
-	// TODO
+	if (_utype == UART::MC_USART2 ) {
+		__HAL_RCC_USART2_CLK_ENABLE();
+		mc_uart.Instance = USART2;
+	} else if (_utype == UART::MC_USART3 ) {
+		__HAL_RCC_USART3_CLK_ENABLE();
+		mc_uart.Instance = USART3;
+	}
+
+	// NOTE Should add functionality to default to 115200
+    mc_uart.Init.BaudRate = b;
+    mc_uart.Init.WordLength = UART_WORDLENGTH_8B;
+    mc_uart.Init.StopBits = UART_STOPBITS_1;
+    mc_uart.Init.Parity = UART_PARITY_NONE;
+    mc_uart.Init.Mode = UART_MODE_TX_RX;
+    mc_uart.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+    mc_uart.Init.OverSampling = UART_OVERSAMPLING_16;
+
+    if (HAL_UART_Init(&mc_uart) != HAL_OK)
+    {
+        //Error_Handler();
+		//TODO Add hal panic
+    }
+
+	return;
 }
 
 void STM32UARTDriver::end() 
@@ -50,12 +72,14 @@ void STM32UARTDriver::flush()
 
 bool STM32UARTDriver::is_initialized() 
 {
-    return _initialised;
+	// TODO
+	return false;
 }
 
 void STM32UARTDriver::set_blocking_writes(bool blocking) 
 {
-    _nonblocking_writes = !blocking;
+	// TODO
+	return;
 }
 
 bool STM32UARTDriver::tx_pending() 
@@ -89,18 +113,6 @@ size_t STM32UARTDriver::write(uint8_t c)
 }
 
 size_t STM32UARTDriver::write(const uint8_t *buffer, size_t size)
-{
-	// TODO
-    return 0;
-}
-
-int STM32UARTDriver::_write_fd(const uint8_t *buf, uint16_t n)
-{
-	// TODO
-    return 0;
-}
-
-int STM32UARTDriver::_read_fd(uint8_t *buf, uint16_t n)
 {
 	// TODO
     return 0;
