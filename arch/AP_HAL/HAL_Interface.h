@@ -4,7 +4,7 @@
 #elif CONFIG_HAL_BOARD == HAL_BOARD_RPI
 	#include <arch/linux/rpi/AP_HAL_RPI.h>
 #elif CONFIG_HAL_BOARD == HAL_BOARD_STM32
-	#include <arch/linux/rpi/AP_HAL_STM32.h>
+	#include <arch/arm/stm32/AP_HAL_STM32.h>
 #elif CONFIG_HAL_BOARD == HAL_BOARD_AVR
 	#include <arch/avr/AP_HAL_AVR/AP_HAL_AVR.h>
 #else

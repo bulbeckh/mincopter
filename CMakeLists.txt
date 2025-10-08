@@ -211,7 +211,7 @@ list(APPEND MC_INCLUDE_DIRS
 	${CMAKE_SOURCE_DIR}/arch
 	${CMAKE_SOURCE_DIR}/arch/AP_HAL
 	${CMAKE_SOURCE_DIR}/arch/avr/AP_HAL_AVR
-	${CMAKE_SOURCE_DIR}/arch/stm32
+	${CMAKE_SOURCE_DIR}/arch/arm/stm32
 	${CMAKE_SOURCE_DIR}/arch/linux
 	${CMAKE_SOURCE_DIR}/arch/linux/generic
 	${CMAKE_SOURCE_DIR}/arch/linux/rpi
@@ -284,6 +284,29 @@ elseif(${TARGET_ARCH_FAMILY} STREQUAL "beaglebone")
 		"arch/linux/beaglebone/*.cpp"
 		"arch/linux/*.cpp"
 	)
+elseif(${TARGET_ARCH_FAMILY} STREQUAL "stm32")
+	## NOTE We don't include all STM32 HAL libraries here, only the ones included in stm32f4xx_hal_conf.h
+	file(GLOB STM32_HAL_LIBS
+		"arch/arm/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_gpio.c"
+		"arch/arm/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc.c"
+		"arch/arm/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal.c"
+		"arch/arm/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_cortex.c"
+		"arch/arm/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_uart.c"
+		"arch/arm/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_usart.c"
+		"arch/arm/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_dma.c"
+		"arch/arm/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_spi.c"
+		"arch/arm/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_i2c.c"
+	)
+
+	file(GLOB MC_LIBS_ARCH
+		"arch/arm/stm32/*.cpp"
+		"arch/arm/startup_stm32f407vgtx.s"
+		"arch/arm/stm32f4xx_it.c"
+		"arch/arm/syscalls.c"
+		"arch/arm/sysmem.c"
+		"arch/arm/system_stm32f4xx.c"
+		${STM32_HAL_LIBS}
+	)
 endif()
 
 #[[
@@ -297,6 +320,17 @@ add_library(mc-arch STATIC ${MC_LIBS_ARCH} ${MC_ARCH_COMMON})
 target_include_directories(mc-arch PUBLIC
 	${MC_INCLUDE_DIRS}
 )
+
+if(${TARGET_ARCH_FAMILY} STREQUAL "stm32")
+	target_include_directories(mc-arch PUBLIC
+		"arch/arm"
+		"arch/arm/Drivers/CMSIS/Include"
+		"arch/arm/Drivers/CMSIS/Device/ST/STM32F4xx/Include"
+		"arch/arm/Drivers/STM32F4xx_HAL_Driver/Inc"
+		"arch/arm/Drivers/STM32F4xx_HAL_Driver/Inc/Legacy"
+	)
+endif()
+
 
 ##################################################################
 # SIM, CONTROL, STATE, DEV
