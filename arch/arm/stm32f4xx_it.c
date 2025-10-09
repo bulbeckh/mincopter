@@ -27,9 +27,6 @@ extern "C" {
 
 void Error_Handler(void);
 
-#ifdef __cplusplus
-}
-#endif
 
 #include "stm32f4xx_it.h"
 /* Private includes ----------------------------------------------------------*/
@@ -228,3 +225,6 @@ void OTG_FS_IRQHandler(void)
 
 /* USER CODE END 1 */
 
+#ifdef __cplusplus
+}
+#endif

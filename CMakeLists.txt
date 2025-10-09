@@ -43,6 +43,8 @@ endif()
 ## TODO Each tool file should make use of the TARGET_ARCH variable to determine flags like -mmcu and -march
 include(${TOOLCHAIN_FILE})
 
+enable_language(C ASM)
+
 project(mincopter)
 
 ##################################################################
@@ -300,20 +302,17 @@ elseif(${TARGET_ARCH_FAMILY} STREQUAL "stm32")
 
 	file(GLOB MC_LIBS_ARCH
 		"arch/arm/stm32/*.cpp"
-		"arch/arm/startup_stm32f407vgtx.s"
 		"arch/arm/stm32f4xx_it.c"
-		"arch/arm/syscalls.c"
-		"arch/arm/sysmem.c"
 		"arch/arm/system_stm32f4xx.c"
 		${STM32_HAL_LIBS}
 	)
 endif()
 
-#[[
+## Print arch libs
+message("MC_LIBS_ARCH")
 foreach(src ${MC_LIBS_ARCH})
-	message(VERBOSE "${src}")
+	message(STATUS "${src}")
 endforeach()
-]]
 
 add_library(mc-arch STATIC ${MC_LIBS_ARCH} ${MC_ARCH_COMMON})
 
@@ -366,6 +365,22 @@ target_link_libraries(mincopter
 	mc-state
 	mc-common
 )
+
+## NOTE For STM32 targets, we need to explicitly add symbols from syscalls.c and sysmem.c to the final executable
+## otherwise they are discarded because the linker doesn't see any references to them.
+if(${TARGET_ARCH_FAMILY} STREQUAL "stm32")
+	add_library(stm32_static STATIC
+		"${CMAKE_SOURCE_DIR}/arch/arm/startup_stm32f407vgtx.s"
+		"${CMAKE_SOURCE_DIR}/arch/arm/syscalls.c"
+		"${CMAKE_SOURCE_DIR}/arch/arm/sysmem.c"
+	)
+
+	target_link_libraries(mincopter
+		-Wl,--whole-archive
+		stm32_static
+		-Wl,--no-whole-archive
+	)
+endif()
 
 target_include_directories(mincopter PUBLIC
 	## TODO Need to separate private and public include directories (e.g. backend and interface)

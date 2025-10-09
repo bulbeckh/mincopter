@@ -100,6 +100,9 @@ void HAL_STM32::init(int argc,char* const argv[]) const
 	// Initialise GPIO pins first as other peripherals depend on GPIO configuration
 	gpio->init();
 
+	// Turn on LED to indicate that we've reached GPIO init
+	HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12, GPIO_PIN_SET);
+
 	// TODO Really, we should initialise the UART which was specified as the console/default UART rather than uartA explicitly
 	// Start the console UART so we can log HAL initialisation messages from all other classes
     uartA->begin(115200);

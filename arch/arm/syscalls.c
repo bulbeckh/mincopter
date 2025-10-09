@@ -30,6 +30,10 @@
 #include <sys/time.h>
 #include <sys/times.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* Variables */
 extern int __io_putchar(int ch) __attribute__((weak));
 extern int __io_getchar(void) __attribute__((weak));
@@ -174,3 +178,6 @@ int _execve(char *name, char **argv, char **env)
   return -1;
 }
 
+#ifdef __cplusplus
+}
+#endif
