@@ -4,6 +4,8 @@
 #include <AP_HAL/AP_HAL.h>
 #include <arch/arm/stm32/AP_HAL_STM32_Namespace.h>
 
+#include "stm32f4xx_hal.h"
+
 class stm32::STM32I2CDriver : public AP_HAL::I2CDriver {
 	public:
 		STM32I2CDriver(AP_HAL::Semaphore* semaphore, const char *device);
@@ -37,10 +39,15 @@ class stm32::STM32I2CDriver : public AP_HAL::I2CDriver {
 		AP_HAL::Semaphore* get_semaphore() { return _semaphore; }
 
 	private:
+		/* @brief HAL I2C instance */
+		I2C_HandleTypeDef mc_i2c;
+
 		AP_HAL::Semaphore* _semaphore;
-		bool set_address(uint8_t addr);
+
+		/*
 		int _fd;
 		uint8_t _addr;
 		const char *_device;
+		*/
 };
 

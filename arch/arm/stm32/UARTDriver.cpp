@@ -17,7 +17,6 @@ using namespace stm32;
 STM32UARTDriver::STM32UARTDriver(bool default_console, stm32::UART utype)
 	: _utype(utype)
 {
-	// TODO
 }
 
 void STM32UARTDriver::set_device_path(const char *path)
@@ -33,12 +32,22 @@ void STM32UARTDriver::begin(uint32_t b)
 
 void STM32UARTDriver::begin(uint32_t b, uint16_t rxS, uint16_t txS) 
 {
+	// Set correct UARTs
+	//
+	// NOTE UART4 and UART5 are UART not USART
+	//
 	if (_utype == UART::MC_USART2 ) {
 		__HAL_RCC_USART2_CLK_ENABLE();
 		mc_uart.Instance = USART2;
 	} else if (_utype == UART::MC_USART3 ) {
 		__HAL_RCC_USART3_CLK_ENABLE();
 		mc_uart.Instance = USART3;
+	} else if (_utype == UART::MC_USART4 ) {
+		__HAL_RCC_USART3_CLK_ENABLE();
+		mc_uart.Instance = UART4;
+	} else if (_utype == UART::MC_USART5 ) {
+		__HAL_RCC_USART3_CLK_ENABLE();
+		mc_uart.Instance = UART5;
 	}
 
 	// NOTE Should add functionality to default to 115200

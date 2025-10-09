@@ -11,7 +11,8 @@ static stm32::STM32Semaphore  i2cSemaphore;
 static stm32::STM32Scheduler schedulerInstance;
 static stm32::STM32Util utilInstance;
 
-// TODO NOTE What is the bool arg here?
+// NOTE This bool argument determines whether ther UART is the default console but we
+// ignore it anyway
 static stm32::STM32UARTDriver uartADriver(true,  stm32::UART::MC_USART2);
 static stm32::STM32UARTDriver uartBDriver(false, stm32::UART::MC_USART3);
 static stm32::STM32UARTDriver uartCDriver(false, stm32::UART::MC_USART4);
@@ -77,7 +78,7 @@ HAL_STM32::HAL_STM32() :
         &spiDeviceManager,
         &analogIn,
         NULL,   /* No Storage Driver for STM32 */
-        &uartADriver,
+        &uartADriver, // uartA should always be the console
         &gpioDriver,
         &rcinDriver,
         &rcoutDriver,
@@ -100,21 +101,18 @@ void HAL_STM32::init(int argc,char* const argv[]) const
 	// Initialise GPIO pins first as other peripherals depend on GPIO configuration
 	gpio->init();
 
-	// Turn on LED to indicate that we've reached GPIO init
+	// Turn on Green LED to indicate that we've reached GPIO init
 	HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12, GPIO_PIN_SET);
 
-	// TODO Really, we should initialise the UART which was specified as the console/default UART rather than uartA explicitly
 	// Start the console UART so we can log HAL initialisation messages from all other classes
     uartA->begin(115200);
 
-
-
-
+	// Start I2C (I2C1 for us - DISC1)
     i2c->begin();
 
     spi->init(NULL);
 
-
+	return;
 }
 
 static void SystemClock_Config(void)

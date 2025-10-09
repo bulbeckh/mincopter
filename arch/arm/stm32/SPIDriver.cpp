@@ -3,18 +3,17 @@
 
 using namespace stm32;
 
-// TODO Remove data members like _fd
-STM32SPIDeviceDriver::STM32SPIDeviceDriver(const char *spipath, uint8_t mode, uint8_t bitsPerWord, uint32_t speed) :
-    _spipath(spipath),
-    _fd(-1),
-    _mode(mode),
-    _bitsPerWord(bitsPerWord),
+STM32SPIDeviceDriver::STM32SPIDeviceDriver(uint32_t speed) :
     _speed(speed)
 {}
 
 void STM32SPIDeviceDriver::init()
 {
-	// TODO
+	// TODO These are individual SPI devices and should represent SS pins so
+	// the corresponding GPIO setup should really be done here rather than in GPIO.cpp
+	//
+	// We should add an argument to the above SPIDeviceDriver constructor with the SS pin
+	// to use for each SPI device.
 }
 
 AP_HAL::Semaphore* STM32SPIDeviceDriver::get_semaphore()
@@ -52,15 +51,37 @@ void STM32SPIDeviceDriver::transfer(const uint8_t *data, uint16_t len)
 
 // TODO Update args for these constructors
 STM32SPIDeviceManager::STM32SPIDeviceManager() :
-    _device_cs0("/dev/spidev0.0", 0 /* SPI_MODE_0 */, 8, 2600000),
-    _device_cs1("/dev/spidev0.1", 0 /* SPI_MODE_0 */, 8, 1000000)
+    _device_cs0(2600000),
+    _device_cs1(1000000)
 {}
 
 void STM32SPIDeviceManager::init(void *)
 {
-	// TODO
+	// TODO Change to be configurable for any number of devices
     _device_cs0.init();
     _device_cs1.init();
+
+	// TODO Make configurable on any SPI
+	// Setup SPI
+	__HAL_RCC_SPI1_CLK_ENABLE();
+
+	mc_spi.Instance = SPI1;
+    mc_spi.Init.Mode = SPI_MODE_MASTER;                 // Master mode
+    mc_spi.Init.Direction = SPI_DIRECTION_2LINES;       // Full duplex
+    mc_spi.Init.DataSize = SPI_DATASIZE_8BIT;
+    mc_spi.Init.CLKPolarity = SPI_POLARITY_LOW;         // Clock idle low
+    mc_spi.Init.CLKPhase = SPI_PHASE_1EDGE;             // Data captured on 1st edge
+    mc_spi.Init.NSS = SPI_NSS_SOFT;                     // Software control of CS
+    mc_spi.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_16; // Clock divider
+    mc_spi.Init.FirstBit = SPI_FIRSTBIT_MSB;
+    mc_spi.Init.TIMode = SPI_TIMODE_DISABLE;
+    mc_spi.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
+    mc_spi.Init.CRCPolynomial = 10;
+
+    if (HAL_SPI_Init(&mc_spi) != HAL_OK) {
+        // Error_Handler();
+		// TODO Change to hal panic
+    }
 
 	return;
 }
