@@ -75,7 +75,7 @@ uint16_t AP_InertialSensor_MPU6050::_init_sensor(Sample_rate sample_rate)
 	hal.scheduler->resume_timer_procs();
 
 	// Register the _poll function to run at xxHz
-	hal.scheduler->register_timer_process(AP_HAL_MEMBERPROC(&AP_InertialSensor_MPU6050::_poll));
+	hal.scheduler->register_timer_process(AP_HAL_MEMBERPROC(AP_InertialSensor_MPU6050, &AP_InertialSensor_MPU6050::_poll));
 
 	// Run a single _poll during initialisation to get a valid reading
 	_poll();

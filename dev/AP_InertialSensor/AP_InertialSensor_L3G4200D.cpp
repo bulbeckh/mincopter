@@ -206,7 +206,7 @@ uint16_t AP_InertialSensor_L3G4200D::_init_sensor( Sample_rate sample_rate )
     i2c_sem->give();
 
     // start the timer process to read samples
-    hal.scheduler->register_timer_process(AP_HAL_MEMBERPROC(&AP_InertialSensor_L3G4200D::_accumulate));
+    hal.scheduler->register_timer_process(AP_HAL_MEMBERPROC(AP_InertialSensor_L3G4200D, &AP_InertialSensor_L3G4200D::_accumulate));
 
     return AP_PRODUCT_ID_L3G4200D;
 }

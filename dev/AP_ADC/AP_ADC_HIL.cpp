@@ -49,7 +49,7 @@ AP_ADC_HIL::AP_ADC_HIL()
 
 void AP_ADC_HIL::Init()
 {
-    hal.scheduler->register_timer_process( AP_HAL_MEMBERPROC(&AP_ADC_HIL::read));
+    hal.scheduler->register_timer_process( AP_HAL_MEMBERPROC(AP_ADC_HIL, &AP_ADC_HIL::read));
 }
 
 // Read one channel value

@@ -51,6 +51,8 @@ project(mincopter)
 # CONFIGURATION
 ##################################################################
 
+add_compile_definitions( USE_NEW_DELEGATE )
+
 ## Use the config file in the build-*/ directory if it exists, otherwise use the default
 if (EXISTS ${CMAKE_BINARY_DIR}/mc-config.cmake)
 	include(${CMAKE_BINARY_DIR}/mc-config.cmake)
