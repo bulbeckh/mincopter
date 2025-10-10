@@ -48,6 +48,7 @@ void AVRScheduler::init(void* _isrregistry) {
     TCNT2 = 0;                      /* Set count to 0 */
     TIFR2 = _BV(TOV2);              /* Clear pending interrupts */
     TIMSK2 = _BV(TOIE2);            /* Enable overflow interrupt*/
+
     /* Register _timer_isr_event to trigger on overflow */
     isrregistry->register_signal(ISR_REGISTRY_TIMER2_OVF, _timer_isr_event);   
     

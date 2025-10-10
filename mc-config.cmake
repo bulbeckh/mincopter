@@ -31,7 +31,7 @@ set(MC_GPS_TYPE "UBLOX") 			## (NONE, UBLOX, xxxx)
 set(MC_IMU_TYPE "MPU6000") 			## (MPU6050, MPU6000)
 set(MC_COMP_TYPE "HMC5843") 		## (ICM20948, HMC5843)
 set(MC_BARO_TYPE "MS5611")  		## (BME280, MS5611, BMP085)
-set(MC_STORAGE_TYPE "DATAFLASH") 	## (FILE, DATAFLASH)
+set(MC_STORAGE_TYPE "DATAFLASH") 	## (NONE, FILE, DATAFLASH)
 set(MC_ADC_TYPE "NONE") 			## ('SIM', 'ADS7844', NONE)
 
 ## Specify wiring for each peripheral (ignored for sim)

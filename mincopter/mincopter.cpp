@@ -49,7 +49,6 @@
 #include "mcinstance.h"
 #include "mcstate.h"
 
-
 // TODO Remove - not board specific
 
 #ifdef TARGET_ARCH_RPI
@@ -166,6 +165,7 @@ uint32_t _counter=0;
 /* Core Loop - Meant to run every 10ms (10,000 microseconds) */
 void loop()
 {
+
 	// Loop heartbeat
 	if (_counter%100==0) {
 		hal.console->printf("Looping..\n");

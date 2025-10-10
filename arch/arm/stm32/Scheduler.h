@@ -5,6 +5,8 @@
 
 #include <arch/arm/stm32/AP_HAL_STM32_Namespace.h>
 
+#include "stm32f4xx_hal.h"
+
 class stm32::STM32Scheduler : public AP_HAL::Scheduler {
 	public:
 		STM32Scheduler();
@@ -33,10 +35,6 @@ class stm32::STM32Scheduler : public AP_HAL::Scheduler {
 
 		void     register_timer_failsafe(AP_HAL::Proc, uint32_t period_us);
 
-		void     begin_atomic();
-
-		void     end_atomic();
-
 		bool     system_initializing();
 		void     system_initialized();
 
@@ -47,7 +45,16 @@ class stm32::STM32Scheduler : public AP_HAL::Scheduler {
 
 	private:
 		// TODO Update with STM32 implementation
+
+		/* @brief Timer process to flash the LED each second to indicate a running **loop** function */
+		void _timer_led_heartbeat(void);
+
+		/* @brief HAL Timer Handle instance */
+		static TIM_HandleTypeDef timer_handle;
 		
+		static void _run_timer_processes(void);
+
+
 		/*
 		struct timespec _sketch_start_time;    
 		void _timer_handler(int signum);
