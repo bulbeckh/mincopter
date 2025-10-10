@@ -74,6 +74,8 @@ if(MC_STORAGE_TYPE STREQUAL "FILE")
 	list(APPEND MC_LIBS_DEV ${CMAKE_SOURCE_DIR}/dev/DataFlash/DataFlash_File.cpp)
 elseif(MC_STORAGE_TYPE STREQUAL "DATAFLASH")
 	list(APPEND MC_LIBS_DEV ${CMAKE_SOURCE_DIR}/dev/DataFlash/DataFlash_APM2.cpp)
+elseif(MC_STORAGE_TYPE STREQUAL "NONE")
+	list(APPEND MC_LIBS_DEV ${CMAKE_SOURCE_DIR}/dev/DataFlash/DataFlash_Empty.cpp)
 	## TODO Add other dataflash types
 else()
 	message(FATAL_ERROR "Storage device not supported.")

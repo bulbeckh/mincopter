@@ -40,6 +40,8 @@ class MCInstance {
 			DataFlash("/home/henry/Documents/mc-dev/logs"),
 #elif  MC_STORAGE_DATAFLASH
 			DataFlash(),
+#elif  MC_STORAGE_EMPTY
+			DataFlash(),
 #endif
 
 #ifdef MC_BARO_SIM
@@ -91,6 +93,8 @@ class MCInstance {
 		DataFlash_File DataFlash;
 #elif  MC_STORAGE_DATAFLASH
 		DataFlash_APM2 DataFlash;
+#elif  MC_STORAGE_EMPTY
+		DataFlash_Empty DataFlash;
 #endif
 
 		/* @brief ADC Instance used to obtain battery voltage levels */

@@ -71,27 +71,12 @@ public:
 };
 
 
-// Example usage
-
-/*
-int main() {
-    Foo f;
-
-    auto d1 = Delegate<void(int)>::Create<&GlobalHandler>();
-    auto d2 = Delegate<void(int)>::Create<Foo, &Foo::MemberFunc>(&f);
-
-    d1(10);
-    d2(20);
-
-	while (true) {
-
-		for (uint32_t i=0;i<1e9;i++) {
-
-		}
-
-		std::cout << "print\n";
-
-	}
-}
-
-*/
+/* Example usage
+ *
+ * auto d1 = Delegate<void(int)>::Create<&GlobalHandler>();
+ * auto d2 = Delegate<void(int)>::Create<Foo, &Foo::MemberFunc>(&f);
+ *
+ * d1(10);
+ * d2(20);
+ *
+ * */
