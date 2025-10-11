@@ -6,14 +6,27 @@ using namespace stm32;
 extern const AP_HAL::HAL& hal;
 
 TIM_HandleTypeDef STM32Scheduler::timer_handle;
+TIM_HandleTypeDef STM32Scheduler::delay_handle;
+
+// Initialise the milli-second counter to 0 NOTE Might already be zero-init as a global
+uint32_t STM32Scheduler::_ms_counter{0};
 
 STM32Scheduler::STM32Scheduler()
 {}
 
 void STM32Scheduler::init(void* machtnichts)
 {
+	/* We are using two timers for STM32Scheduler
+	 *
+	 * Timer 2 (TIM2) is used to run the 1kHz processes that are registered via the register_* functions.
+	 *
+	 * Timer 1 (TIM1) is used for micro-second delays.
+	 *
+	 */
+
 	// TODO By default we are using TIM2 here but we should maybe make it configurable
-	
+	__HAL_RCC_TIM2_CLK_ENABLE();
+
 	__HAL_RCC_TIM2_CLK_ENABLE();
 
 	// Our timer currently needs to interrupt at 1kHz
@@ -31,9 +44,21 @@ void STM32Scheduler::init(void* machtnichts)
     HAL_NVIC_SetPriority(TIM2_IRQn, 2, 0);
     HAL_NVIC_EnableIRQ(TIM2_IRQn);
 
+	// Setup TIM1 - micro-second delay timer
+	//
+	// TIM1 runs on APB1 (84MHz) so we use a 84x prescaler to generate a 1us increment
+    STM32Scheduler::delay_handle.Instance = TIM1;
+    STM32Scheduler::delay_handle.Init.Prescaler = 83;   // (84 MHz / (83 + 1)) = 1MHz
+    STM32Scheduler::delay_handle.Init.CounterMode = TIM_COUNTERMODE_UP;
+    STM32Scheduler::delay_handle.Init.Period = 0x2710;  // 10,000us or 10ms we reset
+    STM32Scheduler::delay_handle.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+
+    HAL_TIM_Base_Init(&STM32Scheduler::delay_handle);
+
 	// TODO Maybe we should wait until elsewhere (i.e. the call to Scheduler::initalised() before we start timers
 	
 	HAL_TIM_Base_Start_IT(&STM32Scheduler::timer_handle);
+	HAL_TIM_Base_Start_IT(&STM32Scheduler::delay_handle);
 
 	return;
 }
@@ -47,10 +72,15 @@ void TIM2_IRQHandler(void)
 // HAL Callback
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
+	/* This callback is called at 1kHz (1ms) and hence can be used to increment the ms_counter */
+	++STM32Scheduler::_ms_counter;
+
 	// TODO Should be checking if this timer is the TIM2 (Scheduler) timer as other timers use this cb function
 	
 	// Run the timer processes
-	STM32Scheduler::_run_timer_processes();
+	if (htim->Instance == TIM2) {
+		STM32Scheduler::_run_timer_processes();
+	}
 
 	return;
 }
@@ -67,26 +97,42 @@ void STM32Scheduler::_run_timer_processes(void)
 
 void STM32Scheduler::delay(uint16_t ms)
 {
-	// TODO
+	// For now, just use the HAL_Delay function
+	HAL_Delay(ms);
+	return;
+}
+
+void STM32Scheduler::delay_microseconds(uint16_t us)
+{
+	// TODO Add a check that this function is only used for <1000us delays
+	
+	// Uses the delay timer (TIM1) which ticks at microseconds
+	
+	uint32_t start = __HAL_TIM_GET_COUNTER(&STM32Scheduler::delay_handle);
+
+	while((__HAL_TIM_GET_COUNTER(&STM32Scheduler::delay_handle) - start) < us) {
+		// 
+	}
+
 	return;
 }
 
 uint32_t STM32Scheduler::millis() 
 {
-	// TODO
-	return 0;
+	return STM32Scheduler::_ms_counter;
 }
 
 uint32_t STM32Scheduler::micros() 
 {
-	// TODO
-	return 0;
-}
-
-void STM32Scheduler::delay_microseconds(uint16_t us)
-{
-	// TODO
-	return;
+	/* To get the number of elapsed microseconds, we can use the current _ms_counter as a
+	 * base and then use the microsecond delay timer (TIM1) for the number of elapsed microseconds.
+	 *
+	 * The microsecond delay timer ticks at 1us and resets every 10ms so we just need to get the number of microseconds
+	 * elapsed since the last millisecond interval (us_ticks%10) and add to the _ms_counter. 
+	 *
+	 */
+	uint32_t us_ticks = __HAL_TIM_GET_COUNTER(&STM32Scheduler::delay_handle);
+	return STM32Scheduler::_ms_counter*1000lu + us_ticks%10;
 }
 
 void STM32Scheduler::register_delay_callback(AP_HAL::Proc proc, uint16_t min_time_ms)

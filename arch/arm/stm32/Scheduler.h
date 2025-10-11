@@ -51,8 +51,14 @@ class stm32::STM32Scheduler : public AP_HAL::Scheduler {
 
 		/* @brief HAL Timer Handle instance */
 		static TIM_HandleTypeDef timer_handle;
+
+		/* @brief HAL Timer Handle for the microsecond delay timer */
+		static TIM_HandleTypeDef delay_handle;
 		
 		static void _run_timer_processes(void);
+
+		/* @brief Counter used to hold the number of milli-seconds elapsed */
+		static uint32_t _ms_counter;
 
 	private:
 

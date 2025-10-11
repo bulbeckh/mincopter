@@ -50,6 +50,8 @@ class MCInstance {
 			barometer(&AP_Baro_MS5611::spi),
 #elif  MC_BARO_BME280
 			barometer(),
+#elif  MC_BARO_NONE
+			barometer(),
 #endif
 
 			gps_glitch(g_gps),
@@ -64,9 +66,10 @@ class MCInstance {
 			g_gps_driver(),
 #endif
 
+			// All compass types have an empty constructor
 			compass(),
+
 			motors(&rc_1, &rc_2, &rc_3, &rc_4),
-			//param_loader(var_info, WP_START_BYTE)
 
 			// Parameters initialisations
         rc_1                (CH_1),
@@ -115,6 +118,8 @@ class MCInstance {
 		AP_InertialSensor_MPU6050 ins;
 #elif  MC_IMU_SIM
 		AP_InertialSensor_Sim ins;
+#elif  MC_IMU_NONE
+		AP_InertialSensor_None ins;
 #endif
 
 		/* @brief Barometer instance */
@@ -131,6 +136,8 @@ class MCInstance {
 		AP_Baro_BME280 barometer;
 #elif  MC_BARO_SIM
 		AP_Baro_Sim barometer;
+#elif  MC_BARO_NONE
+		AP_Baro_None barometer;
 #endif
 
 		/* @brief Compass instance */
@@ -140,6 +147,8 @@ class MCInstance {
 		AP_Compass_ICM20948 compass;
 #elif  MC_COMP_SIM
 		AP_Compass_Sim compass;
+#elif  MC_COMP_NONE
+		AP_Compass_None compass;
 #endif
 
 		/* @brief GPS Interface */

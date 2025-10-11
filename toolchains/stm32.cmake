@@ -31,7 +31,7 @@ set(COMMON_FLAGS
 
 ## Add linker script path here
 set(LINKER_FLAGS
-	-T${CMAKE_SOURCE_DIR}/arch/arm/STM32F407VGTX_FLASH.ld
+	-T ${CMAKE_SOURCE_DIR}/arch/arm/STM32F407VGTX_FLASH.ld
 	#-Wl,--gc-sections
 	--specs=nosys.specs
 	-Wl,-Map=mincopter.map

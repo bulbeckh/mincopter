@@ -200,11 +200,11 @@ void init_ardupilot()
     }
 #endif
 
-#if HIL_MODE != HIL_MODE_ATTITUDE
+	// TODO NOTE We are very temporarily turning off barometer initialisation so that STM32 can run
+	
     // read Baro pressure at ground
-    //-----------------------------
-    init_barometer(true);
-#endif
+    //init_barometer(true);
+
 	// TODO Why is barometer initialised twice?
 
     // initialize commands

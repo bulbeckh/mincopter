@@ -102,7 +102,8 @@ void state_update()
 
 	mcstate.inertial_nav.inav_update();
 
-    mcstate.update_trig();
+	// TODO What is this actually doing? None of the values are used
+    //mcstate.update_trig();
 
 	return;
 }
@@ -408,7 +409,9 @@ void loop()
 	if (_counter>10) {
 		state_update();
 		// Control Determination
-		control_determination();
+		
+		// Temporarily disable
+		//control_determination();
 	}
 
     // tell the scheduler one tick has passed
