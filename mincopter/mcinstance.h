@@ -60,6 +60,8 @@ class MCInstance {
 			g_gps_driver(),
 #elif  MC_GPS_UBLOX
 			g_gps_driver(),
+#elif  MC_GPS_NONE
+			g_gps_driver(),
 #endif
 
 			compass(),
@@ -169,9 +171,11 @@ class MCInstance {
 			#error Unrecognised GPS_PROTOCOL setting.
 		 #endif // GPS PROTOCOL
 #elif MC_GPS_SIM
-		AP_GPS_Sim g_gps_driver;
+		AP_GPS_Sim   g_gps_driver;
 #elif MC_GPS_UBLOX
 		AP_GPS_UBLOX g_gps_driver;
+#elif MC_GPS_NONE
+		AP_GPS_None  g_gps_driver;
 #endif
 
 		// receiver RSSI

@@ -136,8 +136,8 @@ static void SystemClock_Config(void)
 	 *
 	 * AHB Prescaler = 1 -> HCLK = 168MHz / 1 = 168MHz
 	 *
-	 * APB1 Prescaler = 4 -> PLCK1 = 168MHz / 4 = 42MHz (84MHz actual)
-	 * APB2 Prescaler = 4 -> PLCK2 = 168MHz / 2 = 84MHz (168MHz actual)
+	 * APB1 Prescaler = 4 -> PLCK1 = 168MHz / 4 = 42MHz (84MHz actual for TIM)
+	 * APB2 Prescaler = 4 -> PLCK2 = 168MHz / 2 = 84MHz (168MHz actual for TIM)
 	 *
 	 * APB1 Peripherals
 	 * - USART2,3,4,5

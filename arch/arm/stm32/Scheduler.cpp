@@ -5,6 +5,8 @@ using namespace stm32;
 
 extern const AP_HAL::HAL& hal;
 
+TIM_HandleTypeDef STM32Scheduler::timer_handle;
+
 STM32Scheduler::STM32Scheduler()
 {}
 
@@ -18,15 +20,20 @@ void STM32Scheduler::init(void* machtnichts)
 	//
 	// TIM2 runs on APB1 which for us is clocked at 84MHz
 
-    timer_handle.Instance = TIM2;
-    timer_handle.Init.Prescaler = 8399;   // (84 MHz / (8399 + 1)) = 10 kHz
-    timer_handle.Init.CounterMode = TIM_COUNTERMODE_UP;
-    timer_handle.Init.Period = 9;      // 10 kHz / (9 + 1) = 1kHz (1 ms)
-    timer_handle.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-    HAL_TIM_Base_Init(&timer_handle);
+    STM32Scheduler::timer_handle.Instance = TIM2;
+    STM32Scheduler::timer_handle.Init.Prescaler = 8399;   // (84 MHz / (8399 + 1)) = 10 kHz
+    STM32Scheduler::timer_handle.Init.CounterMode = TIM_COUNTERMODE_UP;
+    STM32Scheduler::timer_handle.Init.Period = 9;      // 10 kHz / (9 + 1) = 1kHz (1 ms)
+    STM32Scheduler::timer_handle.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+
+    HAL_TIM_Base_Init(&STM32Scheduler::timer_handle);
 
     HAL_NVIC_SetPriority(TIM2_IRQn, 2, 0);
     HAL_NVIC_EnableIRQ(TIM2_IRQn);
+
+	// TODO Maybe we should wait until elsewhere (i.e. the call to Scheduler::initalised() before we start timers
+	
+	HAL_TIM_Base_Start_IT(&STM32Scheduler::timer_handle);
 
 	return;
 }
@@ -40,9 +47,21 @@ void TIM2_IRQHandler(void)
 // HAL Callback
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
+	// TODO Should be checking if this timer is the TIM2 (Scheduler) timer as other timers use this cb function
+	
 	// Run the timer processes
 	STM32Scheduler::_run_timer_processes();
 
+	return;
+}
+
+void STM32Scheduler::_run_timer_processes(void)
+{
+	// TODO
+	
+
+	// For now just run the heartbeat
+	STM32Scheduler::_timer_led_heartbeat();
 	return;
 }
 
@@ -141,17 +160,16 @@ void STM32Scheduler::time_shift(uint32_t shift_ms)
 	return;
 }
 
-void _timer_led_heartbeat(void)
+void STM32Scheduler::_timer_led_heartbeat(void)
 {
 	// Runs at 1kHz
-	static uint16_t led_counter=0;
+	// TODO Will wrap at UINT32_MAX and won't be exactly 1000
+	static uint32_t led_counter=0;
 
-	if (led_counter%1000) {
+	if (led_counter%1000==0) {
 		HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_13);
-		led_counter=0;
-	} else {
-		led_counter++;
 	}
+	led_counter++;
 
 	return;
 }

@@ -65,6 +65,8 @@ elseif(MC_GPS_TYPE STREQUAL "UBLOX")
 elseif(MC_GPS_TYPE STREQUAL "SIM")
 	list(APPEND MC_LIBS_DEV ${CMAKE_SOURCE_DIR}/dev/AP_GPS/sim_gps.cpp)
 	## TODO Add remaining GPS modules
+elseif(MC_GPS_TYPE STREQUAL "NONE")
+	## Do nothing as AP_GPS_None is just a header
 else()
 	message(FATAL_ERROR "GPS device not supported.")
 endif()

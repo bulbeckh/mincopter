@@ -43,17 +43,18 @@ class stm32::STM32Scheduler : public AP_HAL::Scheduler {
 
 		void     time_shift(uint32_t shift_ms);
 
-	private:
+	public:
 		// TODO Update with STM32 implementation
 
 		/* @brief Timer process to flash the LED each second to indicate a running **loop** function */
-		void _timer_led_heartbeat(void);
+		static void _timer_led_heartbeat(void);
 
 		/* @brief HAL Timer Handle instance */
 		static TIM_HandleTypeDef timer_handle;
 		
 		static void _run_timer_processes(void);
 
+	private:
 
 		/*
 		struct timespec _sketch_start_time;    

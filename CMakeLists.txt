@@ -94,6 +94,8 @@ elseif(MC_GPS_TYPE STREQUAL "UBLOX")
 	add_compile_definitions(MC_GPS_UBLOX)
 elseif(MC_GPS_TYPE STREQUAL "SIM")
 	add_compile_definitions(MC_GPS_SIM)
+elseif(MC_GPS_TYPE STREQUAL "NONE")
+	add_compile_definitions(MC_GPS_NONE)
 else()
 	message(FATAL_ERROR "GPS device not supported.")
 endif()
@@ -302,6 +304,8 @@ elseif(${TARGET_ARCH_FAMILY} STREQUAL "stm32")
 		"arch/arm/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_dma.c"
 		"arch/arm/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_spi.c"
 		"arch/arm/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_i2c.c"
+		"arch/arm/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_tim.c"
+		"arch/arm/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_tim_ex.c"
 	)
 
 	file(GLOB MC_LIBS_ARCH
