@@ -316,8 +316,6 @@ elseif(${TARGET_ARCH_FAMILY} STREQUAL "stm32")
 
 	file(GLOB MC_LIBS_ARCH
 		"arch/arm/stm32/*.cpp"
-		"arch/arm/stm32f4xx_it.c"
-		"arch/arm/system_stm32f4xx.c"
 		${STM32_HAL_LIBS}
 	)
 endif()
@@ -387,6 +385,16 @@ if(${TARGET_ARCH_FAMILY} STREQUAL "stm32")
 		"${CMAKE_SOURCE_DIR}/arch/arm/startup_stm32f407vgtx.s"
 		"${CMAKE_SOURCE_DIR}/arch/arm/syscalls.c"
 		"${CMAKE_SOURCE_DIR}/arch/arm/sysmem.c"
+		"${CMAKE_SOURCE_DIR}/arch/arm/stm32f4xx_it.c"
+		"${CMAKE_SOURCE_DIR}/arch/arm/system_stm32f4xx.c"
+	)
+
+	target_include_directories(stm32_static PUBLIC
+		"arch/arm"
+		"arch/arm/Drivers/CMSIS/Include"
+		"arch/arm/Drivers/CMSIS/Device/ST/STM32F4xx/Include"
+		"arch/arm/Drivers/STM32F4xx_HAL_Driver/Inc"
+		"arch/arm/Drivers/STM32F4xx_HAL_Driver/Inc/Legacy"
 	)
 
 	target_link_libraries(mincopter

@@ -4,8 +4,9 @@
 #include <iostream>
 
 #include <AP_HAL/AP_HAL.h>
+#include <AP_HAL/HAL_Interface.h>
 
-extern const HAL_STM32& AP_HAL_STM32;
+const AP_HAL::HAL& hal = AP_HAL_BOARD_DRIVER;
 
 int main(void)
 {

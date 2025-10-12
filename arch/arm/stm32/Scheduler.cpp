@@ -27,7 +27,7 @@ void STM32Scheduler::init(void* machtnichts)
 	// TODO By default we are using TIM2 here but we should maybe make it configurable
 	__HAL_RCC_TIM2_CLK_ENABLE();
 
-	__HAL_RCC_TIM2_CLK_ENABLE();
+	__HAL_RCC_TIM1_CLK_ENABLE();
 
 	// Our timer currently needs to interrupt at 1kHz
 	//
@@ -64,9 +64,13 @@ void STM32Scheduler::init(void* machtnichts)
 }
 
 // Implementation of TIM2 overflow will route to STM32 HAL method
+extern "C" {
+
 void TIM2_IRQHandler(void)
 {
 	HAL_TIM_IRQHandler(&STM32Scheduler::timer_handle);
+}
+
 }
 
 // HAL Callback
