@@ -9,7 +9,7 @@ STM32I2CDriver::STM32I2CDriver(AP_HAL::Semaphore* semaphore, const char *device)
 {
 }
 
-void STM32I2CDriver::begin() 
+void STM32I2CDriver::begin(void)
 {
 	// TODO Make chosen I2C configurable
 	
@@ -58,14 +58,16 @@ uint8_t STM32I2CDriver::write(uint8_t addr, uint8_t len, uint8_t* data)
 
 uint8_t STM32I2CDriver::writeRegisters(uint8_t addr, uint8_t reg, uint8_t len, uint8_t* data)
 {
-	// TODO
-	return 0;
+	if (HAL_I2C_Mem_Write(&mc_i2c, addr << 1, reg, I2C_MEMADD_SIZE_8BIT, data, len, HAL_MAX_DELAY) != HAL_OK ) {
+		// TODO call hal panic
+	}
+	return len;
 }
 
 uint8_t STM32I2CDriver::writeRegister(uint8_t addr, uint8_t reg, uint8_t val)
 {
-	// TODO
-	return 0;
+	// NOTE Blocking write required if we pass &val
+	return writeRegisters(addr, reg, 1, &val);
 }
 
 uint8_t STM32I2CDriver::read(uint8_t addr, uint8_t len, uint8_t* data)
@@ -76,15 +78,16 @@ uint8_t STM32I2CDriver::read(uint8_t addr, uint8_t len, uint8_t* data)
 
 uint8_t STM32I2CDriver::readRegisters(uint8_t addr, uint8_t reg, uint8_t len, uint8_t* data)
 {
-	// TODO
-    return 0;
+	if (HAL_I2C_Mem_Read(&mc_i2c, addr << 1, reg, I2C_MEMADD_SIZE_8BIT, data, len, HAL_MAX_DELAY) != HAL_OK) {
+		// TODO call hal panic
+	}
+    return len;
 }
 
 
 uint8_t STM32I2CDriver::readRegister(uint8_t addr, uint8_t reg, uint8_t* data)
 {
-	// TODO
-    return 0;
+    return readRegisters(addr, reg, 1, data);
 }
 
 uint8_t STM32I2CDriver::lockup_count() 

@@ -121,12 +121,12 @@ void STM32Scheduler::delay_microseconds(uint16_t us)
 	return;
 }
 
-uint32_t STM32Scheduler::millis() 
+uint32_t STM32Scheduler::millis(void)
 {
 	return STM32Scheduler::_ms_counter;
 }
 
-uint32_t STM32Scheduler::micros() 
+uint32_t STM32Scheduler::micros(void)
 {
 	/* To get the number of elapsed microseconds, we can use the current _ms_counter as a
 	 * base and then use the microsecond delay timer (TIM1) for the number of elapsed microseconds.
@@ -212,12 +212,17 @@ void STM32Scheduler::time_shift(uint32_t shift_ms)
 
 void STM32Scheduler::_timer_led_heartbeat(void)
 {
-	// Runs at 1kHz
+	/* This timer callback runs at 1kHz (at the timer frequency)
+	 * and every second we toggle the heartbeat LED and then send
+	 * a heartbeat message on uartA (console). */
+
 	// TODO Will wrap at UINT32_MAX and won't be exactly 1000
 	static uint32_t led_counter=0;
 
 	if (led_counter%1000==0) {
 		HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_13);
+
+		hal.uartA->write((uint8_t*)"heartbeat\r\n",11);
 	}
 	led_counter++;
 

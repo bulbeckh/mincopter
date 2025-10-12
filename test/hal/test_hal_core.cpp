@@ -13,6 +13,8 @@ int main(void)
 
 	AP_HAL_STM32.init(0, NULL);
 
+	hal.uartA->write((uint8_t*)"newstring\n", 10);
+
 	volatile uint32_t counter=0;
 
 	while(true) {

@@ -23,16 +23,6 @@ void init_ardupilot()
 	mincopter.hal.console->printf_P(PSTR("INITIALISATION STARTED\n"));
 
 	// Run for anything except simulation
-#ifndef TARGET_ARCH_LINUX
-    if (!mincopter.hal.gpio->usb_connected()) {
-        // USB is not connected, this means UART0 may be a Xbee, with
-        // its darned bricking problem. We can't write to it for at
-        // least one second after powering up. Simplest solution for
-        // now is to delay for 1 second. Something more elegant may be
-        // added later
-        delay(1000);
-    }
-#endif
 
     // Console serial port
     //mincopter.hal.uartB->begin(SERIAL0_BAUD, 512, 128);
@@ -42,7 +32,7 @@ void init_ardupilot()
 #if GPS_PROTOCOL != GPS_PROTOCOL_IMU
 	// NOTE We use uartB for GPS on AVR, otherwise, for boards like RPI we
 	// re-use uartA for GPS
-#ifdef TARGET_ARCH_AVR
+#if defined(TARGET_ARCH_AVR) || defined(TARGET_ARCH_STM32)
 	if (mincopter.hal.uartB != NULL) mincopter.hal.uartB->begin(38400, 256, 16);
 	mincopter.hal.console->printf_P(PSTR("[INIT] uartB initialised\n"));
 #else
@@ -158,7 +148,7 @@ void init_ardupilot()
     mincopter.g_gps = &mincopter.g_gps_driver;
 
     // GPS Initialization with correct UART
-#ifdef TARGET_ARCH_AVR
+#if defined(TARGET_ARCH_AVR) || defined(TARGET_ARCH_STM32)
 	if (mincopter.hal.uartB != NULL) {
     	mincopter.g_gps->init(mincopter.hal.uartB, GPS::GPS_ENGINE_AIRBORNE_1G);
 #else

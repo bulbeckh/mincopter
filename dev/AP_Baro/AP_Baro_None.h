@@ -1,11 +1,16 @@
 
 #pragma once
 
+#include "AP_Baro.h"
+
 class AP_Baro_None : public AP_Baro
 {
 	public:
 
-		AP_Baro_None(void) { }
+		AP_Baro_None(void)
+		{
+			healthy = true;
+		}
 
 		/* @brief Initialisation method of barometer */
 		bool init(void) override { return true; }

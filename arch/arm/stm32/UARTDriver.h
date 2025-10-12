@@ -36,7 +36,8 @@ class stm32::STM32UARTDriver : public AP_HAL::UARTDriver {
 
 		void set_device_path(const char *path);
 
-		void _timer_tick(void);
+		// TODO What was this for?
+		//void _timer_tick(void);
 
 	private:
 		/* @brief USART number of this UARTDriver */

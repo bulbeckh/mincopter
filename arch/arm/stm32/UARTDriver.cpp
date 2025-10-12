@@ -116,18 +116,20 @@ int16_t STM32UARTDriver::read()
 }
 
 size_t STM32UARTDriver::write(uint8_t c) 
-{ 
-	// TODO
+{
+	// NOTE Need to do blocking write if we pass address of argument
+	HAL_UART_Transmit(&mc_uart, &c, 1, HAL_MAX_DELAY);
+
     return 1;
 }
 
 size_t STM32UARTDriver::write(const uint8_t *buffer, size_t size)
 {
-	// TODO
-    return 0;
+	// Use HAL UART interface
+	
+	// TODO Check return status
+	HAL_UART_Transmit(&mc_uart, buffer, size, HAL_MAX_DELAY);
+
+    return size;
 }
 
-void STM32UARTDriver::_timer_tick(void)
-{
-	// TODO
-}

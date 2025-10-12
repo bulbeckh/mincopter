@@ -181,6 +181,7 @@ static void SystemClock_Config(void)
 		Error_Handler();
 	}
 
+	// TODO I think this is handled by HAL_Init already
 	// Update the systick frequency so the HAL_Delay works correctly
 	HAL_SYSTICK_Config(HAL_RCC_GetHCLKFreq() / 1000);
 
