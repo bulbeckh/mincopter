@@ -168,7 +168,7 @@ void loop()
 {
 
 	// Loop heartbeat
-	if (_counter%100==0) {
+	if (_counter%1000==0) {
 		hal.console->printf("Looping..\n");
 	}
 	_counter++;
@@ -440,7 +440,11 @@ void loop()
 
     uint32_t time_elapsed = micros() - timer;
     // Delay if we have time remaining (i.e. time took less than 10000us)
-	
+
+	if (time_elapsed < 10000) {
+		hal.scheduler->delay_microseconds(10000lu-time_elapsed);
+	}
+
 	return;
 }
 

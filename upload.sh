@@ -10,7 +10,7 @@ fi
 case "$1" in
   avr)
     echo "Uploading AVR..."
-	objcopy -O ihex -R .eeprom $1 ./mincopter.ihex
+	objcopy -O ihex -R .eeprom $2 ./mincopter.ihex
 	# -D flag stops the flash from going through the erase step
 	avrdude -p atmega2560 -c wiring -P/dev/ttyACM0 -b115200 -U flash:w:./mincopter.ihex:i
     ;;

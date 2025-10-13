@@ -25,7 +25,7 @@ AP_HAL::Proc AVRScheduler::_failsafe = NULL;
 volatile bool AVRScheduler::_timer_suspended = false;
 volatile bool AVRScheduler::_timer_event_missed = false;
 volatile bool AVRScheduler::_in_timer_proc = false;
-AP_HAL::MemberProc AVRScheduler::_timer_proc[AVR_SCHEDULER_MAX_TIMER_PROCS] = {NULL};
+AP_HAL::MemberProc AVRScheduler::_timer_proc[AVR_SCHEDULER_MAX_TIMER_PROCS]; /* = {NULL}; */
 uint8_t AVRScheduler::_num_timer_procs = 0;
 
 

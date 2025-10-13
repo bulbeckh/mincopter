@@ -8,13 +8,19 @@ extern const AP_HAL::HAL& hal;
 TIM_HandleTypeDef STM32Scheduler::timer_handle;
 TIM_HandleTypeDef STM32Scheduler::delay_handle;
 
+AP_HAL::MemberProc STM32Scheduler::_timer_proc[STM32_SCHEDULER_MAX_TIMER_PROCS];
+uint8_t STM32Scheduler::_num_timer_procs{0};
+volatile bool STM32Scheduler::_in_timer_proc{false};
+bool STM32Scheduler::_suspended{false};
+
 // Initialise the milli-second counter to 0 NOTE Might already be zero-init as a global
 uint32_t STM32Scheduler::_ms_counter{0};
 
 STM32Scheduler::STM32Scheduler()
-{}
+	: _initialised{false}
+{ }
 
-void STM32Scheduler::init(void* machtnichts)
+void STM32Scheduler::init(void* /* unused */)
 {
 	/* We are using two timers for STM32Scheduler
 	 *
@@ -91,11 +97,23 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 
 void STM32Scheduler::_run_timer_processes(void)
 {
-	// TODO
-	
+	// Return immediately if we have suspended timer processes
+	if (_suspended) return;
+
+	// Set our timer process flag
+	STM32Scheduler::_in_timer_proc = true;
+
+	// Run each timer process
+	for (uint8_t i=0; i<STM32Scheduler::_num_timer_procs;i++) {
+		STM32Scheduler::_timer_proc[i]();
+	}
 
 	// For now just run the heartbeat
 	STM32Scheduler::_timer_led_heartbeat();
+
+	// Reset our timer process flag
+	STM32Scheduler::_in_timer_proc = false;
+
 	return;
 }
 
@@ -147,7 +165,17 @@ void STM32Scheduler::register_delay_callback(AP_HAL::Proc proc, uint16_t min_tim
 
 void STM32Scheduler::register_timer_process(AP_HAL::MemberProc proc) 
 {
-	// TODO
+	if (STM32Scheduler::_num_timer_procs >= STM32_SCHEDULER_MAX_TIMER_PROCS) {
+		// TODO Notify somewhere of error
+		return;
+	}
+
+	// Add bound member process to next available slot
+	STM32Scheduler::_timer_proc[STM32Scheduler::_num_timer_procs] = proc;
+
+	// Increment timer process counter
+	STM32Scheduler::_num_timer_procs += 1;
+
 	return;
 }
 
@@ -163,42 +191,51 @@ void STM32Scheduler::register_timer_failsafe(AP_HAL::Proc failsafe, uint32_t per
 	return;
 }
 
-void STM32Scheduler::suspend_timer_procs()
+void STM32Scheduler::suspend_timer_procs(void)
 {
-	// TODO
+	STM32Scheduler::_suspended = true;
 	return;
 }
 
-void STM32Scheduler::resume_timer_procs()
+void STM32Scheduler::resume_timer_procs(void)
 {
-	// TODO
+	STM32Scheduler::_suspended = false;
+
 	return;
 }
 
 void STM32Scheduler::panic(const prog_char_t *errormsg) 
 {
-	// TODO
-	return;
+	// Dump error message to console
+	hal.console->printf(PSTR("%s\n"), errormsg);
+
+	// TODO Maybe call one of the provided endless loops like Default_Handler
+	// Endless loop
+	while(true) { }
 }
 
-bool STM32Scheduler::in_timerprocess() 
+bool STM32Scheduler::in_timerprocess(void)
 {
-	// TODO
-	return false;
+	return STM32Scheduler::_in_timer_proc;
 }
 
-bool STM32Scheduler::system_initializing() {
-	// TODO
-	return false;
-}
-
-void STM32Scheduler::system_initialized()
+bool STM32Scheduler::system_initializing(void)
 {
-	// TODO
-	return;
+	return _initialised;
 }
 
-void STM32Scheduler::reboot(bool hold_in_bootloader) 
+void STM32Scheduler::system_initialized(void)
+{
+	if (_initialised) {
+		// We have already initialised
+		// TODO call hal panic
+	} else {
+		_initialised = true;
+		return;
+	}
+}
+
+void STM32Scheduler::reboot(bool /* unused */) 
 {
 	// Trigger a software reset using NVIC
 	HAL_NVIC_SystemReset();

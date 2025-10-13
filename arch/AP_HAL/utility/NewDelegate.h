@@ -4,8 +4,32 @@
 // Alternative to FastDelegate
 
 
+#ifdef TARGET_ARCH_AVR
+// Use minimal implementation of forward and remove_references
+#include <stdint.h>
+
+// Minimal type_traits subset for AVR
+template<typename T> struct remove_reference      { typedef T type; };
+template<typename T> struct remove_reference<T&>  { typedef T type; };
+template<typename T> struct remove_reference<T&&> { typedef T type; };
+
+template<typename T>
+constexpr T&& forward(typename remove_reference<T>::type& t) noexcept {
+    return static_cast<T&&>(t);
+}
+template<typename T>
+constexpr T&& forward(typename remove_reference<T>::type&& t) noexcept {
+    return static_cast<T&&>(t);
+}
+
+#else
+// Use libstdc++
 #include <utility>
 #include <type_traits>
+
+using namespace std;
+
+#endif
 
 template <typename>
 class Delegate;
@@ -26,7 +50,7 @@ public:
         Delegate d;
         d.object_ptr = nullptr;
         d.stub_ptr = [](void*, Args&&... args) -> R {
-            return Func(std::forward<Args>(args)...);
+            return Func(forward<Args>(args)...);
         };
         return d;
     }
@@ -37,13 +61,13 @@ public:
         Delegate d;
         d.object_ptr = instance;
         d.stub_ptr = [](void* obj, Args&&... args) -> R {
-            return (static_cast<T*>(obj)->*Func)(std::forward<Args>(args)...);
+            return (static_cast<T*>(obj)->*Func)(forward<Args>(args)...);
         };
         return d;
     }
 
     R operator()(Args... args) const {
-        return stub_ptr(object_ptr, std::forward<Args>(args)...);
+        return stub_ptr(object_ptr, forward<Args>(args)...);
     }
 
     explicit operator bool() const noexcept {
@@ -61,11 +85,11 @@ public:
 	// NOTE We actually use NULL in some of the Scheduler classes to check if instances to timer processes are
 	// present before we call them but C++ will implicitly cast to nullptr so we just have to override the nullptr comparators here
 	
-	bool operator==(std::nullptr_t) const noexcept {
+	bool operator==(decltype(nullptr)) const noexcept {
 		return stub_ptr == nullptr;
 	}
 
-	bool operator!=(std::nullptr_t) const noexcept {
+	bool operator!=(decltype(nullptr)) const noexcept {
 		return stub_ptr != nullptr;
 	}
 };

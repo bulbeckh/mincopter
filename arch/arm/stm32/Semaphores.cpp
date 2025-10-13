@@ -5,26 +5,45 @@ extern const AP_HAL::HAL& hal;
 
 using namespace stm32;
 
-// TODO
-STM32Semaphore::STM32Semaphore(void)
-{
-}
+// TODO The AVR Semaphore implementation has checks to see if we call semaphore functions from the timer process
+// as ::take will block
 
-bool STM32Semaphore::give() 
+STM32Semaphore::STM32Semaphore(void)
+	: _taken{false}
+{ }
+
+bool STM32Semaphore::give(void)
 {
-	// TODO
-	return false;
+	if (!_taken) {
+		return false;
+	} else {
+		_taken = false;
+		return true;
+	}
 }
 
 bool STM32Semaphore::take(uint32_t timeout_ms) 
 {
-	// TODO
+	uint32_t start = hal.scheduler->millis();
+
+	while (hal.scheduler->millis()-start < timeout_ms) {
+		if (!_taken) {
+			_taken = true;
+			return true;
+		}
+	}
+
+	// If we exceed timeout, return false
     return false;
 }
 
-bool STM32Semaphore::take_nonblocking() 
+bool STM32Semaphore::take_nonblocking(void)
 {
-	// TODO
-	return false;
+	if (!_taken) {
+		_taken = true;
+		return true;
+	} else {
+		return false;
+	}
 }
 
