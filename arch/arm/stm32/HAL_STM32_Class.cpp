@@ -7,12 +7,7 @@
 
 #include "stm32f4xx_hal.h"
 
-static stm32::STM32Semaphore  i2cSemaphore;
-static stm32::STM32Scheduler schedulerInstance;
-static stm32::STM32Util utilInstance;
-
-// NOTE This bool argument determines whether ther UART is the default console but we
-// ignore it anyway
+// NOTE This bool argument determines whether ther UART is the default console but we ignore it anyway
 static stm32::STM32UARTDriver uartADriver(true,  stm32::UART::MC_USART2);
 static stm32::STM32UARTDriver uartBDriver(false, stm32::UART::MC_USART3);
 static stm32::STM32UARTDriver uartCDriver(false, stm32::UART::MC_USART4);
@@ -20,10 +15,15 @@ static stm32::STM32UARTDriver uartDDriver(false, stm32::UART::MC_USART5);
 
 static stm32::STM32I2CDriver  i2cDriver(&i2cSemaphore, "/dev/i2c-1");
 static stm32::STM32SPIDeviceManager spiDeviceManager;
-static stm32::STM32AnalogIn analogIn;
 static stm32::STM32GPIO gpioDriver;
-static stm32::STM32RCInput rcinDriver;
 static stm32::STM32RCOutput rcoutDriver;
+static stm32::STM32Semaphore  i2cSemaphore;
+static stm32::STM32Scheduler schedulerInstance;
+static stm32::STM32Util utilInstance;
+
+// These two are basically stubs as we have implemented neither and are not used in current implementation of mincopter
+static stm32::STM32AnalogIn analogIn;
+static stm32::STM32RCInput rcinDriver;
 
 // Forward Declaration of STM32 HAL Clock Configuration function
 static void SystemClock_Config(void);
@@ -106,6 +106,9 @@ void HAL_STM32::init(int argc,char* const argv[]) const
 
 	// Start the console UART so we can log HAL initialisation messages from all other classes
     uartA->begin(115200);
+
+	// Initialise the RCOutput PWM signals
+	rcout->init(NULL);
 
 	// Start I2C (I2C1 for us - DISC1)
     i2c->begin();
