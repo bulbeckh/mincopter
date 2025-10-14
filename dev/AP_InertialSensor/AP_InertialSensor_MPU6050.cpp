@@ -146,9 +146,9 @@ bool AP_InertialSensor_MPU6050::_reset(void)
 {
 	uint8_t status = hal.i2c->writeRegister(MPU6050_ADDR, MPU6050_PWR_MGMT_1, 0x00);
 
-	// Return on a non-zero status code
-	if (status) return false;
+	// Return true on a non-zero status code (indicating successful write)
+	if (status) return true;
 
-	return true;
+	return false;
 }
 

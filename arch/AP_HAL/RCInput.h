@@ -40,6 +40,8 @@ public:
      *  v > 0   -> set v as override.
      */
 
+	// TODO Can almost definitely remove these
+	
     /* set_overrides: array starts at ch 0, for len channels */
     virtual bool set_overrides(int16_t *overrides, uint8_t len) = 0;
     /* set_override: set just a specific channel */

@@ -1,10 +1,13 @@
 
 #include <arch/arm/stm32/Scheduler.h>
 
+#include <stdio.h>
+
 using namespace stm32;
 
 extern const AP_HAL::HAL& hal;
 
+/*
 TIM_HandleTypeDef STM32Scheduler::timer_handle;
 TIM_HandleTypeDef STM32Scheduler::delay_handle;
 
@@ -15,6 +18,8 @@ bool STM32Scheduler::_suspended{false};
 
 // Initialise the milli-second counter to 0 NOTE Might already be zero-init as a global
 uint32_t STM32Scheduler::_ms_counter{0};
+*/
+
 
 STM32Scheduler::STM32Scheduler()
 	: _initialised{false}
@@ -39,13 +44,13 @@ void STM32Scheduler::init(void* /* unused */)
 	//
 	// TIM2 runs on APB1 which for us is clocked at 84MHz
 
-    STM32Scheduler::timer_handle.Instance = TIM2;
-    STM32Scheduler::timer_handle.Init.Prescaler = 8399;   // (84 MHz / (8399 + 1)) = 10 kHz
-    STM32Scheduler::timer_handle.Init.CounterMode = TIM_COUNTERMODE_UP;
-    STM32Scheduler::timer_handle.Init.Period = 9;      // 10 kHz / (9 + 1) = 1kHz (1 ms)
-    STM32Scheduler::timer_handle.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+    timer_handle.Instance = TIM2;
+    timer_handle.Init.Prescaler = 8399;   // (84 MHz / (8399 + 1)) = 10 kHz
+    timer_handle.Init.CounterMode = TIM_COUNTERMODE_UP;
+    timer_handle.Init.Period = 9;      // 10 kHz / (9 + 1) = 1kHz (1 ms)
+    timer_handle.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
 
-    HAL_TIM_Base_Init(&STM32Scheduler::timer_handle);
+    HAL_TIM_Base_Init(&timer_handle);
 
     HAL_NVIC_SetPriority(TIM2_IRQn, 2, 0);
     HAL_NVIC_EnableIRQ(TIM2_IRQn);
@@ -53,47 +58,22 @@ void STM32Scheduler::init(void* /* unused */)
 	// Setup TIM1 - micro-second delay timer
 	//
 	// TIM1 runs on APB1 (84MHz) so we use a 84x prescaler to generate a 1us increment
-    STM32Scheduler::delay_handle.Instance = TIM1;
-    STM32Scheduler::delay_handle.Init.Prescaler = 83;   // (84 MHz / (83 + 1)) = 1MHz
-    STM32Scheduler::delay_handle.Init.CounterMode = TIM_COUNTERMODE_UP;
-    STM32Scheduler::delay_handle.Init.Period = 0x2710;  // 10,000us or 10ms we reset
-    STM32Scheduler::delay_handle.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+    delay_handle.Instance = TIM1;
+    delay_handle.Init.Prescaler = 83;   // (84 MHz / (83 + 1)) = 1MHz
+    delay_handle.Init.CounterMode = TIM_COUNTERMODE_UP;
+    delay_handle.Init.Period = 0x2710;  // 10,000us or 10ms we reset
+    delay_handle.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
 
-    HAL_TIM_Base_Init(&STM32Scheduler::delay_handle);
+    HAL_TIM_Base_Init(&delay_handle);
 
 	// TODO Maybe we should wait until elsewhere (i.e. the call to Scheduler::initalised() before we start timers
 	
-	HAL_TIM_Base_Start_IT(&STM32Scheduler::timer_handle);
-	HAL_TIM_Base_Start_IT(&STM32Scheduler::delay_handle);
+	HAL_TIM_Base_Start_IT(&timer_handle);
+	HAL_TIM_Base_Start_IT(&delay_handle);
 
 	return;
 }
 
-// Implementation of TIM2 overflow will route to STM32 HAL method
-extern "C" {
-
-void TIM2_IRQHandler(void)
-{
-	HAL_TIM_IRQHandler(&STM32Scheduler::timer_handle);
-}
-
-}
-
-// HAL Callback
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
-{
-	/* This callback is called at 1kHz (1ms) and hence can be used to increment the ms_counter */
-	++STM32Scheduler::_ms_counter;
-
-	// TODO Should be checking if this timer is the TIM2 (Scheduler) timer as other timers use this cb function
-	
-	// Run the timer processes
-	if (htim->Instance == TIM2) {
-		STM32Scheduler::_run_timer_processes();
-	}
-
-	return;
-}
 
 void STM32Scheduler::_run_timer_processes(void)
 {
@@ -101,18 +81,18 @@ void STM32Scheduler::_run_timer_processes(void)
 	if (_suspended) return;
 
 	// Set our timer process flag
-	STM32Scheduler::_in_timer_proc = true;
+	_in_timer_proc = true;
 
 	// Run each timer process
-	for (uint8_t i=0; i<STM32Scheduler::_num_timer_procs;i++) {
-		STM32Scheduler::_timer_proc[i]();
+	for (uint8_t i=0; i<_num_timer_procs;i++) {
+		_timer_proc[i]();
 	}
 
 	// For now just run the heartbeat
-	STM32Scheduler::_timer_led_heartbeat();
+	_timer_led_heartbeat();
 
 	// Reset our timer process flag
-	STM32Scheduler::_in_timer_proc = false;
+	_in_timer_proc = false;
 
 	return;
 }
@@ -130,9 +110,9 @@ void STM32Scheduler::delay_microseconds(uint16_t us)
 	
 	// Uses the delay timer (TIM1) which ticks at microseconds
 	
-	uint32_t start = __HAL_TIM_GET_COUNTER(&STM32Scheduler::delay_handle);
+	uint32_t start = __HAL_TIM_GET_COUNTER(&delay_handle);
 
-	while((__HAL_TIM_GET_COUNTER(&STM32Scheduler::delay_handle) - start) < us) {
+	while((__HAL_TIM_GET_COUNTER(&delay_handle) - start) < us) {
 		// 
 	}
 
@@ -141,7 +121,7 @@ void STM32Scheduler::delay_microseconds(uint16_t us)
 
 uint32_t STM32Scheduler::millis(void)
 {
-	return STM32Scheduler::_ms_counter;
+	return _ms_counter;
 }
 
 uint32_t STM32Scheduler::micros(void)
@@ -153,8 +133,8 @@ uint32_t STM32Scheduler::micros(void)
 	 * elapsed since the last millisecond interval (us_ticks%10) and add to the _ms_counter. 
 	 *
 	 */
-	uint32_t us_ticks = __HAL_TIM_GET_COUNTER(&STM32Scheduler::delay_handle);
-	return STM32Scheduler::_ms_counter*1000lu + us_ticks%10;
+	uint32_t us_ticks = __HAL_TIM_GET_COUNTER(&delay_handle);
+	return _ms_counter*1000lu + us_ticks%10;
 }
 
 void STM32Scheduler::register_delay_callback(AP_HAL::Proc proc, uint16_t min_time_ms)
@@ -165,16 +145,16 @@ void STM32Scheduler::register_delay_callback(AP_HAL::Proc proc, uint16_t min_tim
 
 void STM32Scheduler::register_timer_process(AP_HAL::MemberProc proc) 
 {
-	if (STM32Scheduler::_num_timer_procs >= STM32_SCHEDULER_MAX_TIMER_PROCS) {
+	if (_num_timer_procs >= STM32_SCHEDULER_MAX_TIMER_PROCS) {
 		// TODO Notify somewhere of error
 		return;
 	}
 
 	// Add bound member process to next available slot
-	STM32Scheduler::_timer_proc[STM32Scheduler::_num_timer_procs] = proc;
+	_timer_proc[_num_timer_procs] = proc;
 
 	// Increment timer process counter
-	STM32Scheduler::_num_timer_procs += 1;
+	_num_timer_procs += 1;
 
 	return;
 }
@@ -193,13 +173,13 @@ void STM32Scheduler::register_timer_failsafe(AP_HAL::Proc failsafe, uint32_t per
 
 void STM32Scheduler::suspend_timer_procs(void)
 {
-	STM32Scheduler::_suspended = true;
+	_suspended = true;
 	return;
 }
 
 void STM32Scheduler::resume_timer_procs(void)
 {
-	STM32Scheduler::_suspended = false;
+	_suspended = false;
 
 	return;
 }
@@ -216,7 +196,7 @@ void STM32Scheduler::panic(const prog_char_t *errormsg)
 
 bool STM32Scheduler::in_timerprocess(void)
 {
-	return STM32Scheduler::_in_timer_proc;
+	return _in_timer_proc;
 }
 
 bool STM32Scheduler::system_initializing(void)
@@ -258,6 +238,19 @@ void STM32Scheduler::_timer_led_heartbeat(void)
 
 	if (led_counter%1000==0) {
 		HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_13);
+
+		// Get number of milliseconds and format into string
+		uint32_t ms_elapsed = millis();
+
+		uint8_t s_buffer[128];
+		uint32_t char_written = snprintf((char*)s_buffer, sizeof(s_buffer), "MS%lu\r\n", ms_elapsed);
+		hal.uartA->write((uint8_t*)s_buffer, char_written);
+
+		delay_microseconds(50);
+
+		uint32_t us_elapsed = micros();
+		char_written = snprintf((char*)s_buffer, sizeof(s_buffer), "US%lu\r\n", us_elapsed);
+		hal.uartA->write((uint8_t*)s_buffer, char_written);
 
 		hal.uartA->write((uint8_t*)"heartbeat\r\n",11);
 	}

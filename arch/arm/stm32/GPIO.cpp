@@ -119,8 +119,8 @@ void STM32GPIO::toggle(uint8_t pin)
 }
 
 AP_HAL::DigitalSource* STM32GPIO::channel(uint16_t n) {
-	// TODO
-    return new STM32DigitalSource(0);
+	// TODO Add bounds checks
+	return &_gpio_array[n];
 }
 
 /* Interrupt interface: */
@@ -131,34 +131,58 @@ bool STM32GPIO::attach_interrupt(uint8_t interrupt_num, AP_HAL::Proc p, uint8_t 
 
 bool STM32GPIO::usb_connected(void)
 {
-	// TODO
+	// TODO USB Not yet implemented on STM32 target
     return false;
 }
 
-STM32DigitalSource::STM32DigitalSource(uint8_t v) :
-    _v(v)
+// STM32DigitalSource methods
+
+STM32DigitalSource::STM32DigitalSource(void)
 {
-	// TODO
 }
 
 void STM32DigitalSource::mode(uint8_t output)
 {
-	// TODO
+	/* Although the pins on the GPIO can have a number of alternate functions like
+	 * SPI, I2C, etc, most of the genuine GPIO pins will either be GPIO_MODE_INPUT
+	 * or GPIO_MODE_OUTPUT_PP so we will assign either of those as the mode depending
+	 * on the **output** parameter */
+	if (output) {
+		_mode = GPIO_MODE_OUTPUT_PP;
+	} else {
+		_mode = GPIO_MODE_INPUT;
+	}
+
+	return;
 }
 
-uint8_t STM32DigitalSource::read() {
-	// TODO
-    return _v;
+uint8_t STM32DigitalSource::read(void) {
+    GPIO_PinState pinstate = HAL_GPIO_ReadPin(_bus, _pin);
+
+	if (pinstate==GPIO_PIN_SET) {
+		return 0xFF;
+	} else {
+		return 0x00;
+	}
 }
 
-void STM32DigitalSource::write(uint8_t value) {
-	// TODO
-    _v = value;
+void STM32DigitalSource::write(uint8_t value)
+{
+	// Write HIGH for any non-zero value
+	if (value) {
+		HAL_GPIO_WritePin(_bus, _pin, GPIO_PIN_SET);
+	} else {
+		HAL_GPIO_WritePin(_bus, _pin, GPIO_PIN_RESET);
+	}
+
+	return;
 }
 
-void STM32DigitalSource::toggle() {
-	// TODO
-    _v = !_v;
+void STM32DigitalSource::toggle(void)
+{
+	HAL_GPIO_TogglePin(_bus, _pin);
+
+	return;
 }
 
 

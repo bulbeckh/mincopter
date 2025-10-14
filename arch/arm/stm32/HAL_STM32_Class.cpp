@@ -196,6 +196,32 @@ void Error_Handler(void)
 	while(1) {}
 }
 
+// Implementation of TIM2 overflow will route to STM32 HAL method
+extern "C" {
+
+void TIM2_IRQHandler(void)
+{
+	HAL_TIM_IRQHandler(&schedulerInstance.timer_handle);
+}
+
+}
+
+// HAL Callback
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+	/* This callback is called at 1kHz (1ms) and hence can be used to increment the ms_counter */
+	++schedulerInstance._ms_counter;
+
+	// TODO Should be checking if this timer is the TIM2 (Scheduler) timer as other timers use this cb function
+	
+	// Run the timer processes
+	if (htim->Instance == TIM2) {
+		schedulerInstance._run_timer_processes();
+	}
+
+	return;
+}
+
 // STM32 HAL Instance;
 const HAL_STM32 AP_HAL_STM32;
 

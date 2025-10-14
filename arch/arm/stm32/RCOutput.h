@@ -5,11 +5,13 @@
 #include <arch/arm/stm32/AP_HAL_STM32_Namespace.h>
 
 class stm32::STM32RCOutput : public AP_HAL::RCOutput {
+
 	public:
 		void     init(void* machtnichts);
 
 		void     set_freq(uint32_t chmask, uint16_t freq_hz);
 
+		/* @brief Returns the PWM output frequency in Hz. NOTE currently locked at 50Hz until we implement frequency setting functionality */
 		uint16_t get_freq(uint8_t ch);
 
 		void     enable_ch(uint8_t ch);

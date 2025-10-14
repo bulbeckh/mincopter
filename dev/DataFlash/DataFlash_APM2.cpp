@@ -48,7 +48,7 @@ extern const AP_HAL::HAL& hal;
  ##else
  # define serialDebug(fmt, args...)
  ##endif
- #  //*/
+ #  // */
 
 #define DF_RESET 41             // RESET  (PG0)
 #define DF_CARDDETECT 33        // PC4

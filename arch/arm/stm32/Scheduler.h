@@ -72,32 +72,31 @@ class stm32::STM32Scheduler : public AP_HAL::Scheduler {
 	public:
 		// TODO Update with STM32 implementation
 
-
 		/* @brief HAL Timer Handle instance */
-		static TIM_HandleTypeDef timer_handle;
+		TIM_HandleTypeDef timer_handle;
 
 		/* @brief HAL Timer Handle for the microsecond delay timer */
-		static TIM_HandleTypeDef delay_handle;
+		TIM_HandleTypeDef delay_handle;
 
 		/* @brief Counter used to hold the number of milli-seconds elapsed */
-		static uint32_t _ms_counter;
+		uint32_t _ms_counter;
 
 		/* @brief Flag for whether we should run timer processes */
-		static bool _suspended;
+		bool _suspended;
 
 		/* @brief Timer process to flash the LED each second to indicate a running **loop** function */
-		static void _timer_led_heartbeat(void);
+		void _timer_led_heartbeat(void);
 
 		/* @brief Callback to run each of the timer processes at 1kHz */
-		static void _run_timer_processes(void);
+		void _run_timer_processes(void);
 
 	private:
 
-		static AP_HAL::MemberProc _timer_proc[STM32_SCHEDULER_MAX_TIMER_PROCS];
+		AP_HAL::MemberProc _timer_proc[STM32_SCHEDULER_MAX_TIMER_PROCS];
 
-		static uint8_t _num_timer_procs;
+		uint8_t _num_timer_procs;
 
-		static volatile bool _in_timer_proc;
+		volatile bool _in_timer_proc;
 
 		/* @brief Flag for whether system initialisation is complete */
 		bool _initialised;
