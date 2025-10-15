@@ -3,6 +3,8 @@
 
 #include <stdio.h>
 
+#include "stm32f4xx_hal.h"
+
 using namespace stm32;
 
 extern const AP_HAL::HAL& hal;

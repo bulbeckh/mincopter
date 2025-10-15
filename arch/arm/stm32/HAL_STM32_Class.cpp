@@ -13,11 +13,11 @@ static stm32::STM32UARTDriver uartBDriver(false, stm32::UART::MC_USART3);
 static stm32::STM32UARTDriver uartCDriver(false, stm32::UART::MC_USART4);
 static stm32::STM32UARTDriver uartDDriver(false, stm32::UART::MC_USART5);
 
+static stm32::STM32Semaphore  i2cSemaphore;
 static stm32::STM32I2CDriver  i2cDriver(&i2cSemaphore, "/dev/i2c-1");
 static stm32::STM32SPIDeviceManager spiDeviceManager;
 static stm32::STM32GPIO gpioDriver;
 static stm32::STM32RCOutput rcoutDriver;
-static stm32::STM32Semaphore  i2cSemaphore;
 static stm32::STM32Scheduler schedulerInstance;
 static stm32::STM32Util utilInstance;
 
@@ -140,7 +140,7 @@ static void SystemClock_Config(void)
 	 * AHB Prescaler = 1 -> HCLK = 168MHz / 1 = 168MHz
 	 *
 	 * APB1 Prescaler = 4 -> PLCK1 = 168MHz / 4 = 42MHz (84MHz actual for TIM)
-	 * APB2 Prescaler = 4 -> PLCK2 = 168MHz / 2 = 84MHz (168MHz actual for TIM)
+	 * APB2 Prescaler = 2 -> PLCK2 = 168MHz / 2 = 84MHz (168MHz actual for TIM)
 	 *
 	 * APB1 Peripherals
 	 * - USART2,3,4,5
