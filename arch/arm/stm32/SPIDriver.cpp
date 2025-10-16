@@ -106,13 +106,16 @@ void STM32SPIDeviceDriver::transfer(const uint8_t *data, uint16_t len)
 // TODO Update args for these constructors
 STM32SPIDeviceManager::STM32SPIDeviceManager() :
 	// This is where we specify the SPI devices and the SS bus/pin
-	_device_icm20948{&mc_spi, GPIOA, GPIO_PIN_4}
+	_device_icm20948{&mc_spi, GPIOA, GPIO_PIN_4},
+	_device_bme280{&mc_spi, GPIOB, GPIO_PIN_1}
 {}
 
 void STM32SPIDeviceManager::init(void*)
 {
 	// TODO Change to be configurable for any number of devices
     _device_icm20948.init();
+
+    _device_bme280.init();
 
 	// TODO Make configurable on any SPI
 	
@@ -138,7 +141,7 @@ void STM32SPIDeviceManager::init(void*)
     mc_spi.Init.CLKPolarity = SPI_POLARITY_LOW;         // Clock idle low
     mc_spi.Init.CLKPhase = SPI_PHASE_1EDGE;             // Data captured on 1st edge
     mc_spi.Init.NSS = SPI_NSS_SOFT;                     // Software control of CS
-    mc_spi.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_16; // Clock divider
+    mc_spi.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_32; // Clock divider - SPI runs at 84MHz / 32 = 2.625MHz
     mc_spi.Init.FirstBit = SPI_FIRSTBIT_MSB;
     mc_spi.Init.TIMode = SPI_TIMODE_DISABLE;
     mc_spi.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
@@ -158,6 +161,8 @@ AP_HAL::SPIDeviceDriver* STM32SPIDeviceManager::device(enum AP_HAL::SPIDevice de
     switch (dev) {
 		case AP_HAL::SPIDevice_ICM20948:
             return &_device_icm20948;
+		case AP_HAL::SPIDevice_BME280:
+			return &_device_bme280;
     }
 
     return NULL;

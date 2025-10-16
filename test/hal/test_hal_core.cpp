@@ -24,18 +24,16 @@ int main(void)
 
 	// I2C Test - Get the device ID (0x68) from the MPU6050
 	
-	// SUCCESS
 	uint8_t mpu6050_id = 0x00;
 	hal.i2c->readRegister(0x68, 0x75, &mpu6050_id);
 
 	hal.uartA->printf("ID0x%x\r\n", mpu6050_id);
 
 	// SPI Test - Get the device ID (0xEA) from the ICM20948
+	/*
 	auto spidev = hal.spi->device(AP_HAL::SPIDevice::SPIDevice_ICM20948);
-
 	spidev->cs_assert();
 
-	// Delay a millisecond
 	hal.scheduler->delay(1);
 
 	uint8_t _tx[16] = {0x7F, 0x00};
@@ -57,8 +55,21 @@ int main(void)
 	spidev->transaction(_tx, _rx, 2);
 
 	spidev->cs_release();
+	*/
 
-	hal.uartA->printf("SP 0x%x,0x%x\r\n",_rx[0],_rx[1]);
+	auto spi_bme = hal.spi->device(AP_HAL::SPIDevice::SPIDevice_BME280);
+	spi_bme->cs_assert();
+
+	uint8_t _tx[16];
+	uint8_t _rx[16];
+	_tx[0] = 0x80 | 0xD0;
+
+	// Read ID
+	spi_bme->transaction(_tx, _rx, 2);
+
+	spi_bme->cs_release();
+
+	hal.uartA->printf("BM 0x%x,0x%x\r\n",_rx[0],_rx[1]);
 
 	// Switch on ORANGE led if all true
 	if (mpu6050_id == 0x68 && _rx[1]==0xEA) {

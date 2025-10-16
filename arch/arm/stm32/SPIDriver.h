@@ -72,5 +72,7 @@ class stm32::STM32SPIDeviceManager : public AP_HAL::SPIDeviceManager {
 		// TODO Add configuration for more than 2 SPI devices
 		// TODO Change the names of these - leftover from RPI names (i.e /dev/cs0)
 		STM32SPIDeviceDriver _device_icm20948;
+
+		STM32SPIDeviceDriver _device_bme280;
 };
 

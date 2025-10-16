@@ -63,7 +63,8 @@ namespace AP_HAL {
         SPIDevice_ADS7844,
         SPIDevice_MS5611,
         SPIDevice_MPU6000,
-		SPIDevice_ICM20948
+		SPIDevice_ICM20948,
+		SPIDevice_BME280
     };
 
 }
