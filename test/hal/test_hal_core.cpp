@@ -1,7 +1,10 @@
 
 // Motor (simulation) test
 
+#ifdef TARGET_ARCH_STM32
+
 #include <iostream>
+// HASH include <stdio.h>
 
 #include <AP_HAL/AP_HAL.h>
 #include <AP_HAL/HAL_Interface.h>
@@ -71,28 +74,30 @@ int main(void)
 
 	hal.uartA->printf("BM 0x%x,0x%x\r\n",_rx[0],_rx[1]);
 
-	// UART Test - Get the device ID of the GPS module
-	
-	// Manually start uartB
-	hal.uartB->begin(9600);
-	hal.uartA->printf("UD");
-	uint8_t rx_buf[16];
-	for (uint8_t i=0;i<16;i++) {
-		rx_buf[i] = 0xff;
-		rx_buf[i] = hal.uartB->read();
-		hal.uartA->printf("0x%x,", rx_buf[i]);
-	}
-	hal.uartA->printf("\r\n");
-	//hal.uartA->printf("UD 0x%x,0x%x,0x%x,0x%x\r\n",rx_buf[0],rx_buf[1], rx_buf[2], rx_buf[3]);
-
 	// Switch on ORANGE led if all true
 	if (mpu6050_id == 0x68 && _rx[1]==0x60) {
 		HAL_GPIO_WritePin(GPIOD, GPIO_PIN_13, GPIO_PIN_SET);
 	}
 
+	// UART Test - Get the device ID of the GPS module
+	
+	// Manually start uartB
+	hal.uartB->begin(9600);
+
 	// loop
 	volatile uint32_t counter=0;
+	uint8_t rx_buf[16];
+
 	while(true) {
+
+		hal.uartA->printf("UD");
+		for (uint8_t i=0;i<16;i++) {
+			rx_buf[i] = 0xff;
+			rx_buf[i] = hal.uartB->read();
+		}
+		hal.uartA->printf(" %.16s\r\n,", rx_buf);
+		//hal.uartA->printf("UD 0x%x,0x%x,0x%x,0x%x\r\n",rx_buf[0],rx_buf[1], rx_buf[2], rx_buf[3]);
+
 		counter +=1;
 	}
 
@@ -100,4 +105,14 @@ int main(void)
 
 }
 
+#else
+
+// For non-STM32 targets, just an empty main for now
+
+int main(int, char**)
+{
+	return 0; 
+}
+
+#endif
 

@@ -25,8 +25,8 @@ add_compile_definitions(
 
 )
 
-set(MCU atmega2560)
-set(ARCHITECTURE avr6)
+#set(MCU atmega2560)
+#set(ARCHITECTURE avr6)
 
 
 #[[ COMMON FLAGS
@@ -45,8 +45,9 @@ fsigned-char  allows char to be signed
 
 ]]
 
+## NOTE TARGET_ARCH should be the same as the mmcu option for avr targets
 set(COMMON_FLAGS
-	-mmcu=${MCU}
+	-mmcu=${TARGET_ARCH}
 	-mcall-prologues
 	-Os
 	-Wall
@@ -73,7 +74,7 @@ set(LINKER_FLAGS
 	-Wl,--gc-sections
 	-Wl,-Map,${CMAKE_BINARY_DIR}/output.map
 	## NOTE I don't think this is needed
-	-Wl,-m,${ARCHITECTURE}
+	-Wl,-m,${MARCHITECTURE}
 	-Wl,--relax
 )
 message("AVR Architecture - linker flags: ${LINKER_FLAGS}")

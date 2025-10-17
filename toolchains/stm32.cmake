@@ -15,11 +15,11 @@ add_compile_definitions(
 
 ## TODO Should -g3 be present in final executable?
 set(COMMON_FLAGS
-	-mcpu=cortex-m4
+	-mcpu=${MCPU}
 	-mfpu=fpv4-sp-d16
 	-mfloat-abi=hard
 	-g3
-	-DSTM32F407xx
+	-D${BOARD_DEFINE}
 	-Wall
 	-O0
 	-MMD
@@ -28,6 +28,10 @@ set(COMMON_FLAGS
 	-fdata-sections
 	-std=gnu11
 )
+
+message("COMMON FLAGS ${COMMON_FLAGS}")
+
+## NOTE TODO This linker script should be dependent on the model we are using
 
 ## Add linker script path here
 set(LINKER_FLAGS
@@ -38,7 +42,7 @@ set(LINKER_FLAGS
 	-static
 	--specs=nano.specs
 	-u _printf_float
-	-mcpu=cortex-m4
+	-mcpu=${MCPU}
 	-mfpu=fpv4-sp-d16
 	-mfloat-abi=hard
 	-mthumb

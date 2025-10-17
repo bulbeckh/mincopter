@@ -118,7 +118,7 @@ class AP_InertialSensor
 		virtual void _init_accel(void);
 		virtual void _init_gyro(void);
 
-#if !defined( __AVR_ATmega1280__ )
+// HASH if !defined( __AVR_ATmega1280__ )
 		// Calibration routines borrowed from Rolfe Schmidt
 		// blog post describing the method: http://chionophilous.wordpress.com/2011/10/24/accelerometer-calibration-iv-1-implementing-gauss-newton-on-an-atmega/
 		// original sketch available at http://rolfeschmidt.com/mathtools/skimetrics/adxl_gn_calibration.pde
@@ -129,7 +129,7 @@ class AP_InertialSensor
 		virtual void _calibrate_reset_matrices(float dS[6], float JS[6][6]);
 		virtual void _calibrate_find_delta(float dS[6], float JS[6][6], float delta[6]);
 		virtual void _calculate_trim(Vector3f accel_sample, float& trim_roll, float& trim_pitch);
-#endif
+// HASH endif
 
 		/* @brief Most recent accelerometer reading obtained by ::update */
 		Vector3f _accel;

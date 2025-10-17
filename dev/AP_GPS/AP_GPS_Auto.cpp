@@ -108,7 +108,7 @@ AP_GPS_Auto::_detect(void)
 			hal.console->print_P(PSTR(" MTK "));
 			new_gps = new AP_GPS_MTK();
 		}
-#if !defined( __AVR_ATmega1280__ )
+// HASH if !defined( __AVR_ATmega1280__ )
 		// save a bit of code space on a 1280
 		else if (AP_GPS_SIRF::_detect(data)) {
 			hal.console->print_P(PSTR(" SIRF "));
@@ -122,7 +122,7 @@ AP_GPS_Auto::_detect(void)
 				new_gps = new AP_GPS_NMEA();
 			}
 		}
-#endif
+// HASH endif
 	}
 
 	if (new_gps != NULL) {

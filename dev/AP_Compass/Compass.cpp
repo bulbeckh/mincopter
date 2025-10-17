@@ -128,13 +128,13 @@ void Compass::set_motor_compensation(const Vector3f &motor_comp_factor)
 
 void Compass::set_initial_location(int32_t latitude, int32_t longitude)
 {
-#if !defined( __AVR_ATmega1280__ )
+// HASH if !defined( __AVR_ATmega1280__ )
     // Set the declination based on the lat/lng from GPS
     _declination = radians(
                 AP_Declination::get_declination(
                     (float)latitude / 10000000,
                     (float)longitude / 10000000));
-#endif
+// HASH endif
 }
 
 void Compass::set_declination(float radians)

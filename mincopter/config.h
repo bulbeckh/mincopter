@@ -50,9 +50,6 @@
 #error CONFIG_HAL_BOARD must be defined to build ArduCopter
 #endif
 
-#ifdef __AVR_ATmega1280__
-#error ATmega1280 is not supported
-#endif
 //////////////////////////////////////////////////////////////////////////////
 // APM2 HARDWARE DEFAULTS
 //

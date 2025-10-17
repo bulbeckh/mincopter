@@ -18,20 +18,20 @@ set(MC_SIM_ENV "GAZEBO") ## (GAZEBO)
 set(MC_SIM_LEVEL "2") ## 
 
 ## Specify control/planning here
-set(MC_CONTROLLER_TYPE "PID")
+set(MC_CONTROLLER_TYPE "NONE")
 set(MC_PLANNER_TYPE "NONE") ## (NONE, WAYPOINT)
 
 ## Specify state here
 ## TODO Change these names
 set(MC_INAV_TYPE "NONE") ## (DEFAULT, EKF, NONE)
-set(MC_AHRS_TYPE "COMPLEMENTARY") ## (DCM, EKF, NONE, COMPLEMENTARY)
+set(MC_AHRS_TYPE "NONE") ## (DCM, EKF, NONE, COMPLEMENTARY)
 
 ## Specify backend dev (ignored for sim)
-set(MC_GPS_TYPE "UBLOX") 			## (NONE, UBLOX, xxxx)
-set(MC_IMU_TYPE "MPU6000") 			## (MPU6050, MPU6000)
-set(MC_COMP_TYPE "HMC5843") 		## (ICM20948, HMC5843)
-set(MC_BARO_TYPE "MS5611")  		## (BME280, MS5611, BMP085)
-set(MC_STORAGE_TYPE "DATAFLASH") 	## (NONE, FILE, DATAFLASH)
+set(MC_GPS_TYPE "NONE") 			## (NONE, UBLOX, xxxx)
+set(MC_IMU_TYPE "NONE") 			## (MPU6050, MPU6000)
+set(MC_COMP_TYPE "NONE") 		## (ICM20948, HMC5843)
+set(MC_BARO_TYPE "NONE")  		## (BME280, MS5611, BMP085)
+set(MC_STORAGE_TYPE "NONE") 	## (NONE, FILE, DATAFLASH)
 set(MC_ADC_TYPE "NONE") 			## ('SIM', 'ADS7844', NONE)
 
 ## Specify wiring for each peripheral (ignored for sim)

@@ -7,19 +7,39 @@ MinCopter CMakeLists
 
 ]]
 
-
 ### Sets the correct toolchain based on the target architecture
 function (set_toolchain TARGET_ARCH)
 	message(STATUS "Using target architecture ${TARGET_ARCH}")
 
-	if(TARGET_ARCH STREQUAL "atmega2560" OR
-			TARGET_ARCH STREQUAL "atmega1280" OR
-			TARGET_ARCH STREQUAL "atmega328p")
+	if(TARGET_ARCH STREQUAL "atmega2560" OR TARGET_ARCH STREQUAL "atmega2561")
 		set(TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/toolchains/avr.cmake" PARENT_SCOPE)
 		set(TARGET_ARCH_FAMILY "avr" PARENT_SCOPE)
-	elseif(TARGET_ARCH STREQUAL "stm32f407")
+		set(MARCHITECTURE "avr6" PARENT_SCOPE)
+	elseif(TARGET_ARCH STREQUAL "atmega1280" OR TARGET_ARCH STREQUAL "atmega1281")
+		set(TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/toolchains/avr.cmake" PARENT_SCOPE)
+		set(TARGET_ARCH_FAMILY "avr" PARENT_SCOPE)
+		## TODO Can probably ignore architecture as gcc automatically infers architecture from avr board
+		set(MARCHITECTURE "avr5" PARENT_SCOPE)
+	elseif(TARGET_ARCH STREQUAL "stm32f407xx")
 		set(TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/toolchains/stm32.cmake" PARENT_SCOPE)
 		set(TARGET_ARCH_FAMILY "stm32" PARENT_SCOPE)
+		set(BOARD_DEFINE "STM32F407xx" PARENT_SCOPE)
+		set(MCPU "cortex-m4" PARENT_SCOPE)
+	elseif(TARGET_ARCH STREQUAL "stm32f405xx")
+		set(TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/toolchains/stm32.cmake" PARENT_SCOPE)
+		set(TARGET_ARCH_FAMILY "stm32" PARENT_SCOPE)
+		set(BOARD_DEFINE "STM32F405xx" PARENT_SCOPE)
+		set(MCPU "cortex-m4" PARENT_SCOPE)
+	elseif(TARGET_ARCH STREQUAL "stm32f401xe")
+		set(TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/toolchains/stm32.cmake" PARENT_SCOPE)
+		set(TARGET_ARCH_FAMILY "stm32" PARENT_SCOPE)
+		set(BOARD_DEFINE "STM32F401xE" PARENT_SCOPE)
+		set(MCPU "cortex-m4" PARENT_SCOPE)
+	elseif(TARGET_ARCH STREQUAL "stm32f401xc")
+		set(TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/toolchains/stm32.cmake" PARENT_SCOPE)
+		set(TARGET_ARCH_FAMILY "stm32" PARENT_SCOPE)
+		set(BOARD_DEFINE "STM32F401xC" PARENT_SCOPE)
+		set(MCPU "cortex-m4" PARENT_SCOPE)
   	elseif(TARGET_ARCH STREQUAL "generic")
 		set(TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/toolchains/x86_64.cmake" PARENT_SCOPE)
 		set(TARGET_ARCH_FAMILY "generic" PARENT_SCOPE)
