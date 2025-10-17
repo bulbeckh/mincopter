@@ -71,8 +71,22 @@ int main(void)
 
 	hal.uartA->printf("BM 0x%x,0x%x\r\n",_rx[0],_rx[1]);
 
+	// UART Test - Get the device ID of the GPS module
+	
+	// Manually start uartB
+	hal.uartB->begin(9600);
+	hal.uartA->printf("UD");
+	uint8_t rx_buf[16];
+	for (uint8_t i=0;i<16;i++) {
+		rx_buf[i] = 0xff;
+		rx_buf[i] = hal.uartB->read();
+		hal.uartA->printf("0x%x,", rx_buf[i]);
+	}
+	hal.uartA->printf("\r\n");
+	//hal.uartA->printf("UD 0x%x,0x%x,0x%x,0x%x\r\n",rx_buf[0],rx_buf[1], rx_buf[2], rx_buf[3]);
+
 	// Switch on ORANGE led if all true
-	if (mpu6050_id == 0x68 && _rx[1]==0xEA) {
+	if (mpu6050_id == 0x68 && _rx[1]==0x60) {
 		HAL_GPIO_WritePin(GPIOD, GPIO_PIN_13, GPIO_PIN_SET);
 	}
 

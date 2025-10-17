@@ -40,26 +40,6 @@ void STM32GPIO::init(void)
 	HAL_GPIO_WritePin(GPIOD, GPIO_PIN_13, GPIO_PIN_RESET);
 
 
-	// Configure CS pin (ICM20948)
-
-	// Configure other CS pins
-	// TODO
-
-	// 3. Setup USART2 TX/RX Pins - PA2, PA3
-	GPIO_InitStruct.Pin = GPIO_PIN_2 | GPIO_PIN_3;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-    GPIO_InitStruct.Pull = GPIO_PULLUP;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-    GPIO_InitStruct.Alternate = GPIO_AF7_USART2;
-    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
-	// 4. Setup USART3 TX/RX Pins - PB10, PB11
-	GPIO_InitStruct.Pin = GPIO_PIN_10 | GPIO_PIN_11;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-    GPIO_InitStruct.Pull = GPIO_PULLUP;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-    GPIO_InitStruct.Alternate = GPIO_AF7_USART3;
-    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
 	// 5. TODO Setup USART4
 	

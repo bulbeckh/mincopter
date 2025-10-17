@@ -32,6 +32,9 @@ void STM32UARTDriver::begin(uint32_t b)
 
 void STM32UARTDriver::begin(uint32_t b, uint16_t rxS, uint16_t txS) 
 {
+
+	GPIO_InitTypeDef GPIO_InitStruct = {0};
+
 	// Set correct UARTs
 	//
 	// NOTE UART4 and UART5 are UART not USART
@@ -39,15 +42,38 @@ void STM32UARTDriver::begin(uint32_t b, uint16_t rxS, uint16_t txS)
 	if (_utype == UART::MC_USART2 ) {
 		__HAL_RCC_USART2_CLK_ENABLE();
 		mc_uart.Instance = USART2;
+
+		// TODO Add GPIO CLK enables
+
+		// TODO Make configurable
+		// 3. Setup USART2 TX/RX Pins - PA2, PA3
+		GPIO_InitStruct.Pin = GPIO_PIN_2 | GPIO_PIN_3;
+		GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+		GPIO_InitStruct.Pull = GPIO_PULLUP;
+		GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+		GPIO_InitStruct.Alternate = GPIO_AF7_USART2;
+		HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
 	} else if (_utype == UART::MC_USART3 ) {
 		__HAL_RCC_USART3_CLK_ENABLE();
 		mc_uart.Instance = USART3;
+
+		// 4. Setup USART3 TX/RX Pins - PB10, PB11
+		GPIO_InitStruct.Pin = GPIO_PIN_10 | GPIO_PIN_11;
+		GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+		GPIO_InitStruct.Pull = GPIO_PULLUP;
+		GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+		GPIO_InitStruct.Alternate = GPIO_AF7_USART3;
+		HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
 	} else if (_utype == UART::MC_USART4 ) {
 		__HAL_RCC_USART3_CLK_ENABLE();
 		mc_uart.Instance = UART4;
+		// TODO Add GPIO TX/RX setup
 	} else if (_utype == UART::MC_USART5 ) {
 		__HAL_RCC_USART3_CLK_ENABLE();
 		mc_uart.Instance = UART5;
+		// TODO Add GPIO TX/RX setup
 	}
 
 	// NOTE Should add functionality to default to 115200
@@ -111,8 +137,12 @@ int16_t STM32UARTDriver::txspace()
 
 int16_t STM32UARTDriver::read() 
 { 
-	// TODO
-	return 0;
+	uint8_t _rx_byte;
+	// NOTE This returns a single byte - we should be 'reading' the UART transmission and storing
+	// in a separate buffer asynchronously. This function is to retrieve from the UART buffer
+	HAL_UART_Receive(&mc_uart, &_rx_byte, 1, HAL_MAX_DELAY);
+
+	return _rx_byte;
 }
 
 size_t STM32UARTDriver::write(uint8_t c) 
