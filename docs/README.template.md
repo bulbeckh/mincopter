@@ -8,12 +8,12 @@
 
 | Target | Architecture | Size${}^{*}$ | Util | Compilation |
 | -- | -- | -- | -- | -- |
-| `mega2560` | avr6 | {{atmega2560_size}} | - |  passed  |
-| `mega2561` | avr6 | {{atmega2561_size}} | - |  failed  |
-| `mega1280` | avr5 | {{atmega1280_size}} | - |  passed  |
-| `mega1281` | avr5 | {{atmega1281_size}} | - |  failed  |
-| `stm32f407` | arm-v7` | {{stm32f407xx_size}} | - |  passed  |
-| `stm32f405` | arm-v7` | {{stm32f405xx_size}} | - |  passed  |
+| `mega2560` | avr6 | {{atmega2560_size}} | - | {{atmega2560_test}} |
+| `mega2561` | avr6 | {{atmega2561_size}} | - | {{atmega2561_test}} |
+| `mega1280` | avr5 | {{atmega1280_size}} | - | {{atmega1280_test}} |
+| `mega1281` | avr5 | {{atmega1281_size}} | - | {{atmega1281_test}} |
+| `stm32f407` | arm-v7` | {{stm32f407xx_size}} | - | {{stm32f407xx_test}} |
+| `stm32f405` | arm-v7` | {{stm32f405xx_size}} | - | {{stm32f405xx_test}} |
 
 
 ## Baseline against other open source flight controllers

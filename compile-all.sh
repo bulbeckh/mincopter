@@ -1,5 +1,6 @@
 #!/bin/bash
 
+: '
 if [ -d "./build/" ]; then
 	echo "build dir exists - removing contents"
 	rm -rf ./build/*
@@ -10,6 +11,7 @@ fi
 
 ## Copy configuration
 cp ./mc-config.cmake ./build
+'
 
 ## Run for each target
 
@@ -20,6 +22,8 @@ target_list=("stm32f407xx"
 	"stm32f405xx"
 	"stm32f401xe"
 	"stm32f401xc")
+
+: '
 for target in "${target_list[@]}"; do
 	echo ${target}
 	echo "./build-${target}"
@@ -36,6 +40,7 @@ for target in "${target_list[@]}"; do
 
 	cd ..
 done
+'
 
 ## AVR Targets
 
@@ -43,6 +48,8 @@ avr_list=("atmega2560"
 	"atmega2561"
 	"atmega1280"
 	"atmega1281")
+
+: '
 for avr_target in "${avr_list[@]}"; do
 	echo ${avr_target}
 	echo "./build-${avr_target}"
@@ -59,6 +66,21 @@ for avr_target in "${avr_list[@]}"; do
 
 	cd ..
 done
+'
 
+## Remove root dir README
+rm ../README.md
+cp ../docs/README.template.md ../README.md
+
+full_list=("${avr_list[@]}" "${target_list[@]}")
+for target in "${full_list[@]}"; do
+	if [[ -f "./build-${target}/bin/mincopter" ]]; then
+		sed -i -e "s|{{${target}_test}}| passed |" ../README.md
+		echo "passed ${target}"
+	else
+		sed -i -e "s|{{${target}_test}}| failed |" ../README.md
+		echo "failed ${target}"
+	fi
+done
 
 
