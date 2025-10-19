@@ -9,12 +9,12 @@ Build status of each supported target microcontroller
 
 | Target | Architecture | Size | Util | Compilation |
 | -- | -- | -- | -- | -- |
-| `mega2560` | `avr6` | {{atmega2560_size}} | - | {{atmega2560_test}}, {{atmega2560_target_count}}/3 built, {{atmega2560_warnings}} warnings |
-| `mega2561` | `avr6` | {{atmega2561_size}} | - | {{atmega2561_test}}, {{atmega2561_target_count}}/3 built, {{atmega2561_warnings}} warnings |
-| `mega1280` | `avr5` | {{atmega1280_size}} | - | {{atmega1280_test}}, {{atmega1280_target_count}}/3 built, {{atmega1280_warnings}} warnings |
-| `mega1281` | `avr5` | {{atmega1281_size}} | - | {{atmega1281_test}}, {{atmega1281_target_count}}/3 built, {{atmega1281_warnings}} warnings |
-| `stm32f407` | `arm-v7` | {{stm32f407xx_size}} | - | {{stm32f407xx_test}}, {{stm32f407xx_target_count}}/3 built, {{stm32f407xx_warnings}} warnings |
-| `stm32f405` | `arm-v7` | {{stm32f405xx_size}} | - | {{stm32f405xx_test}}, {{stm32f405xx_target_count}}/3 built, {{stm32f405xx_warnings}} warnings |
+| `mega2560` | `avr6` | {{atmega2560_size}} | - | {{atmega2560_test}}, {{atmega2560_target_count}}/3 built, {{atmega2560_warnings}} warnings, {{atmega2560_errors}} errors |
+| `mega2561` | `avr6` | {{atmega2561_size}} | - | {{atmega2561_test}}, {{atmega2561_target_count}}/3 built, {{atmega2561_warnings}} warnings, {{atmega2561_errors}} errors |
+| `mega1280` | `avr5` | {{atmega1280_size}} | - | {{atmega1280_test}}, {{atmega1280_target_count}}/3 built, {{atmega1280_warnings}} warnings, {{atmega1280_errors}} errors |
+| `mega1281` | `avr5` | {{atmega1281_size}} | - | {{atmega1281_test}}, {{atmega1281_target_count}}/3 built, {{atmega1281_warnings}} warnings, {{atmega1281_errors}} errors |
+| `stm32f407` | `arm-v7` | {{stm32f407xx_size}} | - | {{stm32f407xx_test}}, {{stm32f407xx_target_count}}/3 built, {{stm32f407xx_warnings}} warnings, {{stm32f407xx_errors}} errors |
+| `stm32f405` | `arm-v7` | {{stm32f405xx_size}} | - | {{stm32f405xx_test}}, {{stm32f405xx_target_count}}/3 built, {{stm32f405xx_warnings}} warnings, {{stm32f405xx_errors}} errors |
 
 ## FAQs
 **What is the aim of MinCopter?**

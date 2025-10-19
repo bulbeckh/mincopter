@@ -9,12 +9,12 @@ Build status of each supported target microcontroller
 
 | Target | Architecture | Size | Util | Compilation |
 | -- | -- | -- | -- | -- |
-| `mega2560` | `avr6` |  55K | - |  passed, 3/3 built, 868 warnings |
-| `mega2561` | `avr6` |  - | - |  failed, 0/3 built, 397 warnings |
-| `mega1280` | `avr5` |  55K | - |  passed, 3/3 built, 868 warnings |
-| `mega1281` | `avr5` |  - | - |  failed, 0/3 built, 397 warnings |
-| `stm32f407` | `arm-v7` |  222K | - |  passed, 3/3 built, 945 warnings |
-| `stm32f405` | `arm-v7` |  222K | - |  passed, 3/3 built, 945 warnings |
+| `mega2560` | `avr6` |  55K | - |  passed, 3/3 built, 868 warnings, 0 errors |
+| `mega2561` | `avr6` |  - | - |  failed, 0/3 built, 397 warnings, 2 errors |
+| `mega1280` | `avr5` |  55K | - |  passed, 3/3 built, 868 warnings, 0 errors |
+| `mega1281` | `avr5` |  - | - |  failed, 0/3 built, 397 warnings, 2 errors |
+| `stm32f407` | `arm-v7` |  222K | - |  passed, 3/3 built, 945 warnings, 0 errors |
+| `stm32f405` | `arm-v7` |  222K | - |  passed, 3/3 built, 945 warnings, 0 errors |
 
 ## FAQs
 **What is the aim of MinCopter?**
