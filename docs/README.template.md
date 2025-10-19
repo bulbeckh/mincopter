@@ -4,159 +4,78 @@
 
 **MinCopter** is a modular end-to-end UAV quadrotor flight system, optimized for speed and size. Designed to work across multiple backend architectures, **MinCopter** contains high-performance planners, controllers, and state estimation libraries. **MinCopter** uses multiple abstraction layers, allowing users to easily switch between controller, planner, and state estimation implementations. Through use of a hardware abstraction layer, both the physical sensors and the underlying MCU are decoupled from the flight software.
 
-## Supported Targets
+## Build Status
+Build status of each supported target microcontroller
 
 | Target | Architecture | Size${}^{*}$ | Util | Compilation |
 | -- | -- | -- | -- | -- |
-| `mega2560` | avr6 | {{atmega2560_size}} | - | {{atmega2560_test}} |
-| `mega2561` | avr6 | {{atmega2561_size}} | - | {{atmega2561_test}} |
-| `mega1280` | avr5 | {{atmega1280_size}} | - | {{atmega1280_test}} |
-| `mega1281` | avr5 | {{atmega1281_size}} | - | {{atmega1281_test}} |
-| `stm32f407` | arm-v7` | {{stm32f407xx_size}} | - | {{stm32f407xx_test}} |
-| `stm32f405` | arm-v7` | {{stm32f405xx_size}} | - | {{stm32f405xx_test}} |
-
-
-## Baseline against other open source flight controllers
-| Project |
-| -- |
-| ArduPilot |
-| PX4 |
-| Betaflight |
-| iNav |
-| Papparazzi UAV |
-
-What about AutoQuad, 3DR, .. - these are hardware vendors no?
-
-Look at dronecode.org for more partners of the drone software ecosystem
+| `mega2560` | `avr6` | {{atmega2560_size}} | - | {{atmega2560_test}} |
+| `mega2561` | `avr6` | {{atmega2561_size}} | - | {{atmega2561_test}} |
+| `mega1280` | `avr5` | {{atmega1280_size}} | - | {{atmega1280_test}} |
+| `mega1281` | `avr5` | {{atmega1281_size}} | - | {{atmega1281_test}} |
+| `stm32f407` | `arm-v7` | {{stm32f407xx_size}} | - | {{stm32f407xx_test}} |
+| `stm32f405` | `arm-v7` | {{stm32f405xx_size}} | - | {{stm32f405xx_test}} |
 
 ## FAQs
 **What is the aim of MinCopter?**
-To have a minimal, modular, and optimised UAV QuadCopter runtime that can support multiple architectures (AVR, ARM, x86-64). It should be modular enough to support multiple different state estimation/representation (DCM, Quaternion) and sensor fusion libraries (NavEKF, InertialNav) and control algorithms (PID, MPC, RL).
+To have a minimal, modular, and optimised UAV QuadCopter flight software that can run on multiple architectures (AVR, ARM, x86). MinCopter has implementations of multiple state representations (DCM, Quaternion), state estimation/sensor fusion (EKF, Complementary filters) and control algorithms (PID, MPC).
 
 **Why is it called MinCopter?**
-The primary goal of MinCopter is to have a very minimal (in terms of storage) flight software that can run on compute-constrained microcontrollers.
+The primary goal of MinCopter is to be minimal (in terms of size) so as to run on compute-constrained and storage-constrained microcontrollers.
 
-**What is target state for completion?**
-- HAL (Hardware Abstraction Layer) with backends for Linux and AVR. (Support for ARM in later release)
-- Flight controller libraries for PID control and MPC control. (Support for RL in later release)
-- Asynchronous console interface (client application written in Python) for retrieving logs and streaming live sensor and variable readings
-- Actual hardware re-implementation of drone board with different sensors to showcase HAL benefit
+**How is this different to ArduCopter and other flight softwares (PX4, Betaflight, Papparazzi UAV)?**
+While other flight softwares support specific flight controllers (CUAV, ARKV6X, Pixhawk, ..), MinCopter aims to provide implementations for specific microcontrollers (e.g. stm32f4 series, microchip megaAVR series, ..) while leaving choice of sensors/peripherals and board design to the user.
 
-**How is this different to ArduCopter?**
-MinCopter started as a hard fork from ArduCopter, specifically `ardupilot-3.2.1`. A number of changes have been made since.
-- Moved from .pde files to .cpp and header files
-- Migrated build system to cmake
-- Removed unused/extra libraries
-- Removed manual flight modes and functionality
-- Removed GCS communication and Mavlink protocol support
-
-**NOTE**
-I had previously been using ArduPilot-3.1.2 as the 'last supported' firmware for APM2.5, however, I have recently found out that this was just a typo and instead, the actual last supported version is `ArduCopter-3.2.1`.
-
-I have now included `AP_HAL_Linux`, however, the sensors associated with the Linux-based boards are different. I need to implement a pure SITL HAL that is based on Linux but uses a software 'sensor' interface to mimic sensor readings.
-
-**What other projects is MinCopter based on?**
-The navigation stack (planners, controllers) is inspired by the ROS2 Nav2 project.
-
+MinCopter started as a hard fork from ArduCopter, specifically `ardupilot-3.2.1`. A few of the major changes:
+- Migrated build system to cmake from 'Arduino' build environment (.pde files etc.)
+- Removed manual flight modes
+- Removed Mavlink protocol support
+- New sensor drivers
 
 ## Dependencies
-TODO - Add each of the backend compilers (gcc-libc, avr-gcc, gcc-arm-none-eabi)
+Because of it's modularity, the dependencies of MinCopter change heavily between targets. Cross-compilation on a linux host is only supported for now.
 
-testing update
+| Target Architecture | Dependencies |
+| --- | --- |
+| `avr` | `avr-libc`, `binutils-avr`, `gcc-avr`, `avrdude` (for flashing) |
+| `arm` | `binutils-arm-none-eabi`, `gcc-arm-none-eabi`, `stlink-tools` **TODO** Add submodule for arm CMSIS, vendor BSPs and stm32 HAL (if used) |
+| `linux/generic` | `gz-harmonic` **TODO** [See gz-harmonic install](https://gazebosim.org/docs/harmonic/install/) for instructions on how to install |
+| `linux/rpi` | **TODO** |
 
-## Building (see docs)
-1. To use the MPC controller, we need to additionally running the MPC design notebook in control/design/src/RapidQuadrocopterTrajectories/combined-osqp.ipynb
+## Building
+1. Before building, quite a bit of configuration must be specified. In the root directory, there is a template specification file `mc-config.cmake` that should be copied to the build directory
 ```bash
-cd control/design/src/RapidQuadrocopterTrajectories/
-jupyter notebook
-## Run the combined-osqp.ipynb which will generate the code in cgen/ as well as generate the controller_mpc_constructor.cpp file in control/
+mkdir ./build
+cp mc-config.cmake ./build
 ```
 
-2. Then build the generated C code and the static OSQP library
+2. Inside the config file, we must specify the sensor devices that we are using, the state estimation library, and the controllers/planners. If we are using a the simulation environment (gazebo) then we also specify some configuration parameters here.
+
+3. Run CMake, specifying the target architecture. A full list is in the root `CMakeLists.txt`. Running cmake without the TARGET\_ARCH variable also prints a list of supported targets.
 ```bash
-cd cgen/
-mkdir build
 cd build
-cmake ..
-make
-```
-3. Navigate to build/
-```bash
-cd ./build
-```
-
-4. Run CMake, specifying the target architecture. A full list is in ./xx
-```bash
 cmake .. -DTARGET_ARCH=<target_architecture>
+make -j4
 ```
-
-5. Run Make from project build directory
-```bash
-cd build
-make -j4 <target>
-```
-
-To upload: flashing board via wsl
-
-In an Admin PowerShell:
-1. `usbipd list`
-2. `usbipd bind --busid <bus>`
-3. `usbipd attach --wsl --busid <bus>`
 
 ## Documentation 
-See docs/
+See `docs/` for more documentation.
 
-## TODO & Roadmap
-TODO
-
-## Contributing
-First step to contributing would be to read the developer guide which explains the codebase and how the different modules fit together. It also explains how new planners/controllers/state libraries are written.
-
-## Acknowledgements
-Add list of ArduCopter contributors for each state library
-Add license
+## Authors
+MinCopter is forked from [ArduPilot/ArduCopter-3.2.1](https://github.com/ArduPilot/ardupilot/tree/ArduCopter-3.2.1) - see the repository for maintainers/contributors, some of which are used in MinCopter. Unless otherwise specified, all code written by Henry Bulbeck [@bulbeckh](https://github.com/bulbeckh).
 
 ## Structure
 | Directory | Contents | 
 | --- | --- | 
-| dev/ | device (sensor) abstractions and backends including GPS, Barometer, IMU, Flash Storage, ... |
-| lib/ | libraries for math, logging, navigation |
-| control/controllers | controller implementation for 'local' planning of control output based on desired state computed by planner |
-| control/planners | planner implementations for computing higher-level goals and trajectories |
-| state/ | state estimation libraries which update copter state object (position, velocity, angular accel/rotation) |
-| arch/ | HAL and architecture-specific backends |
-| mincopter/ | entry point and initialisation code and scheduling of main flight loops |
-
-### `TODO`
-- [ ] Rewrite AP_Scheduler in arch/
-- [ ] Add RTOS capability for some microcontrollers
-- [ ] Rewrite CMakeLists for new structure
-- [ ] Test other ISA backends (ARM) and split codebase
-- [ ] Identify areas where architecture can decrease runtime (hardware acceleration)
-- [ ] Implement NavEKF3 in mincopter
-- [ ] Implement MPC
-- [ ] Move code to btree and implement btree call in `fast_loop`
-- [ ] Test Rust implementations of some functions
-- [ ] Add Rust HAL using Embedded-HAL
-- [ ] Design console functionality (log retrieval, live sensor readings)
-- [ ] Implement truly asynchronous console interface
-- [ ] Merge serial.h and menu.h into a single serial interface unit
-- [ ] Implement custom logging messages
-- [ ] Write script for easy log retrieval, parsing, and storage in python
-- [ ] Compare executable size and storage regions (text, data, bss) with original ac-3.2.1
-- [ ] Add simulated sensor backends in sim/ for using w AP\_HAL\_Linux
-- [ ] Integrate Gazebo simulation to for sensor interface
-- [ ] Add dockerfile for unified development environment
-- [x] Move to a single PID controller class
-- [x] Build console client (in Python)
-- [x] Build console functionality (via AP\_Menu)
-- [x] Write code to profile function runtime
-- [x] Build console `echo` script to echo console messages to stdout
+| dev/ | Sensor (device) drivers and interfaces for GPS, Barometer, IMU, ADC, Compass, ESCs, and External Storage (Flash, SD) |
+| lib/ | Common libraries for math and logging |
+| control/include/controllers | Controllers for computation of control output based on desired state computed by planner. Implementations of **PID (cascaded)**, **LQR**, and **MPC (WIP)** controllers |
+| control/include/planners | Planner implementations for computing higher-level goals/trajectories |
+| state/ | State estimation and sensor-fusion libraries including **ekf** and complementary filters. A standard 12-state representation (position, attitude, and derivatives) is computed by most state estimators |
+| arch/ | HAL Interface and implementations for each supported microcontroller. Includes `arch/arm`, `arch/avr`, and `arch/linux` |
+| mincopter/ | Contains initialisation code, `main` function, scheduling of non-core flight functions and flight loop |
+| ap-gz/ | Gazebo models and plugins used by MinCopter. Forked from [ArduPilot/ardupilot\_gazebo](https://github.com/ArduPilot/ardupilot_gazebo) with modifications |
+| docs/ | Documentation and state graphing libraries for logfiles |
+| test/ | Tests (unit/integration) for the HAL, state, and device drivers |
 
 
-## mistakes/learnings
-- wrong frame for sensors
-- incorrect sensor refresh frequency
-- not initialising reference setpoints (temperature, pressure, lat/lng)
-- did not zero out all PWM channels before sending packet leading to large gimbal/camera joint velocities which caused instability
-- did not include simulation send/receive x10 time in fastloop timer

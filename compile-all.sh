@@ -75,11 +75,15 @@ cp ../docs/README.template.md ../README.md
 full_list=("${avr_list[@]}" "${target_list[@]}")
 for target in "${full_list[@]}"; do
 	if [[ -f "./build-${target}/bin/mincopter" ]]; then
-		sed -i -e "s|{{${target}_test}}| passed |" ../README.md
 		echo "passed ${target}"
+		sed -i -e "s|{{${target}_test}}| passed |" ../README.md
+
+		tgt_size=$(size "./build-${target}/bin/mincopter" | tail -n1 | awk '{print $(NF-2)}' | numfmt --to=iec)
+		sed -i -e "s|{{${target}_size}} | ${tgt_size} |" ../README.md
 	else
-		sed -i -e "s|{{${target}_test}}| failed |" ../README.md
 		echo "failed ${target}"
+		sed -i -e "s|{{${target}_test}}| failed |" ../README.md
+		sed -i -e "s|{{${target}_size}} | - |" ../README.md
 	fi
 done
 
