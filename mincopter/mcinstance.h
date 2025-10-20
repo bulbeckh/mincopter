@@ -116,6 +116,8 @@ class MCInstance {
 		AP_InertialSensor_MPU6000 ins;
 #elif  MC_IMU_MPU6050
 		AP_InertialSensor_MPU6050 ins;
+#elif  MC_IMU_ICM20948
+		AP_InertialSensor_ICM20948 ins;
 #elif  MC_IMU_SIM
 		AP_InertialSensor_Sim ins;
 #elif  MC_IMU_NONE

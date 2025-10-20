@@ -46,7 +46,11 @@ int main()
 #elif defined(MC_COMP_HMC5843) || defined(MC_TEST_COMPASS_ALL)
 	AP_Compass_HMC5843 compass;
 	run_unit_tests(compass);
+#elif defined(MC_COMP_SIM) || defined(MC_TEST_COMPASS_ALL)
+	AP_Compass_Sim compass;
+	run_unit_tests(compass);
 #endif
+
 	// Test 1
 	//
 	// Test 2

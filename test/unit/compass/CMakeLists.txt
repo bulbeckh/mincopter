@@ -4,7 +4,7 @@
 file(GLOB math_srcs ${CMAKE_SOURCE_DIR}/lib/AP_Math/*.cpp)
 
 ## Create test executable
-add_executable(test_compass
+add_executable(test-compass
 	test_compass_core.cpp
 
 	## Again, referencing AP_Math to avoid linking with mc-common
@@ -12,15 +12,23 @@ add_executable(test_compass
 )
 
 ## Link
-target_link_libraries(test_compass PUBLIC
+target_link_libraries(test-compass PUBLIC
 	mc-dev
 	mc-arch
 	## gtest libs
 )
 
-target_include_directories(test_compass PUBLIC
+target_include_directories(test-compass PUBLIC
 	${MC_INCLUDE_DIRS}
 )
+
+if(${TARGET_ARCH_FAMILY} STREQUAL "stm32")
+	target_link_libraries(test-compass PUBLIC
+		-Wl,--whole-archive
+		stm32_static
+		-Wl,--no-whole-archive
+	)
+endif()
 
 
 

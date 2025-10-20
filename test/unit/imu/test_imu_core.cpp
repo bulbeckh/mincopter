@@ -45,7 +45,18 @@ int main()
 #elif defined(MC_IMU_MPU6000) || defined(MC_TEST_IMU_ALL)
 	AP_InertialSensor_MPU6000 imu;
 	run_unit_tests(imu);
+#elif defined(MC_IMU_ICM20948) || defined(MC_TEST_IMU_ALL)
+	AP_InertialSensor_ICM20948 imu;
+	run_unit_tests(imu);
+#elif defined(MC_IMU_L3G4200D) || defined(MC_TEST_IMU_ALL)
+	AP_InertialSensor_L3G4200D imu;
+	run_unit_tests(imu);
+#elif defined(MC_IMU_SIM) || defined(MC_TEST_IMU_ALL)
+	// TODO Do we need to add/instantiate any other sim parameters here or is that handled in the hal.sim object
+	AP_InertialSensor_Sim imu;
+	run_unit_tests(imu);
 #endif
+
 	// Test 1
 	//
 	// Test 2

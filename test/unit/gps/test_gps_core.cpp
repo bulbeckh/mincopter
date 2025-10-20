@@ -52,8 +52,11 @@ int main()
 	
 	if (TEST_GPS_UART != NULL) TEST_GPS_UART->begin(115200, 256, 16);
 	
-#if defined(MC_GPS_UBLOX) || defined(MC_TEST_BARO_ALL)
+#if defined(MC_GPS_UBLOX) || defined(MC_TEST_GPS_ALL)
 	AP_GPS_UBLOX gps_instance;
+	run_unit_tests(gps_instance);
+#elif defined(MC_GPS_SIM) || defined(MC_TEST_GPS_ALL)
+	AP_GPS_Sim gps_instance;
 	run_unit_tests(gps_instance);
 #endif
 	// Test 1

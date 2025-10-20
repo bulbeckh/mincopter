@@ -49,7 +49,14 @@ int main()
 #elif defined(MC_BARO_BME280) || defined(MC_TEST_BARO_ALL)
 	AP_Baro_BME280 barometer_instance;
 	run_unit_tests(barometer_instance);
+#elif defined(MC_BARO_BMP085) || defined(MC_TEST_BARO_ALL)
+	AP_Baro_BMP085 barometer_instance;
+	run_unit_tests(barometer_instance);
+#elif defined(MC_BARO_SIM) || defined(MC_TEST_BARO_ALL)
+	AP_Baro_Sim barometer_instance;
+	run_unit_tests(barometer_instance);
 #endif
+
 	// Test 1
 	//
 	// Test 2
