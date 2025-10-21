@@ -18,8 +18,11 @@
 
 static Linux::LinuxSemaphore  i2cSemaphore;
 static Linux::LinuxStorage storageDriver;
-static Linux::LinuxScheduler schedulerInstance;
+//static Linux::LinuxScheduler schedulerInstance;
 static Linux::LinuxUtil utilInstance;
+
+// Changed to GenericScheduler
+static generic::GenericScheduler schedulerInstance;
 
 // 3 serial ports on Linux for now
 static generic::GenericUARTDriver uartADriver(true);

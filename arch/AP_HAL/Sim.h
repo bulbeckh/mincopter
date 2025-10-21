@@ -41,6 +41,8 @@ class AP_HAL::Sim
 	public:
 		/* @brief Simulation state struct */
 		struct mc_sim_state_packet {
+
+			/* @brief Simulation timestamp in seconds. Taken from simTime in gazebo */
 			double timestamp;
 
 			/* IMU */

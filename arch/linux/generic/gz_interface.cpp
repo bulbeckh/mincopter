@@ -117,6 +117,7 @@ bool GenericGZInterface::send_control_output(void)
 	control_pkt.pwm[3] = hal.sim->motor_out[2];
 
 	// Uncomment this to send a uniform constant PWM output
+	
 	/*
 	static uint32_t send_pwm=1100;
 	control_pkt.pwm[0] = send_pwm;
@@ -158,7 +159,6 @@ bool GenericGZInterface::send_control_output(void)
 
 	// Add the update flag bitfield to the control packet
 	control_pkt.update_flag = update_flag;
-	hal.console->printf("Update flag %u\n", update_flag);
 
     // Send packet
     struct sockaddr_in cliaddr;
@@ -221,12 +221,6 @@ bool GenericGZInterface::recv_state_input(void)
     return true;
 }
 
-void GenericGZInterface::reset(void)
-{
-	// TODO Implement
-	
-	return;
-}
 
 bool GenericGZInterface::setup_log_source(const char* addr, LogSource source)
 {
@@ -275,6 +269,13 @@ void GenericGZInterface::log_state(uint8_t* data, uint8_t len, uint8_t type)
 	// Log to pipe
 	write(logfd, packet, len+4);
 
+	return;
+}
+
+void GenericGZInterface::reset(void)
+{
+	// TODO Implement
+	
 	return;
 }
 

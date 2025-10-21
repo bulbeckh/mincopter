@@ -89,6 +89,7 @@ class generic::GenericGZInterface : public AP_HAL::Sim {
 		/* @brief Reset the simulation back to default configuration including all model poses and simulation time */
 		void reset(void) override;
 
+		/* @brief Simulation direct state update methods */
 		void set_mincopter_position(float x_ned_m, float y_ned_m, float z_ned_m) override;
 		void set_mincopter_attitude(float roll_rad, float pitch_rad, float yaw_rad) override;
 		void set_mincopter_linvelocity(float dx_ned_ms, float dy_ned_ms, float dz_ned_ms) override;

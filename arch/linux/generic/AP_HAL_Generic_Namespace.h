@@ -15,6 +15,8 @@ namespace generic {
     class GenericRCOutput;
     class GenericDigitalSource;
 
+	class GenericScheduler;
+
 	// NOTE New gazebo interface class specifically for the Generic HAL
 	class GenericGZInterface;
 }

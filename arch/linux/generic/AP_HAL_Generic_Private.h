@@ -8,6 +8,7 @@
 #include <arch/linux/generic/GPIO.h>
 #include <arch/linux/generic/RCInput.h>
 #include <arch/linux/generic/RCOutput.h>
+#include <arch/linux/generic/Scheduler.h>
 
 #include <arch/linux/generic/gz_interface.h>
 
