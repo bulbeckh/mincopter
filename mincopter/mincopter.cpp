@@ -332,6 +332,14 @@ void loop()
 
 	mincopter.hal.sim->log_state(log_packet, 24, 0x09);
 
+	// Update position directly as a test every second
+	if (_counter%100==0) {
+		mincopter.hal.sim->set_mincopter_position(0,0,5);
+		mincopter.hal.sim->set_mincopter_linvelocity(0,0,0);
+		mincopter.hal.sim->set_mincopter_attitude(0,0,0);
+		mincopter.hal.sim->set_mincopter_angvelocity(0,0,0);
+	}
+
 	// Dump to console @1Hz
 	if (_counter%100==0) {
 		mincopter.hal.console->printf("[loop %lu] remaining_ram=%u\n", _counter, mincopter.hal.util->available_memory());

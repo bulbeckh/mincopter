@@ -156,6 +156,10 @@ bool GenericGZInterface::send_control_output(void)
 		control_pkt.update_angvel[2] = sim_new_angvel.z;
 	}
 
+	// Add the update flag bitfield to the control packet
+	control_pkt.update_flag = update_flag;
+	hal.console->printf("Update flag %u\n", update_flag);
+
     // Send packet
     struct sockaddr_in cliaddr;
     memset(&cliaddr, 0, sizeof(cliaddr));
@@ -276,22 +280,46 @@ void GenericGZInterface::log_state(uint8_t* data, uint8_t len, uint8_t type)
 
 void GenericGZInterface::set_mincopter_position(float x_ned_m, float y_ned_m, float z_ned_m)
 {
-	// TODO
+	position_update = true;
+
+	sim_new_position.x = x_ned_m;
+	sim_new_position.y = y_ned_m;
+	sim_new_position.z = z_ned_m;
+
+	return;
 }
 
 void GenericGZInterface::set_mincopter_attitude(float roll_rad, float pitch_rad, float yaw_rad)
 {
-	// TODO
+	attitude_update = true;
+
+	sim_new_attitude.x = roll_rad;
+	sim_new_attitude.y = pitch_rad;
+	sim_new_attitude.z = yaw_rad;
+
+	return;
 }
 
 void GenericGZInterface::set_mincopter_linvelocity(float dx_ned_ms, float dy_ned_ms, float dz_ned_ms)
 {
-	// TODO 
+	velocity_update = true;
+
+	sim_new_velocity.x = dx_ned_ms;
+	sim_new_velocity.y = dy_ned_ms;
+	sim_new_velocity.z = dz_ned_ms;
+
+	return;
 }
 
 void GenericGZInterface::set_mincopter_angvelocity(float droll_rads, float dpitch_rads, float dyaw_rads)
 {
-	// TODO
+	angvel_update = true;
+
+	sim_new_angvel.x = droll_rads;
+	sim_new_angvel.y = dpitch_rads;
+	sim_new_angvel.z = dyaw_rads;
+
+	return;
 }
 
 

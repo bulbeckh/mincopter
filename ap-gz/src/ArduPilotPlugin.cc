@@ -1568,6 +1568,8 @@ void gz::sim::systems::ArduPilotPlugin::PreUpdate(
 				// 2. We may alternatively update the state directly, invalidating the above motor forces but the joint controller <control> may still run
 			
 				if (this->dataPtr->state_update_flag) {
+					gzwarn << "Doing state update\n";
+
 					// Retrieve the iris_with_standoffs model
 					auto standoffs_m = gz::sim::Model( this->dataPtr->model.ModelByName(_ecm, std::string("iris_with_standoffs")) );
 
@@ -1782,7 +1784,7 @@ void gz::sim::systems::ArduPilotPlugin::ApplyMotorForces(
                 error, std::chrono::duration<double>(_dt));
             jfcComp->Data()[0] = force;
 
-			gzwarn << "ROTOR(vel, err, for): " << vel << " " << error << " " << force << "\n";
+			//gzwarn << "ROTOR(vel, err, for): " << vel << " " << error << " " << force << "\n";
         }
       }
       else if (this->dataPtr->controls[i].type == "POSITION")
@@ -1954,9 +1956,9 @@ bool gz::sim::systems::ArduPilotPlugin::ReceiveServoPacket()
           pkt);
 
       if (recvSize != -1) {
-		gzdbg << "PKT Header " << pkt.frame_rate << " " << pkt.frame_count << "\n";
+		//gzdbg << "PKT Header " << pkt.frame_rate << " " << pkt.frame_count << "\n";
 
-		for (int i=0;i<57;i++) {
+		for (int i=0;i<4;i++) {
 			gzdbg << pkt.pwm[i] << " ";
       	}
       	gzdbg << "\n";
@@ -1965,6 +1967,7 @@ bool gz::sim::systems::ArduPilotPlugin::ReceiveServoPacket()
       pkt_magic = pkt.magic;
       pkt_frame_rate = pkt.frame_rate;
       pkt_frame_count = pkt.frame_count;
+
       std::copy(std::begin(pkt.pwm), std::end(pkt.pwm), std::begin(pkt_pwm));
 
     //}
@@ -2082,6 +2085,14 @@ bool gz::sim::systems::ArduPilotPlugin::ReceiveServoPacket()
 
 	// Check for request to update state and update if so
 	if (pkt.update_flag) {
+
+		gzwarn << "[StateUpdate CMD] " << (int)pkt.update_flag << "\n";
+
+		gzdbg << "[StateUpdate CMD - pos] " << pkt.update_position[0] << " " << pkt.update_position[1] << " " << pkt.update_position[2] << "\n";
+		gzdbg << "[StateUpdate CMD - vel] " << pkt.update_velocity[0] << " " << pkt.update_velocity[1] << " " << pkt.update_velocity[2] << "\n";
+		gzdbg << "[StateUpdate CMD - att] " << pkt.update_attitude[0] << " " << pkt.update_attitude[1] << " " << pkt.update_attitude[2] << "\n";
+		gzdbg << "[StateUpdate CMD - avl] " << pkt.update_angvel[0] << " " << pkt.update_angvel[1] << " " << pkt.update_angvel[2] << "\n";
+
 		this->dataPtr->state_update_flag = pkt.update_flag; // Bitfield of what fields to update
 		
 		if (this->dataPtr->state_update_flag & (0x01 << 0) ) {
@@ -2129,7 +2140,7 @@ void gz::sim::systems::ArduPilotPlugin::UpdateMotorCommands(
                 // convert pwm to raw cmd: [servo_min, servo_max] => [0, 1],
                 // default is: [1000, 2000] => [0, 1]
                 const double pwm = _pwm[this->dataPtr->controls[i].channel];
-				gzdbg << "PWM " << i << ": " << this->dataPtr->controls[i].jointName << " " << this->dataPtr->controls[i].channel << " " << pwm << "\n";
+				//gzdbg << "PWM " << i << ": " << this->dataPtr->controls[i].jointName << " " << this->dataPtr->controls[i].channel << " " << pwm << "\n";
                 const double pwm_min = this->dataPtr->controls[i].servo_min;
                 const double pwm_max = this->dataPtr->controls[i].servo_max;
                 const double multiplier = this->dataPtr->controls[i].multiplier;
@@ -2671,3 +2682,4 @@ void gz::sim::systems::ArduPilotPlugin::SendState() const
         << "frame_count: " << this->dataPtr->fcu_frame_count << "\n";
 #endif
 }
+
