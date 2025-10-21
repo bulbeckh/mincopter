@@ -100,13 +100,38 @@ class AP_HAL::Sim
 		float control_input[4];
 
 	public:
+		
+		/* **Simulation Control Methods**
+		 *
+		 * During testing, we need to be able to reset the simulation and arbitrarily modify the state of the quadcopter
+		 * including position, velocity, and attitude.
+		 *
+		 * We supply methods below to set state which is communicated to the ArduPilot gazebo driver at the next call to
+		 * **send_control_output**. Note, setting any state during a simulation step will cause the gazebo driver to ignore
+		 * the supplied x4 control output vector for that step.
+		 *
+		 * Resetting the simulation also updates the internal mincopter millis/micros count. Simulated sensor drivers should
+		 * check for jumps in time due to a reset.
+		 */
 
 		/* @brief Reset the simulation back to default configuration including all model poses and simulation time */
 		virtual void reset(void) = 0;
 
-		/* @brief Update the pose of the copter in the Gazebo simulation. This should zero all velocities/accelerations/momentum.
-		 * Pose is specified in the MinCopter frame (NED, extrinsic X-Y-Z orientation) with position in metres and orientation in radians */
-		virtual void set_mincopter_pose(float x_ned_m, float y_ned_m, float z_ned_m, float roll_rad, float pitch_rad, float yaw_rad) = 0;
+		/* @brief Update the position of the copter in the Gazebo simulation. Pose is specified in the MinCopter frame (NED,
+		 * extrinsic X-Y-Z orientation) with position in metres and orientation in radians */
+		virtual void set_mincopter_position(float x_ned_m, float y_ned_m, float z_ned_m) = 0;
+
+		/* @brief Update the attitude of the copter in the Gazebo simulation. Pose is specified in the MinCopter frame (NED,
+		 * extrinsic X-Y-Z orientation) with position in metres and orientation in radians */
+		virtual void set_mincopter_attitude(float roll_rad, float pitch_rad, float yaw_rad) = 0;
+
+		/* @brief Update the linear velocity of the copter in the Gazebo simulation. Pose is specified in the MinCopter frame (NED,
+		 * extrinsic X-Y-Z orientation) with position in metres and orientation in radians */
+		virtual void set_mincopter_linvelocity(float dx_ned_ms, float dy_ned_ms, float dz_ned_ms) = 0;
+
+		/* @brief Update the angular velocity of the copter in the Gazebo simulation. Pose is specified in the MinCopter frame (NED,
+		 * extrinsic X-Y-Z orientation) with position in metres and orientation in radians */
+		virtual void set_mincopter_angvelocity(float droll_rads, float dpitch_rads, float dyaw_rads) = 0;
 
 	public:
 

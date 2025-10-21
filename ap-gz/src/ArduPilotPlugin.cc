@@ -443,6 +443,16 @@ class gz::sim::systems::ArduPilotPluginPrivate
   // MinCopter
   public: mc_sim_state_packet sim_pkt;
 
+  public:
+		  /* @brief Flag to mark whether we have should update state directly in this iteration */
+		  uint8_t state_update_flag{0};
+
+		  /* @brief Position update */
+		  float state_update_position[3];
+		  float state_update_velocity[3];
+		  float state_update_attitude[3]; 
+		  float state_update_angvel[3];
+
 
 };
 
@@ -1552,47 +1562,88 @@ void gz::sim::systems::ArduPilotPlugin::PreUpdate(
 				// keep this function running every iteration (1000Hz) even though the motor
 				// commands will be updated at 100HzS
 				
+				// 1. Apply the motor forces
                 this->ApplyMotorForces(dt, _ecm);
-
-				// We can ignore the motor forces and then just update the link pose here
 			
-				 
-				// Retrieve the iris_with_standoffs model
-				auto standoffs_m = gz::sim::Model(
-						this->dataPtr->model.ModelByName(_ecm, std::string("iris_with_standoffs"))
+				// 2. We may alternatively update the state directly, invalidating the above motor forces but the joint controller <control> may still run
+			
+				if (this->dataPtr->state_update_flag) {
+					// Retrieve the iris_with_standoffs model
+					auto standoffs_m = gz::sim::Model( this->dataPtr->model.ModelByName(_ecm, std::string("iris_with_standoffs")) );
+
+					gz::sim::Entity baselink_e = standoffs_m.LinkByName(_ecm, std::string("base_link"));
+
+					gz::sim::Link baselink_l = gz::sim::Link(baselink_e);
+
+					auto baselink_worldpose = baselink_l.WorldPose(_ecm);
+
+					// Set position if requested
+					
+					// If we are updating both position and attitude
+					if ( (this->dataPtr->state_update_flag & (0x01<<0)) | (this->dataPtr->state_update_flag & (0x01<<2)) ) {
+						this->dataPtr->model.SetWorldPoseCmd(_ecm,
+							// TODO We need to distinguish between reference frames here
+							gz::math::Pose3d(
+								this->dataPtr->state_update_position[0], // X
+								this->dataPtr->state_update_position[1], // Y
+								this->dataPtr->state_update_position[2], // Z
+								this->dataPtr->state_update_attitude[0], // Roll
+								this->dataPtr->state_update_attitude[1], // Pitch
+								this->dataPtr->state_update_attitude[2]  // Yaw
+							)
 						);
-
-				gz::sim::Entity baselink_e = standoffs_m.LinkByName(_ecm, std::string("base_link"));
-
-				gz::sim::Link baselink_l = gz::sim::Link(baselink_e);
-
-
-				auto baselink_worldpose = baselink_l.WorldPose(_ecm);
-
-				// Set pose to be constant
-				/*
-				this->dataPtr->model.SetWorldPoseCmd(_ecm,
-						gz::math::Pose3d(0,0,5,
-							0.55, // Roll
-							0.55, // Pitch
-							0     // Yaw
-							//baselink_worldpose->Roll(),
-							//baselink_worldpose->Pitch(),
-							//baselink_worldpose->Yaw()
-						)
-					);
-
-				// Set linear velocity to 0
-				baselink_l.SetLinearVelocity(_ecm,
-						gz::math::Vector3d(0,0,0)
+					} else if (this->dataPtr->state_update_flag & (0x01<<0)) {
+						// If just position then we keep the world attitude
+						this->dataPtr->model.SetWorldPoseCmd(_ecm,
+							// TODO We need to distinguish between reference frames here
+							gz::math::Pose3d(
+								this->dataPtr->state_update_position[0], // X
+								this->dataPtr->state_update_position[1], // Y
+								this->dataPtr->state_update_position[2], // Z
+								baselink_worldpose->Roll(),
+								baselink_worldpose->Pitch(),
+								baselink_worldpose->Yaw()
+							)
 						);
-
-				// Set angular velocity as needed
-				baselink_l.SetAngularVelocity(_ecm,
-						gz::math::Vector3d(0,0,1.57)
+					} else if (this->dataPtr->state_update_flag & (0x01<<2)) {
+						// If just position then we keep the world attitude
+						this->dataPtr->model.SetWorldPoseCmd(_ecm,
+							// TODO We need to distinguish between reference frames here
+							gz::math::Pose3d(
+								baselink_worldpose->X(),
+								baselink_worldpose->Y(),
+								baselink_worldpose->Z(),
+								this->dataPtr->state_update_attitude[0], // Roll
+								this->dataPtr->state_update_attitude[1], // Pitch
+								this->dataPtr->state_update_attitude[2]  // Yaw
+							)
 						);
-				*/
+					}
 
+					// Update linear velocity if requested
+					if (this->dataPtr->state_update_flag & (0x01<<1)) {
+						baselink_l.SetLinearVelocity(_ecm, gz::math::Vector3d(
+								this->dataPtr->state_update_velocity[0],
+								this->dataPtr->state_update_velocity[1],
+								this->dataPtr->state_update_velocity[2]
+							)
+						);
+					}
+
+					// Update angular velocity if requested
+					if (this->dataPtr->state_update_flag & (0x01<<3)) {
+						baselink_l.SetAngularVelocity(_ecm, gz::math::Vector3d(
+								this->dataPtr->state_update_angvel[0],
+								this->dataPtr->state_update_angvel[1],
+								this->dataPtr->state_update_angvel[2]
+							)
+						);
+					}
+
+				}
+
+				// Clear flag always regardless of whether we had to update
+				this->dataPtr->state_update_flag = 0;
 
             }
         }
@@ -1856,8 +1907,16 @@ bool gz::sim::systems::ArduPilotPlugin::ReceiveServoPacket()
     uint16_t pkt_magic{0};
     uint16_t pkt_frame_rate{0};
     uint16_t pkt_frame_count{0};
-    std::array<uint16_t, 32> pkt_pwm;
+
+	/* Packet Structure
+	 * 8b PWM payload (x4 uint16_t)
+	 * 1b State update flag
+	 * 48 (4b*3 position, velocity, attitude, angvel) 
+	 */
+    std::array<uint16_t, 4> pkt_pwm;
     ssize_t recvSize{-1};
+
+	/*
     if (this->dataPtr->have32Channels)
     {
       servo_packet_32 pkt;
@@ -1881,9 +1940,10 @@ bool gz::sim::systems::ArduPilotPlugin::ReceiveServoPacket()
       pkt_frame_rate = pkt.frame_rate;
       pkt_frame_count = pkt.frame_count;
       std::copy(std::begin(pkt.pwm), std::end(pkt.pwm), std::begin(pkt_pwm));
-    }
-    else
-    {
+    } else {
+	*/
+
+	// This is full 57b payload
       servo_packet_16 pkt;
       recvSize = getServoPacket(
           this->dataPtr->sock,
@@ -1894,9 +1954,10 @@ bool gz::sim::systems::ArduPilotPlugin::ReceiveServoPacket()
           pkt);
 
       if (recvSize != -1) {
-	gzdbg << "PKT Header " << pkt.frame_rate << " " << pkt.frame_count << "\n";
-	for (int i=0;i<16;i++) {
-		gzdbg << pkt.pwm[i] << " ";
+		gzdbg << "PKT Header " << pkt.frame_rate << " " << pkt.frame_count << "\n";
+
+		for (int i=0;i<57;i++) {
+			gzdbg << pkt.pwm[i] << " ";
       	}
       	gzdbg << "\n";
       }
@@ -1905,7 +1966,8 @@ bool gz::sim::systems::ArduPilotPlugin::ReceiveServoPacket()
       pkt_frame_rate = pkt.frame_rate;
       pkt_frame_count = pkt.frame_count;
       std::copy(std::begin(pkt.pwm), std::end(pkt.pwm), std::begin(pkt_pwm));
-    }
+
+    //}
 
     // didn't receive a packet, increment timeout count if online, then return
     if (recvSize == -1)
@@ -2018,12 +2080,41 @@ bool gz::sim::systems::ArduPilotPlugin::ReceiveServoPacket()
 
     this->UpdateMotorCommands(pkt_pwm);
 
+	// Check for request to update state and update if so
+	if (pkt.update_flag) {
+		this->dataPtr->state_update_flag = pkt.update_flag; // Bitfield of what fields to update
+		
+		if (this->dataPtr->state_update_flag & (0x01 << 0) ) {
+			this->dataPtr->state_update_position[0] = pkt.update_position[0];
+			this->dataPtr->state_update_position[1] = pkt.update_position[1];
+			this->dataPtr->state_update_position[2] = pkt.update_position[2];
+		}
+
+		if (this->dataPtr->state_update_flag & (0x01 << 1) ) {
+			this->dataPtr->state_update_velocity[0] = pkt.update_velocity[0];
+			this->dataPtr->state_update_velocity[1] = pkt.update_velocity[1];
+			this->dataPtr->state_update_velocity[2] = pkt.update_velocity[2];
+		}
+
+		if (this->dataPtr->state_update_flag & (0x01 << 2) ) {
+			this->dataPtr->state_update_attitude[0] = pkt.update_attitude[0];
+			this->dataPtr->state_update_attitude[1] = pkt.update_attitude[1];
+			this->dataPtr->state_update_attitude[2] = pkt.update_attitude[2];
+		}
+
+		if (this->dataPtr->state_update_flag & (0x01 << 3) ) {
+			this->dataPtr->state_update_angvel[0] = pkt.update_angvel[0];
+			this->dataPtr->state_update_angvel[1] = pkt.update_angvel[1];
+			this->dataPtr->state_update_angvel[2] = pkt.update_angvel[2];
+		}
+	}
+
     return true;
 }
 
 /////////////////////////////////////////////////
 void gz::sim::systems::ArduPilotPlugin::UpdateMotorCommands(
-    const std::array<uint16_t, 32> &_pwm)
+    const std::array<uint16_t, 4> &_pwm)
 {
     int max_servo_channels = this->dataPtr->have32Channels ? 32 : 16;
 
@@ -2078,6 +2169,7 @@ void gz::sim::systems::ArduPilotPlugin::UpdateMotorCommands(
                 << " > " << MAX_MOTORS << "].\n";
         }
     }
+
 }
 
 /////////////////////////////////////////////////

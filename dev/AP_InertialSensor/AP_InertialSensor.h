@@ -162,6 +162,7 @@ class AP_InertialSensor
 // HASH include "AP_InertialSensor_Flymaple.h"
 #include "AP_InertialSensor_L3G4200D.h"
 #include "AP_InertialSensor_ICM20948.h"
+#include "sim_inertialsensor.h"
 #include "AP_InertialSensor_None.h"
 
 #endif // __AP_INERTIAL_SENSOR_H__

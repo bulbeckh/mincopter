@@ -36,7 +36,12 @@ struct servo_packet_16 {
     uint16_t magic;         // 18458 expected magic value
     uint16_t frame_rate;
     uint32_t frame_count;
-    uint16_t pwm[16];
+    uint16_t pwm[4];
+	uint8_t  update_flag;
+	float    update_position[3];
+	float    update_velocity[3];
+	float    update_attitude[3];
+	float    update_angvel[3];
 };
 
 struct servo_packet_32 {
@@ -209,7 +214,7 @@ class GZ_SIM_VISIBLE ArduPilotPlugin:
   private: bool ReceiveServoPacket();
 
   /// \brief Update the motor commands given servo PWM values
-  private: void UpdateMotorCommands(const std::array<uint16_t, 32> &_pwm);
+  private: void UpdateMotorCommands(const std::array<uint16_t, 4> &_pwm);
 
   /// \brief Create the state JSON
   private: void CreateStateJSON(
@@ -224,6 +229,7 @@ class GZ_SIM_VISIBLE ArduPilotPlugin:
 
   /// \brief Private data pointer.
   private: std::unique_ptr<ArduPilotPluginPrivate> dataPtr;
+
 };
 
 }  // namespace systems

@@ -462,6 +462,7 @@ void loop()
  * will only report that it overran. */
 
 const AP_Scheduler::Task scheduler_tasks[] PROGMEM = {
+
 #ifdef TARGET_ARCH_LINUX
 	/* For simulation, we reduce the maximum runtime for each function
 	 * to 1us in order to ensure they all run within a single scheduler call */
