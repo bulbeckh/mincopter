@@ -1534,8 +1534,8 @@ void gz::sim::systems::ArduPilotPlugin::PreUpdate(
             {
 				// At 100Hz, receive a packet from the mincopter simulator
 				if (this->dataPtr->udp_freq_count%10==0) {
-					while (!this->ReceiveServoPacket() &&
-						this->dataPtr->arduPilotOnline)
+					gzwarn << "Receiving packet...\n";
+					while (!this->ReceiveServoPacket() && this->dataPtr->arduPilotOnline)
 					{
 						// SIGNINT should interrupt this loop.
 						if (this->dataPtr->signal != 0)
@@ -1543,6 +1543,7 @@ void gz::sim::systems::ArduPilotPlugin::PreUpdate(
 							break;
 						}
 					}
+					gzwarn << "Received packet...\n";
 					this->dataPtr->lastServoPacketRecvTime = _info.simTime;
 				}
             }
@@ -1669,7 +1670,10 @@ void gz::sim::systems::ArduPilotPlugin::PostUpdate(
 		// Send the state packet every 10 iterations of the simulation (sim is at 1000Hz, so every 100Hz)
 		if (dataPtr->udp_freq_count%10==0) {
 			this->CreateStateJSON(t, _ecm);
+
+			gzwarn << "Sending state\n";
 			this->SendState();
+			gzwarn << "Sent state\n";
 		}
 		this->dataPtr->udp_freq_count+=1;
         this->dataPtr->lastControllerUpdateTime = _info.simTime;

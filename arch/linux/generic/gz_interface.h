@@ -23,6 +23,14 @@ class generic::GenericGZInterface : public AP_HAL::Sim {
 			uint16_t frame_rate;
 			uint32_t frame_count;
 			uint16_t pwm[4]; // See below for structure
+			
+			/* @brief update_flag is a bitfield for which elements we are updating
+			 * 0 : position
+			 * 1 : velocity (linear)
+			 * 2 : attitude
+			 * 3 : angular velocity
+			 * 4 : reset flag
+			 */
 			uint8_t  update_flag;
 			float    update_position[3];
 			float    update_velocity[3];
@@ -62,6 +70,8 @@ class generic::GenericGZInterface : public AP_HAL::Sim {
 		bool velocity_update;
 		bool attitude_update;
 		bool angvel_update;
+
+		bool reset_requested;
 
 		/* @brief Vectors of new simulation states to be communicated to gazebo */
 		Vector3f sim_new_position;

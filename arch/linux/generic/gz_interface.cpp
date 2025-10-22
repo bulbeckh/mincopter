@@ -33,16 +33,22 @@ void GenericGZInterface::tick(uint32_t tick_us)
 	// TODO This is where we all **send_control_output** and **recv_state_input**
 	// TODO Use the tick_us param to drive the simulation step
 	
+	hal.console->printf("Sending control output...\r\n");
 	send_control_output();
+	hal.console->printf("Sent control output...\r\n");
 
-	// After we (possibly) send a state to the gazebo driver, we reset the flags for each state update
+	// After we (possibly) send a state to the gazebo driver, we clear the flags for each state update
 	position_update = false;
 	velocity_update = false;
 	attitude_update = false;
 	angvel_update = false;
+
+	reset_requested = false;
 	
 	// Receive next state and update internal simulation state
+	hal.console->printf("Receiving state input...\r\n");
 	recv_state_input();
+	hal.console->printf("Received state input...\r\n");
 
 	return;
 }
@@ -53,6 +59,7 @@ bool GenericGZInterface::setup_sim_socket(void)
 
     // Create a UDP socket with arbitrary port
     sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+
     if (sockfd < 0 ) {
 		hal.console->printf("Error: creating UDP socket\n");
 		return false;
@@ -73,6 +80,12 @@ bool GenericGZInterface::setup_sim_socket(void)
     }
 
 	hal.console->printf("Socket created successfully at 127.0.0.1\n");
+
+	// Setup a 1s timeout for the receive function
+	struct timeval _tv_timeout;
+	_tv_timeout.tv_sec=1;
+	_tv_timeout.tv_usec=0;
+	setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, &_tv_timeout, sizeof(_tv_timeout));
 
     return true;
 }
@@ -182,6 +195,14 @@ bool GenericGZInterface::recv_state_input(void)
     ssize_t n_received = recvfrom(sockfd, buffer, 1024, 0,
 	    (struct sockaddr*)&servaddr, &len);
 
+	// NOTE TODO This works but may skip calls to update state during the loop as a call to ::tick
+	// won't increment the frame_counter but will reset the direct state update flags
+	
+	// If we timeout (1second) then we just continue the tick loop and send the control packet again
+	if (n_received<0) {
+		return false;
+	}
+
     // Iterate frame counter
     frame_counter += 1;
 
@@ -235,7 +256,6 @@ bool GenericGZInterface::setup_log_source(const char* addr, LogSource source)
 		logfd = open(addr, O_WRONLY | O_CREAT | O_TRUNC, 0644);
 	}
 
-
 	if (logfd < 0 ) {
 		hal.console->printf("bad fd for logging\n");
 		hal.scheduler->panic("Could not open pipe for logging\n");
@@ -274,7 +294,7 @@ void GenericGZInterface::log_state(uint8_t* data, uint8_t len, uint8_t type)
 
 void GenericGZInterface::reset(void)
 {
-	// TODO Implement
+	// Flag that a reset has been requested
 	
 	return;
 }
