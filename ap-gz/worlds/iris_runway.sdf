@@ -33,7 +33,7 @@
     </plugin>
 	<plugin filename="gz-sim-magnetometer-system" name="gz::sim::systems::Magnetometer">
 		<use_earth_frame_ned>false</use_earth_frame_ned>
-    </plugin>
+	</plugin>
 
     <scene>
       <ambient>1.0 1.0 1.0</ambient>

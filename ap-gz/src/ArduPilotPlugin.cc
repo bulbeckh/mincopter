@@ -24,6 +24,7 @@
 #include <gz/msgs/fluid_pressure.pb.h>
 #include <gz/msgs/laserscan.pb.h>
 #include <gz/msgs/navsat.pb.h>
+#include <gz/msgs/world_control.pb.h>
 
 #include <algorithm>
 #include <chrono>
@@ -36,6 +37,7 @@
 
 #include <gz/common/SignalHandler.hh>
 #include <gz/msgs/Utility.hh>
+
 #include <gz/sim/components/CustomSensor.hh>
 #include <gz/sim/components/Imu.hh>
 #include <gz/sim/components/Magnetometer.hh>
@@ -154,6 +156,7 @@ class Control
   /// \brief Publisher for sending commands
   public: gz::transport::Node::Publisher pub;
 
+
   /// \brief unused coefficients
   public: double rotorVelocitySlowdownSim;
   public: double frequencyCutoff;
@@ -254,6 +257,8 @@ class gz::sim::systems::ArduPilotPluginPrivate
 
   /// \brief The name of the IMU sensor
   public: std::string imuName;
+
+  public: std::string resetservice;
 
   /* TODO These are now hardcode but need to add as tags in SDF like the IMU does */
   public: std::string compassName{"compass_sensor"};
@@ -543,6 +548,9 @@ void gz::sim::systems::ArduPilotPlugin::Configure(
   {
     this->dataPtr->worldName = this->dataPtr->world.Name(_ecm).value();
   }
+
+  // Setup connection to reset service
+  this->dataPtr->resetservice = "/world/" + this->dataPtr->worldName + "/control";
 
   // modelXYZToAirplaneXForwardZDown brings us from gazebo model frame:
   // x-forward, y-right, z-down
@@ -1089,6 +1097,8 @@ void gz::sim::systems::ArduPilotPlugin::PreUpdate(
     gz::sim::EntityComponentManager &_ecm)
 {
 
+	gzwarn << "ST: " << std::chrono::duration_cast<std::chrono::seconds>(_info.simTime).count() << "\n";
+
 	// Enable velocity checks for base link
 	auto coptermodelentity = _ecm.EntityByName(std::string("iris_with_standoffs"));
 
@@ -1527,14 +1537,12 @@ void gz::sim::systems::ArduPilotPlugin::PreUpdate(
     else
     {
         // Update the control surfaces.
-        if (!_info.paused && _info.simTime >
-            this->dataPtr->lastControllerUpdateTime)
+        if (!_info.paused /* && _info.simTime > this->dataPtr->lastControllerUpdateTime */ )
         {
             if (this->dataPtr->isLockStep)
             {
 				// At 100Hz, receive a packet from the mincopter simulator
 				if (this->dataPtr->udp_freq_count%10==0) {
-					gzwarn << "Receiving packet...\n";
 					while (!this->ReceiveServoPacket() && this->dataPtr->arduPilotOnline)
 					{
 						// SIGNINT should interrupt this loop.
@@ -1543,7 +1551,6 @@ void gz::sim::systems::ArduPilotPlugin::PreUpdate(
 							break;
 						}
 					}
-					gzwarn << "Received packet...\n";
 					this->dataPtr->lastServoPacketRecvTime = _info.simTime;
 				}
             }
@@ -1569,7 +1576,6 @@ void gz::sim::systems::ArduPilotPlugin::PreUpdate(
 				// 2. We may alternatively update the state directly, invalidating the above motor forces but the joint controller <control> may still run
 			
 				if (this->dataPtr->state_update_flag) {
-					gzwarn << "Doing state update\n";
 
 					// Retrieve the iris_with_standoffs model
 					auto standoffs_m = gz::sim::Model( this->dataPtr->model.ModelByName(_ecm, std::string("iris_with_standoffs")) );
@@ -1661,8 +1667,7 @@ void gz::sim::systems::ArduPilotPlugin::PostUpdate(
     std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
 
     // Publish the new state.
-    if (!_info.paused && _info.simTime > this->dataPtr->lastControllerUpdateTime
-        && this->dataPtr->arduPilotOnline)
+    if (!_info.paused /* && _info.simTime > this->dataPtr->lastControllerUpdateTime */ && this->dataPtr->arduPilotOnline)
     {
         double t =
             std::chrono::duration_cast<std::chrono::duration<double>>(
@@ -1671,9 +1676,7 @@ void gz::sim::systems::ArduPilotPlugin::PostUpdate(
 		if (dataPtr->udp_freq_count%10==0) {
 			this->CreateStateJSON(t, _ecm);
 
-			gzwarn << "Sending state\n";
 			this->SendState();
-			gzwarn << "Sent state\n";
 		}
 		this->dataPtr->udp_freq_count+=1;
         this->dataPtr->lastControllerUpdateTime = _info.simTime;
@@ -1959,6 +1962,7 @@ bool gz::sim::systems::ArduPilotPlugin::ReceiveServoPacket()
           this->dataPtr->modelName,
           pkt);
 
+	  /*
       if (recvSize != -1) {
 		//gzdbg << "PKT Header " << pkt.frame_rate << " " << pkt.frame_count << "\n";
 
@@ -1967,6 +1971,7 @@ bool gz::sim::systems::ArduPilotPlugin::ReceiveServoPacket()
       	}
       	gzdbg << "\n";
       }
+	  */
 
       pkt_magic = pkt.magic;
       pkt_frame_rate = pkt.frame_rate;
@@ -2087,15 +2092,41 @@ bool gz::sim::systems::ArduPilotPlugin::ReceiveServoPacket()
 
     this->UpdateMotorCommands(pkt_pwm);
 
+	// Check for request to update simulation
+	if (pkt.update_flag & (0x01<<4)) {
+
+		// TODO Setup socket and send message to worldcontrol
+		gzwarn << "Reset requested\n";
+		gzwarn << "World name: " << this->dataPtr->worldName << "\n";
+
+		gz::msgs::WorldControl wc_msg;
+
+		wc_msg.mutable_reset()->set_all(true);
+
+		// ignore
+		gz::msgs::Boolean msg_response;
+		bool ret;
+
+		bool success = this->dataPtr->node.Request(this->dataPtr->resetservice, wc_msg, 1000, msg_response, ret);
+
+		if (success && ret) {
+			gzwarn << "World reset successful\n";
+		} else {
+			gzwarn << "failed world reset\n";
+		}
+
+	}
+
 	// Check for request to update state and update if so
 	if (pkt.update_flag) {
 
+		/*
 		gzwarn << "[StateUpdate CMD] " << (int)pkt.update_flag << "\n";
-
 		gzdbg << "[StateUpdate CMD - pos] " << pkt.update_position[0] << " " << pkt.update_position[1] << " " << pkt.update_position[2] << "\n";
 		gzdbg << "[StateUpdate CMD - vel] " << pkt.update_velocity[0] << " " << pkt.update_velocity[1] << " " << pkt.update_velocity[2] << "\n";
 		gzdbg << "[StateUpdate CMD - att] " << pkt.update_attitude[0] << " " << pkt.update_attitude[1] << " " << pkt.update_attitude[2] << "\n";
 		gzdbg << "[StateUpdate CMD - avl] " << pkt.update_angvel[0] << " " << pkt.update_angvel[1] << " " << pkt.update_angvel[2] << "\n";
+		*/
 
 		this->dataPtr->state_update_flag = pkt.update_flag; // Bitfield of what fields to update
 		
@@ -2155,7 +2186,7 @@ void gz::sim::systems::ArduPilotPlugin::UpdateMotorCommands(
                 raw_cmd = gz::math::clamp(raw_cmd, 0.0, 1.0);
                 this->dataPtr->controls[i].cmd = multiplier * (raw_cmd + offset);
 				
-#if 1
+#if 0
                 gzdbg << "apply input chan["
                     << this->dataPtr->controls[i].channel
                     << "] to control chan[" << i
@@ -2215,11 +2246,14 @@ void gz::sim::systems::ArduPilotPlugin::CreateStateJSON(
         }
         compassMsg = this->dataPtr->compassMsg;
     }
+
+	/*
     gzdbg << "Compass msg received: "
 	<< compassMsg.field_tesla().x() << " "
 	<< compassMsg.field_tesla().y() << " "
 	<< compassMsg.field_tesla().z() << " "
 	<< "\n";
+	*/
 
     gz::msgs::FluidPressure baroMsg;
     { 
@@ -2231,9 +2265,12 @@ void gz::sim::systems::ArduPilotPlugin::CreateStateJSON(
         }
         baroMsg = this->dataPtr->baroMsg;
     }
+
+	/*
     gzdbg << "Barometer msg received: "
 	<< baroMsg.pressure()
 	<< "\n";
+	*/
 
 	gz::msgs::NavSat navsatMsg;
     { 
@@ -2253,11 +2290,13 @@ void gz::sim::systems::ArduPilotPlugin::CreateStateJSON(
 		gotfirstns=true;
 	}
 
+	/*
     gzdbg << "Navsat msg received: "
 	<< navsatMsg.latitude_deg() << " "
 	<< navsatMsg.longitude_deg() << " "
 	<< navsatMsg.altitude() << " " << alt_off
 	<< "\n";
+	*/
 
 
     // it is assumed that the imu orientation conforms to the
@@ -2434,8 +2473,10 @@ void gz::sim::systems::ArduPilotPlugin::CreateStateJSON(
 			this->dataPtr->sim_pkt.euler_rate_z = bl_ang_vel.Z();
 		}
 
+		/*
 		gzdbg << "baselink has ang vel: " << _ecm.EntityHasComponentType(base_link_ent, gz::sim::components::WorldAngularVelocity::typeId) << "\n";
 		gzdbg << "baselink has lin vel: " << _ecm.EntityHasComponentType(base_link_ent, gz::sim::components::WorldLinearVelocity::typeId) << "\n";
+		*/
 	} else {
 		gzdbg << "COPTERMODEL NOT FOUND\n";
 	}
@@ -2510,10 +2551,12 @@ void gz::sim::systems::ArduPilotPlugin::CreateStateJSON(
 
 	linearAccel = bdyAToBdyG.Rot() * linearAccel;
 
+	/*
 	gzdbg << "Accelerometer: "
 		<< linearAccel.X() << " " 
 		<< linearAccel.Y() << " " 
 		<< linearAccel.Z() << "\n";
+	*/
 
     this->dataPtr->sim_pkt.imu_accel_x = linearAccel.X();
     this->dataPtr->sim_pkt.imu_accel_y = linearAccel.Y();
@@ -2668,7 +2711,7 @@ void gz::sim::systems::ArduPilotPlugin::SendState() const
 	//gzdbg << this->dataPtr->json_str << "\n";
 	//gzdbg << "C-str " << this->dataPtr->fcu_address << " " << this->dataPtr->fcu_port_out << " " << this->dataPtr->json_str.c_str() << "\n";
 	
-    gzdbg << "elements of sim_pkt " << this->dataPtr->sim_pkt.timestamp << "\n";
+    //gzdbg << "elements of sim_pkt " << this->dataPtr->sim_pkt.timestamp << "\n";
 
 #if DEBUG_JSON_IO
     auto bytes_sent =

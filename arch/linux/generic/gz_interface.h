@@ -32,6 +32,7 @@ class generic::GenericGZInterface : public AP_HAL::Sim {
 			 * 4 : reset flag
 			 */
 			uint8_t  update_flag;
+
 			float    update_position[3];
 			float    update_velocity[3];
 			float    update_attitude[3];

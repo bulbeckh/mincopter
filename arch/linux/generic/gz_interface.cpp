@@ -33,9 +33,7 @@ void GenericGZInterface::tick(uint32_t tick_us)
 	// TODO This is where we all **send_control_output** and **recv_state_input**
 	// TODO Use the tick_us param to drive the simulation step
 	
-	hal.console->printf("Sending control output...\r\n");
 	send_control_output();
-	hal.console->printf("Sent control output...\r\n");
 
 	// After we (possibly) send a state to the gazebo driver, we clear the flags for each state update
 	position_update = false;
@@ -46,9 +44,7 @@ void GenericGZInterface::tick(uint32_t tick_us)
 	reset_requested = false;
 	
 	// Receive next state and update internal simulation state
-	hal.console->printf("Receiving state input...\r\n");
 	recv_state_input();
-	hal.console->printf("Received state input...\r\n");
 
 	return;
 }
@@ -170,6 +166,12 @@ bool GenericGZInterface::send_control_output(void)
 		control_pkt.update_angvel[2] = sim_new_angvel.z;
 	}
 
+	// If a reset was requested, then flag that too by setting 5th bit of update_flag bitfield
+	if (reset_requested) {
+		update_flag |= (0x01 << 4);
+		hal.console->printf("Reset was requested\r\n");
+	}
+
 	// Add the update flag bitfield to the control packet
 	control_pkt.update_flag = update_flag;
 
@@ -189,7 +191,6 @@ bool GenericGZInterface::send_control_output(void)
 
 bool GenericGZInterface::recv_state_input(void)
 {
-
     socklen_t len = sizeof(servaddr);
 
     ssize_t n_received = recvfrom(sockfd, buffer, 1024, 0,
@@ -294,8 +295,26 @@ void GenericGZInterface::log_state(uint8_t* data, uint8_t len, uint8_t type)
 
 void GenericGZInterface::reset(void)
 {
-	// Flag that a reset has been requested
-	
+	/* Implementing simulation timing and reset is complex because we not only need to set the internal
+	 * millisecond/microsecond counters back to 0 but also reset the sensor drivers, state estimators, and control/planning
+	 * algorithms.
+	 *
+	 * We have the following objects that keep track of time:
+	 *
+	 * On the mincopter side
+	 * -> hal.sim->last_sensor_state.timestamp : provided every tick by the gazebo environment
+	 *
+	 * On the gazebo side
+	 * -> simTime : equivalent to the last_sensor_state.timestamp
+	 * 
+	 * By triggering a reset message on the mincopter side, the timestamp should update automatically. What we really need to is to have
+	 * each of the simulated drivers recognise that the time has shifted and do a reset of their internal state.
+	 *
+	 */
+
+	// Flag that a reset was requested
+	reset_requested = true;
+
 	return;
 }
 

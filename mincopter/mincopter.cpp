@@ -333,14 +333,17 @@ void loop()
 	mincopter.hal.sim->log_state(log_packet, 24, 0x09);
 
 	// Update position directly as a test every second
-	/*
-	if (_counter%100==0) {
+	if (_counter%100==0 && _counter<500) {
 		mincopter.hal.sim->set_mincopter_position(0,0,5);
 		mincopter.hal.sim->set_mincopter_linvelocity(0,0,0);
 		mincopter.hal.sim->set_mincopter_attitude(0,0,0);
 		mincopter.hal.sim->set_mincopter_angvelocity(0,0,0);
 	}
-	*/
+
+	if (_counter%500==0) {
+		// Call for simulation reset after 5 seconds
+		mincopter.hal.sim->reset();
+	}
 
 	// Dump to console @1Hz
 	if (_counter%100==0) {
@@ -361,6 +364,7 @@ void loop()
 		mincopter.hal.console->printf_P(PSTR("eul r,p,y      : %f, %f, %f\n"), roll, pitch, yaw);
 		mincopter.hal.console->printf_P(PSTR("homelng/lat/alt: %d, %d, %d\n"), mcstate.home.lat, mcstate.home.lng, mcstate.home.alt);
 
+		mincopter.hal.console->printf("SimTime: %f\r\n", mincopter.hal.sim->last_sensor_state.timestamp);
 	}
 #endif
 
