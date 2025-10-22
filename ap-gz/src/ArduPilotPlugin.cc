@@ -335,73 +335,8 @@ class gz::sim::systems::ArduPilotPluginPrivate
     navsatMsgValid = true;
   }
 
-
-
-
-  // Range sensors
-
-  /// \brief This mutex must be used when accessing ranges
-  public: std::mutex rangeMsgMutex;
-
-  /// \brief A copy of the most recently received range data
-  public: std::vector<double> ranges;
-
-  /// \brief Callbacks for each range sensor
-  public: std::vector<RangeOnMessageWrapperPtr> rangeCbs;
-
-  /// \brief This subscriber callback latches the most recently received
-  /// data message for later use.
-  ///
-  /// \todo(anyone) using msgs::LaserScan as a proxy for msgs::SonarStamped
-  public: void RangeCb(const gz::msgs::LaserScan &_msg, int _sensorIndex)
-  {
-    // Extract data
-    double range_max = _msg.range_max();
-    auto&& ranges = _msg.ranges();
-    auto&& intensities = _msg.intensities();
-
-    // If there is no return, the range should be greater than range_max
-    double sample_min = 2.0 * range_max;
-    for (auto&& range : ranges)
-    {
-      sample_min = std::min(
-          sample_min, std::isinf(range) ? 2.0 * range_max : range);
-    }
-
-    // Aquire lock and update the range data
-    std::lock_guard<std::mutex> lock(this->rangeMsgMutex);
-    this->ranges[_sensorIndex] = sample_min;
-  }
-
-  // Anemometer
-
-  /// \brief The entity representing the anemometer.
-  public: gz::sim::Entity anemometerEntity{gz::sim::kNullEntity};
-
-  /// \brief The name of the anemometer.
-  public: std::string anemometerName;
-
-  /// \brief This mutex must be used when accessing the anemometer.
-  public: std::mutex anemometerMsgMutex;
-
-  /// \brief Have we initialized subscription to the anemometer data yet?
-  public: bool anemometerInitialized{false};
-
-  /// \brief A copy of the most recently received apparent wind message.
-  public: gz::msgs::Vector3d anemometerMsg;
-
-  /// \brief Callback for the anemometer.
-  public: void AnemometerCb(const gz::msgs::Vector3d &_msg)
-  {
-    std::lock_guard<std::mutex> lock(this->anemometerMsgMutex);
-    anemometerMsg = _msg;
-  }
-
   /// \brief Pointer to an GPS sensor [optional]
   //  public: sensors::GpsSensorPtr gpsSensor;
-
-  /// \brief Pointer to an Rangefinder sensor [optional]
-  //  public: sensors::RaySensorPtr rangefinderSensor;
 
   /// \brief Set to true when the ArduPilot flight controller is online
   ///
@@ -581,8 +516,6 @@ void gz::sim::systems::ArduPilotPlugin::Configure(
   // Load sensor params
   this->LoadImuSensors(sdfClone, _ecm);
   this->LoadGpsSensors(sdfClone, _ecm);
-  this->LoadRangeSensors(sdfClone, _ecm);
-  this->LoadWindSensors(sdfClone, _ecm);
 
   // Initialise sockets
   if (!InitSockets(sdfClone))
@@ -967,131 +900,6 @@ void gz::sim::systems::ArduPilotPlugin::LoadGpsSensors(
 }
 
 /////////////////////////////////////////////////
-void gz::sim::systems::ArduPilotPlugin::LoadRangeSensors(
-    sdf::ElementPtr _sdf,
-    gz::sim::EntityComponentManager &/*_ecm*/)
-{
-    struct SensorIdentifier
-    {
-        std::string type;
-        int index;
-        std::string topic;
-    };
-    std::vector<SensorIdentifier> sensorIds;
-
-    // read sensor elements
-    sdf::ElementPtr sensorSdf;
-    if (_sdf->HasElement("sensor"))
-    {
-        sensorSdf = _sdf->GetElement("sensor");
-    }
-
-    while (sensorSdf)
-    {
-        SensorIdentifier sensorId;
-
-        // <type> is required
-        if (sensorSdf->HasElement("type"))
-        {
-            sensorId.type = sensorSdf->Get<std::string>("type");
-        }
-        else
-        {
-            gzwarn << "[" << this->dataPtr->modelName << "] "
-                << "sensor element 'type' not specified, skipping.\n";
-        }
-
-        // <index> is required
-        if (sensorSdf->HasElement("index"))
-        {
-            sensorId.index = sensorSdf->Get<int>("index");
-        }
-        else
-        {
-            gzwarn << "[" << this->dataPtr->modelName << "] "
-                << "sensor element 'index' not specified, skipping.\n";
-        }
-
-        // <topic> is required
-        if (sensorSdf->HasElement("topic"))
-        {
-            sensorId.topic = sensorSdf->Get<std::string>("topic");
-        }
-        else
-        {
-            gzwarn << "[" << this->dataPtr->modelName << "] "
-                << "sensor element 'topic' not specified, skipping.\n";
-        }
-
-        sensorIds.push_back(sensorId);
-
-        sensorSdf = sensorSdf->GetNextElement("sensor");
-
-        gzmsg << "[" << this->dataPtr->modelName << "] range "
-            << "type: " << sensorId.type
-            << ", index: " << sensorId.index
-            << ", topic: " << sensorId.topic
-            << "\n";
-    }
-
-    /// \todo(anyone) gazebo classic has different rules for generating
-    /// topic names, gazebo sim would benefit from similar rules when providing
-    /// topics names in sdf sensors elements.
-
-    // get the topic prefix
-    // std::string topicPrefix = "~/";
-    // topicPrefix += this->dataPtr->modelName;
-    // boost::replace_all(topicPrefix, "::", "/");
-
-    // subscriptions
-    for (auto &&sensorId : sensorIds)
-    {
-        /// \todo(anyone) see comment above re. topics
-        /// fully qualified topic name
-        /// std::string topicName = topicPrefix;
-        /// topicName.append("/").append(sensorId.topic);
-        std::string topicName = sensorId.topic;
-
-        // Bind the sensor index to the callback function
-        // (adjust from unit to zero offset)
-        OnMessageWrapper<gz::msgs::LaserScan>::callback_t fn =
-            std::bind(
-                &gz::sim::systems::ArduPilotPluginPrivate::RangeCb,
-                this->dataPtr.get(),
-                std::placeholders::_1,
-                sensorId.index - 1);
-
-        // Wrap the std::function so we can register the callback
-        auto callbackWrapper = RangeOnMessageWrapperPtr(
-            new OnMessageWrapper<gz::msgs::LaserScan>(fn));
-
-        auto callback = &OnMessageWrapper<gz::msgs::LaserScan>::OnMessage;
-
-        // Subscribe to range sensor topic
-        this->dataPtr->node.Subscribe(
-            topicName, callback, callbackWrapper.get());
-
-        this->dataPtr->rangeCbs.push_back(callbackWrapper);
-
-        /// \todo(anyone) initalise ranges properly
-        /// (AP convention for ignored value?)
-        this->dataPtr->ranges.push_back(-1.0);
-
-        gzmsg << "[" << this->dataPtr->modelName << "] subscribing to "
-              << topicName << "\n";
-    }
-}
-
-/////////////////////////////////////////////////
-void gz::sim::systems::ArduPilotPlugin::LoadWindSensors(
-    sdf::ElementPtr _sdf,
-    gz::sim::EntityComponentManager &/*_ecm*/)
-{
-    this->dataPtr->anemometerName =
-        _sdf->Get("anemometer", static_cast<std::string>("")).first;
-}
-
-/////////////////////////////////////////////////
 void gz::sim::systems::ArduPilotPlugin::PreUpdate(
     const gz::sim::UpdateInfo &_info,
     gz::sim::EntityComponentManager &_ecm)
@@ -1111,95 +919,6 @@ void gz::sim::systems::ArduPilotPlugin::PreUpdate(
 		auto base_link_l = gz::sim::Link(base_link_ent);
 		base_link_l.EnableVelocityChecks(_ecm, true);
 	}
-
-
-
-    static bool calledInitAnemometerOnce{false};
-    if (!this->dataPtr->anemometerName.empty() &&
-        !this->dataPtr->anemometerInitialized &&
-        !calledInitAnemometerOnce)
-    {
-        calledInitAnemometerOnce = true;
-        std::string anemometerTopicName;
-
-        // try scoped names first
-        auto entities = entitiesFromScopedName(
-            this->dataPtr->anemometerName, _ecm, this->dataPtr->model.Entity());
-
-        // fall-back to unscoped name
-        if (entities.empty())
-        {
-          entities = EntitiesFromUnscopedName(
-            this->dataPtr->anemometerName, _ecm, this->dataPtr->model.Entity());
-        }
-
-        if (!entities.empty())
-        {
-          if (entities.size() > 1)
-          {
-            gzwarn << "Multiple anemometers with name ["
-                   << this->dataPtr->anemometerName << "] found. "
-                   << "Using the first one.\n";
-          }
-
-          // select first entity
-          this->dataPtr->anemometerEntity = *entities.begin();
-
-          // validate
-          if (!_ecm.EntityHasComponentType(this->dataPtr->anemometerEntity,
-              gz::sim::components::CustomSensor::typeId))
-          {
-            gzerr << "Entity with name ["
-                  << this->dataPtr->anemometerName
-                  << "] is not an anemometer.\n";
-          }
-          else
-          {
-            gzmsg << "Found anemometer with name ["
-                  << this->dataPtr->anemometerName
-                  << "].\n";
-
-            // verify the parent of the anemometer is a link.
-            gz::sim::Entity parent = _ecm.ParentEntity(
-                this->dataPtr->anemometerEntity);
-            if (_ecm.EntityHasComponentType(parent,
-                gz::sim::components::Link::typeId))
-            {
-                anemometerTopicName = gz::sim::scopedName(
-                    this->dataPtr->anemometerEntity, _ecm) + "/anemometer";
-
-                gzdbg << "Computed anemometers topic to be: "
-                    << anemometerTopicName << ".\n";
-            }
-            else
-            {
-              gzerr << "Parent of anemometer ["
-                    << this->dataPtr->anemometerName
-                    << "] is not a link.\n";
-            }
-          }
-        }
-        else
-        {
-            gzerr << "[" << this->dataPtr->modelName << "] "
-                  << "anemometer [" << this->dataPtr->anemometerName
-                  << "] not found, abort ArduPilot plugin." << "\n";
-            return;
-        }
-
-        this->dataPtr->node.Subscribe(anemometerTopicName,
-            &gz::sim::systems::ArduPilotPluginPrivate::AnemometerCb,
-            this->dataPtr.get());
-
-        // Make sure that the anemometer entity has WorldPose
-        // and WorldLinearVelocity components, which we'll need later.
-        enableComponent<components::WorldPose>(
-            _ecm, this->dataPtr->anemometerEntity, true);
-        enableComponent<components::WorldLinearVelocity>(
-            _ecm, this->dataPtr->anemometerEntity, true);
-
-        this->dataPtr->anemometerInitialized = true;
-    }
 
     /* Compass and Magnetometer Initialisation */
     if (!this->dataPtr->compassInitialized)
@@ -2483,57 +2202,6 @@ void gz::sim::systems::ArduPilotPlugin::CreateStateJSON(
 
     // require the duration since sim start in seconds
     double timestamp = _simTime;
-
-    // Anemometer
-    // AP_WindVane_SITL use apparent wind speed and dir in body frame.
-    // WNDVN_SPEED_TYPE 11
-    // WNDVN_TYPE       11
-    double windSpdBdyA{0.0};
-    double windDirBdyA{0.0};
-
-    if (this->dataPtr->anemometerInitialized)
-    {
-        std::lock_guard<std::mutex> lock(this->dataPtr->anemometerMsgMutex);
-
-        // Anemometer sensors reports apparent wind velocity in sensor frame.
-        auto windVelSnsG = gz::msgs::Convert(this->dataPtr->anemometerMsg);
-
-        // sensor pose relative to the world frame
-        auto wldGToSnsG = gz::sim::worldPose(
-            this->dataPtr->anemometerEntity, _ecm);
-
-        auto bdyAToWldA = wldAToBdyA.Inverse();
-        auto bdyAToSnsG = bdyAToWldA * wldAToWldG * wldGToSnsG;
-
-        // rotate to AP body (FRD) frame
-        auto windVelBdyA = bdyAToSnsG.Rot().RotateVector(windVelSnsG);
-
-        // speed and direction - consider only xy-components and switch sign
-        // of direction (Gazebo specifies where wind is going to,
-        // AruPilot expects where wind is from).
-        double windXBdyA = windVelBdyA.X() * -1.0;
-        double windYBdyA = windVelBdyA.Y() * -1.0;
-        windSpdBdyA = std::sqrt(windXBdyA * windXBdyA + windYBdyA * windYBdyA);
-        windDirBdyA = atan2(windYBdyA, windXBdyA);
-
-        double windXSnsG = windVelSnsG.X();
-        double windYSnsG = windVelSnsG.Y();
-        auto windSpdSnsG = std::sqrt(
-            windXSnsG * windXSnsG + windYSnsG * windYSnsG);
-        auto windDirSnsG = atan2(windYSnsG, windXSnsG);
-
-        // gzdbg << "\nEuler angles:\n"
-        //       << "bdyAToBdyG:  " << bdyAToBdyG.Rot().Euler() << "\n"
-        //       << "Wind velocity:\n"
-        //       << "windVelSnsG: " << windVelSnsG << "\n"
-        //       << "windVelBdyA: " << windVelBdyA << "\n"
-        //       << "Wind speed and direction:\n"
-        //       << "windSpdSnsG: " << windSpdSnsG << "\n"
-        //       << "windDirSnsG: " << windDirSnsG * 180 / GZ_PI <<  "\n"
-        //       << "windSpdBdyA: " << windSpdBdyA << "\n"
-        //       << "windDirBdyA: " << windDirBdyA * 180 / GZ_PI <<  "\n"
-        //       << "\n";
-    }
 
     // MinCopter - update state struct
     this->dataPtr->sim_pkt.timestamp = timestamp;
