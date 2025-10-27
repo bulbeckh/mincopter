@@ -10,8 +10,8 @@ class AP_Baro
 	public:
 
 		AP_Baro() :
-			_ground_pressure(0),
-			_ground_temperature(29) // Initialise ground temperature at 29 degrees celsius
+			_ground_temperature(29), // Initialise ground temperature at 29 degrees celsius
+			_ground_pressure(0)
 		{ }
 
 		/* @brief Validity of current barometer readings */

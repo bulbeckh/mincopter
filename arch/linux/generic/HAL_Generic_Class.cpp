@@ -56,7 +56,7 @@ HAL_Generic::HAL_Generic() :
 		&simDriver)
 {}
 
-void HAL_Generic::init(int argc,char* const argv[]) const 
+void HAL_Generic::init(int /* unused */, char* const* /* unused */) const 
 {
 	// No CLAs for now
 	

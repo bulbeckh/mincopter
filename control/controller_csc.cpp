@@ -16,22 +16,26 @@ CSC_Controller controller;
 
 CSC_Controller::CSC_Controller()
 	: MC_Controller(),
+
+	csc_counter(0),
+
 	rate_roll(0.5, 0.1, 0, CSC_PID_IMAX),
 	rate_pitch(0.5, 0.1, 0, CSC_PID_IMAX),
 	rate_yaw(0.5, 0.1, 0, CSC_PID_IMAX),
+
 	error_roll(20, 0.1, 0, CSC_PID_IMAX),
 	error_pitch(20, 0.1, 0, CSC_PID_IMAX),
 	error_yaw(20, 0.1, 0, CSC_PID_IMAX),
 
-	vel_throttle(1.0,0,0, CSC_PID_IMAX),
 	pos_throttle(1.0,0,0, CSC_PID_IMAX),
+	vel_throttle(1.0,0,0, CSC_PID_IMAX),
 
 	// Navigation Controllers - TODO May be moved
 	// TODO Modify gains - significant overshoot in x,y waypoint response
 	nav_x_pos(0.6, 0, 0, CSC_PID_IMAX),
 	nav_y_pos(0.6, 0, 0, CSC_PID_IMAX),
 	nav_x_vel(3, 0, 0, CSC_PID_IMAX),
-	nav_y_vel(3, 0, 0, CSC_PID_IMAX),
+	nav_y_vel(3, 0, 0, CSC_PID_IMAX)
 
 	/*
 	rate_roll(0.5, 0.1, 0, CSC_PID_IMAX),
@@ -42,7 +46,6 @@ CSC_Controller::CSC_Controller()
 	error_yaw(1, 0.1, 0, CSC_PID_IMAX),
 	*/
 
-	csc_counter(0)
 {
 
 }

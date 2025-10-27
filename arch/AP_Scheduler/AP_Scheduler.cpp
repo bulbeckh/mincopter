@@ -71,10 +71,12 @@ void AP_Scheduler::run(uint16_t time_available)
     uint32_t now = run_started_usec;
 
 #ifdef TARGET_ARCH_LINUX
+	/*
 		static uint32_t run_start_ts, prev=0;
 		run_start_ts = hal.scheduler->micros();
-		//std::cout << "TIME DIFF SCHED (us): " << run_start_ts - prev << "\n";
+		std::cout << "TIME DIFF SCHED (us): " << run_start_ts - prev << "\n";
 		prev = run_start_ts;
+	*/
 #endif
 
 

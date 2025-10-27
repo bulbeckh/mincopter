@@ -109,9 +109,9 @@ const AP_Param::GroupInfo Compass::var_info[] PROGMEM = {
 */
 
 Compass::Compass(void) :
+	_orientation(ROTATION_NONE),
 	_use_for_yaw(1),
-	_motor_comp_type(AP_COMPASS_MOT_COMP_DISABLED),
-	_orientation(ROTATION_NONE)
+	_motor_comp_type(AP_COMPASS_MOT_COMP_DISABLED)
 {
     //AP_Param::setup_object_defaults(this, var_info);
 }

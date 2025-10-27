@@ -123,7 +123,7 @@ void output_min()
 }
 
 #define FS_COUNTER 3        // radio failsafe kicks in after 3 consecutive throttle values below failsafe_throttle_value
-void set_throttle_and_failsafe(uint16_t throttle_pwm)
+void set_throttle_and_failsafe(uint16_t /* throttle_pwm */)
 {
 	// TODO Define behaviour of this entire function
 	

@@ -19,8 +19,8 @@ public:
     float	    voltage_average_ratiometric() { return voltage_average(); }
 
     // stop pins not implemented on ADC yet
-    void set_stop_pin(uint8_t p) {}
-    void set_settle_time(uint16_t settle_time_ms) {}
+    void set_stop_pin(uint8_t /* unused */) {}
+    void set_settle_time(uint16_t /* unused */) {}
 
 private:
     AP_ADC *        _adc;

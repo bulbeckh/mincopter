@@ -438,7 +438,7 @@ void DataFlash_Block::_print_log_formats(AP_HAL::BetterStream *port)
 /*
   Read the log and print it on port
 */
-void DataFlash_Block::LogReadProcess(uint16_t log_num,
+void DataFlash_Block::LogReadProcess(uint16_t /* log_num */,
                                      uint16_t start_page, uint16_t end_page, 
                                      void (*print_mode)(AP_HAL::BetterStream *port, uint8_t mode),
                                      AP_HAL::BetterStream *port)
@@ -659,7 +659,7 @@ void DataFlash_Class::Log_Write_RCOUT(void)
 }
 
 // Write a BARO packet
-void DataFlash_Class::Log_Write_Baro(AP_Baro &baro)
+void DataFlash_Class::Log_Write_Baro(AP_Baro& /* baro */)
 {
     struct log_BARO pkt = {
         LOG_PACKET_HEADER_INIT(LOG_BARO_MSG),

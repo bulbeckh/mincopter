@@ -53,10 +53,6 @@ void init_ardupilot()
     mincopter.hal.scheduler->set_timer_speed(500);
 #endif
 
-
-    bool enable_external_leds = true;
-
-
     // initialise battery monitor
     mincopter.battery.init();
 	mincopter.hal.console->printf_P(PSTR("[INIT] Battery monitor initialised\n"));
@@ -283,11 +279,8 @@ void init_ardupilot()
 		// We run during `init_ardupilot` because it is guaranteed to be 'single-threaded'.
 
 #ifdef TARGET_ARCH_LINUX
-
-		uint32_t ts_now_us = mincopter.hal.scheduler->micros();
 		// Delay 1s
 		mincopter.hal.scheduler->delay(1000);
-		
 #endif
 
 		/*

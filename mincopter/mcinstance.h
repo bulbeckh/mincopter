@@ -53,6 +53,8 @@ class MCInstance {
 #elif  MC_BARO_NONE
 			barometer(),
 #endif
+			// All compass types have an empty constructor
+			compass(),
 
 			gps_glitch(g_gps),
 
@@ -66,10 +68,6 @@ class MCInstance {
 			g_gps_driver(),
 #endif
 
-			// All compass types have an empty constructor
-			compass(),
-
-			motors(&rc_1, &rc_2, &rc_3, &rc_4),
 
 			// Parameters initialisations
         rc_1                (CH_1),
@@ -79,7 +77,9 @@ class MCInstance {
         rc_5                (CH_5),
         rc_6                (CH_6),
         rc_7                (CH_7),
-        rc_8                (CH_8)
+        rc_8                (CH_8),
+
+			motors(&rc_1, &rc_2, &rc_3, &rc_4)
 
 		{
 		}

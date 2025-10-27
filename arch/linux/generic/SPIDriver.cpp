@@ -124,7 +124,23 @@ AP_HAL::SPIDeviceDriver* GenericSPIDeviceManager::device(enum AP_HAL::SPIDevice 
     switch (dev) {
         case AP_HAL::SPIDevice_ADS7844:
             return &_device_cs0;
+		case AP_HAL::SPIDevice_MS5611:
+			// TODO Add device
+			break;
+		case AP_HAL::SPIDevice_Dataflash:
+			// TODO Add device
+			break;
+		case AP_HAL::SPIDevice_MPU6000:
+			// TODO Add device
+			break;
+		case AP_HAL::SPIDevice_ICM20948:
+			// TODO Add device
+			break;
+		case AP_HAL::SPIDevice_BME280:
+			// TODO Add device
+			break;
     }
+
     return NULL;
 }
 

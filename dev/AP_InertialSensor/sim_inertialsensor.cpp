@@ -21,12 +21,12 @@ float AP_InertialSensor_Sim::get_delta_time(void)
     return _delta_time_usec * 1.0e-6;
 }
 
-bool AP_InertialSensor_Sim::wait_for_sample(uint16_t timeout_ms)
+bool AP_InertialSensor_Sim::wait_for_sample(uint16_t /* unused */)
 {
     return true;
 }
 
-float AP_InertialSensor_Sim::get_gyro_drift_rate()
+float AP_InertialSensor_Sim::get_gyro_drift_rate(void)
 {
 	// NOTE This drift rate was taken from the MPU6000 IMU. Not sure what it would be for simulation
     // 0.5 degrees/second/minute
@@ -75,7 +75,7 @@ bool AP_InertialSensor_Sim::update( void )
 }
 
 
-uint16_t AP_InertialSensor_Sim::_init_sensor( Sample_rate sample_rate )
+uint16_t AP_InertialSensor_Sim::_init_sensor( Sample_rate /* unused */ )
 {
 	set_board_orientation(Rotation::ROTATION_NONE);
 	// NOTE This is meant to return the product_id of the IMU sensor

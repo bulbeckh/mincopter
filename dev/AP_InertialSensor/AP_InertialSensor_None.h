@@ -22,9 +22,9 @@ class AP_InertialSensor_None : public AP_InertialSensor
 		float get_gyro_drift_rate(void) override { return 0.0f; }
 
 		/* @brief Wait for a sample to be available, with timeout in milliseconds */
-		bool wait_for_sample(uint16_t timeout_ms) override { return true; }
+		bool wait_for_sample(uint16_t /* unused */) override { return true; }
 
 		/* @brief Sensor specific init to be overwritten by descendant classes */
-		uint16_t _init_sensor(Sample_rate sample_rate) override { return 0; }
+		uint16_t _init_sensor(Sample_rate /* unused */) override { return 0; }
 };
 

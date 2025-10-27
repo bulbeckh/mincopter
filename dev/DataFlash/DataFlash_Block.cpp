@@ -190,7 +190,7 @@ bool DataFlash_Block::NeedErase(void)
 /**
   get raw data from a log
  */
-int16_t DataFlash_Block::get_log_data_raw(uint16_t log_num, uint16_t page, uint32_t offset, uint16_t len, uint8_t *data)
+int16_t DataFlash_Block::get_log_data_raw(uint16_t /* log_num */, uint16_t page, uint32_t offset, uint16_t len, uint8_t *data)
 {
     uint16_t data_page_size = df_PageSize - sizeof(struct PageHeader);
 

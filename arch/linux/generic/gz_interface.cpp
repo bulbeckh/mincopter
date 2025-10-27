@@ -28,7 +28,7 @@ using namespace generic;
  * ever really be implemented by the HAL Generic. */
 extern const AP_HAL::HAL& hal;
 
-void GenericGZInterface::tick(uint32_t tick_us)
+void GenericGZInterface::tick(uint32_t /* unused */)
 {
 	// TODO This is where we all **send_control_output** and **recv_state_input**
 	// TODO Use the tick_us param to drive the simulation step
@@ -110,7 +110,7 @@ bool GenericGZInterface::send_control_output(void)
     for (int16_t i=0;i<16;i++) {
 		// TODO Change how motor PWM signal is retrived - should be the output of mixer but unclear whether to use RCOutput PWM or elsewhere
 		//int16_t m_out = mincopter.motors.get_raw_motor_out(i);
-		int16_t m_out = 0;
+		//int16_t m_out = 0;
 
 		// NOTE The pkt entry is int16_t whereas m_out uint16_t
 		//control_pkt.pwm[i] = m_out;

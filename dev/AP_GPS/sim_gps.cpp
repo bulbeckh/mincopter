@@ -6,7 +6,7 @@ extern const AP_HAL::HAL& hal;
 
 #include "sim_gps.h"
 
-void AP_GPS_Sim::init(AP_HAL::UARTDriver *s, enum GPS_Engine_Setting nav_setting)
+void AP_GPS_Sim::init(AP_HAL::UARTDriver* /* unused */, enum GPS_Engine_Setting nav_setting)
 {
 	_nav_setting = nav_setting;
 	return;

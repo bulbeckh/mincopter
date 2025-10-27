@@ -13,39 +13,45 @@ AC_WPNav::AC_WPNav(/* const MC_INAV_CLASS *inav, const MC_AHRS_CLASS *ahrs */)
 	:
     //_inav(inav),
     //_ahrs(ahrs),
-    _wpnav_last_update(0),
-    _cos_yaw(1.0),
-    _sin_yaw(0.0),
-    _cos_pitch(1.0),
-    _althold_kP(WPNAV_ALT_HOLD_P),
-    _desired_roll(0),
-    _desired_pitch(0),
-    _target(0,0,0),
-    _target_vel(0,0,0),
-    _vel_last(0,0,0),
-    _lean_angle_max_cd(MAX_LEAN_ANGLE),
-    _wp_leash_xy(WPNAV_MIN_LEASH_LENGTH),
-    _wp_leash_z(WPNAV_MIN_LEASH_LENGTH),
-    _track_accel(0),
-    _track_speed(0),
-    _track_leash_length(0),
-    dist_error(0,0),
-    desired_vel(0,0),
-    desired_accel(0,0),
 	
-	// Previously set during AP_Param
+	/* Position controller P, I, and IMAX terms */
+	_pid_pos_lat(1.0f, 0.0f, 0.0f, 0.0f),
+	_pid_pos_lon(1.0f, 0.0f, 0.0f, 0.0f),
+	/* Rate controllers P, I, and IMAX terms */
+	_pid_rate_lat(1.0f, 0.5f, 0.0f, 400),
+	_pid_rate_lon(1.0f, 0.5f, 0.0f, 400),
+
 	_wp_speed_cms(500.0f),
 	_wp_speed_up_cms(250.0f),
 	_wp_speed_down_cms(150.0f),
 	_wp_radius_cm(200.0f),
 	_wp_accel_cms(100.0f),
 
-	/* Position controller P, I, and IMAX terms */
-	_pid_pos_lat(1.0f, 0.0f, 0.0f, 0.0f),
-	_pid_pos_lon(1.0f, 0.0f, 0.0f, 0.0f),
-	/* Rate controllers P, I, and IMAX terms */
-	_pid_rate_lat(1.0f, 0.5f, 0.0f, 400),
-	_pid_rate_lon(1.0f, 0.5f, 0.0f, 400)
+    _wpnav_last_update(0),
+
+    _cos_yaw(1.0),
+    _sin_yaw(0.0),
+    _cos_pitch(1.0),
+    _althold_kP(WPNAV_ALT_HOLD_P),
+
+    _desired_roll(0),
+    _desired_pitch(0),
+
+    _wp_leash_xy(WPNAV_MIN_LEASH_LENGTH),
+    _wp_leash_z(WPNAV_MIN_LEASH_LENGTH),
+    _track_accel(0),
+    _track_speed(0),
+    _track_leash_length(0),
+
+    _target(0,0,0),
+    _target_vel(0,0,0),
+    _vel_last(0,0,0),
+    _lean_angle_max_cd(MAX_LEAN_ANGLE),
+
+    dist_error(0,0),
+    desired_vel(0,0),
+    desired_accel(0,0)
+	
 {
     //AP_Param::setup_object_defaults(this, var_info);
 
@@ -316,7 +322,7 @@ void AC_WPNav::update_wpnav()
 
 /// get_loiter_position_to_velocity - loiter position controller
 ///     converts desired position held in _target vector to desired velocity
-void AC_WPNav::get_loiter_position_to_velocity(float dt, float max_speed_cms)
+void AC_WPNav::get_loiter_position_to_velocity(float /* unused */, float max_speed_cms)
 {
 	// TODO INAV
     //Vector3f curr = _inav->get_position();

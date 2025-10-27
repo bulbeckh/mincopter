@@ -38,7 +38,6 @@ void update_GPS(void)
 {
 		static uint32_t last_gps_reading;           // time of last gps message
 		static uint8_t ground_start_count = 10;     // counter used to grab at least 10 reads before commiting the Home location
-		bool report_gps_glitch;
 
 		mincopter.g_gps->update();
 
@@ -54,7 +53,6 @@ void update_GPS(void)
 				// run glitch protection and update AP_Notify if home has been initialised
 				if (planner.ap.home_is_set) {
 						mincopter.gps_glitch.check_position();
-						report_gps_glitch = (mincopter.gps_glitch.glitching() && !planner.ap.usb_connected);
 				}
 		}
 

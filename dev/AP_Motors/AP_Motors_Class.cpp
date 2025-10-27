@@ -65,21 +65,22 @@ const AP_Param::GroupInfo AP_Motors::var_info[] PROGMEM = {
 
 // Constructor
 AP_Motors::AP_Motors( RC_Channel* rc_roll, RC_Channel* rc_pitch, RC_Channel* rc_throttle, RC_Channel* rc_yaw, uint16_t speed_hz ) :
-    _rc_roll(rc_roll),
-    _rc_pitch(rc_pitch),
-    _rc_throttle(rc_throttle),
-    _rc_yaw(rc_yaw),
-    _speed_hz(speed_hz),
-    _min_throttle(AP_MOTORS_DEFAULT_MIN_THROTTLE),
-    _max_throttle(AP_MOTORS_DEFAULT_MAX_THROTTLE),
-    _hover_out(AP_MOTORS_DEFAULT_MID_THROTTLE),
-    _spin_when_armed_ramped(0),
-
 	/* Previously set via AP_Param */
 	_throttle_curve_enabled(1),
 	_throttle_curve_mid(52),
 	_throttle_curve_max(93),
-	_spin_when_armed(70)
+	_spin_when_armed(70),
+
+    _rc_roll(rc_roll),
+    _rc_pitch(rc_pitch),
+    _rc_throttle(rc_throttle),
+    _rc_yaw(rc_yaw),
+
+    _speed_hz(speed_hz),
+    _min_throttle(AP_MOTORS_DEFAULT_MIN_THROTTLE),
+    _max_throttle(AP_MOTORS_DEFAULT_MAX_THROTTLE),
+    _hover_out(AP_MOTORS_DEFAULT_MID_THROTTLE),
+    _spin_when_armed_ramped(0)
 
 {
     uint8_t i;
@@ -196,7 +197,8 @@ bool AP_Motors::setup_throttle_curve()
 
 // slow_start - set to true to slew motors from current speed to maximum
 // Note: this must be set immediately before a step up in throttle
-void AP_Motors::slow_start(bool true_false)
+// TODO Remove the boolean argument
+void AP_Motors::slow_start(bool /* unused */)
 {
     // set slow_start flag
     _flags.slow_start = true;

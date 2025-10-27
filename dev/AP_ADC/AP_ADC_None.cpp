@@ -15,28 +15,28 @@ void AP_ADC_None::read(void)
 AP_ADC_None::AP_ADC_None() { }
 
 // Public Methods //////////////////////////////////////////////////////////////
-void AP_ADC_None::Init()
+void AP_ADC_None::Init(void)
 {
 	/* Implement */
 }
 
-float AP_ADC_None::Ch(uint8_t ch_num)
+float AP_ADC_None::Ch(uint8_t /* unused */)
 {
     return 0;
 }
 
-bool AP_ADC_None::new_data_available(const uint8_t *channel_numbers)
+bool AP_ADC_None::new_data_available(const uint8_t* /* channel_numbers */)
 {
 	/* Implement */
 	return false;
 }
 
-uint32_t AP_ADC_None::Ch6(const uint8_t *channel_numbers, float *result)
+uint32_t AP_ADC_None::Ch6(const uint8_t* /* channel_numbers */, float* /* result */)
 {
     return 0;
 }
 
-uint16_t AP_ADC_None::num_samples_available(const uint8_t *channel_numbers)
+uint16_t AP_ADC_None::num_samples_available(const uint8_t* /* channel_numbers */)
 {
     return 0;
 }

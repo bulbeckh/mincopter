@@ -29,13 +29,13 @@ public:
     /// @param name     Optional name for the group.
     ///
     RC_Channel(uint8_t ch_out) :
-        _high(1),
-        _ch_out(ch_out),
-		_reverse(1),
 		radio_min(1100),
 		radio_trim(1500),
 		radio_max(1900),
-		_dead_zone(0)
+		_reverse(1),
+		_dead_zone(0),
+        _high(1),
+        _ch_out(ch_out)
 	{
 		
 						/*

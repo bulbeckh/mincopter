@@ -115,8 +115,8 @@ GPS::update(void)
 }
 
 void
-GPS::setHIL(uint64_t _time_epoch_ms, float _latitude, float _longitude, float _altitude,
-            float _ground_speed, float _ground_course, float _speed_3d, uint8_t _num_sats)
+GPS::setHIL(uint64_t /* _time_epoch_ms */, float /* _latitude */, float /* _longitude */, float /* _altitude */,
+            float /* _ground_speed */, float /* _ground_course */, float /* _speed_3d */, uint8_t /* _num_sats */)
 {
 }
 
