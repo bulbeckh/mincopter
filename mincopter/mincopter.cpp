@@ -166,11 +166,7 @@ uint32_t _counter=0;
 /* Core Loop - Meant to run every 10ms (10,000 microseconds) */
 void loop()
 {
-
 	// Loop heartbeat
-	if (_counter%1000==0) {
-		hal.console->printf("Looping..\n");
-	}
 	_counter++;
 
 #ifdef TARGET_ARCH_LINUX
@@ -333,6 +329,7 @@ void loop()
 	mincopter.hal.sim->log_state(log_packet, 24, 0x09);
 
 	// Update position directly as a test every second
+	/*
 	if (_counter%100==0 && _counter<500) {
 		mincopter.hal.sim->set_mincopter_position(0,0,5);
 		mincopter.hal.sim->set_mincopter_linvelocity(0,0,0);
@@ -344,29 +341,98 @@ void loop()
 		// Call for simulation reset after 5 seconds
 		mincopter.hal.sim->reset();
 	}
+	*/
 
+	// In linux/generic (simulation) targets we dump all relevant information at 1Hz
+	
 	// Dump to console @1Hz
 	if (_counter%100==0) {
-		mincopter.hal.console->printf("[loop %lu] remaining_ram=%u\n", _counter, mincopter.hal.util->available_memory());
-		mincopter.hal.console->printf_P(PSTR("[RAW]\n"));
-		mincopter.hal.console->printf_P(PSTR("gyr : % 6.2f, % 6.2f, % 6.2f\n"), _gyr_meas.x, _gyr_meas.y, _gyr_meas.z);
-		mincopter.hal.console->printf_P(PSTR("acc : % 6.2f, % 6.2f, % 6.2f\n"), _acc_meas.x, _acc_meas.y, _acc_meas.z);
-		mincopter.hal.console->printf_P(PSTR("mag : % 6.2f, % 6.2f, % 6.2f\n"), _mag_meas.x, _mag_meas.y, _mag_meas.z);
-		mincopter.hal.console->printf_P(PSTR("baro: % 6.2f, % 6.2f\n"), _pres, _temperature);
-		mincopter.hal.console->printf_P(PSTR("gpss: %d\n"), _status);
-		mincopter.hal.console->printf_P(PSTR("gll : %d, %d\n"), mincopter.g_gps->latitude, mincopter.g_gps->longitude);
-		mincopter.hal.console->printf_P(PSTR("galt: %d\n"), mincopter.g_gps->altitude_cm);
-		
-		mincopter.hal.console->printf_P(PSTR("[STATE]\n"));
-		mincopter.hal.console->printf_P(PSTR("pos x,y,z      : %f, %f, %f\n"), _temp_pos.x, _temp_pos.y, _temp_pos.z);
-		mincopter.hal.console->printf_P(PSTR("vel x,y,z      : %f, %f, %f\n"), _temp_vel.x, _temp_vel.y, _temp_vel.z);
-		mincopter.hal.console->printf_P(PSTR("att q1,q2,q3,q4: %f, %f, %f, %f\n"), _temp_att[0], _temp_att[1], _temp_att[2], _temp_att[3]);
-		mincopter.hal.console->printf_P(PSTR("eul r,p,y      : %f, %f, %f\n"), roll, pitch, yaw);
-		mincopter.hal.console->printf_P(PSTR("homelng/lat/alt: %d, %d, %d\n"), mcstate.home.lat, mcstate.home.lng, mcstate.home.alt);
+		mincopter.hal.console->printf("---[LOOP, simtime=%f]----------------------\r\n", mincopter.hal.sim->last_sensor_state.timestamp);
 
-		mincopter.hal.console->printf("SimTime: %f\r\n", mincopter.hal.sim->last_sensor_state.timestamp);
+		mincopter.hal.console->printf("AHRS sensor readings | X      | Y      | Z      |\r\n");
+		mincopter.hal.console->printf("    gyro (rad/s)     | %+6.2f | %+6.2f | %+6.2f |\r\n", _gyr_meas.x, _gyr_meas.y, _gyr_meas.z);
+		mincopter.hal.console->printf("    acc  (m/2  )     | %+6.2f | %+6.2f | %+6.2f |\r\n", _acc_meas.x, _acc_meas.y, _acc_meas.z);
+		mincopter.hal.console->printf("    mag  (ut   )     | %+6.2f | %+6.2f | %+6.2f |\r\n\n", _mag_meas.x, _mag_meas.y, _mag_meas.z);
+
+		/*
+		mincopter.hal.console->printf("mag : % 6.2f, % 6.2f, % 6.2f\n"), _mag_meas.x, _mag_meas.y, _mag_meas.z);
+		mincopter.hal.console->printf("baro: % 6.2f, % 6.2f\n"), _pres, _temperature);
+		mincopter.hal.console->printf("gpss: %d\n"), _status);
+		mincopter.hal.console->printf("gll : %d, %d\n"), mincopter.g_gps->latitude, mincopter.g_gps->longitude);
+		mincopter.hal.console->printf("galt: %d\n"), mincopter.g_gps->altitude_cm);
+		*/
+		
+		mincopter.hal.console->printf("state estimation (position/velocity)\r\n");
+		mincopter.hal.console->printf("| x (m)  | y (m)  | z (m)  | dx (m/s) | dy (m/s) | dz (m/s) |\r\n");
+		mincopter.hal.console->printf("| %+6.2f | %+6.2f | %+6.2f | %+8.2f | %+8.2f | %+8.2f |\r\n",
+				_temp_pos.x, _temp_pos.y, _temp_pos.z,
+				_temp_vel.x, _temp_vel.y, _temp_vel.z);
+
+		mincopter.hal.console->printf("state estimation (attitude)\r\n");
+		mincopter.hal.console->printf("| roll   | pitch  | yaw    | droll  | dpitch | dyaw  |\r\n");
+		mincopter.hal.console->printf("| %+6.2f | %+6.2f | %+6.2f |    - |      - |     - |\r\n",
+				roll, pitch, yaw);
+
+		/*
+		mincopter.hal.console->printf("att q1,q2,q3,q4: %f, %f, %f, %f\n"), _temp_att[0], _temp_att[1], _temp_att[2], _temp_att[3]);
+		mincopter.hal.console->printf("eul r,p,y      : %f, %f, %f\n"), roll, pitch, yaw);
+		mincopter.hal.console->printf("homelng/lat/alt: %d, %d, %d\n"), mcstate.home.lat, mcstate.home.lng, mcstate.home.alt);
+		*/
+
+		mincopter.hal.console->printf("control\r\n");
+		mincopter.hal.console->printf("| F       | RollT   | PitchT  | YawT    |\r\n");
+		mincopter.hal.console->printf("| %+5.2fN | %+5.2fNm | %+5.2fNm | %+5.2fNm |\r\n\n",
+				mincopter.hal.sim->control_input[0],
+				mincopter.hal.sim->control_input[1],
+				mincopter.hal.sim->control_input[2],
+				mincopter.hal.sim->control_input[3]
+				);
+
+		mincopter.hal.console->printf("pwm output\r\n");
+		mincopter.hal.console->printf("| m0   | m1   | m2   | m3   |\r\n");
+		mincopter.hal.console->printf("| %4d | %4d | %4d | %4d |\r\n\n",
+				mincopter.hal.sim->motor_out[0],
+				mincopter.hal.sim->motor_out[1],
+				mincopter.hal.sim->motor_out[2],
+				mincopter.hal.sim->motor_out[3]
+				);
+
 	}
 #endif
+
+/* Logging output is as follows:
+
+---[LOOP, simtime=150000.00]--------------------------------------------
+
+AHRS sensor readings | X    | Y    | Z    |
+	gyro (rad/s)    | 1.02 | 0.23 | 4.23 |
+	acc  (m/s2 )    | 9.03 | 1.23 | 0.23 |
+	mag  (ut   )    | 34.53 | 20.02 | -19.23 |
+
+state estimation (position/velocity)
+| x (m)  | y (m)  | z (m)  | dx (m/s) | dy (m/s) | dz (m/s) |
+| +40.02 | -20.02 | +30.50 |    +2.01 |     -3.02
+
+state estimation (attitude/angvel)
+| roll   | pitch  | yaw    | droll  | dpitch | dyaw   |
+| -0.153 | +1.594 | -0.123 | +2.234 | -0.012 | -0.024 |
+
+control
+| F      | RollT   | PitchT   | YawT    |
+| 20.42N | +1.23Nm | -0.02 Nm | +3.21Nm |
+
+pwm output
+| m0   | m1   | m2   | m3   |
+| 1000 | 1000 | 1000 | 1000 |
+
+
+
+sdas
+sads
+
+
+
+*/
 
     uint32_t timer = micros();
 
@@ -424,8 +490,7 @@ void loop()
 		state_update();
 		// Control Determination
 		
-		// Temporarily disable
-		//control_determination();
+		control_determination();
 	}
 
     // tell the scheduler one tick has passed
@@ -438,7 +503,7 @@ void loop()
     // call until scheduler.tick() is called again
     uint32_t time_available = (timer + 10000) - micros();
 
-	if (_counter<3) mincopter.hal.console->printf("STACK pre-loop:%u\n", mincopter.hal.util->available_memory());
+	//if (_counter<3) mincopter.hal.console->printf("STACK pre-loop:%u\n", mincopter.hal.util->available_memory());
 
 #ifdef TARGET_ARCH_LINUX
 	/* NOTE In the simulated environment, the round of 10 GZ sensor updates takes about 10ms
@@ -450,7 +515,7 @@ void loop()
     scheduler.run(time_available - 300);
 #endif
 
-	if (_counter<3) mincopter.hal.console->printf("STACK post-loop:%u\n", mincopter.hal.util->available_memory());
+	//if (_counter<3) mincopter.hal.console->printf("STACK post-loop:%u\n", mincopter.hal.util->available_memory());
 
     uint32_t time_elapsed = micros() - timer;
     // Delay if we have time remaining (i.e. time took less than 10000us)

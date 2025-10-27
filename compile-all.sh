@@ -1,6 +1,5 @@
 #!/bin/bash
 
-: '
 if [ -d "./build/" ]; then
 	echo "build dir exists - removing contents"
 	rm -rf ./build/*
@@ -12,7 +11,6 @@ fi
 ## Copy configuration
 cp ./mc-config.cmake ./build
 
-'
 ## Run for each target
 
 cd ./build
@@ -23,7 +21,6 @@ target_list=("stm32f407xx"
 	"stm32f401xe"
 	"stm32f401xc")
 
-: '
 for target in "${target_list[@]}"; do
 	echo ${target}
 	echo "./build-${target}"
@@ -40,7 +37,6 @@ for target in "${target_list[@]}"; do
 
 	cd ..
 done
-'
 
 ## AVR Targets
 
@@ -49,7 +45,6 @@ avr_list=("atmega2560"
 	"atmega1280"
 	"atmega1281")
 
-: '
 for avr_target in "${avr_list[@]}"; do
 	echo ${avr_target}
 	echo "./build-${avr_target}"
@@ -66,7 +61,6 @@ for avr_target in "${avr_list[@]}"; do
 
 	cd ..
 done
-'
 
 ## Remove root dir README
 rm ../README.md

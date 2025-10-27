@@ -51,7 +51,7 @@ void GenericGZInterface::tick(uint32_t tick_us)
 
 bool GenericGZInterface::setup_sim_socket(void)
 {
-	hal.console->printf("Initialising connection to Gazebo Simulator...\n");
+	hal.console->printf("[HAL ] Initialising connection to Gazebo Simulator...\n");
 
     // Create a UDP socket with arbitrary port
     sockfd = socket(AF_INET, SOCK_DGRAM, 0);
@@ -75,7 +75,7 @@ bool GenericGZInterface::setup_sim_socket(void)
 		return false;
     }
 
-	hal.console->printf("Socket created successfully at 127.0.0.1\n");
+	hal.console->printf("[HAL ] Socket created successfully at 127.0.0.1\n");
 
 	// Setup a 1s timeout for the receive function
 	struct timeval _tv_timeout;

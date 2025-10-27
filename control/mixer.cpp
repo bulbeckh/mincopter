@@ -101,12 +101,14 @@ void Mixer::output(float total_force_n, float roll_t_nm, float pitch_t_nm, float
 	mincopter.hal.sim->control_input[2] = pitch_t_nm;
 	mincopter.hal.sim->control_input[3] = yaw_t_nm;
 	
+	/* MOVED TO MINCOPTER
 	static uint32_t cnt=0;
 	if (cnt%100==0) {
 		mincopter.hal.console->printf("PWM: %d,%d,%d,%d\n", _motor_pwm_us[0], _motor_pwm_us[1], _motor_pwm_us[2], _motor_pwm_us[3]);
 		mincopter.hal.console->printf("allocation: %f,%f,%f,%f\n", safe_sqrt(allocations[0]), safe_sqrt(allocations[1]), safe_sqrt(allocations[2]), safe_sqrt(allocations[3]));
 	}
 	cnt++;
+	*/
 	
 	return;
 }

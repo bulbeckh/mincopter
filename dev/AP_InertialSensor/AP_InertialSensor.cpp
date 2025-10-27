@@ -130,10 +130,6 @@ AP_InertialSensor::_init_gyro()
     float best_diff;
     bool converged;
 
-    // cold start
-    hal.console->print_P(PSTR("GS00-Init Gyro\n"));
-
-
     // remove existing gyro offsets
 	_gyro_offset = Vector3f(0,0,0);
 	best_diff = 0;
@@ -258,7 +254,7 @@ AP_InertialSensor::_init_accel()
 
             // display some output to the user
             if(flashcount >= 10) {
-                hal.console->print_P(PSTR("*"));
+                //hal.console->print_P(PSTR("*"));
                 flashcount = 0;
             }
             flashcount++;

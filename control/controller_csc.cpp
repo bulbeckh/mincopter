@@ -123,9 +123,11 @@ void CSC_Controller::run(void)
 	// NOTE Confusingly, we subtract tforce here because the output of our controller is negative if we desire to go up, since we have chosen a NED world frame.
 	mixer.output(2.43*GRAVITY_MSS - tforce, rt, pt, yt);
 
+	/*
 	if (csc_counter%100) {
 		mincopter.hal.console->printf("CSC: %f, %f, %f, %f\n", 2.43*GRAVITY_MSS - tforce, rt, pt, yt);
 	}
+	*/
 
 	csc_counter++;
 

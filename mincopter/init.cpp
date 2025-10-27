@@ -20,7 +20,7 @@ void run_cli(void);
 
 void init_ardupilot()
 {
-	mincopter.hal.console->printf_P(PSTR("INITIALISATION STARTED\n"));
+	mincopter.hal.console->printf_P(PSTR("[INIT] Initialisation started..\n"));
 
 	// Run for anything except simulation
 
