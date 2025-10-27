@@ -37,7 +37,7 @@ public:
     /*
       set system clock in UTC microseconds
      */
-    virtual void set_system_clock(uint64_t time_utc_usec) {}
+    virtual void set_system_clock(uint64_t /* unused */) {}
 
     /*
       get system identifier (eg. serial number)
@@ -46,7 +46,7 @@ public:
       Buf should be filled with a printable string and must be null
       terminated
      */
-    virtual bool get_system_id(char buf[40]) { return false; }
+    virtual bool get_system_id(char[40] /* unused */) { return false; }
 
     /**
        how much free memory do we have in bytes. If more than 0xFFFF

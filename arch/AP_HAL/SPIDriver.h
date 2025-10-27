@@ -38,7 +38,7 @@ public:
         SPI_SPEED_LOW, SPI_SPEED_HIGH
     };
 
-    virtual void set_bus_speed(enum bus_speed speed) {}
+    virtual void set_bus_speed(enum bus_speed /* unused */ ) {}
     
 };
 

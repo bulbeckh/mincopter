@@ -47,7 +47,7 @@ public:
       set PWM to send to a set of channels when the safety switch is
       in the safe state
      */
-    virtual void     set_safety_pwm(uint32_t chmask, uint16_t period_us) {}
+    virtual void     set_safety_pwm(uint32_t /* unused */, uint16_t /* unused */) {}
 };
 
 #endif // __AP_HAL_RC_OUTPUT_H__

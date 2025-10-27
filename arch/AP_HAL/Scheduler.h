@@ -42,12 +42,12 @@ public:
     /**
        optional function to set timer speed in Hz
      */
-    virtual void     set_timer_speed(uint16_t speed_hz) {}
+    virtual void     set_timer_speed(uint16_t /* unused */) {}
 
     /**
        optional function to shift forward in time, used by log replay
      */
-    virtual void     time_shift(uint32_t shift_ms) {}
+    virtual void     time_shift(uint32_t /* unused */) {}
 };
 
 #endif // __AP_HAL_SCHEDULER_H__
