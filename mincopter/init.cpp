@@ -283,48 +283,6 @@ void init_ardupilot()
 		mincopter.hal.scheduler->delay(1000);
 #endif
 
-		/*
-		// TEST 1 - Single 4byte message, 12 repeats, no format
-		uint32_t start_time = micros();
-		for(int i=0;i<12;i++) {
-			mincopter.cliSerial->printf_P(PSTR("TST\n"));
-		}
-		uint32_t end = micros()-start_time;
-		mincopter.cliSerial->printf_P(PSTR("TEST1-%uus\n"), end);
-
-		// TEST 2 - Single 16 byte message, 12 repeats, no format
-		start_time = micros();
-		for(int i=0;i<12;i++) {
-			mincopter.cliSerial->printf_P(PSTR("TESTTESTTESTTES\n"));
-		}
-		end = micros()-start_time;
-		mincopter.cliSerial->printf_P(PSTR("TEST2-%uus\n"), end);
-
-		// TEST 3 - Single 16 byte message, no repeats, no format
-		start_time = micros();
-		for(int i=0;i<1;i++) {
-			mincopter.cliSerial->printf_P(PSTR("TESTTESTTESTTES\n"));
-		}
-		end = micros()-start_time;
-		mincopter.cliSerial->printf_P(PSTR("TEST3-%uus\n"), end);
-
-		// TEST 4 - Single 16 byte message, 12 repeats with 1 format
-		start_time = micros();
-		for(int i=0;i<12;i++) {
-			mincopter.cliSerial->printf_P(PSTR("TS_%dTS_%dTS_%dTS%d\n"), i, i, i, i);
-		}
-		end = micros()-start_time;
-		mincopter.cliSerial->printf_P(PSTR("TEST4-%uus\n"), end);
-
-		// TEST 5 - Single 32 byte message, no repeats, no format
-		start_time = micros();
-		for(int i=0;i<1;i++) {
-			mincopter.cliSerial->printf_P(PSTR("FOURFOURFOURFOURFOURFOURFOURFOU\n"));
-		}
-		end = micros()-start_time;
-		mincopter.cliSerial->printf_P(PSTR("TEST5-%uus\n"), end);
-		*/
-
 	mincopter.hal.console->printf_P(PSTR("[INIT] Initialisation complete, post-init RAM:%u\n"), mincopter.hal.util->available_memory());
 	return;
 }

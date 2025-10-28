@@ -91,10 +91,10 @@ const AP_HAL::HAL& hal = mincopter.hal;
 uint32_t fast_loopTimer;
 
 /* @brief Forward declaration of ardupilot initialisation. Defined in init.cpp */
-void init_ardupilot();
+void init_ardupilot(void);
 
 /* @brief The state update routine. Will update the AHRS, the Inertial Navigation, and some sensors */
-void state_update()
+void state_update(void)
 {
 	mcstate.ahrs.ahrs_update();
 
@@ -109,7 +109,7 @@ void state_update()
 }
 
 /* @brief The control update routine. Runs the planner and then the controller. */
-void control_determination()
+void control_determination(void)
 {
 	/* Our planner algorithm updates the desired roll and pitch based on our position from desired
 	 * waypoint as well as our velocity.
@@ -164,7 +164,7 @@ void control_determination()
 uint32_t _counter=0;
 
 /* Core Loop - Meant to run every 10ms (10,000 microseconds) */
-void loop()
+void loop(void)
 {
 	// Loop heartbeat
 	_counter++;
@@ -347,7 +347,7 @@ void loop()
 	
 	// Dump to console @1Hz
 	if (_counter%100==0) {
-		mincopter.hal.console->printf("---[LOOP, simtime=%f]----------------------\r\n", mincopter.hal.sim->last_sensor_state.timestamp);
+		mincopter.hal.console->printf("---[LOOP, simtime=%f, iterations=%u]----------------------\r\n", mincopter.hal.sim->last_sensor_state.timestamp, mincopter.hal.sim->last_sensor_state.iterations);
 
 		mincopter.hal.console->printf("AHRS sensor readings | X      | Y      | Z      |\r\n");
 		mincopter.hal.console->printf("    gyro (rad/s)     | %+6.2f | %+6.2f | %+6.2f |\r\n", _gyr_meas.x, _gyr_meas.y, _gyr_meas.z);
@@ -580,7 +580,7 @@ const AP_Scheduler::Task scheduler_tasks[] PROGMEM = {
 
 /* TODO Remove this - this is an artefact from the old Arduino setup/loop format of code. Can reducing bloat
  * here by moving to a single main function */
-void setup() 
+void setup(void)
 {
 	// NOTE cliSerial is an alias for mincopter.hal.console
     mincopter.cliSerial = mincopter.hal.console;
@@ -591,7 +591,6 @@ void setup()
     scheduler.init(&scheduler_tasks[0], sizeof(scheduler_tasks)/sizeof(scheduler_tasks[0]));
 }
 
-// AP_HAL_MAIN() body
 extern "C" {
   int main (void) {
 	mincopter.hal.init(0, NULL);

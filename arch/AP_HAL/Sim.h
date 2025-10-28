@@ -44,6 +44,7 @@ class AP_HAL::Sim
 
 			/* @brief Simulation timestamp in seconds. Taken from simTime in gazebo */
 			double timestamp;
+			uint64_t iterations;
 
 			/* IMU */
 			double imu_gyro_x;

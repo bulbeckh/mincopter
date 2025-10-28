@@ -16,9 +16,6 @@
 */
 #include "ArduPilotPlugin.hh"
 
-// HASH include <rapidjson/stringbuffer.h>
-// HASH include <rapidjson/writer.h>
-
 #include <gz/msgs/imu.pb.h>
 #include <gz/msgs/magnetometer.pb.h>
 #include <gz/msgs/fluid_pressure.pb.h>
@@ -72,7 +69,6 @@
 #include "SocketUDP.hh"
 #include "Util.hh"
 
-#define DEBUG_JSON_IO 0
 
 // MAX_MOTORS limits the maximum number of <control> elements that
 // can be defined in the <plugin>.
@@ -173,45 +169,14 @@ double Control::kDefaultFrequencyCutoff = 5.0;
 double Control::kDefaultSamplingRate = 0.2;
 
 /////////////////////////////////////////////////
-// Wrapper class to store callback functions
-template <typename M>
-class OnMessageWrapper
-{
-  /// \brief Callback function type definition
-  public: typedef std::function<void(const M &)> callback_t;
-
-  /// \brief Callback function
-  public: callback_t callback;
-
-  /// \brief Constructor
-  public: OnMessageWrapper(const callback_t &_callback)
-    : callback(_callback)
-  {
-  }
-
-  /// \brief Callback function
-  public: void OnMessage(const M &_msg)
-  {
-    if (callback)
-    {
-      callback(_msg);
-    }
-  }
-};
-
-typedef std::shared_ptr<OnMessageWrapper<
-    gz::msgs::LaserScan>> RangeOnMessageWrapperPtr;
-
-/////////////////////////////////////////////////
 // Private data class
 class gz::sim::systems::ArduPilotPluginPrivate
 {
   /// \brief The model
   public: gz::sim::Model model{gz::sim::kNullEntity};
 
-  /// \brief The entity representing the link containing the imu sensor.
+  /// \brief The entity representing the links for various sensors
   public: gz::sim::Entity imuLink{gz::sim::kNullEntity};
-
   public: gz::sim::Entity compassLink{gz::sim::kNullEntity};
   public: gz::sim::Entity baroLink{gz::sim::kNullEntity};
   public: gz::sim::Entity navsatLink{gz::sim::kNullEntity};
@@ -255,18 +220,16 @@ class gz::sim::systems::ArduPilotPluginPrivate
   /// NEW Changes UDP call to 100Hz
   public: uint32_t udp_freq_count{0};
 
-  /// \brief The name of the IMU sensor
-  public: std::string imuName;
-
   public: std::string resetservice;
 
   /* TODO These are now hardcode but need to add as tags in SDF like the IMU does */
+  public: std::string imuName;
   public: std::string compassName{"compass_sensor"};
   public: std::string baroName{"baro_sensor"};
   public: std::string navsatName{"navsat_sensor"};
 
   /// \brief Set true to enforce lock-step simulation
-  public: bool isLockStep{false};
+  //public: bool isLockStep{false};
 
   /// \brief Set true if have 32 servo channels
   public: bool have32Channels{false};
@@ -343,7 +306,7 @@ class gz::sim::systems::ArduPilotPluginPrivate
   /// Set to false when Gazebo starts to prevent blocking, true when
   /// the ArduPilot controller is detected and online, and false if the
   /// connection to the ArduPilot controller times out.
-  public: bool arduPilotOnline{false};
+  //public: bool arduPilotOnline{false};
 
   /// \brief Number of consecutive missed ArduPilot controller messages
   public: int connectionTimeoutCount{0};
@@ -515,7 +478,6 @@ void gz::sim::systems::ArduPilotPlugin::Configure(
 
   // Load sensor params
   this->LoadImuSensors(sdfClone, _ecm);
-  this->LoadGpsSensors(sdfClone, _ecm);
 
   // Initialise sockets
   if (!InitSockets(sdfClone))
@@ -528,8 +490,8 @@ void gz::sim::systems::ArduPilotPlugin::Configure(
     sdfClone->Get("connectionTimeoutMaxCount", 10).first;
 
   // Enforce lock-step simulation (has default: false)
-  this->dataPtr->isLockStep =
-    sdfClone->Get("lock_step", this->dataPtr->isLockStep).first;
+  // NOTE Always true now
+  //this->dataPtr->isLockStep = sdfClone->Get("lock_step", this->dataPtr->isLockStep).first;
 
   this->dataPtr->have32Channels =
     sdfClone->Get("have_32_channels", false).first;
@@ -827,85 +789,10 @@ void gz::sim::systems::ArduPilotPlugin::LoadImuSensors(
 }
 
 /////////////////////////////////////////////////
-void gz::sim::systems::ArduPilotPlugin::LoadGpsSensors(
-    sdf::ElementPtr /*_sdf*/,
-    gz::sim::EntityComponentManager &/*_ecm*/)
-{
-  /*
-  NOT MERGED IN MASTER YET
-  // Get GPS
-  std::string gpsName = _sdf->Get("imuName",
-      static_cast<std::string>("gps_sensor")).first;
-  std::vector<std::string> gpsScopedName =
-      SensorScopedName(this->dataPtr->model, gpsName);
-  if (gpsScopedName.size() > 1)
-  {
-    gzwarn << "[" << this->dataPtr->modelName << "] "
-           << "multiple names match [" << gpsName << "] using first found"
-           << " name.\n";
-    for (unsigned k = 0; k < gpsScopedName.size(); ++k)
-    {
-      gzwarn << "  sensor " << k << " [" << gpsScopedName[k] << "].\n";
-    }
-  }
-
-  if (gpsScopedName.size() > 0)
-  {
-    this->dataPtr->gpsSensor = std::dynamic_pointer_cast<sensors::GpsSensor>
-      (sensors::SensorManager::Instance()->GetSensor(gpsScopedName[0]));
-  }
-
-  if (!this->dataPtr->gpsSensor)
-  {
-    if (gpsScopedName.size() > 1)
-    {
-      gzwarn << "[" << this->dataPtr->modelName << "] "
-             << "first gps_sensor scoped name [" << gpsScopedName[0]
-             << "] not found, trying the rest of the sensor names.\n";
-      for (unsigned k = 1; k < gpsScopedName.size(); ++k)
-      {
-        this->dataPtr->gpsSensor =
-            std::dynamic_pointer_cast<sensors::GpsSensor>
-          (sensors::SensorManager::Instance()->GetSensor(gpsScopedName[k]));
-        if (this->dataPtr->gpsSensor)
-        {
-          gzwarn << "found [" << gpsScopedName[k] << "]\n";
-          break;
-        }
-      }
-    }
-
-    if (!this->dataPtr->gpsSensor)
-    {
-      gzwarn << "[" << this->dataPtr->modelName << "] "
-             << "gps_sensor scoped name [" << gpsName
-             << "] not found, trying unscoped name.\n" << "\n";
-      this->dataPtr->gpsSensor = std::dynamic_pointer_cast<sensors::GpsSensor>
-        (sensors::SensorManager::Instance()->GetSensor(gpsName));
-    }
-
-    if (!this->dataPtr->gpsSensor)
-    {
-      gzwarn << "[" << this->dataPtr->modelName << "] "
-             << "gps [" << gpsName
-             << "] not found, skipping gps support.\n" << "\n";
-    }
-    else
-    {
-      gzwarn << "[" << this->dataPtr->modelName << "] "
-             << "  found "  << " [" << gpsName << "].\n";
-    }
-  }
-  */
-}
-
-/////////////////////////////////////////////////
 void gz::sim::systems::ArduPilotPlugin::PreUpdate(
     const gz::sim::UpdateInfo &_info,
     gz::sim::EntityComponentManager &_ecm)
 {
-
-	gzwarn << "ST: " << std::chrono::duration_cast<std::chrono::seconds>(_info.simTime).count() << "\n";
 
 	// Enable velocity checks for base link
 	auto coptermodelentity = _ecm.EntityByName(std::string("iris_with_standoffs"));
@@ -920,248 +807,157 @@ void gz::sim::systems::ArduPilotPlugin::PreUpdate(
 		base_link_l.EnableVelocityChecks(_ecm, true);
 	}
 
-    /* Compass and Magnetometer Initialisation */
-    if (!this->dataPtr->compassInitialized)
-    {
-	this->dataPtr->compassInitialized = true;
-	std::string compassTopicName;
+	/* NOTE The following initialisation functions are only intended to run once on the first
+	 * update of this plugin. They are here because the full ecm would not be available during
+	 * the configure method */
+
+    /* Compass Initialisation */
+    if (!this->dataPtr->compassInitialized) {
+
+		this->dataPtr->compassInitialized = true;
+		std::string compassTopicName;
 
         // try scoped names first
-        auto entities = entitiesFromScopedName(
-            this->dataPtr->compassName, _ecm, this->dataPtr->model.Entity());
+        auto entities = entitiesFromScopedName(this->dataPtr->compassName, _ecm, this->dataPtr->model.Entity());
 
         // fall-back to unscoped name
-        if (entities.empty())
-        {
-          entities = EntitiesFromUnscopedName(
-            this->dataPtr->compassName, _ecm, this->dataPtr->model.Entity());
+        if (entities.empty()) {
+          entities = EntitiesFromUnscopedName(this->dataPtr->compassName, _ecm, this->dataPtr->model.Entity());
         }
 
-        if (!entities.empty())
-        {
-          if (entities.size() > 1)
-          {
-            gzwarn << "Multiple Compass sensors with name ["
-                   << this->dataPtr->compassName << "] found. "
-                   << "Using the first one.\n";
+        if (!entities.empty()) {
+          if (entities.size() > 1) {
+            gzwarn << "Multiple Compass sensors with name [" << this->dataPtr->compassName << "] found. " << "Using the first one.\n";
           }
 
           // select first entity
           gz::sim::Entity compassEntity = *entities.begin();
 
           // validate
-          if (!_ecm.EntityHasComponentType(compassEntity,
-              gz::sim::components::Magnetometer::typeId))
-          {
-            gzerr << "Entity with name ["
-                  << this->dataPtr->compassName
-                  << "] is not an Compass sensor\n";
-          }
-          else
-          {
-            gzmsg << "Found Compass sensor with name ["
-                  << this->dataPtr->compassName
-                  << "]\n";
+          if (!_ecm.EntityHasComponentType(compassEntity, gz::sim::components::Magnetometer::typeId)) {
+            gzerr << "Entity with name [" << this->dataPtr->compassName << "] is not an Compass sensor\n";
+          } else {
+            gzmsg << "Found Compass sensor with name [" << this->dataPtr->compassName << "]\n";
 
             // verify the parent of the imu sensor is a link.
             gz::sim::Entity parent = _ecm.ParentEntity(compassEntity);
-            if (_ecm.EntityHasComponentType(parent,
-                gz::sim::components::Link::typeId))
-            {
+
+            if (_ecm.EntityHasComponentType(parent, gz::sim::components::Link::typeId)) {
                 this->dataPtr->compassLink = parent;
 
-                compassTopicName = gz::sim::scopedName(
-                    compassEntity, _ecm) + "/magnetometer";
+                compassTopicName = gz::sim::scopedName(compassEntity, _ecm) + "/magnetometer";
 
-                gzdbg << "Computed Compass topic to be: "
-                    << compassTopicName << std::endl;
-            }
-            else
-            {
-              gzerr << "Parent of Compass sensor ["
-                    << this->dataPtr->compassName
-                    << "] is not a link\n";
+                gzdbg << "Computed Compass topic to be: " << compassTopicName << std::endl;
+            } else {
+              gzerr << "Parent of Compass sensor [" << this->dataPtr->compassName << "] is not a link\n";
             }
           }
-        }
-        else
-        {
-            gzerr << "[" << this->dataPtr->modelName << "] "
-                  << "imu_sensor [" << this->dataPtr->compassName
-                  << "] not found, abort ArduPilot plugin." << "\n";
+        } else {
+            gzerr << "[" << this->dataPtr->modelName << "] " << "imu_sensor [" << this->dataPtr->compassName << "] not found, abort ArduPilot plugin." << "\n";
             return;
         }
 	
-	// Actually register compass callback to get message
-        this->dataPtr->node.Subscribe(compassTopicName,
-            &gz::sim::systems::ArduPilotPluginPrivate::CompassCb,
-            this->dataPtr.get());
+		// Actually register compass callback to get message
+        this->dataPtr->node.Subscribe(compassTopicName, &gz::sim::systems::ArduPilotPluginPrivate::CompassCb, this->dataPtr.get());
     }
 
-	/* NavSat msg initialisation */
-    if (!this->dataPtr->navsatInitialized)
-    {
+	/* NavSat Initialisation */
+    if (!this->dataPtr->navsatInitialized) {
 		this->dataPtr->navsatInitialized = true;
 		std::string navsatTopicName;
 
         // try scoped names first
-        auto entities = entitiesFromScopedName(
-            this->dataPtr->navsatName, _ecm, this->dataPtr->model.Entity());
+        auto entities = entitiesFromScopedName(this->dataPtr->navsatName, _ecm, this->dataPtr->model.Entity());
 
         // fall-back to unscoped name
-        if (entities.empty())
-        {
-          entities = EntitiesFromUnscopedName(
-            this->dataPtr->navsatName, _ecm, this->dataPtr->model.Entity());
+        if (entities.empty()) {
+          entities = EntitiesFromUnscopedName(this->dataPtr->navsatName, _ecm, this->dataPtr->model.Entity());
         }
 
-        if (!entities.empty())
-        {
-          if (entities.size() > 1)
-          {
-            gzwarn << "Multiple NavSat sensors with name ["
-                   << this->dataPtr->navsatName << "] found. "
-                   << "Using the first one.\n";
+        if (!entities.empty()) {
+          if (entities.size() > 1) {
+            gzwarn << "Multiple NavSat sensors with name [" << this->dataPtr->navsatName << "] found. " << "Using the first one.\n";
           }
 
           // select first entity
           gz::sim::Entity navsatEntity = *entities.begin();
 
           // validate
-          if (!_ecm.EntityHasComponentType(navsatEntity,
-              gz::sim::components::NavSat::typeId))
-          {
-            gzerr << "Entity with name ["
-                  << this->dataPtr->navsatName
-                  << "] is not an NavSat sensor\n";
-          }
-          else
-          {
-            gzmsg << "Found NavSat sensor with name ["
-                  << this->dataPtr->navsatName
-                  << "]\n";
+          if (!_ecm.EntityHasComponentType(navsatEntity, gz::sim::components::NavSat::typeId)) {
+            gzerr << "Entity with name [" << this->dataPtr->navsatName << "] is not an NavSat sensor\n";
+          } else {
+            gzmsg << "Found NavSat sensor with name [" << this->dataPtr->navsatName << "]\n";
 
             // verify the parent of the imu sensor is a link.
             gz::sim::Entity parent = _ecm.ParentEntity(navsatEntity);
-            if (_ecm.EntityHasComponentType(parent,
-                gz::sim::components::Link::typeId))
-            {
+            if (_ecm.EntityHasComponentType(parent, gz::sim::components::Link::typeId)) {
                 this->dataPtr->navsatLink = parent;
 
-                navsatTopicName = gz::sim::scopedName(
-                    navsatEntity, _ecm) + "/navsat";
+                navsatTopicName = gz::sim::scopedName(navsatEntity, _ecm) + "/navsat";
 
-                gzdbg << "Computed NavSat topic to be: "
-                    << navsatTopicName << std::endl;
-            }
-            else
-            {
-              gzerr << "Parent of NavSat sensor ["
-                    << this->dataPtr->navsatName
-                    << "] is not a link\n";
+                gzdbg << "Computed NavSat topic to be: " << navsatTopicName << std::endl;
+            } else {
+              gzerr << "Parent of NavSat sensor [" << this->dataPtr->navsatName << "] is not a link\n";
             }
           }
-        }
-        else
-        {
-            gzerr << "[" << this->dataPtr->modelName << "] "
-                  << "imu_sensor [" << this->dataPtr->navsatName
-                  << "] not found, abort ArduPilot plugin." << "\n";
+        } else {
+            gzerr << "[" << this->dataPtr->modelName << "] " << "imu_sensor [" << this->dataPtr->navsatName << "] not found, abort ArduPilot plugin." << "\n";
             return;
         }
 	
-	// Actually register compass callback to get message
-        this->dataPtr->node.Subscribe(navsatTopicName,
-            &gz::sim::systems::ArduPilotPluginPrivate::NavsatCb,
-            this->dataPtr.get());
+		// Actually register compass callback to get message
+        this->dataPtr->node.Subscribe(navsatTopicName, &gz::sim::systems::ArduPilotPluginPrivate::NavsatCb, this->dataPtr.get());
     }
 
-
-
-
-
-
-    if (!this->dataPtr->baroInitialized)
-    {
-	this->dataPtr->baroInitialized = true;
-	std::string baroTopicName;
+	// Barometer Initialisation
+    if (!this->dataPtr->baroInitialized) {
+		this->dataPtr->baroInitialized = true;
+		std::string baroTopicName;
 
         // try scoped names first
-        auto entities = entitiesFromScopedName(
-            this->dataPtr->baroName, _ecm, this->dataPtr->model.Entity());
+        auto entities = entitiesFromScopedName(this->dataPtr->baroName, _ecm, this->dataPtr->model.Entity());
 
         // fall-back to unscoped name
-        if (entities.empty())
-        {
-          entities = EntitiesFromUnscopedName(
-            this->dataPtr->baroName, _ecm, this->dataPtr->model.Entity());
+        if (entities.empty()) {
+        	entities = EntitiesFromUnscopedName(this->dataPtr->baroName, _ecm, this->dataPtr->model.Entity());
         }
 
-        if (!entities.empty())
-        {
-          if (entities.size() > 1)
-          {
-            gzwarn << "Multiple Baro sensors with name ["
-                   << this->dataPtr->baroName << "] found. "
-                   << "Using the first one.\n";
+        if (!entities.empty()) {
+          if (entities.size() > 1) {
+            gzwarn << "Multiple Baro sensors with name [" << this->dataPtr->baroName << "] found. " << "Using the first one.\n";
           }
 
           // select first entity
           gz::sim::Entity baroEntity = *entities.begin();
 
           // validate
-          if (!_ecm.EntityHasComponentType(baroEntity,
-              gz::sim::components::AirPressureSensor::typeId))
-          {
-            gzerr << "Entity with name ["
-                  << this->dataPtr->baroName
-                  << "] is not an Baro sensor\n";
-          }
-          else
-          {
-            gzmsg << "Found Baro sensor with name ["
-                  << this->dataPtr->baroName
-                  << "]\n";
+          if (!_ecm.EntityHasComponentType(baroEntity, gz::sim::components::AirPressureSensor::typeId)) {
+            gzerr << "Entity with name [" << this->dataPtr->baroName << "] is not an Baro sensor\n";
+          } else {
+            gzmsg << "Found Baro sensor with name [" << this->dataPtr->baroName << "]\n";
 
             // verify the parent of the imu sensor is a link.
             gz::sim::Entity parent = _ecm.ParentEntity(baroEntity);
-            if (_ecm.EntityHasComponentType(parent,
-                gz::sim::components::Link::typeId))
-            {
+            if (_ecm.EntityHasComponentType(parent, gz::sim::components::Link::typeId)) {
                 this->dataPtr->baroLink = parent;
 
-                baroTopicName = gz::sim::scopedName(
-                    baroEntity, _ecm) + "/air_pressure";
+                baroTopicName = gz::sim::scopedName(baroEntity, _ecm) + "/air_pressure";
 
-                gzdbg << "Computed Baro topic to be: "
-                    << baroTopicName << std::endl;
-            }
-            else
-            {
-              gzerr << "Parent of Baro sensor ["
-                    << this->dataPtr->baroName
-                    << "] is not a link\n";
+                gzdbg << "Computed Baro topic to be: " << baroTopicName << std::endl;
+            } else {
+              gzerr << "Parent of Baro sensor [" << this->dataPtr->baroName << "] is not a link\n";
             }
           }
-        }
-        else
-        {
-            gzerr << "[" << this->dataPtr->modelName << "] "
-                  << "imu_sensor [" << this->dataPtr->baroName
-                  << "] not found, abort ArduPilot plugin." << "\n";
+        } else {
+            gzerr << "[" << this->dataPtr->modelName << "] " << "imu_sensor [" << this->dataPtr->baroName << "] not found, abort ArduPilot plugin." << "\n";
             return;
         }
 	
-	// Actually register compass callback to get message
-        this->dataPtr->node.Subscribe(baroTopicName,
-            &gz::sim::systems::ArduPilotPluginPrivate::BarometerCb,
-            this->dataPtr.get());
+		// Actually register compass callback to get message
+        this->dataPtr->node.Subscribe(baroTopicName, &gz::sim::systems::ArduPilotPluginPrivate::BarometerCb, this->dataPtr.get());
     }
 
-
-
-    // This lookup is done in PreUpdate() because in Configure()
-    // it's not possible to get the fully qualified topic name we want
+	// IMU Initialisation
     if (!this->dataPtr->imuInitialized)
     {
         // Set unconditionally because we're only going to try this once.
@@ -1177,205 +973,162 @@ void gz::sim::systems::ArduPilotPlugin::PreUpdate(
         //    the correct frame for ArduPilot
 
         // try scoped names first
-        auto entities = entitiesFromScopedName(
-            this->dataPtr->imuName, _ecm, this->dataPtr->model.Entity());
+        auto entities = entitiesFromScopedName(this->dataPtr->imuName, _ecm, this->dataPtr->model.Entity());
 
         // fall-back to unscoped name
-        if (entities.empty())
-        {
-          entities = EntitiesFromUnscopedName(
-            this->dataPtr->imuName, _ecm, this->dataPtr->model.Entity());
+        if (entities.empty()) {
+          entities = EntitiesFromUnscopedName(this->dataPtr->imuName, _ecm, this->dataPtr->model.Entity());
         }
 
-        if (!entities.empty())
-        {
-          if (entities.size() > 1)
-          {
-            gzwarn << "Multiple IMU sensors with name ["
-                   << this->dataPtr->imuName << "] found. "
-                   << "Using the first one.\n";
+        if (!entities.empty()) {
+          if (entities.size() > 1) {
+			  gzwarn << "Multiple IMU sensors with name [" << this->dataPtr->imuName << "] found. " << "Using the first one.\n";
           }
 
           // select first entity
           gz::sim::Entity imuEntity = *entities.begin();
 
           // validate
-          if (!_ecm.EntityHasComponentType(imuEntity,
-              gz::sim::components::Imu::typeId))
-          {
-            gzerr << "Entity with name ["
-                  << this->dataPtr->imuName
-                  << "] is not an IMU sensor\n";
-          }
-          else
-          {
-            gzmsg << "Found IMU sensor with name ["
-                  << this->dataPtr->imuName
-                  << "]\n";
+          if (!_ecm.EntityHasComponentType(imuEntity, gz::sim::components::Imu::typeId)) {
+            gzerr << "Entity with name [" << this->dataPtr->imuName << "] is not an IMU sensor\n";
+          } else {
+            gzmsg << "Found IMU sensor with name [" << this->dataPtr->imuName << "]\n";
 
             // verify the parent of the imu sensor is a link.
             gz::sim::Entity parent = _ecm.ParentEntity(imuEntity);
-            if (_ecm.EntityHasComponentType(parent,
-                gz::sim::components::Link::typeId))
-            {
+            if (_ecm.EntityHasComponentType(parent, gz::sim::components::Link::typeId)) {
                 this->dataPtr->imuLink = parent;
 
-                imuTopicName = gz::sim::scopedName(
-                    imuEntity, _ecm) + "/imu";
+                imuTopicName = gz::sim::scopedName(imuEntity, _ecm) + "/imu";
 
-                gzdbg << "Computed IMU topic to be: "
-                    << imuTopicName << std::endl;
-            }
-            else
-            {
-              gzerr << "Parent of IMU sensor ["
-                    << this->dataPtr->imuName
-                    << "] is not a link\n";
+                gzdbg << "Computed IMU topic to be: " << imuTopicName << std::endl;
+            } else {
+              gzerr << "Parent of IMU sensor [" << this->dataPtr->imuName << "] is not a link\n";
             }
           }
-        }
-        else
-        {
-            gzerr << "[" << this->dataPtr->modelName << "] "
-                  << "imu_sensor [" << this->dataPtr->imuName
-                  << "] not found, abort ArduPilot plugin." << "\n";
+        } else {
+            gzerr << "[" << this->dataPtr->modelName << "] " << "imu_sensor [" << this->dataPtr->imuName << "] not found, abort ArduPilot plugin." << "\n";
             return;
         }
 
-        this->dataPtr->node.Subscribe(imuTopicName,
-            &gz::sim::systems::ArduPilotPluginPrivate::ImuCb,
-            this->dataPtr.get());
+        this->dataPtr->node.Subscribe(imuTopicName, &gz::sim::systems::ArduPilotPluginPrivate::ImuCb, this->dataPtr.get());
 
         // Make sure that the 'imuLink' entity has WorldPose
         // and WorldLinearVelocity components, which we'll need later.
-        enableComponent<components::WorldPose>(
-            _ecm, this->dataPtr->imuLink, true);
-        enableComponent<components::WorldLinearVelocity>(
-            _ecm, this->dataPtr->imuLink, true);
+        enableComponent<components::WorldPose>(_ecm, this->dataPtr->imuLink, true);
+        enableComponent<components::WorldLinearVelocity>(_ecm, this->dataPtr->imuLink, true);
     }
-    else
-    {
-        // Update the control surfaces.
-        if (!_info.paused /* && _info.simTime > this->dataPtr->lastControllerUpdateTime */ )
-        {
-            if (this->dataPtr->isLockStep)
-            {
-				// At 100Hz, receive a packet from the mincopter simulator
-				if (this->dataPtr->udp_freq_count%10==0) {
-					while (!this->ReceiveServoPacket() && this->dataPtr->arduPilotOnline)
-					{
-						// SIGNINT should interrupt this loop.
-						if (this->dataPtr->signal != 0)
-						{
-							break;
-						}
-					}
-					this->dataPtr->lastServoPacketRecvTime = _info.simTime;
-				}
-            }
-            else if (this->ReceiveServoPacket())
-            {
-                this->dataPtr->lastServoPacketRecvTime = _info.simTime;
-            }
 
-            if (this->dataPtr->arduPilotOnline)
-            {
-                double dt =
-                    std::chrono::duration_cast<std::chrono::duration<double> >(
-                        _info.simTime - this->dataPtr->
-                            lastControllerUpdateTime).count();
-				// NOTE This will read the current setpoint of the motor velocities which are
-				// updates during the call to ReceiveServoPacket via UpdateMotorCommands. We
-				// keep this function running every iteration (1000Hz) even though the motor
-				// commands will be updated at 100HzS
-				
-				// 1. Apply the motor forces
-                this->ApplyMotorForces(dt, _ecm);
+	/* Update Loop
+	 *
+	 * This is where we first receive the mincopter packet with control signals which we use
+	 * to update the control surfaces. We then iterate the simulation 10 times and on the 10th
+	 * iteration we send back a state packet. */
+	
+	// Update the control surfaces.
+	if (!_info.paused /* && _info.simTime > this->dataPtr->lastControllerUpdateTime */ )
+	{
+		// At 100Hz, receive a packet from the mincopter simulator
+		if (this->dataPtr->udp_freq_count%10==0) {
+			while (!this->ReceiveServoPacket()) {
+				// SIGNINT should interrupt this loop.
+				if (this->dataPtr->signal != 0) break;
+			}
+
+			this->dataPtr->lastServoPacketRecvTime = _info.simTime;
+		}
+
+		// This should always be 1ms as that is how often the simulation runs
+		double dt = std::chrono::duration_cast<std::chrono::duration<double> >(_info.simTime - this->dataPtr->lastControllerUpdateTime).count();
+
+		// NOTE This will read the current setpoint of the motor velocities which are
+		// updates during the call to ReceiveServoPacket via UpdateMotorCommands. We
+		// keep this function running every iteration (1000Hz) even though the motor
+		// commands will be updated at 100Hz
+		
+		// 1. Apply the motor forces
+		this->ApplyMotorForces(dt, _ecm);
+	
+		// 2. We may alternatively update the state directly, invalidating the above motor forces but the joint controller <control> may still run
+		if (this->dataPtr->state_update_flag) {
+
+			// Retrieve the iris_with_standoffs model
+			auto standoffs_m = gz::sim::Model( this->dataPtr->model.ModelByName(_ecm, std::string("iris_with_standoffs")) );
+
+			gz::sim::Entity baselink_e = standoffs_m.LinkByName(_ecm, std::string("base_link"));
+
+			gz::sim::Link baselink_l = gz::sim::Link(baselink_e);
+
+			auto baselink_worldpose = baselink_l.WorldPose(_ecm);
+
+			// Set position if requested
 			
-				// 2. We may alternatively update the state directly, invalidating the above motor forces but the joint controller <control> may still run
-			
-				if (this->dataPtr->state_update_flag) {
+			// If we are updating both position and attitude
+			if ( (this->dataPtr->state_update_flag & (0x01<<0)) | (this->dataPtr->state_update_flag & (0x01<<2)) ) {
+				this->dataPtr->model.SetWorldPoseCmd(_ecm,
+					// TODO We need to distinguish between reference frames here
+					gz::math::Pose3d(
+						this->dataPtr->state_update_position[0], // X
+						this->dataPtr->state_update_position[1], // Y
+						this->dataPtr->state_update_position[2], // Z
+						this->dataPtr->state_update_attitude[0], // Roll
+						this->dataPtr->state_update_attitude[1], // Pitch
+						this->dataPtr->state_update_attitude[2]  // Yaw
+					)
+				);
+			} else if (this->dataPtr->state_update_flag & (0x01<<0)) {
+				// If just position then we keep the world attitude
+				this->dataPtr->model.SetWorldPoseCmd(_ecm,
+					// TODO We need to distinguish between reference frames here
+					gz::math::Pose3d(
+						this->dataPtr->state_update_position[0], // X
+						this->dataPtr->state_update_position[1], // Y
+						this->dataPtr->state_update_position[2], // Z
+						baselink_worldpose->Roll(),
+						baselink_worldpose->Pitch(),
+						baselink_worldpose->Yaw()
+					)
+				);
+			} else if (this->dataPtr->state_update_flag & (0x01<<2)) {
+				// If just position then we keep the world attitude
+				this->dataPtr->model.SetWorldPoseCmd(_ecm,
+					// TODO We need to distinguish between reference frames here
+					gz::math::Pose3d(
+						baselink_worldpose->X(),
+						baselink_worldpose->Y(),
+						baselink_worldpose->Z(),
+						this->dataPtr->state_update_attitude[0], // Roll
+						this->dataPtr->state_update_attitude[1], // Pitch
+						this->dataPtr->state_update_attitude[2]  // Yaw
+					)
+				);
+			}
 
-					// Retrieve the iris_with_standoffs model
-					auto standoffs_m = gz::sim::Model( this->dataPtr->model.ModelByName(_ecm, std::string("iris_with_standoffs")) );
+			// Update linear velocity if requested
+			if (this->dataPtr->state_update_flag & (0x01<<1)) {
+				baselink_l.SetLinearVelocity(_ecm, gz::math::Vector3d(
+						this->dataPtr->state_update_velocity[0],
+						this->dataPtr->state_update_velocity[1],
+						this->dataPtr->state_update_velocity[2]
+					)
+				);
+			}
 
-					gz::sim::Entity baselink_e = standoffs_m.LinkByName(_ecm, std::string("base_link"));
+			// Update angular velocity if requested
+			if (this->dataPtr->state_update_flag & (0x01<<3)) {
+				baselink_l.SetAngularVelocity(_ecm, gz::math::Vector3d(
+						this->dataPtr->state_update_angvel[0],
+						this->dataPtr->state_update_angvel[1],
+						this->dataPtr->state_update_angvel[2]
+					)
+				);
+			}
 
-					gz::sim::Link baselink_l = gz::sim::Link(baselink_e);
+		}
 
-					auto baselink_worldpose = baselink_l.WorldPose(_ecm);
-
-					// Set position if requested
-					
-					// If we are updating both position and attitude
-					if ( (this->dataPtr->state_update_flag & (0x01<<0)) | (this->dataPtr->state_update_flag & (0x01<<2)) ) {
-						this->dataPtr->model.SetWorldPoseCmd(_ecm,
-							// TODO We need to distinguish between reference frames here
-							gz::math::Pose3d(
-								this->dataPtr->state_update_position[0], // X
-								this->dataPtr->state_update_position[1], // Y
-								this->dataPtr->state_update_position[2], // Z
-								this->dataPtr->state_update_attitude[0], // Roll
-								this->dataPtr->state_update_attitude[1], // Pitch
-								this->dataPtr->state_update_attitude[2]  // Yaw
-							)
-						);
-					} else if (this->dataPtr->state_update_flag & (0x01<<0)) {
-						// If just position then we keep the world attitude
-						this->dataPtr->model.SetWorldPoseCmd(_ecm,
-							// TODO We need to distinguish between reference frames here
-							gz::math::Pose3d(
-								this->dataPtr->state_update_position[0], // X
-								this->dataPtr->state_update_position[1], // Y
-								this->dataPtr->state_update_position[2], // Z
-								baselink_worldpose->Roll(),
-								baselink_worldpose->Pitch(),
-								baselink_worldpose->Yaw()
-							)
-						);
-					} else if (this->dataPtr->state_update_flag & (0x01<<2)) {
-						// If just position then we keep the world attitude
-						this->dataPtr->model.SetWorldPoseCmd(_ecm,
-							// TODO We need to distinguish between reference frames here
-							gz::math::Pose3d(
-								baselink_worldpose->X(),
-								baselink_worldpose->Y(),
-								baselink_worldpose->Z(),
-								this->dataPtr->state_update_attitude[0], // Roll
-								this->dataPtr->state_update_attitude[1], // Pitch
-								this->dataPtr->state_update_attitude[2]  // Yaw
-							)
-						);
-					}
-
-					// Update linear velocity if requested
-					if (this->dataPtr->state_update_flag & (0x01<<1)) {
-						baselink_l.SetLinearVelocity(_ecm, gz::math::Vector3d(
-								this->dataPtr->state_update_velocity[0],
-								this->dataPtr->state_update_velocity[1],
-								this->dataPtr->state_update_velocity[2]
-							)
-						);
-					}
-
-					// Update angular velocity if requested
-					if (this->dataPtr->state_update_flag & (0x01<<3)) {
-						baselink_l.SetAngularVelocity(_ecm, gz::math::Vector3d(
-								this->dataPtr->state_update_angvel[0],
-								this->dataPtr->state_update_angvel[1],
-								this->dataPtr->state_update_angvel[2]
-							)
-						);
-					}
-
-				}
-
-				// Clear flag always regardless of whether we had to update
-				this->dataPtr->state_update_flag = 0;
-
-            }
-        }
-    }
+		// Clear flag always regardless of whether we had to update
+		this->dataPtr->state_update_flag = 0;
+	}
 }
 
 /////////////////////////////////////////////////
@@ -1386,17 +1139,16 @@ void gz::sim::systems::ArduPilotPlugin::PostUpdate(
     std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
 
     // Publish the new state.
-    if (!_info.paused /* && _info.simTime > this->dataPtr->lastControllerUpdateTime */ && this->dataPtr->arduPilotOnline)
+    if (!_info.paused /* && _info.simTime > this->dataPtr->lastControllerUpdateTime && this->dataPtr->arduPilotOnline */)
     {
-        double t =
-            std::chrono::duration_cast<std::chrono::duration<double>>(
-                _info.simTime).count();
+        double t = std::chrono::duration_cast<std::chrono::duration<double>>(_info.simTime).count();
+
 		// Send the state packet every 10 iterations of the simulation (sim is at 1000Hz, so every 100Hz)
 		if (dataPtr->udp_freq_count%10==0) {
-			this->CreateStateJSON(t, _ecm);
-
+			this->CreateStateJSON(t, _info.iterations, _ecm);
 			this->SendState();
 		}
+
 		this->dataPtr->udp_freq_count+=1;
         this->dataPtr->lastControllerUpdateTime = _info.simTime;
     }
@@ -1588,19 +1340,15 @@ ssize_t getServoPacket(
     {
         TServoPacket last_pkt;
         auto recvSize_last = _sock.recv(&last_pkt, sizeof(TServoPacket), 0ul);
-        if (recvSize_last == -1)
-        {
-            break;
-        }
+        if (recvSize_last == -1) break;
+
         counter++;
         _pkt = last_pkt;
         recvSize = recvSize_last;
     }
-    if (counter > 0)
-    {
-        gzwarn << "[" << _modelName << "] "
-               << "Drained n packets: " << counter << "\n";
-    }
+
+    if (counter > 0) gzwarn << "[" << _modelName << "] " << "Drained n packets: " << counter << "\n";
+
     return recvSize;
 }
 }  // namespace
@@ -1617,19 +1365,7 @@ bool gz::sim::systems::ArduPilotPlugin::ReceiveServoPacket()
     // Once ArduPilot presence is detected, it takes this many
     // missed receives before declaring the FCS offline.
 
-    uint32_t waitMs;
-    if (this->dataPtr->arduPilotOnline)
-    {
-        // Increase timeout for recv once we detect a packet from ArduPilot FCS.
-        // If this value is too high then it will block the main Gazebo
-        // update loop and adversely affect the RTF.
-        waitMs = 10;
-    }
-    else
-    {
-        // Otherwise skip quickly and do not set control force.
-        waitMs = 1;
-    }
+    uint32_t waitMs = 10;
 
     // 16 / 32 channel compatibility
     uint16_t pkt_magic{0};
@@ -1703,49 +1439,14 @@ bool gz::sim::systems::ArduPilotPlugin::ReceiveServoPacket()
     // didn't receive a packet, increment timeout count if online, then return
     if (recvSize == -1)
     {
-        if (this->dataPtr->arduPilotOnline)
-        {
-            if (++this->dataPtr->connectionTimeoutCount >
-            this->dataPtr->connectionTimeoutMaxCount)
-            {
-                this->dataPtr->connectionTimeoutCount = 0;
-
-                // for lock-step resend last state rather than time out
-                if (this->dataPtr->isLockStep)
-                {
-                    this->SendState();
-                }
-                else
-                {
-                    this->dataPtr->arduPilotOnline = false;
-                    gzwarn << "[" << this->dataPtr->modelName << "] "
-                        << "Broken ArduPilot connection,"
-                        << " resetting motor control.\n";
-                    this->ResetPIDs();
-                }
-            }
-        }
+		if (++this->dataPtr->connectionTimeoutCount >
+		this->dataPtr->connectionTimeoutMaxCount)
+		{
+			this->dataPtr->connectionTimeoutCount = 0;
+			this->SendState();
+		}
         return false;
     }
-
-#if DEBUG_JSON_IO
-    int max_servo_channels = this->dataPtr->have32Channels ? 32 : 16;
-
-    // debug: inspect sitl packet
-    std::ostringstream oss;
-    oss << "recv " << recvSize << " bytes from "
-        << this->dataPtr->fcu_address << ":"
-        << this->dataPtr->fcu_port_out << "\n";
-    // oss << "magic: " << pkt_magic << "\n";
-    // oss << "frame_rate: " << pkt_frame_rate << "\n";
-    oss << "frame_count: " << pkt_frame_count << "\n";
-    // oss << "pwm: [";
-    // for (auto i=0; i<max_servo_channels - 1; ++i) {
-    //     oss << pkt_pwm[i] << ", ";
-    // }
-    // oss << pkt_pwm[max_servo_channels - 1] << "]\n";
-    gzdbg << "\n" << oss.str();
-#endif
 
     // check magic, return if invalid
     constexpr uint16_t magic_16 = 18458;
@@ -1759,16 +1460,8 @@ bool gz::sim::systems::ArduPilotPlugin::ReceiveServoPacket()
         return false;
     }
 
-    // the controller is online
-    if (!this->dataPtr->arduPilotOnline)
-    {
-        this->dataPtr->arduPilotOnline = true;
-
-        gzlog << "[" << this->dataPtr->modelName << "] "
-            << "Connected to ArduPilot controller @ "
-            << this->dataPtr->fcu_address << ":" << this->dataPtr->fcu_port_out
-            << "\n";
-    }
+	// Emit message on first connection
+    //gzlog << "[" << this->dataPtr->modelName << "] " << "Connected to ArduPilot controller @ " << this->dataPtr->fcu_address << ":" << this->dataPtr->fcu_port_out << "\n";
 
     // update frame rate
     this->dataPtr->fcu_frame_rate = pkt_frame_rate;
@@ -1785,18 +1478,13 @@ bool gz::sim::systems::ArduPilotPlugin::ReceiveServoPacket()
     {
         gzwarn << "Duplicate input frame\n";
 
-        // for lock-step resend last state rather than ignore
-        if (this->dataPtr->isLockStep)
-        {
-            this->SendState();
-        }
+        this->SendState();
 
         return false;
     }
 
     // check for skipped frames
-    else if (pkt_frame_count != this->dataPtr->fcu_frame_count + 1
-        && this->dataPtr->arduPilotOnline)
+    else if (pkt_frame_count != this->dataPtr->fcu_frame_count + 1 /* && this->dataPtr->arduPilotOnline */)
     {
         gzwarn << "Missed "
             << pkt_frame_count - this->dataPtr->fcu_frame_count
@@ -1878,8 +1566,7 @@ bool gz::sim::systems::ArduPilotPlugin::ReceiveServoPacket()
 }
 
 /////////////////////////////////////////////////
-void gz::sim::systems::ArduPilotPlugin::UpdateMotorCommands(
-    const std::array<uint16_t, 4> &_pwm)
+void gz::sim::systems::ArduPilotPlugin::UpdateMotorCommands(const std::array<uint16_t, 4> &_pwm)
 {
     int max_servo_channels = this->dataPtr->have32Channels ? 32 : 16;
 
@@ -1940,6 +1627,7 @@ void gz::sim::systems::ArduPilotPlugin::UpdateMotorCommands(
 /////////////////////////////////////////////////
 void gz::sim::systems::ArduPilotPlugin::CreateStateJSON(
     double _simTime,
+	uint64_t _iterations,
     const gz::sim::EntityComponentManager &_ecm) const
 {
     // Make a local copy of the latest IMU data (it's filled in
@@ -2205,6 +1893,7 @@ void gz::sim::systems::ArduPilotPlugin::CreateStateJSON(
 
     // MinCopter - update state struct
     this->dataPtr->sim_pkt.timestamp = timestamp;
+	this->dataPtr->sim_pkt.iterations = _iterations;
 
 	angularVel = bdyAToBdyG.Rot()*angularVel;
     this->dataPtr->sim_pkt.imu_gyro_x = angularVel.X();
@@ -2270,131 +1959,16 @@ void gz::sim::systems::ArduPilotPlugin::CreateStateJSON(
 	this->dataPtr->sim_pkt.vel_north = navsatMsg.velocity_north();
 	this->dataPtr->sim_pkt.vel_up = navsatMsg.velocity_up();
 
-    // build JSON document
-    /*
-    rapidjson::StringBuffer s;
-    rapidjson::Writer<rapidjson::StringBuffer> writer(s);
-
-    writer.StartObject();
-
-    writer.Key("timestamp");
-    writer.Double(timestamp);
-
-    writer.Key("imu");
-    writer.StartObject();
-    writer.Key("gyro");
-    writer.StartArray();
-    writer.Double(angularVel.X());
-    writer.Double(angularVel.Y());
-    writer.Double(angularVel.Z());
-    writer.EndArray();
-    writer.Key("accel_body");
-    writer.StartArray();
-    writer.Double(linearAccel.X());
-    writer.Double(linearAccel.Y());
-    writer.Double(linearAccel.Z());
-    writer.EndArray();
-    writer.EndObject();
-
-    writer.Key("position");
-    writer.StartArray();
-    writer.Double(wldAToBdyA.Pos().X());
-    writer.Double(wldAToBdyA.Pos().Y());
-    writer.Double(wldAToBdyA.Pos().Z());
-    writer.EndArray();
-
-    // ArduPilot quaternion convention: q[0] = 1 for identity.
-    writer.Key("quaternion");
-    writer.StartArray();
-    writer.Double(wldAToBdyA.Rot().W());
-    writer.Double(wldAToBdyA.Rot().X());
-    writer.Double(wldAToBdyA.Rot().Y());
-    writer.Double(wldAToBdyA.Rot().Z());
-    writer.EndArray();
-
-    writer.Key("velocity");
-    writer.StartArray();
-    writer.Double(velWldA.X());
-    writer.Double(velWldA.Y());
-    writer.Double(velWldA.Z());
-    writer.EndArray();
-
-    // Range sensor
-    {
-      // Aquire lock on this->dataPtr->ranges
-      std::lock_guard<std::mutex> lock(this->dataPtr->rangeMsgMutex);
-
-      // Assume that all range sensors with index less than
-      // ranges.size() provide data.
-      // Use switch-case fall-through to set each range sensor
-      switch (std::min<size_t>(6, this->dataPtr->ranges.size()))
-      {
-      case 6:
-          writer.Key("rng_6");
-          writer.Double(this->dataPtr->ranges[5]);
-      case 5:
-          writer.Key("rng_5");
-          writer.Double(this->dataPtr->ranges[4]);
-      case 4:
-          writer.Key("rng_4");
-          writer.Double(this->dataPtr->ranges[3]);
-      case 3:
-          writer.Key("rng_3");
-          writer.Double(this->dataPtr->ranges[2]);
-      case 2:
-          writer.Key("rng_2");
-          writer.Double(this->dataPtr->ranges[1]);
-      case 1:
-          writer.Key("rng_1");
-          writer.Double(this->dataPtr->ranges[0]);
-      default:
-          break;
-      }
-    }
-
-    // Wind sensor
-    if (this->dataPtr->anemometerInitialized)
-    {
-      writer.Key("windvane");
-      writer.StartObject();
-      writer.Key("direction");
-      writer.Double(windDirBdyA);
-      writer.Key("speed");
-      writer.Double(windSpdBdyA);
-      writer.EndObject();
-    }
-
-    writer.EndObject();
-
-    // get JSON
-    this->dataPtr->json_str = "\n" + std::string(s.GetString()) + "\n";
-    // gzdbg << this->dataPtr->json_str << "\n";
-
-    */
 }
 
 /////////////////////////////////////////////////
 void gz::sim::systems::ArduPilotPlugin::SendState() const
 {
-	//gzdbg << this->dataPtr->json_str << "\n";
-	//gzdbg << "C-str " << this->dataPtr->fcu_address << " " << this->dataPtr->fcu_port_out << " " << this->dataPtr->json_str.c_str() << "\n";
-	
-    //gzdbg << "elements of sim_pkt " << this->dataPtr->sim_pkt.timestamp << "\n";
-
-#if DEBUG_JSON_IO
-    auto bytes_sent =
-#endif
     this->dataPtr->sock.sendto(
         &this->dataPtr->sim_pkt,
         sizeof(mc_sim_state_packet),
         this->dataPtr->fcu_address,
         this->dataPtr->fcu_port_out);
 
-#if DEBUG_JSON_IO
-    gzdbg << "sent " << bytes_sent <<  " bytes to "
-        << this->dataPtr->fcu_address << ":"
-        << this->dataPtr->fcu_port_out << "\n"
-        << "frame_count: " << this->dataPtr->fcu_frame_count << "\n";
-#endif
 }
 

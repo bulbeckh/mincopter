@@ -54,6 +54,7 @@ struct servo_packet_32 {
 /* State packet that is transmitted over UDP to flight software */
 struct mc_sim_state_packet {
     double timestamp;
+	uint64_t iterations;
 
     double imu_gyro_x;
     double imu_gyro_y;
@@ -180,11 +181,6 @@ class GZ_SIM_VISIBLE ArduPilotPlugin:
       sdf::ElementPtr _sdf,
       gz::sim::EntityComponentManager &_ecm);
 
-  /// \brief Load GPS sensors
-  private: void LoadGpsSensors(
-      sdf::ElementPtr _sdf,
-      gz::sim::EntityComponentManager &_ecm);
-
   /// \brief Update the control surfaces controllers.
   /// \param[in] _info Update information provided by the server.
   private: void OnUpdate();
@@ -209,6 +205,7 @@ class GZ_SIM_VISIBLE ArduPilotPlugin:
   /// \brief Create the state JSON
   private: void CreateStateJSON(
       double _simTime,
+	  uint64_t _iterations,
       const gz::sim::EntityComponentManager &_ecm) const;
 
   /// \brief Send state to ArduPilot

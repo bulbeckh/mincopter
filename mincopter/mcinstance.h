@@ -30,11 +30,6 @@
 class MCInstance {
 
 	public:
-		/* @brief MCInstance is an abstraction of the mincopter inputs and outputs (in dev/). It is used by state and directly
-		 * throughout other libraries and classes.
-		 *
-		 * This class should contain the 'wiring' between the various backend sensors and board architectures.
-		 */
 		MCInstance() :
 #ifdef MC_STORAGE_FILE
 			DataFlash("/home/henry/Documents/mc-dev/logs"),
@@ -53,7 +48,7 @@ class MCInstance {
 #elif  MC_BARO_NONE
 			barometer(),
 #endif
-			// All compass types have an empty constructor
+
 			compass(),
 
 			gps_glitch(g_gps),
@@ -68,32 +63,23 @@ class MCInstance {
 			g_gps_driver(),
 #endif
 
-
-			// Parameters initialisations
-        rc_1                (CH_1),
-        rc_2                (CH_2),
-        rc_3                (CH_3),
-        rc_4                (CH_4),
-        rc_5                (CH_5),
-        rc_6                (CH_6),
-        rc_7                (CH_7),
-        rc_8                (CH_8),
+			rc_1(CH_1),
+			rc_2(CH_2),
+			rc_3(CH_3),
+			rc_4(CH_4),
+			rc_5(CH_5),
+			rc_6(CH_6),
+			rc_7(CH_7),
+			rc_8(CH_8),
 
 			motors(&rc_1, &rc_2, &rc_3, &rc_4)
-
 		{
 		}
 
 	public:
-		/* --- COMPONENTS ---------------------------------------------------------------------
-		* The following objects all represent the backend implementations of HAL components.
-		* They expose functions for retrieving data and updating state. Their individual driver
-		* libraries are found in libraries/ and are component-specific, not board-specific.
-		* ---------------------------------------------------------------------------------- */
 
 		AP_BattMonitor battery;
 
-		/* @brief ATMEL DataFlash interface for flash storage */
 #ifdef MC_STORAGE_FILE
 		DataFlash_File DataFlash;
 #elif  MC_STORAGE_DATAFLASH
@@ -102,7 +88,6 @@ class MCInstance {
 		DataFlash_Empty DataFlash;
 #endif
 
-		/* @brief ADC Instance used to obtain battery voltage levels */
 #ifdef MC_ADC_ADS7844
 		AP_ADC_ADS7844 adc;
 #elif  MC_ADC_NONE
@@ -111,7 +96,6 @@ class MCInstance {
 		AP_ADC_Sim adc;
 #endif
 
-		/* @brief Inertial Measurement Unit interface */
 #ifdef MC_IMU_MPU6000
 		AP_InertialSensor_MPU6000 ins;
 #elif  MC_IMU_MPU6050
@@ -124,7 +108,6 @@ class MCInstance {
 		AP_InertialSensor_None ins;
 #endif
 
-		/* @brief Barometer instance */
 #ifdef MC_BARO_MS5611
 		// TODO Whether to use I2C or SPI should be a separate configuration, where the wiring is also specified
 		// HASH if CONFIG_MS5611_SERIAL == AP_BARO_MS5611_SPI
@@ -142,7 +125,6 @@ class MCInstance {
 		AP_Baro_None barometer;
 #endif
 
-		/* @brief Compass instance */
 #ifdef MC_COMP_HMC5843
 		AP_Compass_HMC5843 compass;
 #elif  MC_COMP_ICM20948
@@ -153,9 +135,9 @@ class MCInstance {
 		AP_Compass_None compass;
 #endif
 
-		/* @brief GPS Interface */
-		GPS         *g_gps;
-		GPS_Glitch   gps_glitch;
+		GPS* g_gps;
+
+		GPS_Glitch gps_glitch;
 
 #ifdef MC_GPS_AUTO
 		// NOTE Almost certain ours is ublox
@@ -189,26 +171,24 @@ class MCInstance {
 		AP_GPS_None  g_gps_driver;
 #endif
 
-		// receiver RSSI
 		uint8_t receiver_rssi;
+
 		AP_HAL::AnalogSource* rssi_analog_source;
 
-
-		/* RSSI Information - used as part of voltage readers */
-    int8_t         rssi_pin;
-    float        	 rssi_range;                 // allows to set max voltage for rssi pin such as 5.0, 3.3 etc. 
+    	int8_t rssi_pin;
+    	float rssi_range;
 																						
 		/* Bitmask to determin what to log */
-    int16_t        log_bitmask;
+    	int16_t log_bitmask;
 
 		/* Used during startup checks and calibration */
-    int8_t         esc_calibrate;
+    	int8_t esc_calibrate;
 
 		/* Passed to motors on startup TODO move to compile-time variable */
-    int8_t         frame_orientation;
+    	int8_t frame_orientation;
 
 		// TODO Move this to planner or another class that manages arming/disarming
-    int8_t         arming_check;
+    	int8_t arming_check;
 
 		/* RC Channels
 		 *
@@ -221,18 +201,18 @@ class MCInstance {
 		 * rc_7 -> undefined
 		 * rc_8 -> undefined
 		 */
-    RC_Channel              rc_1;
-    RC_Channel              rc_2;
-    RC_Channel              rc_3;
-    RC_Channel              rc_4;
-    RC_Channel_aux          rc_5;
-    RC_Channel_aux          rc_6;
-    RC_Channel_aux          rc_7;
-    RC_Channel_aux          rc_8;
+		RC_Channel rc_1;
+		RC_Channel rc_2;
+		RC_Channel rc_3;
+		RC_Channel rc_4;
+		RC_Channel_aux rc_5;
+		RC_Channel_aux rc_6;
+		RC_Channel_aux rc_7;
+		RC_Channel_aux rc_8;
 
-    int16_t                rc_speed; // speed of fast RC Channels in Hz
+    	int16_t rc_speed; // speed of fast RC Channels in Hz
 
-		// Motor Output
+		// Motors object
 		AP_MotorsQuad motors;
 
 		// a pin for reading the receiver RSSI voltage.
@@ -248,14 +228,7 @@ class MCInstance {
 		/* @brief Integration time (in seconds) for the gyros (DCM algorithm) */
 		// TODO Move this to the control folder as I believe it's the only place its used
 		float G_Dt = 0.02;
-
 };
-
-
-/* --- SENSOR UPDATES -----------------------------------------------------------------
-* Each of these functions triggers an update round for a sensor in MCInstance.
-* These functions should be called at 100Hz approx.
-* ---------------------------------------------------------------------------------- */
 
 /* @brief Triggers accumulation of compass sensor
 */
@@ -280,3 +253,4 @@ void read_batt_compass(void);
 /* @brief Contains functions that should execute at 1Hz. Currently contains disarm checks and USB Mux checks
 */
 void one_hz_loop(void);
+
