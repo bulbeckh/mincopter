@@ -14,7 +14,7 @@ class AP_Baro_BME280 : public AP_Baro
 
 		bool init() override;
 
-		uint8_t read() override;
+		void read(void) override;
 
 		void accumulate(void) override;
 

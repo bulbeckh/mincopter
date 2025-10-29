@@ -113,7 +113,7 @@ void AP_Baro_BME280::accumulate(void)
 	/* Implement */
 }
 
-uint8_t AP_Baro_BME280::read()
+void AP_Baro_BME280::read(void)
 {
 	uint8_t _buffer[6];
 	if (hal.i2c->readRegisters(BME280_ADDR, BME280_PRESS_START, 6, _buffer) != 0) return 1;
@@ -134,7 +134,7 @@ uint8_t AP_Baro_BME280::read()
 	_temperature = comp_temp / 100.0f;
 	_pressure = comp_pressure;
 
-    return 0;
+    return;
 }
 
 uint8_t AP_Baro_BME280::init_compensation_parameters(void)

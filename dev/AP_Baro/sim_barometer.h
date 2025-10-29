@@ -51,7 +51,7 @@ public:
     bool init() override;
 
 	/* @brief Read barometer sensors. Called at 10Hz */
-    uint8_t read() override;
+    void read(void) override;
 
 	/* @brief Return pressure in pascals */
     float get_pressure() override;

@@ -156,13 +156,13 @@ void AP_Baro_BMP085::accumulate(void)
 
 
 // Read the sensor using accumulated data
-uint8_t AP_Baro_BMP085::read()
+void AP_Baro_BMP085::read(void)
 {
     if (_count == 0 && BMP_DATA_READY()) {
         accumulate();
     }
     if (_count == 0) {
-        return 0;
+        return;
     }
     _last_update = hal.scheduler->millis();
 
@@ -174,7 +174,7 @@ uint8_t AP_Baro_BMP085::read()
     _temp_sum = 0;
     _press_sum = 0;
 
-    return 1;
+    return;
 }
 
 float AP_Baro_BMP085::get_pressure() {

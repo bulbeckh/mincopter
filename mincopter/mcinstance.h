@@ -222,9 +222,6 @@ class MCInstance {
 		/* @brief HAL reference */
 		const AP_HAL::HAL& hal = AP_HAL_BOARD_DRIVER;
 
-		/* @brief Reference to BetterStream used for communicating over serial */
-		AP_HAL::BetterStream* cliSerial;
-
 		/* @brief Integration time (in seconds) for the gyros (DCM algorithm) */
 		// TODO Move this to the control folder as I believe it's the only place its used
 		float G_Dt = 0.02;
@@ -249,8 +246,3 @@ void update_GPS(void);
 /* @brief Triggers reading of both the battery sensors (via `battery`) and the reading of the compass
 */
 void read_batt_compass(void);
-
-/* @brief Contains functions that should execute at 1Hz. Currently contains disarm checks and USB Mux checks
-*/
-void one_hz_loop(void);
-

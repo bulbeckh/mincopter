@@ -341,7 +341,7 @@ void AP_Baro_MS5611::_update(void)
 
 }
 
-uint8_t AP_Baro_MS5611::read()
+void AP_Baro_MS5611::read()
 {
     bool updated = _updated;
     if (updated) {
@@ -372,7 +372,7 @@ uint8_t AP_Baro_MS5611::read()
     if (updated) {
         _last_update = hal.scheduler->millis();
     }
-    return updated ? 1 : 0;
+    return;
 }
 
 // Calculate Temperature and compensated Pressure in real units (Celsius degrees*100, mbar*100).

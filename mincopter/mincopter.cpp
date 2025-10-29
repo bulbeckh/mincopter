@@ -39,6 +39,7 @@
  */
 
 
+#include <AP_HAL/AP_HAL.h>
 #include <AP_Scheduler.h>
 
 #include "defines.h"
@@ -476,8 +477,6 @@ sads
 	// Step the simulation by the desired microseconds (us)
 	hal.sim->tick(10000);
 
-	//gz_interface.send_control_output();
-	//gz_interface.recv_state_input();
 	uint32_t gz_elapsed = micros()-st;
 #endif
 
@@ -528,52 +527,60 @@ sads
 }
 
 
-/* TODO Add a new (scheduled) function that checks for input (commands) from
- * the console and asynchronously runs them ensuring that enough time is
- * provided to run them. */
-
-/* `scheduler_tasks` has the following structure:
-* 		{ function_name, interval_ticks (multiples of 10ms), max time in us }
+/* **Scheduled Functions**
  *
- * NOTE I believe these are executed in the order they are specified below.
+ * The `scheduler_tasks` object has the following structure:
+ *
+ * 		{ function_name, interval_ticks (multiples of 10ms), max time in us }
+ *
+ * We schedule the following functions to be run at certain intervals. Note, there is no mechanism to stop a scheduled 
+ * function from overrunning - AP_Scheduler will only report that it overran.
+ *
+ * | Compass::accumulate | 50Hz (20ms)  | Accumulates a raw 3x magnetometer reading 									 |
+ * | Compass::read       | 10Hz (100ms) | Converts the average of raw compass readings into an actual uT field reading   |
+ * | Barometer::read     | 10Hz (100ms) | Calculates a pressure and temperature measurement from the barometer   	 	 |
+ * | GPS::update		 | 50Hz (20ms)  | Reads a GPS message over UART and updates GPS state							 |
  * 
- * NOTE There is no mechanism to stop a function overrunning - AP_Scheduler
- * will only report that it overran. */
+ * Additionally, for some sensors like the MS5611, we register a timer process to do a read of the internal state at 1kHz.
+ *
+ * In simulation, we also reduce the maximum runtime for each function to 1us in order to ensure that they all run within
+ * a single call to scheduler.run . */
 
 const AP_Scheduler::Task scheduler_tasks[] PROGMEM = {
 
 #ifdef TARGET_ARCH_LINUX
-	/* For simulation, we reduce the maximum runtime for each function
-	 * to 1us in order to ensure they all run within a single scheduler call */
     { update_GPS, 	       2,   1 }, /* Sensor Update - GPS */
     { read_batt_compass,  10,   1 }, /* Sensor Update - Battery */
-    { update_altitude,    10,   1 }, /* Sensor Update - Barometer (read) */
-    { read_compass,        2,   1 }, /* Sensor Update - Compass */
-    { read_baro,  	       2,   1 }, /* Sensor Update - Barometer (accumulate) */
-    { one_hz_loop,       100,   1 },
+	// NOTE TODO Why are barometer reads even scheduled at all??
+    //{ /* update_altitude */ Delegate<void(void)>::Create<AP_Baro, &AP_Baro::read>((AP_Baro*)&mincopter.barometer),    10,   1 }, /* Sensor Update - Barometer (read) */
+    { update_altitude, 2, 1},
+    { read_compass, 2, 1},
+	//{ Delegate<void(void)>::Create<Compass, &Compass::accumulate>(&mincopter.compass),        2,   1 }, /* Sensor Update - Compass */
+    //{ /* read_baro */ Delegate<void(void)>::Create<AP_Baro, &AP_Baro::accumulate>(&mincopter.barometer),  	       2,   1 }, /* Sensor Update - Barometer (accumulate) */
+    { read_baro, 2,   1 },
 #else
     { update_GPS, 	       2, 900 }, /* Sensor Update - GPS */
     { read_batt_compass,  10, 720 }, /* Sensor Update - Battery */
     { update_altitude,    10,1000 }, /* Sensor Update - Barometer (read) */
     { read_compass,        2, 420 }, /* Sensor Update - Compass */
     { read_baro,  	       2, 250 }, /* Sensor Update - Barometer (accumulate) */
-    { one_hz_loop,       100, 420 },
 #endif
 
-	/* NOTE These functions have been removed from the codebase.
-	 * Kept here for reference only. */
-    //{ dump_serial, 	  20,     500 },
-    //{ run_cli,          10,     500 },
-    //{ throttle_loop,     2,     450 },
-    //{ crash_check,      10,      20 },
-    //{ read_receiver_rssi,   10,      50 }
-    //{ update_notify,         2,     100 },
-    //{ run_nav_updates,      10,     800 }, 	/* Planner Update - moved to planner */
-    //{ fence_check	 ,        33,      90 },
-    //{ arm_motors_check,     10,      10 },
-    //{ update_nav_mode,       1,     400 }   /* Planner Update - moved to planner */
-};
+	/* NOTE These functions have been removed from the codebase. Kept here for reference only.
+	 *
+	 * { dump_serial, 	      20,     500 },
+	 * { run_cli,            10,     500 },
+	 * { throttle_loop,       2,     450 },
+	 * { crash_check,        10,      20 },
+	 * { read_receiver_rssi, 10,      50 }
+	 * { update_notify,       2,     100 },
+	 * { run_nav_updates,    10,     800 },
+	 * { fence_check	 ,    33,      90 },
+	 * { arm_motors_check,   10,      10 },
+	 * { update_nav_mode,     1,     400 }
+	 */
 
+};
 
 /* The scheduler should schedule functions that execute sensor and state updates.
 * It should then 'tick' the behaviour tree which runs control libraries. */
@@ -582,9 +589,6 @@ const AP_Scheduler::Task scheduler_tasks[] PROGMEM = {
  * here by moving to a single main function */
 void setup(void)
 {
-	// NOTE cliSerial is an alias for mincopter.hal.console
-    mincopter.cliSerial = mincopter.hal.console;
-
     init_ardupilot();
 
     // initialise the main loop scheduler

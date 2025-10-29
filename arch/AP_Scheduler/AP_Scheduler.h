@@ -41,6 +41,7 @@ class AP_Scheduler
 {
 public:
 	typedef void (*task_fn_t)(void);
+	//typedef Delegate<void(void)> task_fn_t;
 
 	struct Task {
 		task_fn_t function;

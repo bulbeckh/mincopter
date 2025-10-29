@@ -21,7 +21,7 @@ class AP_Baro
 		virtual bool init(void) = 0;
 
 		/* @brief Execute a barometer read and update fo temperature and pressure */
-		virtual uint8_t read(void) = 0;
+		virtual void read(void) = 0;
 
 		/* @brief Get pressure in Pascal (Pa). Divide by 100 for millibars or hectopascals */
 		virtual float get_pressure(void) = 0;

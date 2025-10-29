@@ -19,12 +19,7 @@ uint8_t run_unit_tests(AP_Baro& _barometer)
 
 	/* Test 1. Read value */
 	for (int i=0;i<8;i++) {
-		uint8_t status = _barometer.read();
-
-		if (status!=0) {
-			hal.console->printf("Error in barometer read\n");
-			return 1;
-		}
+		_barometer.read();
 
 		float _temp = _barometer.get_temperature();
 		float _pressure = _barometer.get_pressure();

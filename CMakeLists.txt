@@ -260,7 +260,6 @@ list(APPEND MC_INCLUDE_DIRS
 	${CMAKE_SOURCE_DIR}/arch/AP_Scheduler
 	${CMAKE_SOURCE_DIR}/lib/AP_Common
 	${CMAKE_SOURCE_DIR}/lib/AP_Curve
-	${CMAKE_SOURCE_DIR}/lib/AP_Menu
 	${CMAKE_SOURCE_DIR}/lib/AP_Math
 	${CMAKE_SOURCE_DIR}/lib/Filter
 	${CMAKE_SOURCE_DIR}/lib/RC_Channel

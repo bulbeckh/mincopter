@@ -21,102 +21,8 @@ extern MCState mcstate;
 
 // These are function definitions so the Menu can be constructed before the functions
 // are defined below. Order matters to the compiler.
-int8_t   dump_log(uint8_t argc,                  const Menu::arg *argv);
-int8_t   erase_logs(uint8_t argc,                const Menu::arg *argv);
-int8_t   select_logs(uint8_t argc,               const Menu::arg *argv);
 
-int8_t
-dump_log(uint8_t argc, const Menu::arg *argv)
-{
-    int16_t dump_log;
-    uint16_t dump_log_start;
-    uint16_t dump_log_end;
-    uint16_t last_log_num;
 
-    // check that the requested log number can be read
-    dump_log = argv[1].i;
-    last_log_num = mincopter.DataFlash.find_last_log();
-
-    if (dump_log == -2) {
-        mincopter.DataFlash.DumpPageInfo(mincopter.cliSerial);
-        return(-1);
-    } else if (dump_log <= 0) {
-        mincopter.cliSerial->printf_P(PSTR("dumping all\n"));
-        Log_Read(0, 1, 0);
-        return(-1);
-    } else if ((argc != 2) || ((uint16_t)dump_log <= (last_log_num - mincopter.DataFlash.get_num_logs())) || (static_cast<uint16_t>(dump_log) > last_log_num)) {
-        mincopter.cliSerial->printf_P(PSTR("bad log number\n"));
-        return(-1);
-    }
-
-    mincopter.DataFlash.get_log_boundaries(dump_log, dump_log_start, dump_log_end);
-    Log_Read((uint16_t)dump_log, dump_log_start, dump_log_end);
-    return (0);
-}
-
-void do_erase_logs(void)
-{
-	//gcs_send_text_P(SEVERITY_LOW, PSTR("Erasing logs\n"));
-    mincopter.DataFlash.EraseAll();
-	//gcs_send_text_P(SEVERITY_LOW, PSTR("Log erase complete\n"));
-}
-
-int8_t
-erase_logs(uint8_t argc, const Menu::arg *argv)
-{
-    //in_mavlink_delay = true;
-    do_erase_logs();
-    //in_mavlink_delay = false;
-    return 0;
-}
-
-int8_t
-select_logs(uint8_t argc, const Menu::arg *argv)
-{
-    uint16_t bits;
-
-    if (argc != 2) {
-        mincopter.cliSerial->printf_P(PSTR("missing log type\n"));
-        return(-1);
-    }
-
-    bits = 0;
-
-    // Macro to make the following code a bit easier on the eye.
-    // Pass it the capitalised name of the log option, as defined
-    // in defines.h but without the LOG_ prefix.  It will check for
-    // that name as the argument to the command, and set the bit in
-    // bits accordingly.
-    //
-    if (!strcasecmp_P(argv[1].str, PSTR("all"))) {
-        bits = ~0;
-    } else {
- #define TARG(_s)        if (!strcasecmp_P(argv[1].str, PSTR(# _s))) bits |= MASK_LOG_ ## _s
-        TARG(ATTITUDE_FAST);
-        TARG(ATTITUDE_MED);
-        TARG(GPS);
-        TARG(PM);
-        TARG(CTUN);
-        TARG(NTUN);
-        TARG(RCIN);
-        TARG(IMU);
-        TARG(CMD);
-        TARG(CURRENT);
-        TARG(RCOUT);
-        TARG(OPTFLOW);
-        TARG(COMPASS);
-        TARG(CAMERA);
- #undef TARG
-    }
-
-    if (!strcasecmp_P(argv[0].str, PSTR("enable"))) {
-        mincopter.log_bitmask = mincopter.log_bitmask | bits;
-    }else{
-        mincopter.log_bitmask = mincopter.log_bitmask & ~bits;
-    }
-
-    return(0);
-}
 
 #if AUTOTUNE == ENABLED
 struct PACKED log_AutoTune {
@@ -638,7 +544,7 @@ void Log_Read(uint16_t log_num, uint16_t start_page, uint16_t end_page)
 {
 	mincopter.DataFlash.LogReadProcess(log_num, start_page, end_page, 
                              NULL,
-                             mincopter.cliSerial);
+                             mincopter.hal.console);
 }
 
 // start a new log
@@ -697,9 +603,6 @@ void Log_Write_Nav_Tuning() {}
 void Log_Write_Control_Tuning() {}
 void Log_Write_Performance() {}
 void Log_Write_Error(uint8_t sub_system, uint8_t error_code) {}
-int8_t process_logs(uint8_t argc, const Menu::arg *argv) {
-    return 0;
-}
 
 #endif // LOGGING_DISABLED
 

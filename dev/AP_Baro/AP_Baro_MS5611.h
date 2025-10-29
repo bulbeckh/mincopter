@@ -75,7 +75,7 @@ public:
 
     /* AP_Baro public interface: */
     bool            init();
-    uint8_t         read();
+    void         read();
     float           get_pressure(); // in mbar*100 units
     float           get_temperature(); // in celsius degrees
 

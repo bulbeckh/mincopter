@@ -32,6 +32,9 @@
 #include <sstream>
 #include <vector>
 
+#include <iostream>
+#include <fstream>
+
 #include <gz/common/SignalHandler.hh>
 #include <gz/msgs/Utility.hh>
 
@@ -259,6 +262,16 @@ class gz::sim::systems::ArduPilotPluginPrivate
     imuMsg = _msg;
     imuMsgValid = true;
   }
+
+  /* We store a record of the IMU msgs at 1kHz so that we can filter
+   *
+   * Indexed as accel x reading = accel_xyz_10[0:10], etc. */
+  public: double accel_xyz_10[30];
+  public: double gyro_xyz_10[30];
+  // Counter to keep track of which index we are in
+  public: uint64_t imu_filtered_counter{0};
+
+  public: std::ofstream imu_logfile{"/tmp/gz_imu_logfile.txt"};
 
     /* Magnetometer & Baro messages */
   public: gz::msgs::Magnetometer compassMsg;
@@ -1045,7 +1058,52 @@ void gz::sim::systems::ArduPilotPlugin::PreUpdate(
 		// updates during the call to ReceiveServoPacket via UpdateMotorCommands. We
 		// keep this function running every iteration (1000Hz) even though the motor
 		// commands will be updated at 100Hz
-		
+
+		// At 1kHz, we read, store, and filter the accelerometer signals
+		gz::msgs::IMU imuMsg;
+		{
+			std::lock_guard<std::mutex> lock(this->dataPtr->imuMsgMutex);
+			// Wait until we've received a valid message.
+			if (!this->dataPtr->imuMsgValid)
+			{
+				return;
+			}
+			imuMsg = this->dataPtr->imuMsg;
+		}
+
+		this->dataPtr->accel_xyz_10[0+this->dataPtr->imu_filtered_counter%10] = imuMsg.linear_acceleration().x();
+		this->dataPtr->accel_xyz_10[10+this->dataPtr->imu_filtered_counter%10] = imuMsg.linear_acceleration().y();
+		this->dataPtr->accel_xyz_10[20+this->dataPtr->imu_filtered_counter%10] = imuMsg.linear_acceleration().z();
+
+		this->dataPtr->gyro_xyz_10[0+this->dataPtr->imu_filtered_counter%10] = imuMsg.angular_velocity().x();
+		this->dataPtr->gyro_xyz_10[10+this->dataPtr->imu_filtered_counter%10] = imuMsg.angular_velocity().y();
+		this->dataPtr->gyro_xyz_10[20+this->dataPtr->imu_filtered_counter%10] = imuMsg.angular_velocity().z();
+
+		gz::msgs::Magnetometer compassMsg;
+		{
+			std::lock_guard<std::mutex> lock(this->dataPtr->compassMsgMutex);
+			// Wait until we've received a valid message.
+			if (!this->dataPtr->compassMsgValid)
+			{
+				return;
+			}
+			compassMsg = this->dataPtr->compassMsg;
+		}
+
+		// Log the 1kHz signal to a file
+		// TODO NOTE We are explicitly converting to the correct mincopter body (NED) frame here
+		this->dataPtr->imu_logfile << _info.iterations << ",ax," << imuMsg.linear_acceleration().x() << "\n";
+		this->dataPtr->imu_logfile << _info.iterations << ",ay," << -1*imuMsg.linear_acceleration().y() << "\n";
+		this->dataPtr->imu_logfile << _info.iterations << ",az," << -1*imuMsg.linear_acceleration().z() << "\n";
+
+		this->dataPtr->imu_logfile << _info.iterations << ",gx," << imuMsg.angular_velocity().x() << "\n";
+		this->dataPtr->imu_logfile << _info.iterations << ",gy," << -1*imuMsg.angular_velocity().y() << "\n";
+		this->dataPtr->imu_logfile << _info.iterations << ",gz," << -1*imuMsg.angular_velocity().z() << "\n";
+
+		this->dataPtr->imu_logfile << _info.iterations << ",mx," << compassMsg.field_tesla().x() << "\n";
+		this->dataPtr->imu_logfile << _info.iterations << ",my," << -1*compassMsg.field_tesla().y() << "\n";
+		this->dataPtr->imu_logfile << _info.iterations << ",mz," << -1*compassMsg.field_tesla().z() << "\n";
+
 		// 1. Apply the motor forces
 		this->ApplyMotorForces(dt, _ecm);
 	

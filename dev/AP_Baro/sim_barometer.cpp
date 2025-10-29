@@ -19,7 +19,7 @@ bool AP_Baro_Sim::init()
     return true;
 }
 
-uint8_t AP_Baro_Sim::read()
+void AP_Baro_Sim::read(void)
 {
 
 	_last_update = hal.scheduler->millis();
@@ -36,7 +36,7 @@ uint8_t AP_Baro_Sim::read()
 
 	//simlog.write_barometer_state(temperature_degc, pressure_pa, baro_alt);
 
-    return 1;
+    return;
 }
 
 float AP_Baro_Sim::get_pressure()

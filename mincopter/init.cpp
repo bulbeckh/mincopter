@@ -14,19 +14,9 @@ extern MCState mcstate;
 #include "util.h"
 #include "log.h"
 
-// Forward Declaration - TODO move menu.cpp code to a class and include
-void init_cli(AP_HAL::UARTDriver* port);
-void run_cli(void);
-
-void init_ardupilot()
+void init_ardupilot(void)
 {
 	mincopter.hal.console->printf_P(PSTR("[INIT] Initialisation started..\n"));
-
-	// Run for anything except simulation
-
-    // Console serial port
-    //mincopter.hal.uartB->begin(SERIAL0_BAUD, 512, 128);
-	//mincopter.hal.console->printf_P(PSTR("[INIT] uartB initialised\n"));
 
     // GPS UART/Serial port initialisation
 #if GPS_PROTOCOL != GPS_PROTOCOL_IMU
@@ -42,18 +32,12 @@ void init_ardupilot()
 
 #endif
 
-	// Send initialisation string
-    //mincopter.cliSerial->printf_P(PSTR("PS00-Init, Free RAM: %u\n"), mincopter.hal.util->available_memory());
-
 #if CONFIG_HAL_BOARD == HAL_BOARD_APM2
-    /*
-      run the timer a bit slower on APM2 to reduce the interrupt load
-      on the CPU
-     */
+    // Run the timer a bit slower on APM2 to reduce the interrupt load on the CPU
     mincopter.hal.scheduler->set_timer_speed(500);
 #endif
 
-    // initialise battery monitor
+    // Initialise battery monitor
     mincopter.battery.init();
 	mincopter.hal.console->printf_P(PSTR("[INIT] Battery monitor initialised\n"));
 
@@ -63,6 +47,7 @@ void init_ardupilot()
     mincopter.barometer.init();
 	mincopter.hal.console->printf_P(PSTR("[INIT] Barometer initialised\n"));
 
+	// TODO What is this doing - remove
     // we start by assuming USB connected, as we initialed the serial
     // port with SERIAL0_BAUD. check_usb_mux() fixes this if need be.
     planner.ap.usb_connected = true;
@@ -79,8 +64,6 @@ void init_ardupilot()
     	//mincopter.hal.uartB->begin(SERIAL1_BAUD, 128, 128);
 		//mincopter.hal.console->printf_P(PSTR("[INIT] uartB initialised\n"));
 	}
-
-    //gcs[1].init(hal.uartC);
 #endif
 
 #if MAVLINK_COMM_NUM_BUFFERS > 2
@@ -91,43 +74,24 @@ void init_ardupilot()
     }
 #endif
 
-
-    // identify ourselves correctly with the ground station
-		/*
-    mavlink_system.sysid = g.sysid_this_mav;
-    mavlink_system.type = 2; //MAV_QUADROTOR;
-		*/
-
 #if LOGGING_ENABLED == ENABLED
-		// NOTE(henry) This has been removed temporarily due to issue with compilation described below:
-		/* The log_structure variable is an array of LogStructure objects. It is referenced in the log.h header file
-		* but here we are getting the sizeof(log_structure). 
-		*/
+	/* NOTE The log_structure variable is an array of LogStructure objects. It is referenced in the log.h header
+	 * file but here we are getting the sizeof(log_structure) */
+
     //DataFlash.Init(log_structure, sizeof(log_structure)/sizeof(log_structure[0]));
-		/* NOTE: Using 23 different structures instead of counting due to issue in separation of log_structure object */
+	/* NOTE: Using 23 different structures instead of counting due to issue in separation of log_structure object */
     mincopter.DataFlash.Init(log_structure, 22);
 	mincopter.hal.console->printf_P(PSTR("[INIT] DataFlash initialised\n"));
 
     if (!mincopter.DataFlash.CardInserted()) {
         //gcs_send_text_P(SEVERITY_LOW, PSTR("No dataflash inserted"));
         mincopter.log_bitmask = 0;
-    } else if (mincopter.DataFlash.NeedErase()) {
-        //gcs_send_text_P(SEVERITY_LOW, PSTR("ERASING LOGS"));
-        do_erase_logs();
-        //gcs[0].reset_cli_timeout();
     }
-
-		//mincopter.cliSerial->println_P(PSTR("Dataflash initialised\n"));
 #endif
 
-		/* NOTE no RC input in auto modes */
+	/* NOTE no RC input in auto modes */
     //init_rc_in();               // sets up rc channels from radio
     //init_rc_out();              // sets up motors and output to escs
-
-    /*
-     *  setup the 'main loop is dead' check. Note that this relies on
-     *  the RC library being initialised.
-     */
 
     //mincopter.hal.scheduler->register_timer_failsafe(failsafe_check, 1000);
 
@@ -154,29 +118,10 @@ void init_ardupilot()
 		mincopter.hal.console->printf_P(PSTR("[INIT] GPS initialised\n"));
 	}
 
-    //init_compass();
 	// NOTE TODO Check whether the compass init was successful
     mincopter.compass.init();
 	mincopter.hal.console->printf_P(PSTR("[INIT] Compass initialised\n"));
-	//mincopter.compass.read();
 	
-    //mcstate.ahrs.set_compass(&mincopter.compass);
-
-
-#if CLI_ENABLED == ENABLED
-    //const prog_char_t *msg = PSTR("\nPress ENTER 3 times to start interactive setup\n");
-    //cliSerial->println_P(msg);
-
-		/*
-    if (gcs[1].initialised) {
-        hal.uartC->println_P(msg);
-    }
-    if (num_gcs > 2 && gcs[2].initialised) {
-        hal.uartD->println_P(msg);
-    }
-		*/
-#endif // CLI_ENABLED
-
 #if HIL_MODE != HIL_MODE_DISABLED
     while (!mincopter.barometer.healthy) {
         // the barometer becomes healthy when we get the first
@@ -192,25 +137,11 @@ void init_ardupilot()
     //init_barometer(true);
 
 	// TODO Why is barometer initialised twice?
-
-    // initialize commands
-    //init_commands();
-
-    // initialise the flight mode and aux switch
-		/* NOTE removed */
-    //reset_control_switch();
-
-		/* NOTE removed */
-    //init_aux_switches();
-
+	
 	// TODO Why is ins initialised after MCState??
     // Warm up and read Gyro offsets
-    // -----------------------------
     mincopter.ins.init(AP_InertialSensor::COLD_START, AP_InertialSensor::RATE_100HZ);
 	mincopter.hal.console->printf_P(PSTR("[INIT] IMU initialised\n"));
-
-    // setup fast AHRS gains to get right attitude
-    //mcstate.ahrs.set_fast_gains(true);
 
     // set landed flag
     set_land_complete(true);
@@ -223,64 +154,9 @@ void init_ardupilot()
     mcstate.init();
 	mincopter.hal.console->printf_P(PSTR("[INIT] MCState initialised\n"));
 
-	/* Dump Log on start */
-
-		/*
-		DataFlash.ListAvailableLogs(cliSerial);
-		
-		uint16_t nl = DataFlash.get_num_logs();
-		cliSerial->printf_P(PSTR("Num Logs: %u\n"), nl);
-
-	
-		int16_t lognum=19;
-		uint16_t dl_start;
-		uint16_t dl_end;
-
-		DataFlash.get_log_boundaries(lognum, dl_start, dl_end);
-		cliSerial->printf_P(PSTR("Reading Log 19: %u %u\n"), dl_start, dl_end);
-		Log_Read((uint16_t)lognum,dl_start, dl_end);
-		*/
-
-		// Send initialisation synchronisation string. Now ready for CLI
-
-		/* -- Transmission statistics --
-			- Send 100 packets of the same string and measure tranmission time
-		*/
-
-		// 1302.930us AVG for 16 byte packet
-		// 2700 for 32 byte
-
-
-		/*
-		uint32_t sum=0;
-		for (int i=0;i<100;i++) { 
-			uint32_t pre = micros();
-			// send transmission of 16 byte packet
-			mincopter.cliSerial->println_P(PSTR("TEST1234567891-TEST1234567891"));
-			sum += micros() - pre;
-		}
-		float res = sum/100.0;
-		mincopter.cliSerial->printf_P(PSTR("Final stat - %f"),res);
-		*/
-
-		// Init telemetry uartC
-
-		/* NOTE - See article in README.md for guide on how to move telem to UART2 (uartC) */
-    //mincopter.hal.uartC->begin(SERIAL1_BAUD, 128, 128);
-		//mincopter.hal.uartC->printf_P(PSTR("TEST-send"));
-
-		// Start Menu
-		// NOTE cliSerial is an alias for hal.uartA I think
-		//init_cli(mincopter.hal.uartB);
-
-		// Finally, run the profiling test functions that measure approximate time taken to
-		// publish serial messages and log messages of different format
-		//
-		// We run during `init_ardupilot` because it is guaranteed to be 'single-threaded'.
-
 #ifdef TARGET_ARCH_LINUX
-		// Delay 1s
-		mincopter.hal.scheduler->delay(1000);
+	// Delay 1s
+	mincopter.hal.scheduler->delay(1000);
 #endif
 
 	mincopter.hal.console->printf_P(PSTR("[INIT] Initialisation complete, post-init RAM:%u\n"), mincopter.hal.util->available_memory());
