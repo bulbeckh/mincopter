@@ -197,7 +197,9 @@ void loop(void)
 	_temp_att.rotation_matrix(_temp_rot);
 
 	// Dump to pipe @100Hz
-	uint8_t log_packet[48];
+	uint8_t log_packet[52];
+
+	uint32_t iterations = (uint32_t)hal.sim->last_sensor_state.iterations;
 
 	/* In place of an enum, we use the following type IDs for log messages
 	 * 0x01 RPY (euler)
@@ -214,42 +216,48 @@ void loop(void)
 	 */
 
 	// RPY
-	std::memcpy(log_packet, &roll, 4);
-	std::memcpy(log_packet+4, &pitch, 4);
-	std::memcpy(log_packet+8, &yaw, 4);
-	mincopter.hal.sim->log_state(log_packet, 12, 0x01);
+	std::memcpy(log_packet, &iterations, 4);
+	std::memcpy(log_packet+4, &roll, 4);
+	std::memcpy(log_packet+8, &pitch, 4);
+	std::memcpy(log_packet+12, &yaw, 4);
+	mincopter.hal.sim->log_state(log_packet, 16, 0x01);
 
 	// Position
-	std::memcpy(log_packet, &_temp_pos.x, 4);
-	std::memcpy(log_packet+4, &_temp_pos.y, 4);
-	std::memcpy(log_packet+8, &_temp_pos.z, 4);
-	mincopter.hal.sim->log_state(log_packet, 12, 0x02);
+	std::memcpy(log_packet, &iterations, 4);
+	std::memcpy(log_packet+4, &_temp_pos.x, 4);
+	std::memcpy(log_packet+8, &_temp_pos.y, 4);
+	std::memcpy(log_packet+12, &_temp_pos.z, 4);
+	mincopter.hal.sim->log_state(log_packet, 16, 0x02);
 
 	// Velocity
-	std::memcpy(log_packet, &_temp_vel.x, 4);
-	std::memcpy(log_packet+4, &_temp_vel.y, 4);
-	std::memcpy(log_packet+8, &_temp_vel.z, 4);
-	mincopter.hal.sim->log_state(log_packet, 12, 0x03);
+	std::memcpy(log_packet, &iterations, 4);
+	std::memcpy(log_packet+4, &_temp_vel.x, 4);
+	std::memcpy(log_packet+8, &_temp_vel.y, 4);
+	std::memcpy(log_packet+12, &_temp_vel.z, 4);
+	mincopter.hal.sim->log_state(log_packet, 16, 0x03);
 
 	// Euler rates
-	std::memcpy(log_packet, &_temp_e_rates.x, 4);
-	std::memcpy(log_packet+4, &_temp_e_rates.y, 4);
-	std::memcpy(log_packet+8, &_temp_e_rates.z, 4);
-	mincopter.hal.sim->log_state(log_packet, 12, 0x04);
+	std::memcpy(log_packet, &iterations, 4);
+	std::memcpy(log_packet+4, &_temp_e_rates.x, 4);
+	std::memcpy(log_packet+8, &_temp_e_rates.y, 4);
+	std::memcpy(log_packet+12, &_temp_e_rates.z, 4);
+	mincopter.hal.sim->log_state(log_packet, 16, 0x04);
 
 	// Control Input (Force,Torque)
-	std::memcpy(log_packet, &mincopter.hal.sim->control_input[0], 4);
-	std::memcpy(log_packet+4, &mincopter.hal.sim->control_input[1], 4);
-	std::memcpy(log_packet+8, &mincopter.hal.sim->control_input[2], 4);
-	std::memcpy(log_packet+12, &mincopter.hal.sim->control_input[3], 4);
-	mincopter.hal.sim->log_state(log_packet, 16, 0x05);
+	std::memcpy(log_packet, &iterations, 4);
+	std::memcpy(log_packet+4, &mincopter.hal.sim->control_input[0], 4);
+	std::memcpy(log_packet+8, &mincopter.hal.sim->control_input[1], 4);
+	std::memcpy(log_packet+12, &mincopter.hal.sim->control_input[2], 4);
+	std::memcpy(log_packet+16, &mincopter.hal.sim->control_input[3], 4);
+	mincopter.hal.sim->log_state(log_packet, 20, 0x05);
 
 	// Motor Velocities PWM
-	std::memcpy(log_packet, &mincopter.hal.sim->motor_out[0], 2);
-	std::memcpy(log_packet+2, &mincopter.hal.sim->motor_out[1], 2);
-	std::memcpy(log_packet+4, &mincopter.hal.sim->motor_out[2], 2);
-	std::memcpy(log_packet+6, &mincopter.hal.sim->motor_out[3], 2);
-	mincopter.hal.sim->log_state(log_packet, 8, 0x06);
+	std::memcpy(log_packet, &iterations, 4);
+	std::memcpy(log_packet+4, &mincopter.hal.sim->motor_out[0], 2);
+	std::memcpy(log_packet+6, &mincopter.hal.sim->motor_out[1], 2);
+	std::memcpy(log_packet+8, &mincopter.hal.sim->motor_out[2], 2);
+	std::memcpy(log_packet+10, &mincopter.hal.sim->motor_out[3], 2);
+	mincopter.hal.sim->log_state(log_packet, 12, 0x06);
 
 	// NOTE Downcast to float
 	float imu_a_x = (float)mincopter.hal.sim->last_sensor_state.imu_accel_x;
@@ -266,19 +274,21 @@ void loop(void)
 
 	// TODO Change this to the sensor variables and not the simulation variables
 	// Sensor state ( (3+3+3)*4)
-	std::memcpy(log_packet, &imu_a_x, 4);
-	std::memcpy(log_packet+4, &imu_a_y, 4);
-	std::memcpy(log_packet+8, &imu_a_z, 4);
+	std::memcpy(log_packet, &iterations, 4);
 
-	std::memcpy(log_packet+12, &imu_g_x, 4);
-	std::memcpy(log_packet+16, &imu_g_y, 4);
-	std::memcpy(log_packet+20, &imu_g_z, 4);
+	std::memcpy(log_packet+4, &imu_a_x, 4);
+	std::memcpy(log_packet+8, &imu_a_y, 4);
+	std::memcpy(log_packet+12, &imu_a_z, 4);
 
-	std::memcpy(log_packet+24, &comp_x, 4);
-	std::memcpy(log_packet+28, &comp_y, 4);
-	std::memcpy(log_packet+32, &comp_z, 4);
+	std::memcpy(log_packet+16, &imu_g_x, 4);
+	std::memcpy(log_packet+20, &imu_g_y, 4);
+	std::memcpy(log_packet+24, &imu_g_z, 4);
 
-	mincopter.hal.sim->log_state(log_packet, 36, 0x07);
+	std::memcpy(log_packet+28, &comp_x, 4);
+	std::memcpy(log_packet+32, &comp_y, 4);
+	std::memcpy(log_packet+36, &comp_z, 4);
+
+	mincopter.hal.sim->log_state(log_packet, 40, 0x07);
 
 	float pos_x_actual = (float)mincopter.hal.sim->last_sensor_state.pos_x;
 	float pos_y_actual = (float)mincopter.hal.sim->last_sensor_state.pos_y;
@@ -298,36 +308,40 @@ void loop(void)
 
 	// TODO Repeat for actual angular rates
 	
-	std::memcpy(log_packet, &pos_x_actual, 4);
-	std::memcpy(log_packet+4, &pos_y_actual, 4);
-	std::memcpy(log_packet+8, &pos_z_actual, 4);
+	std::memcpy(log_packet, &iterations, 4);
 
-	std::memcpy(log_packet+12, &vel_x_actual, 4);
-	std::memcpy(log_packet+16, &vel_y_actual, 4);
-	std::memcpy(log_packet+20, &vel_z_actual, 4);
+	std::memcpy(log_packet+4, &pos_x_actual, 4);
+	std::memcpy(log_packet+8, &pos_y_actual, 4);
+	std::memcpy(log_packet+12, &pos_z_actual, 4);
 
-	std::memcpy(log_packet+24, &euler_x_actual, 4);
-	std::memcpy(log_packet+28, &euler_y_actual, 4);
-	std::memcpy(log_packet+32, &euler_z_actual, 4);
+	std::memcpy(log_packet+16, &vel_x_actual, 4);
+	std::memcpy(log_packet+20, &vel_y_actual, 4);
+	std::memcpy(log_packet+24, &vel_z_actual, 4);
 
-	std::memcpy(log_packet+36, &euler_rate_x, 4);
-	std::memcpy(log_packet+40, &euler_rate_y, 4);
-	std::memcpy(log_packet+44, &euler_rate_z, 4);
+	std::memcpy(log_packet+28, &euler_x_actual, 4);
+	std::memcpy(log_packet+32, &euler_y_actual, 4);
+	std::memcpy(log_packet+36, &euler_z_actual, 4);
 
-	mincopter.hal.sim->log_state(log_packet, 48, 0x08);
+	std::memcpy(log_packet+40, &euler_rate_x, 4);
+	std::memcpy(log_packet+44, &euler_rate_y, 4);
+	std::memcpy(log_packet+48, &euler_rate_z, 4);
+
+	mincopter.hal.sim->log_state(log_packet, 52, 0x08);
 
 	// GPS
-	std::memcpy(log_packet, &mincopter.g_gps->latitude, 4);
-	std::memcpy(log_packet+4, &mincopter.g_gps->longitude, 4);
-	std::memcpy(log_packet+8, &mincopter.g_gps->altitude_cm, 4);
+	std::memcpy(log_packet, &iterations, 4);
+
+	std::memcpy(log_packet+4, &mincopter.g_gps->latitude, 4);
+	std::memcpy(log_packet+8, &mincopter.g_gps->longitude, 4);
+	std::memcpy(log_packet+12, &mincopter.g_gps->altitude_cm, 4);
 
 	Vector3f gps_vel_vector = mincopter.g_gps->velocity_vector();
 
-	std::memcpy(log_packet+12, &gps_vel_vector.x, 4);
-	std::memcpy(log_packet+16, &gps_vel_vector.y, 4);
-	std::memcpy(log_packet+20, &gps_vel_vector.z, 4);
+	std::memcpy(log_packet+16, &gps_vel_vector.x, 4);
+	std::memcpy(log_packet+20, &gps_vel_vector.y, 4);
+	std::memcpy(log_packet+24, &gps_vel_vector.z, 4);
 
-	mincopter.hal.sim->log_state(log_packet, 24, 0x09);
+	mincopter.hal.sim->log_state(log_packet, 28, 0x09);
 
 	// Update position directly as a test every second
 	/*
