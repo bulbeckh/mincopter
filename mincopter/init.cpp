@@ -66,13 +66,15 @@ void init_ardupilot(void)
 	}
 #endif
 
-#if MAVLINK_COMM_NUM_BUFFERS > 2
-    if (mincopter.hal.uartD != NULL) {
-        mincopter.hal.uartD->begin(SERIAL2_BAUD, 128, 128);
-		mincopter.hal.console->printf_P(PSTR("[INIT] uartD initialised\n"));
+	// Telemetry
+    if (mincopter.hal.uartC != NULL) {
+        mincopter.hal.uartC->begin(57600, 128, 128);
+
+		mincopter.hal.console->printf_P(PSTR("[INIT] uartC initialised\n"));
         //gcs[2].init(hal.uartD);
+
+		mincopter.hal.uartC->printf("Telem Test\r\n");
     }
-#endif
 
 #if LOGGING_ENABLED == ENABLED
 	/* NOTE The log_structure variable is an array of LogStructure objects. It is referenced in the log.h header

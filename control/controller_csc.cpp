@@ -19,13 +19,13 @@ CSC_Controller::CSC_Controller()
 
 	csc_counter(0),
 
-	rate_roll(0.5, 0.1, 0, CSC_PID_IMAX),
-	rate_pitch(0.5, 0.1, 0, CSC_PID_IMAX),
-	rate_yaw(0.5, 0.1, 0, CSC_PID_IMAX),
+	rate_roll(0.5, 0, 0, CSC_PID_IMAX),
+	rate_pitch(0.5, 0, 0, CSC_PID_IMAX),
+	rate_yaw(0.5, 0, 0, CSC_PID_IMAX),
 
-	error_roll(20, 0.1, 0, CSC_PID_IMAX),
-	error_pitch(20, 0.1, 0, CSC_PID_IMAX),
-	error_yaw(20, 0.1, 0, CSC_PID_IMAX),
+	error_roll(5, 0, 0, CSC_PID_IMAX),
+	error_pitch(5, 0, 0, CSC_PID_IMAX),
+	error_yaw(5, 0, 0, CSC_PID_IMAX),
 
 	pos_throttle(1.0,0,0, CSC_PID_IMAX),
 	vel_throttle(1.0,0,0, CSC_PID_IMAX),
@@ -34,8 +34,8 @@ CSC_Controller::CSC_Controller()
 	// TODO Modify gains - significant overshoot in x,y waypoint response
 	nav_x_pos(0.6, 0, 0, CSC_PID_IMAX),
 	nav_y_pos(0.6, 0, 0, CSC_PID_IMAX),
-	nav_x_vel(3, 0, 0, CSC_PID_IMAX),
-	nav_y_vel(3, 0, 0, CSC_PID_IMAX)
+	nav_x_vel(10, 3, 0, CSC_PID_IMAX),
+	nav_y_vel(10, 3, 0, CSC_PID_IMAX)
 
 	/*
 	rate_roll(0.5, 0.1, 0, CSC_PID_IMAX),
@@ -77,6 +77,9 @@ void CSC_Controller::run(void)
 
 		x_vel_target = nav_x_pos.get_pi(/* X-Target */ 10 - pos.x, 0.25);
 		y_vel_target = nav_y_pos.get_pi(/* Y-Target */ 0 - pos.y, 0.25);
+
+		x_vel_target = 2;
+		y_vel_target = 0;
 	}
 
 	if (csc_counter%5==0) {

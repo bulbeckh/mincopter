@@ -170,6 +170,11 @@ void loop(void)
 	// Loop heartbeat
 	_counter++;
 
+	if (_counter%100==0) {
+		mincopter.hal.console->printf("[LOOP] heartbeat\r\n");
+		mincopter.hal.uartC->print("Telem heartbeat\r\n");
+	}
+
 #ifdef TARGET_ARCH_LINUX
 	// Sensor readings
 	Vector3f _gyr_meas = mincopter.ins.get_gyro();
