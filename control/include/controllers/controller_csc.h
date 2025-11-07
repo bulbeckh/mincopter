@@ -62,5 +62,13 @@ class CSC_Controller : public MC_Controller
 
 		AC_PID nav_x_vel;
 		AC_PID nav_y_vel;
+
+	private:
+		/* @brief Simple waypoint follower */
+		uint8_t wp_index{0};
+
+		int32_t wp_list_x[4];
+		int32_t wp_list_y[4];
+
 };
 

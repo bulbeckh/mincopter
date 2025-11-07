@@ -34,8 +34,8 @@ CSC_Controller::CSC_Controller()
 	// TODO Modify gains - significant overshoot in x,y waypoint response
 	nav_x_pos(0.6, 0, 0, CSC_PID_IMAX),
 	nav_y_pos(0.6, 0, 0, CSC_PID_IMAX),
-	nav_x_vel(10, 3, 0, CSC_PID_IMAX),
-	nav_y_vel(10, 3, 0, CSC_PID_IMAX)
+	nav_x_vel(5, 0, 0, CSC_PID_IMAX),
+	nav_y_vel(5, 0, 0, CSC_PID_IMAX)
 
 	/*
 	rate_roll(0.5, 0.1, 0, CSC_PID_IMAX),
@@ -47,19 +47,31 @@ CSC_Controller::CSC_Controller()
 	*/
 
 {
+	// TODO Initialise this elsewhere
+	
+	wp_list_x[0] = 10;
+	wp_list_y[0] = 0;
 
+	wp_list_x[1] = 0;
+	wp_list_y[1] = 10;
+
+	wp_list_x[2] = -10;
+	wp_list_y[2] = 0;
+
+	wp_list_x[3] = 0;
+	wp_list_y[3] = -10;
 }
 
 void CSC_Controller::run(void)
 {
+	// This is called at 10Hz in the mainloop. We wait a second for the state estimation to settle before we launch
+	
 	/* This is a quick hack in place of a 'take-off' function to high-throttle all motors for first half second */
-	/*
-	if (csc_counter<300) {
-		mixer.output(2.43*GRAVITY_MSS+5, 0, 0, 0);
+	if (csc_counter<100) {
+		mixer.output(0, 0, 0, 0);
 		csc_counter ++;
 		return;
 	}
-	*/
 
 	Vector3f orientation = mcstate.get_euler_angles();
 	Vector3f gyros = mincopter.ins.get_gyro();
@@ -75,11 +87,19 @@ void CSC_Controller::run(void)
 		// Run outer nav loop at 4Hz
 		// NOTE Target of x=10m, y=10m
 
-		x_vel_target = nav_x_pos.get_pi(/* X-Target */ 10 - pos.x, 0.25);
-		y_vel_target = nav_y_pos.get_pi(/* Y-Target */ 0 - pos.y, 0.25);
+		// Check if we have reached desired waypoint target
+		
+		if (abs(pos.x - wp_list_x[wp_index]) <1 && abs(pos.y - wp_list_y[wp_index])<1) {
+			wp_index = ++wp_index % 4;
+		}
+		
+		x_vel_target = nav_x_pos.get_pi(/* X-Target */ wp_list_x[wp_index] - pos.x, 0.25);
+		y_vel_target = nav_y_pos.get_pi(/* Y-Target */ wp_list_y[wp_index] - pos.y, 0.25);
 
-		x_vel_target = 2;
-		y_vel_target = 0;
+		// Constrain velocity to be between [-2,2]
+		x_vel_target = max(-2.0f, min(2.0f, x_vel_target));
+		y_vel_target = max(-2.0f, min(2.0f, y_vel_target));
+
 	}
 
 	if (csc_counter%5==0) {

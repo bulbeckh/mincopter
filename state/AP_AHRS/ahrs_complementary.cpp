@@ -94,9 +94,15 @@ void AHRS_Complementary::ahrs_update(void)
 	Vector3f gyro_reading = mincopter.ins.get_gyro();
 	
 	// Update euler rates ahead of gyro integration below
+	/*
 	_ahrs_state->_euler_rates.x = gyro_reading.x + gyro_reading.y*sin(_ahrs_state->_euler.x)*tan(_ahrs_state->_euler.y) + gyro_reading.z*cos(_ahrs_state->_euler.x)*tan(_ahrs_state->_euler.y);
 	_ahrs_state->_euler_rates.y = gyro_reading.y*cos(_ahrs_state->_euler.x) - gyro_reading.z*sin(_ahrs_state->_euler.x);
 	_ahrs_state->_euler_rates.z = gyro_reading.y*sin(_ahrs_state->_euler.x) / cos(_ahrs_state->_euler.y) + gyro_reading.z*cos(_ahrs_state->_euler.x) / cos(_ahrs_state->_euler.y);
+	*/
+
+	_ahrs_state->_euler_rates.x = gyro_reading.x;
+	_ahrs_state->_euler_rates.y = gyro_reading.y;
+	_ahrs_state->_euler_rates.z = gyro_reading.z;
 
 	if (_first_update) {
 		// Don't fuse on first update
@@ -115,6 +121,8 @@ void AHRS_Complementary::ahrs_update(void)
 		euler_internal.y = alpha*theta_gyroy + (1-alpha)*theta_magy;
 		euler_internal.z = alpha_yaw*theta_gyroz + (1-alpha_yaw)*theta_magz;
 	}
+
+	mincopter.hal.console->printf("eul:%f,%f,%f,%f\r\n", euler_internal.x, euler_internal.y, euler_internal.z, theta_magz);
 
 	// Compute and update quaternion (in NED frame)
 	_ahrs_state->_attitude.from_euler(

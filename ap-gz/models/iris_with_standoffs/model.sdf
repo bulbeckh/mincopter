@@ -202,7 +202,13 @@
 		<!-- pose here was formally 0 0 0 180 0 0 -->
         <pose degrees="true">0 0 0 0 0 0</pose>
         <always_on>1</always_on>
-        <update_rate>1000.0</update_rate>
+		<update_rate>1000.0</update_rate>
+		<linear_acceleration>
+			<x><noise type="gaussian"></noise></x>
+			<y><noise type="gaussian"></noise></y>
+			<z><noise type="gaussian"></noise></z>
+		</linear_acceleration>
+
       </sensor>
   </link>
 

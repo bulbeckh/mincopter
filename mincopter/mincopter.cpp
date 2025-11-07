@@ -163,6 +163,7 @@ void control_determination(void)
 }
 
 uint32_t _counter=0;
+uint8_t  _telem_counter=0;
 
 /* Core Loop - Meant to run every 10ms (10,000 microseconds) */
 void loop(void)
@@ -172,7 +173,7 @@ void loop(void)
 
 	if (_counter%100==0) {
 		mincopter.hal.console->printf("[LOOP] heartbeat\r\n");
-		mincopter.hal.uartC->print("Telem heartbeat\r\n");
+		mincopter.hal.uartC->printf("Telem heartbeat%u\r\n", _telem_counter);
 	}
 
 #ifdef TARGET_ARCH_LINUX
@@ -534,6 +535,26 @@ sads
 #endif
 
 	//if (_counter<3) mincopter.hal.console->printf("STACK post-loop:%u\n", mincopter.hal.util->available_memory());
+	
+	
+	// Read telemetry for response
+	if (_counter%100==0) {
+		uint16_t _tbuf[4];
+		for (uint8_t i=0;i<4;i++) {
+			_tbuf[i] = hal.uartC->read();
+		}
+
+		if (_tbuf[0]!= 0x0A || _tbuf[1]!= 0x1C) {
+			// Set heartbeat as missed
+			mincopter.hal.console->printf("HB miss\r\n");
+		}
+
+		if (_tbuf[3]!=_telem_counter) {
+			// Set hearbeat as missed
+			mincopter.hal.console->printf("HB miss\r\n");
+		}
+		_telem_counter++;
+	}
 
     uint32_t time_elapsed = micros() - timer;
     // Delay if we have time remaining (i.e. time took less than 10000us)

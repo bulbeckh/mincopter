@@ -16,6 +16,9 @@ uint8_t run_unit_tests(AP_InertialSensor& _imu)
 
 	/* Test 1. Read value */
 	for (int i=0;i<1e6;i++) {
+		// Run this loop at 100Hz
+		uint32_t start = hal.scheduler->micros();
+
 		bool status = _imu.update();
 
 		if (!status) {
@@ -25,10 +28,21 @@ uint8_t run_unit_tests(AP_InertialSensor& _imu)
 
 		Vector3f accel = _imu.get_accel();
 
-		hal.console->printf("X: %f, Y: %f, Z: %f\n", accel.x, accel.y, accel.z);
+		hal.console->printf("%d,X: %f, Y: %f, Z: %f\n", i, accel.x, accel.y, accel.z);
 
-		// Delay 500ms
-		hal.scheduler->delay(500);
+		// Infer roll,pitch angles from accelerometer
+
+		/*
+		float angle_pitch = atan2f(accel.x, safe_sqrt(accel.y*accel.y + accel.z*accel.z));
+		float angle_roll  = atan2f(-accel.y, -accel.z);
+		hal.console->printf("Roll: %f\n", angle_roll);
+		hal.console->printf("Pitch: %f\n", angle_pitch);
+		*/
+
+		// Delay
+		uint32_t elapsed = hal.scheduler->micros() - start;
+		//if (elapsed < 10000) hal.scheduler->delay(10000-elapsed);
+
 	}
 
 	return 0;
