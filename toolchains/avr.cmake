@@ -47,7 +47,8 @@ fsigned-char  allows char to be signed
 
 ## NOTE TARGET_ARCH should be the same as the mmcu option for avr targets
 set(COMMON_FLAGS
-	-mmcu=${TARGET_ARCH}
+	#-mmcu=${TARGET_ARCH}
+	-mmcu=${MARCHITECTURE}
 	-mcall-prologues
 	-Os
 	-Wall

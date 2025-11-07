@@ -43,7 +43,27 @@ done
 avr_list=("atmega2560"
 	"atmega2561"
 	"atmega1280"
-	"atmega1281")
+	"atmega1281"
+	"avr64db28"
+	"avr64db32"
+	"avr64db48"
+	"avr64db64"
+	"avr128db28"
+	"avr128db32"
+	"avr128db48"
+	"avr128db64"
+	"avr64da28"
+	"avr64da32"
+	"avr64da48"
+	"avr64da64"
+	"avr128da28"
+	"avr128da32"
+	"avr128da48"
+	"avr128da64"
+	"avr64dd28"
+	"avr64dd32"
+	"avr64du28"
+	"avr64du32")
 
 for avr_target in "${avr_list[@]}"; do
 	echo ${avr_target}

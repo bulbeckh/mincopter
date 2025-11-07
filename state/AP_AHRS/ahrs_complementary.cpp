@@ -83,6 +83,10 @@ void AHRS_Complementary::ahrs_update(void)
 			mag_reading.x*cos(theta_magx) + sin(theta_magx)*(mag_reading.y*sin(theta_magy) + mag_reading.z*cos(theta_magy)));
 	*/
 
+	if (mag_reading.x == 0 && mag_reading.y == 0 && mag_reading.z == 0) {
+		mincopter.hal.console->printf("state est - 0 mag\r\n");
+	}
+
 	float theta_magz = atan2f(
 			-1*mag_reading.y*cos(theta_magx) + mag_reading.z*sin(theta_magx),
 			mag_reading.x*cos(theta_magy) + mag_reading.y*sin(theta_magy)*sin(theta_magx) + mag_reading.z*sin(theta_magy)*cos(theta_magx)
@@ -122,7 +126,13 @@ void AHRS_Complementary::ahrs_update(void)
 		euler_internal.z = alpha_yaw*theta_gyroz + (1-alpha_yaw)*theta_magz;
 	}
 
-	mincopter.hal.console->printf("eul:%f,%f,%f,%f\r\n", euler_internal.x, euler_internal.y, euler_internal.z, theta_magz);
+	mincopter.hal.console->printf("eul:%f,%f,%f | %f,%f,%f | %f,%f,%f\r\n", euler_internal.x, euler_internal.y, euler_internal.z,
+			accel_reading.x,
+			accel_reading.y,
+			accel_reading.z,
+			mag_reading.x,
+			mag_reading.y,
+			mag_reading.z);
 
 	// Compute and update quaternion (in NED frame)
 	_ahrs_state->_attitude.from_euler(
