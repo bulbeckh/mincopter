@@ -40,41 +40,42 @@
 
 class AP_InertialSensor_Sim : public AP_InertialSensor
 {
-public:
+	public:
 
-    AP_InertialSensor_Sim();
+		AP_InertialSensor_Sim();
 
-	/* @brief IMU update method. Called at 100Hz */
-    bool update() override;
+		/* @brief IMU update method. Called at 100Hz */
+		bool update() override;
 
-	/* @brief Returns gyro drift rate. Have used the MPU6000 gyro drift rate for reference */
-    float get_gyro_drift_rate() override;
+		/* @brief Returns gyro drift rate. Have used the MPU6000 gyro drift rate for reference */
+		float get_gyro_drift_rate() override;
 
-	/* @brief Waits for a sample from the IMU */
-    bool wait_for_sample(uint16_t timeout_ms) override;
-	
-	/* @brief Return time in seconds since last call to update. NOTE This has been hardcoded for simulation */
-    float get_delta_time() override;
+		/* @brief Waits for a sample from the IMU */
+		bool wait_for_sample(uint16_t timeout_ms) override;
+		
+		/* @brief Return time in seconds since last call to update. NOTE This has been hardcoded for simulation */
+		float get_delta_time() override;
 
-	// The following methods are also virtualised */
-	
-	/* @brief Retrieve number of errors in INS measurement */
-    uint16_t error_count(void) const { return 0; }
+		// The following methods are also virtualised */
+		
+		/* @brief Retrieve number of errors in INS measurement */
+		uint16_t error_count(void) const { return 0; }
 
-	/* @brief Check if IMU readings are accurate */
-    bool healthy(void) const { return true; }
+		/* @brief Check if IMU readings are accurate */
+		bool healthy(void) const { return true; }
 
-	/* @brief Get Gyro health. Always true for simulation */
-    bool get_gyro_health(void) const { return true; }
+		/* @brief Get Gyro health. Always true for simulation */
+		bool get_gyro_health(void) const { return true; }
 
-	/* @brief Get accel health. Always true for simulation */
-    bool get_accel_health(void) const { return true; }
+		/* @brief Get accel health. Always true for simulation */
+		bool get_accel_health(void) const { return true; }
 
-	/* @brief Initialise sensor. Does nothing for simulated IMU */
-	uint16_t _init_sensor( Sample_rate sample_rate ) override;
+		/* @brief Initialise sensor. Does nothing for simulated IMU */
+		uint16_t _init_sensor( Sample_rate sample_rate ) override;
 
-	uint32_t _delta_time_usec;
-	uint32_t _last_update_ms;
+		uint32_t _delta_time_usec;
+		uint32_t _last_update_ms;
+
 
 };
 

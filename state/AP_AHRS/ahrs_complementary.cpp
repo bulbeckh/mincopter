@@ -17,6 +17,26 @@ void AHRS_Complementary::ahrs_update(void)
 	 *
 	 */
 
+	static uint16_t _state_counter=0;
+	if (_state_counter<20) {
+
+		// TODO NOTE In the first few iterations of the simulation, our packet contains no valid
+		// readings and will send 'nans' or all zeroes as measurement for a few of the sensors. This
+		// corrupts our complementary filter so we basically ignore the first 20 iterations and assume no movement
+		_state_counter++;
+	
+		// No roll rates
+		_ahrs_state->_euler_rates.x = 0.0f;
+		_ahrs_state->_euler_rates.y = 0.0f;
+		_ahrs_state->_euler_rates.z = 0.0f;
+
+		// No roll/pitch/yaw
+		_ahrs_state->_attitude.from_euler(0.0f, 0.0f, 0.0f);
+		_ahrs_state->_euler = Vector3f(0.0f, 0.0f, 0.0f);
+
+		return;
+	}
+
 	// TODO Can these return a const reference instead?
 	// Accelerometer and Gyrometer readings in NED frame
 	Vector3f accel_reading = mincopter.ins.get_accel();
@@ -126,10 +146,15 @@ void AHRS_Complementary::ahrs_update(void)
 		euler_internal.z = alpha_yaw*theta_gyroz + (1-alpha_yaw)*theta_magz;
 	}
 
-	mincopter.hal.console->printf("eul:%f,%f,%f | %f,%f,%f | %f,%f,%f\r\n", euler_internal.x, euler_internal.y, euler_internal.z,
+	mincopter.hal.console->printf("t: %f, eul:%f,%f,%f | %f,%f,%f | %f,%f,%f | %f,%f,%f\r\n",
+			ins_time_s,
+			euler_internal.x, euler_internal.y, euler_internal.z,
 			accel_reading.x,
 			accel_reading.y,
 			accel_reading.z,
+			gyro_reading.x,
+			gyro_reading.y,
+			gyro_reading.z,
 			mag_reading.x,
 			mag_reading.y,
 			mag_reading.z);

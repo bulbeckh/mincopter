@@ -534,9 +534,6 @@ sads
     scheduler.run(time_available - 300);
 #endif
 
-	//if (_counter<3) mincopter.hal.console->printf("STACK post-loop:%u\n", mincopter.hal.util->available_memory());
-	
-	
 	// Read telemetry for response
 	if (_counter%100==0) {
 		uint16_t _tbuf[4];

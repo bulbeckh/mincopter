@@ -14,11 +14,10 @@ AP_InertialSensor_Sim::AP_InertialSensor_Sim() :
 
 float AP_InertialSensor_Sim::get_delta_time(void)
 {
-	// TODO This hardcoded method 
-	// Flight loop runs at 100hz and call is updated
-	//return 0.01;
+	// TODO Not sure if we should change this - flight loop runs at 100hz
 	
-    return _delta_time_usec * 1.0e-6;
+	return 0.01;
+    //return _delta_time_usec * 1.0e-6;
 }
 
 bool AP_InertialSensor_Sim::wait_for_sample(uint16_t /* unused */)
@@ -79,6 +78,15 @@ uint16_t AP_InertialSensor_Sim::_init_sensor( Sample_rate /* unused */ )
 {
 	set_board_orientation(Rotation::ROTATION_NONE);
 	// NOTE This is meant to return the product_id of the IMU sensor
+	
+	// NOTE TODO The _init_accel and _init_gyro methods are exposed as virtual functions for the interface but are never actually called?? Only this method is called during init
+
+	// We assume we are station for the accelerometer and gyrometer
+	_accel = Vector3f(0.0f, 0.0f,-9.81f);
+	_gyro = Vector3f(0.0f, 0.0f, 0.0f);
+
 	return AP_PRODUCT_ID_NONE;
 }
+
+
 
