@@ -25,10 +25,11 @@
 #include <AP_Math.h>
 #include <inttypes.h>
 
-#include "mcstate_state.h"
-
 /* This class is the base class for any AHRS implementation. The AHRS should typically
  * only be used by the MCState class */
+
+// Forwad declare the MCStatePrivate instance
+class MCStatePrivate;
 
 // TODO Remove AP_ from here - this interface has been significantly modified
 class AP_AHRS
@@ -38,7 +39,7 @@ class AP_AHRS
 		AP_AHRS(void) { }
 
 		/* @brief Initialisation of the AHRS */
-		void ahrs_init(MCStateData* state) {
+		void ahrs_init(MCStatePrivate* state) {
 			_ahrs_state = state;
 			_ahrs_init_internal();
 			return;
@@ -61,7 +62,7 @@ class AP_AHRS
 
 	protected:
 		/* @brief Pointer to the state object to be updated on each call to ahrs_update */
-		MCStateData* _ahrs_state;
+		MCStatePrivate* _ahrs_state;
 
 	private:
 		/* @brief Class specific initialisation method */

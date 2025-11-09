@@ -1,5 +1,4 @@
 
-
 /* Implementation of MinCopter State Algorithms */
 
 #include "mcstate.h"
@@ -9,17 +8,49 @@ extern MCInstance mincopter;
 
 #include "util.h"
 
+#include <AP_Math.h>
+
 // TODO This is now incorrect as it is potentially created and initialising two EKF instances. Change to pointers instead
 
 MCState::MCState(void) { }
+
+class MCStatePrivate {
+
+	double _position[3];
+	double _velocity[3];
+
+	// TODO We should be able to select the internal data type used by Quaternion class (i.e. float, double)
+	Quaternion _attitude;
+
+	// TODO Why do we have these
+	// Angular velocity and inertial frame accelerations
+	Vector3f _omega;
+	Vector3f _accel;
+
+	// Euler angle representation
+	Vector3f _euler;
+
+	// Euler rates representation
+	Vector3f _euler_rates;
+
+	// TODO Add bias states
+};
 
 void MCState::init(void)
 {
 	// Pass the _state variable into the ahrs and inertial_nav
 	
 	// TODO Check return value
+	/*
 	ahrs.ahrs_init(&_state);
 	inertial_nav.inav_init(&_state);
+	*/
+
+	// TODO Any initialisation code
+	// TODO Need to decide whether we intialise our MCStatePrivate data here or in it's class constructor
+	
+	// Call derived initialisation
+	init_derived();
 
 	return;
 }

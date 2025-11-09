@@ -3,40 +3,31 @@
 #include <ahrs.h>
 #include <inav.h>
 
-#include "mcstate_state.h"
+
+// NOTE Forward declaration of the MCStatePrivate instance
+class MCStatePrivate;
 
 class MCState
 {
 
 	public:
 		/* @brief MCState is a shared representation of the copter at a given time including kinematics (position, velocity, accel)
-		 * and angular rotation/velocity.
+		 * and angular rotation/velocity. Things like flight states/modes and armed/disarmed states should be part of the planner and
+		 * **not** part of state. The controllers should rely on this copter state object as inputs for determining control outputs.
 		 *
-		 * Things like flight states/modes and armed/disarmed states should be part of the planner and **not** part of state.
+		 * State estimation should reside here which takes input from sensors (in dev/) and determine state. The actual implementations
+		 * are derived from this base MCState class and need to implement both attitude and inertial navigation.
 		 *
-		 * The controllers should rely on this copter state object as inputs for determining control outputs.
-		 *
-		 * State estimation should reside here which takes input from sensors (in dev/) and determine state (i.e. via EKF3, DCM).
-		 *
-		 * @param mci (MCInstance*) Pointer to an MCInstance object containing interfaces to sensor inputs and control outputs
-		 */
+		 * This is done by overriding the **update** method and the implementation-specific **init_derived** methods */
 		MCState(void);
 
-		/* MCState should contain the entire state vector:
+		/* MCStatePrivate contains the entire state vector:
 		 * 
 		 * - position (float[3])
 		 * - velocity (float[3)
-		 * - orientation (quaternion[4])
-		 * 
-		 * Additionally, it should also contain:
-		 *
-		 * - angular velocity (float[3])
-		 * - acceleration (float[3])
-		 *
-		 * These are typically just read straight from the gyrometer/accelerometer and rotated to inertial frame except
-		 * in the case when we are estimating a sensor bias state in which case we also applied the bias correction.
-		 *
-		 */
+		 * - attitude (as quaternion - float[4])
+		 * - attitude (as euler angles - float[3])
+		 * - angular velocity (float[3]) */
 
 	public:
 	
@@ -54,18 +45,20 @@ class MCState
 		/* @brief Initialise the MCState */
 		void init(void);
 
+		// @brief Implementation-specific initialisation */
+		virtual void init_derived(void) = 0;
+
+		// TODO We can either choose to update the whole method, or if there is some implementation-independent update then we can
+		// use a pattern similar to the **init** / **init_derived** functions
 		/* @brief Run an update of the state estimation libraries to produce an accurate state vector */
-		void update(void);
+		virtual void update(void) = 0;
 
 	public:
 
-		/* @brief State struct which is passed between ahrs and inertial_nav */
-		MCStateData _state;
+		// TODO This should be private and retrieved only via the interfaces
 
-		// TODO REMOVE
-		/* @brief IMU roll rates that get updated during read_AHRS */
-		// TODO does this really need to be here - can we use ins readings directly instead?
-		//Vector3f omega;
+		/* @brief State struct which is passed between ahrs and inertial_nav */
+		MCStatePrivate _state;
 
 		// TODO Do we remove or keep these - they are helpful values to avoid calling get_dcm or get_euler from controller
 		/* @brief Orientation values from DCM. Updated during call to update_trig in fast_loop */
@@ -82,9 +75,6 @@ class MCState
 		int32_t yaw_sensor;
 
 	private:
-		/* @brief Euler angle <R,P,Y> representation of orientation. Retrieved through get_euler_angles in order to ensure on-demand computation */
-		//Vector3f _euler;
-
 		/* @brief DCM Matrix representation of orientation. Computed on demand */
 		Matrix3f _dcm;
 
@@ -121,20 +111,20 @@ class MCState
 		bool position_ok(void) const;
 
 		/* @brief Returns latitude in deg*1e7  (*10,000,000) */
-		int32_t get_latitude() const;
+		int32_t get_latitude(void) const;
 
 		/* @brief Returns longitude in deg*1e7  (*10,000,000) */
-		int32_t get_longitude() const;
+		int32_t get_longitude(void) const;
 
 		/* @brief Returns altitude in cm. NOTE Even though the earth frame is NED, this will return a positive altitude */
-		float get_altitude() const;
+		float get_altitude(void) const;
 
 		/* @brief Get position in earth frame (NED) */
-		const Vector3f get_position() const;
+		const Vector3f get_position(void) const;
 
 		// TODO Should this return a ref? Same with get_position?
 		/* @brief Get velocity in earth frame (NED) */
-		const Vector3f get_velocity() const;
+		const Vector3f get_velocity(void) const;
 
 		// TODO Add a get_heading method (formerly in Compass.h)
 

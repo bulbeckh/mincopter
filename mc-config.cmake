@@ -23,8 +23,7 @@ set(MC_PLANNER_TYPE "NONE") ## (NONE, WAYPOINT)
 
 ## Specify state here
 ## TODO Change these names
-set(MC_INAV_TYPE "NONE") ## (DEFAULT, EKF, NONE)
-set(MC_AHRS_TYPE "NONE") ## (DCM, EKF, NONE, COMPLEMENTARY)
+set(MC_STATE_TYPE "NONE") ## (NONE, COMPLEMENTARY, EKF, MADGWICK, SIM)
 
 ## Specify backend dev (ignored for sim)
 set(MC_GPS_TYPE "NONE") 			## (NONE, UBLOX, AUTO, SIM)

@@ -1,7 +1,10 @@
 
 #pragma once
 
-#include "mcstate_state.h"
+#include <AP_Math.h>
+
+// Forward declare the private instance
+class MCStatePrivate;
 
 class MC_InertialNav
 {
@@ -13,7 +16,7 @@ class MC_InertialNav
 	public:
 
 		/* @brief Initialise the inertial navigation */
-		virtual void inav_init(MCStateData* state) {
+		virtual void inav_init(MCStatePrivate* state) {
 			_inav_state = state;
 			_inav_init_internal();
 		}
@@ -46,7 +49,7 @@ class MC_InertialNav
 	
 	protected:
 		/* @brief Pointer to the state object to be updated on each call to inav_update */
-		MCStateData* _inav_state;
+		MCStatePrivate* _inav_state;
 
 	private:
 		/* @brief Class-specific initialisation method */
