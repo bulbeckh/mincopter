@@ -6,7 +6,6 @@
 
 /* NOTE The reason why there is a mincopter instance here is because these are not class methods */
 extern MCInstance mincopter;
-extern MCState mcstate;
 
 #include "planner.h"
 #include "control.h"

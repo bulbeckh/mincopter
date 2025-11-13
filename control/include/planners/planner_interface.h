@@ -45,11 +45,10 @@
 #include "mcinstance.h"
 #include "mcstate.h"
 
-#include "ahrs.h"
-#include "inav.h"
+// HASH include "ahrs.h"
+// HASH include "inav.h"
 
 extern MCInstance mincopter;
-extern MCState mcstate;
 
 enum class PlannerArmState
 {
@@ -62,8 +61,8 @@ class MC_Planner
 {
 	public:
 
-		MC_Planner() :
-			fence(&mcstate)
+		MC_Planner()
+			//fence(&mcstate)
 			//wp_nav((const MC_INAV_CLASS *)mcstate.inertial_nav, (const MC_AHRS_CLASS *)mcstate.ahrs)
 		{
 			// Initialised planner states
@@ -82,8 +81,8 @@ class MC_Planner
 
 		AP_UNION_T ap;
 
-		AC_Fence fence;
-
+		// TODO AC_Fence removed temporarily
+		//AC_Fence fence;
 		//AC_WPNav wp_nav;
 
 		// The altitude as reported by Baro in cm – Values can be quite high

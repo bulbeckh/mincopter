@@ -3,6 +3,8 @@
 
 /* Implementation of a complementary filter for state estimation */
 
+#include "mcstate_interface.h"
+
 class StateComplementary : public MCState
 {
 	public:

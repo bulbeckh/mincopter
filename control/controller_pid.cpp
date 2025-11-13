@@ -14,7 +14,6 @@
 
 
 extern MCInstance mincopter;
-extern MCState    mcstate;
 
 #ifdef TARGET_ARCH_LINUX
     #include "simulation_logger.h"

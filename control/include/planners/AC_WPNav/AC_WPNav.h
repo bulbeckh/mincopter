@@ -9,8 +9,9 @@
 #include <AC_PID.h>             // PID library
 // HASH include <APM_PI.h>             // PID library
 
-#include "inav.h"
-#include "ahrs.h"
+// TODO Removed these
+// HASH include "inav.h"
+// HASH include "ahrs.h"
 
 // loiter maximum velocities and accelerations
 #define WPNAV_ACCELERATION              100.0f      // defines the default velocity vs distant curve.  maximum acceleration in cm/s/s that position controller asks for from acceleration controller

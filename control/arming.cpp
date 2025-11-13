@@ -13,7 +13,6 @@
 #include "control.h"
 
 extern MCInstance mincopter;
-extern MCState mcstate;
 
 
 #include "log.h"

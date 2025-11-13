@@ -7,7 +7,6 @@
 #endif
 
 extern MCInstance mincopter;
-extern MCState mcstate;
 
 #include "planner.h"
 

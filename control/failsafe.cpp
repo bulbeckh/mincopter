@@ -11,7 +11,6 @@
 extern MCInstance mincopter;
 
 #include "mcstate.h"
-extern MCState mcstate;
 
 void WP_Planner::failsafe_radio_on_event()
 {

@@ -2,7 +2,7 @@
 #include <AP_HAL.h>
 #include <AC_Fence.h>
 
-#include "ahrs.h"
+// HASH include "ahrs.h"
 
 extern const AP_HAL::HAL& hal;
 

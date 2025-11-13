@@ -4,7 +4,6 @@
 #include <AP_Math.h>
 
 #include "mcstate.h"
-extern MCState mcstate;
 
 #include "mcinstance.h"
 extern MCInstance mincopter;

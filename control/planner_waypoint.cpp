@@ -9,7 +9,6 @@
 extern MCInstance mincopter;
 
 #include "mcstate.h"
-extern MCState mcstate;
 
 //TODO Change all these references to either state or mcstate.
 

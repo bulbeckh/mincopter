@@ -71,7 +71,20 @@ MCInstance mincopter;
 AP_Scheduler scheduler;
 
 /* @brief Interface to the state estimation module */
-MCState mcstate;
+#ifdef MC_STATE_NONE
+	StateNone mcstate;
+#elif MC_STATE_COMPLEMENTARY
+	StateComplementary mcstate;
+#elif MC_STATE_MADGWICK
+	// TODO Add implementation
+	StateMadgwick mcstate;
+#elif MC_STATE_EKF
+	// TODO Add implementation
+	EKF mcstate;
+#elif MC_STATE_SIM
+	// TODO Add implementation
+	StateSim mcstate;
+#endif
 
 /* ### CONTROLLER & PLANNER ###
  * We instantiate our chosen controller here so that it can be referenced in other translation units with
@@ -97,11 +110,10 @@ void init_ardupilot(void);
 /* @brief The state update routine. Will update the AHRS, the Inertial Navigation, and some sensors */
 void state_update(void)
 {
-	mcstate.ahrs.ahrs_update();
+	mcstate.update();
 
+	// TODO Just remove omega - not used by Controller PID
 	//mcstate.omega = mincopter.ins.get_gyro();
-
-	mcstate.inertial_nav.inav_update();
 
 	// TODO What is this actually doing? None of the values are used
     //mcstate.update_trig();
@@ -194,7 +206,7 @@ void loop(void)
 	float _pres = mincopter.barometer.get_pressure();
 	float _temperature = mincopter.barometer.get_temperature();
 
-	Quaternion& _temp_att = mcstate._state._attitude;
+	Quaternion& _temp_att = mcstate.data.attitude;
 
 	float roll,pitch,yaw;
 	_temp_att.to_euler(&roll, &pitch, &yaw);

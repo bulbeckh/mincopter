@@ -7,15 +7,15 @@ list(APPEND MC_LIBS_STATE
 
 if(MC_STATE_TYPE STREQUAL "SIM")
 	list(APPEND MC_LIBS_STATE
-		${CMAKE_SOURCE_DIR}/state/sim/*.cpp
+		${CMAKE_SOURCE_DIR}/state/sim/state_sim.cpp
 	)
 elseif(MC_STATE_TYPE STREQUAL "COMPLEMENTARY")
 	list(APPEND MC_LIBS_STATE
-		${CMAKE_SOURCE_DIR}/state/complementary/*.cpp
+		${CMAKE_SOURCE_DIR}/state/complementary/state_complementary.cpp
 	)
 elseif(MC_STATE_TYPE STREQUAL "MADGWICK")
 	list(APPEND MC_LIBS_STATE
-		${CMAKE_SOURCE_DIR}/state/madgwick/*.cpp
+		${CMAKE_SOURCE_DIR}/state/madgwick/state_madgwick.cpp
 	)
 elseif(MC_STATE_TYPE STREQUAL "EKF")
 	list(APPEND MC_LIBS_STATE
@@ -24,6 +24,10 @@ elseif(MC_STATE_TYPE STREQUAL "EKF")
 		${CMAKE_SOURCE_DIR}/state/ekf/ekf_correct.c
 		#${CMAKE_SOURCE_DIR}/state/ekf/ekf_predict_mx.c
 		#${CMAKE_SOURCE_DIR}/state/ekf/ekf_correct_mx.c
+	)
+elseif(MC_STATE_TYPE STREQUAL "NONE")
+	list(APPEND MC_LIBS_STATE
+		${CMAKE_SOURCE_DIR}/state/none/state_none.cpp
 	)
 endif()
 

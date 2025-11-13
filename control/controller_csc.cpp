@@ -9,7 +9,6 @@
 extern MCInstance mincopter;
 
 #include "mcstate.h"
-extern MCState mcstate;
 
 // Instance
 CSC_Controller controller;

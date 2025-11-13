@@ -8,7 +8,6 @@
 #include "log.h"
 
 extern MCInstance mincopter;
-extern MCState mcstate;
 
 #include "planner.h"
 #include "control.h"

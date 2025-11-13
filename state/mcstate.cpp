@@ -14,28 +14,6 @@ extern MCInstance mincopter;
 
 MCState::MCState(void) { }
 
-class MCStatePrivate {
-
-	double _position[3];
-	double _velocity[3];
-
-	// TODO We should be able to select the internal data type used by Quaternion class (i.e. float, double)
-	Quaternion _attitude;
-
-	// TODO Why do we have these
-	// Angular velocity and inertial frame accelerations
-	Vector3f _omega;
-	Vector3f _accel;
-
-	// Euler angle representation
-	Vector3f _euler;
-
-	// Euler rates representation
-	Vector3f _euler_rates;
-
-	// TODO Add bias states
-};
-
 void MCState::init(void)
 {
 	// Pass the _state variable into the ahrs and inertial_nav
@@ -55,6 +33,8 @@ void MCState::init(void)
 	return;
 }
 
+// NOTE This is now a pure virtual function - remove once ready
+/*
 void MCState::update(void)
 {
 	if (!home_set && mincopter.g_gps->status()==GPS::GPS_Status::GPS_OK_FIX_3D) {
@@ -67,7 +47,7 @@ void MCState::update(void)
 		home_set = true;
 	}
 
-	/* If we are using the EKF, then we run the full update using a call to the inertial_nav and ignore the ahrs update method */
+	// If we are using the EKF, then we run the full update using a call to the inertial_nav and ignore the ahrs update method
 #ifndef MC_AHRS_EKF
 	ahrs.ahrs_update();
 #endif
@@ -87,21 +67,22 @@ void MCState::update(void)
 	// TODO Should this return something to indicate successful update
 	return;
 }
+*/
 
 const Vector3f& MCState::get_euler_rates(void)
 {
-	return _state._euler_rates;
+	return data.euler_rates;
 }
 
 const Vector3f& MCState::get_euler_angles(void)
 {
-	_state._attitude.to_euler(
-			&_state._euler.x,
-			&_state._euler.y,
-			&_state._euler.z
+	data.attitude.to_euler(
+			&data.euler.x,
+			&data.euler.y,
+			&data.euler.z
 	);
 
-	return _state._euler;
+	return data.euler;
 }
 
 const Matrix3f& MCState::get_dcm(void)
@@ -146,14 +127,14 @@ void MCState::update_trig(void){
 		// 270 = cos_yaw:  0.00, sin_yaw: -1.00,
 	
 	// Update the roll,pitch,yaw sensor values
-	_state._euler = get_euler_angles();
+	//_state._euler = get_euler_angles();
 
 	// TODO Remove the use of <roll,pitch,yaw>_sensor in controller PID - replace with 
 	// TODO Does get_euler_angles express in degrees or radians?
 	// Euler angles as int32 (degc*100)
-	roll_sensor  = (int32_t)(_state._euler.x*100);
-	pitch_sensor = (int32_t)(_state._euler.y*100);
-	yaw_sensor   = (int32_t)(_state._euler.z*100);
+	roll_sensor  = (int32_t)(data.euler.x*100);
+	pitch_sensor = (int32_t)(data.euler.y*100);
+	yaw_sensor   = (int32_t)(data.euler.z*100);
 	
 	return;
 }
@@ -199,15 +180,17 @@ const Vector3f MCState::get_position() const
 {
 	// TODO Change this to a reference
 	return Vector3f(
-			_state._position[0],
-			_state._position[1],
-			_state._position[2]);
+			data.position[0],
+			data.position[1],
+			data.position[2]);
 }
 
 const Vector3f MCState::get_velocity() const
 {
 	return Vector3f(
-			_state._velocity[0],
-			_state._velocity[1],
-			_state._velocity[2]);
+			data.velocity[0],
+			data.velocity[1],
+			data.velocity[2]);
 }
+
+

@@ -6,10 +6,8 @@
 #include "radio.h"
 
 #include "mcinstance.h"
-#include "mcstate.h"
 
 extern MCInstance mincopter;
-extern MCState mcstate;
 
 #include "planner.h"
 #include "control.h"
