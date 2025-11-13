@@ -151,7 +151,7 @@ void init_ardupilot(void)
     Log_Write_Startup();
 #endif
 
-	// Should initialise both ahrs and inertial_nav
+	// Initialise our mcstate algorithms. This will call the class-specific **init_derived** method
     mcstate.init();
 	mincopter.hal.console->printf_P(PSTR("[INIT] MCState initialised\n"));
 

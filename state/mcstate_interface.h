@@ -95,6 +95,7 @@ class MCState
 		int32_t yaw_sensor;
 
 	private:
+		// TODO Do we use the dcm representation anywhere?? Remove if not
 		/* @brief DCM Matrix representation of orientation. Computed on demand */
 		Matrix3f _dcm;
 

@@ -26,13 +26,13 @@ void StateComplementary::update(void)
 		_state_counter++;
 	
 		// No roll rates
-		_ahrs_state->_euler_rates.x = 0.0f;
-		_ahrs_state->_euler_rates.y = 0.0f;
-		_ahrs_state->_euler_rates.z = 0.0f;
+		data.euler_rates.x = 0.0f;
+		data.euler_rates.y = 0.0f;
+		data.euler_rates.z = 0.0f;
 
 		// No roll/pitch/yaw
-		_ahrs_state->_attitude.from_euler(0.0f, 0.0f, 0.0f);
-		_ahrs_state->_euler = Vector3f(0.0f, 0.0f, 0.0f);
+		data.attitude.from_euler(0.0f, 0.0f, 0.0f);
+		data.euler = Vector3f(0.0f, 0.0f, 0.0f);
 
 		return;
 	}
@@ -124,9 +124,9 @@ void StateComplementary::update(void)
 	_ahrs_state->_euler_rates.z = gyro_reading.y*sin(_ahrs_state->_euler.x) / cos(_ahrs_state->_euler.y) + gyro_reading.z*cos(_ahrs_state->_euler.x) / cos(_ahrs_state->_euler.y);
 	*/
 
-	_ahrs_state->_euler_rates.x = gyro_reading.x;
-	_ahrs_state->_euler_rates.y = gyro_reading.y;
-	_ahrs_state->_euler_rates.z = gyro_reading.z;
+	data.euler_rates.x = gyro_reading.x;
+	data.euler_rates.y = gyro_reading.y;
+	data.euler_rates.z = gyro_reading.z;
 
 	if (_first_update) {
 		// Don't fuse on first update
@@ -137,9 +137,9 @@ void StateComplementary::update(void)
 	} else {
 		// Fuse with gyro
 		// TODO Change gyro_reading to the euler rate for integration
-		float theta_gyrox = euler_internal.x + _ahrs_state->_euler_rates.x*ins_time_s;
-		float theta_gyroy = euler_internal.y + _ahrs_state->_euler_rates.y*ins_time_s;
-		float theta_gyroz = euler_internal.z + _ahrs_state->_euler_rates.z*ins_time_s;
+		float theta_gyrox = euler_internal.x + data.euler_rates.x*ins_time_s;
+		float theta_gyroy = euler_internal.y + data.euler_rates.y*ins_time_s;
+		float theta_gyroz = euler_internal.z + data.euler_rates.z*ins_time_s;
 
 		euler_internal.x = alpha*theta_gyrox + (1-alpha)*theta_magx;
 		euler_internal.y = alpha*theta_gyroy + (1-alpha)*theta_magy;
@@ -160,13 +160,15 @@ void StateComplementary::update(void)
 			mag_reading.z);
 
 	// Compute and update quaternion (in NED frame)
-	_ahrs_state->_attitude.from_euler(
+	data.attitude.from_euler(
 			euler_internal.x,
 			euler_internal.y,
 			euler_internal.z);
 
 	// Update the euler angles
-	_ahrs_state->_euler = euler_internal;
+	data.euler = euler_internal;
+
+	// TODO Add fusion of position and velocity measurements here - see complementary-derivation.ipynb in state/design for implementation
 
 	return;
 }

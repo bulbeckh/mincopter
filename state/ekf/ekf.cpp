@@ -1,19 +1,13 @@
 
 
-#include "ekf.h"
+#include "state_ekf.h"
+
 #include <AP_Math.h>
 
 #include "mcinstance.h"
 extern MCInstance mincopter;
 
-// TODO Bad hack - fix this
-#include "mcstate.h"
-extern MCState mcstate;
-
 // NOTE We forward declare the generated ekf casadi methods here rather than using a header file
-
-// TODO This is bad - need to formalise the way be define MCState and pass AHRS and INAV objects
-//EKF ahrs_obj;
 
 // Casadi generated c functions for ekf prediction and correction steps
 extern "C" {
@@ -31,8 +25,7 @@ int _none_ekf_correct(const EKF_DATA_TYPE** arg, EKF_DATA_TYPE** res, long long 
 	return 0;
 }
 
-
-void EKF::inav_update(void)
+void StateEKF::update(void)
 {
 	// This is called from the main loop at ~100Hz
 	
@@ -61,31 +54,31 @@ void EKF::inav_update(void)
 	}
 
 	// Update MCState via _state variable - _result[0] is the state_out as (x,v,q)
-	_inav_state->_attitude(
+	data.attitude(
 			ekf_correct_res[0][6],
 			ekf_correct_res[0][7],
 			ekf_correct_res[0][8],
 			ekf_correct_res[0][9]);
 
 	// Also update euler angles
-	_inav_state->_attitude.to_euler(
-			&_inav_state->_euler.x,
-			&_inav_state->_euler.y,
-			&_inav_state->_euler.z
+	data.attitude.to_euler(
+			&data.euler.x,
+			&data.euler.y,
+			&data.euler.z
 			);
 
-	_inav_state->_position[0] = ekf_correct_res[0][0];
-	_inav_state->_position[1] = ekf_correct_res[0][1];
-	_inav_state->_position[2] = ekf_correct_res[0][2];
+	data.position[0] = ekf_correct_res[0][0];
+	data.position[1] = ekf_correct_res[0][1];
+	data.position[2] = ekf_correct_res[0][2];
 
-	_inav_state->_velocity[0] = ekf_correct_res[0][3];
-	_inav_state->_velocity[1] = ekf_correct_res[0][4];
-	_inav_state->_velocity[2] = ekf_correct_res[0][5];
+	data.velocity[0] = ekf_correct_res[0][3];
+	data.velocity[1] = ekf_correct_res[0][4];
+	data.velocity[2] = ekf_correct_res[0][5];
 
 	return;
 }
 
-void EKF::setup_ekf_args(void)
+void StateEKF::setup_ekf_args(void)
 {
 	/* Predict setup */
 
@@ -139,13 +132,13 @@ void EKF::setup_ekf_args(void)
 	
 	// Get state (q,x,v) from _state
 	// TODO FIx this - should not really be using mcstate directly for state here - should be passed in from somewhere else
-	x[0] = mcstate._state._position[0];
-	x[1] = mcstate._state._position[1];
-	x[2] = mcstate._state._position[2];
+	x[0] = data.position[0];
+	x[1] = data.position[1];
+	x[2] = data.position[2];
 
-	v[0] = mcstate._state._velocity[0];
-	v[1] = mcstate._state._velocity[1];
-	v[2] = mcstate._state._velocity[2];
+	v[0] = data.velocity[0];
+	v[1] = data.velocity[1];
+	v[2] = data.velocity[2];
 	
 	/* Correct step */
 	
@@ -165,8 +158,8 @@ void EKF::setup_ekf_args(void)
 
 	// TODO Check this calculation
 	// GPS delta from home location in centi-degrees (deg*1e7)
-	int32_t lat_offset = mincopter.g_gps->latitude - mcstate.home.lat;
-	int32_t lon_offset = mincopter.g_gps->latitude - mcstate.home.lng;
+	int32_t lat_offset = mincopter.g_gps->latitude - home.lat;
+	int32_t lon_offset = mincopter.g_gps->latitude - home.lng;
 
 	// The (very simple) model we are using is 1deg lat = 111.32km (north-south)
 	//
@@ -187,7 +180,7 @@ void EKF::setup_ekf_args(void)
 }
 
 
-void EKF::reset(void)
+void StateEKF::reset(void)
 {
 	// TODO We need to figure out the behaviour when a reset is called. It is 
 	// complicated by the fact that we have two reset methods - one to zero everything
@@ -244,33 +237,12 @@ void EKF::reset(void)
 
 
 	// Update _altitude quaternion
-	_inav_state->_attitude(q[0], q[1], q[2], q[3]);
+	data.attitude(q[0], q[1], q[2], q[3]);
 	
 	return;
 }
 
-
-void EKF::_ahrs_init_internal(void)
-{
-	/* Even though this method will be called, we don't initialise anything as all EKF 
-	 * updates and initialisation is handled via the inav */
-
-	// TODO Figure out a better way to handle this
-	
-	// Initialise quaternion state
-	//reset();
-
-	return;
-}
-
-void EKF::ahrs_update(void)
-{
-	/* For the EKF, the entire state update (predict and correct) is handled by
-	 * inav_update. As such, we don't actually do anything in this method. */
-	return;
-}
-
-void EKF::_inav_init_internal(void)
+void StateEKF::init_derived(void)
 {
 	reset();
 	return;

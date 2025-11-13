@@ -27,16 +27,13 @@
 
 #include <AP_Math.h>
 
-#include <ahrs_interface.h>
-#include <inav_interface.h>
+#include "mcstate_interface.h"
 
 #define EKF_DATA_TYPE float
 
-// TODO Why do we have 'AP' for AHRS but 'MC' for InertialNav
-
-class EKF : public AP_AHRS, public MC_InertialNav {
+class StateEKF : public MCState {
 	public:
-		EKF() : AP_AHRS(), MC_InertialNav() { }
+		StateEKF(void) : MCState() { }
 
 	private:
 		/* @brief Prepare correct and predict arguments vectors */
@@ -112,25 +109,12 @@ class EKF : public AP_AHRS, public MC_InertialNav {
 		EKF_DATA_TYPE* ekf_correct_res[4] = {state_out, cov_out, vt, kgain};
 
 	public:
-		// Implementation of AP_AHRS methods
-		
-		/* @brief Initialise the EKF orientation portion */
-		void _ahrs_init_internal(void) override;
 
-		/* @brief Typically this calls the ahrs portion of the update but all updates for EKF are handled by the call to inav_update */
-		void ahrs_update(void) override;
+		/* @brief Run full update of EKF predict/correct for attitude and inertial navigation */
+		void update(void) override;
 
-		// Implementation of AP_InertialNav methods
-
-		/* @brief Initialise the INS (position/velocity) portion of the EKF, ideally using the latest accelerometer reading */
-		void _inav_init_internal(void) override;
-
-		/* @brief Update the INS using latest accelerometer readings */
-		void inav_update(void) override;
-
-		/* @brief Overrides of the reset methods */
-		// TODO
-
+		/* @brief Initialise EKF */
+		void init_derived(void) override;
 
 };
 

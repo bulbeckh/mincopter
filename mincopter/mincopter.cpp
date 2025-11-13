@@ -76,11 +76,10 @@ AP_Scheduler scheduler;
 #elif MC_STATE_COMPLEMENTARY
 	StateComplementary mcstate;
 #elif MC_STATE_MADGWICK
-	// TODO Add implementation
 	StateMadgwick mcstate;
 #elif MC_STATE_EKF
 	// TODO Add implementation
-	EKF mcstate;
+	StateEKF mcstate;
 #elif MC_STATE_SIM
 	// TODO Add implementation
 	StateSim mcstate;
