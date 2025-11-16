@@ -6,4 +6,5 @@
 **/__pycache__
 **/*.ihex
 arch/arm/Drivers
+arch/avr/xc8
 *.bin

@@ -1,13 +1,19 @@
-## CMake AVR Toolchain file
 
+## CMake Toolchain file for newer series AVR boards i.e. AVR64xx and AVR128xx
 
 ## TODO Update these definitions
 
 set(CMAKE_SYSTEM_NAME Generic)
 set(CMAKE_SYSTEM_PROCESSOR avr)
 
-set(CMAKE_C_COMPILER avr-gcc)
-set(CMAKE_CXX_COMPILER avr-g++)
+## TODO This is the standard path for the Microchip XC8 install but should make it configurable
+set(CMAKE_C_COMPILER /opt/microchip/xc8/v3.10/bin/xc8-cc)
+set(CMAKE_CXX_COMPILER /opt/microchip/xc8/v3.10/bin/xc8-cc)
+
+set(CMAKE_C_COMPILER_WORKS 1)
+set(CMAKE_CXX_COMPILER_WORKS 1)
+
+set(DFP_LOCATION ${CMAKE_SOURCE_DIR}/arch/avr/xc8/ )
 
 add_compile_definitions(
 	#BOARD=atmega2560
@@ -47,8 +53,9 @@ fsigned-char  allows char to be signed
 
 ## NOTE TARGET_ARCH should be the same as the mmcu option for avr targets
 set(COMMON_FLAGS
-	#-mmcu=${TARGET_ARCH}
-	-mmcu=${MARCHITECTURE}
+	-mmcu=${TARGET_ARCH}
+	-mdfp=${DFP_LOCATION}/xc8
+	#-mmcu=${MARCHITECTURE}
 	-mcall-prologues
 	-Os
 	-Wall
@@ -61,6 +68,7 @@ set(COMMON_FLAGS
 	-fdata-sections
 	-fsigned-char
 	-fstack-usage
+	-I${DFP_LOCATION}/include
 )
 message("AVR Architecture - common flags: ${COMMON_FLAGS}")
 
@@ -75,7 +83,7 @@ set(LINKER_FLAGS
 	-Wl,--gc-sections
 	-Wl,-Map,${CMAKE_BINARY_DIR}/output.map
 	## NOTE I don't think this is needed
-	-Wl,-m,${MARCHITECTURE}
+	#-Wl,-m,${MARCHITECTURE}
 	-Wl,--relax
 )
 message("AVR Architecture - linker flags: ${LINKER_FLAGS}")
