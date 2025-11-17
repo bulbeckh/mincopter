@@ -51,6 +51,8 @@ void StateEKF::update(void)
 		ekf_correct_res[0][7] /= q_norm;
 		ekf_correct_res[0][8] /= q_norm;
 		ekf_correct_res[0][9] /= q_norm;
+	} else {
+		// TODO - What to do here?
 	}
 
 	// Update MCState via _state variable - _result[0] is the state_out as (x,v,q)

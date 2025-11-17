@@ -5,7 +5,7 @@ list(APPEND mc-control-common
 	## TODO Temporarily removed AC_Fence until we need it in planner implementation
 	#${CMAKE_SOURCE_DIR}/control/AC_Fence.cpp
 	${CMAKE_SOURCE_DIR}/control/AC_PID.cpp
-	${CMAKE_SOURCE_DIR}/control/AC_WPNav.cpp
+	#${CMAKE_SOURCE_DIR}/control/AC_WPNav.cpp
 	${CMAKE_SOURCE_DIR}/control/radio.cpp
 	${CMAKE_SOURCE_DIR}/control/mixer.cpp
 )
