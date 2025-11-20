@@ -6,7 +6,8 @@
 #elif CONFIG_HAL_BOARD == HAL_BOARD_STM32
 	#include <arch/arm/stm32/AP_HAL_STM32.h>
 #elif CONFIG_HAL_BOARD == HAL_BOARD_AVR
-	#include <arch/avr/AP_HAL_AVR/AP_HAL_AVR.h>
+	#include <arch/avr/mega/AP_HAL_AVR.h>
+	// TODO Add the newer series avr boards here
 #else
 	#error "HAL_Interface: CONFIG_HAL_BOARD not found"
 #endif

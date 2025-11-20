@@ -53,7 +53,8 @@ fsigned-char  allows char to be signed
 
 ## NOTE TARGET_ARCH should be the same as the mmcu option for avr targets
 set(COMMON_FLAGS
-	-mmcu=${TARGET_ARCH}
+	-std=gnu++11
+	-mcpu=${TARGET_ARCH}
 	-mdfp=${DFP_LOCATION}/xc8
 	#-mmcu=${MARCHITECTURE}
 	-mcall-prologues

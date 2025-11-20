@@ -258,7 +258,7 @@ list(APPEND MC_INCLUDE_DIRS
 	${CMAKE_SOURCE_DIR}/mincopter/
 	${CMAKE_SOURCE_DIR}/arch
 	${CMAKE_SOURCE_DIR}/arch/AP_HAL
-	${CMAKE_SOURCE_DIR}/arch/avr/AP_HAL_AVR
+	${CMAKE_SOURCE_DIR}/arch/avr/mega
 	${CMAKE_SOURCE_DIR}/arch/arm/stm32
 	${CMAKE_SOURCE_DIR}/arch/linux
 	${CMAKE_SOURCE_DIR}/arch/linux/generic
@@ -316,10 +316,10 @@ if(${TARGET_ARCH_FAMILY} STREQUAL "generic")
 	)
 elseif(${TARGET_ARCH_FAMILY} STREQUAL "avr")
 	file(GLOB MC_LIBS_ARCH
-		"arch/avr/AP_HAL_AVR/*.cpp"
-		"arch/avr/AP_HAL_AVR/*.c"
-		"arch/avr/AP_HAL_AVR/utility/*.c"
-		"arch/avr/AP_HAL_AVR/utility/*.cpp"
+		"arch/avr/mega/*.cpp"
+		"arch/avr/mega/*.c"
+		"arch/avr/mega/utility/*.c"
+		"arch/avr/mega/utility/*.cpp"
 	)
 elseif(${TARGET_ARCH_FAMILY} STREQUAL "rpi")
 	file(GLOB MC_LIBS_ARCH
