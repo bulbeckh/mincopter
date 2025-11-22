@@ -7,13 +7,12 @@
 
 programming model for mega and 'newer' AVRxxDAxx series have substantially different programming models 
 
-## ADC
-mega2560,mega1280 have 16-channel ADCs compared to the 8-channel for the mega2561,mega1281
 
-## USART
-Two USART on 1281/2561 and four on 1280/2560
+### Programming with Microchip xc8-cc
+We need to first download the xc8 compiler from Microchip website as well as the dfp (device family pack) for our MCU series (e.g. DA series, DB series)
 
-## SPI
+xc8 provides an AVR runtime environment but we need to give it the 
+
 
 
 

@@ -14,11 +14,11 @@ function (set_toolchain TARGET_ARCH)
 	## Supported AVR targets
 	if(TARGET_ARCH STREQUAL "atmega2560" OR TARGET_ARCH STREQUAL "atmega2561")
 		set(TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/toolchains/avr-mega.cmake" PARENT_SCOPE)
-		set(TARGET_ARCH_FAMILY "avr" PARENT_SCOPE)
+		set(TARGET_ARCH_FAMILY "avrmega" PARENT_SCOPE)
 		#set(MARCHITECTURE "avr6" PARENT_SCOPE)
 	elseif(TARGET_ARCH STREQUAL "atmega1280" OR TARGET_ARCH STREQUAL "atmega1281")
 		set(TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/toolchains/avr-mega.cmake" PARENT_SCOPE)
-		set(TARGET_ARCH_FAMILY "avr" PARENT_SCOPE)
+		set(TARGET_ARCH_FAMILY "avrmega" PARENT_SCOPE)
 		#set(MARCHITECTURE "avr51" PARENT_SCOPE)
 	elseif(TARGET_ARCH STREQUAL "avr64db28"
 			OR TARGET_ARCH STREQUAL "avr64db32"
@@ -42,7 +42,7 @@ function (set_toolchain TARGET_ARCH)
 			OR TARGET_ARCH STREQUAL "avr64du32")
 		## AVR-Dx series uses the xc8-cc compiler and requires a Microchip DFP package
 		set(TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/toolchains/avrXX.cmake" PARENT_SCOPE)
-		set(TARGET_ARCH_FAMILY "avr" PARENT_SCOPE)
+		set(TARGET_ARCH_FAMILY "avrdx" PARENT_SCOPE)
 		#set(MARCHITECTURE "avrxmega4" PARENT_SCOPE)
 	elseif(TARGET_ARCH STREQUAL "stm32f407xx")
 		set(TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/toolchains/stm32.cmake" PARENT_SCOPE)
@@ -74,14 +74,13 @@ function (set_toolchain TARGET_ARCH)
   	else()
       	message(FATAL_ERROR "Unsupported target architecture: ${TARGET_ARCH}")
   	endif()
-	message("Set TOOLCHAIN_FILE to: ${TOOLCHAIN_FILE}")
 endfunction()
 
 if (DEFINED TARGET_ARCH)
 	set_toolchain(${TARGET_ARCH})
+	message("Set TOOLCHAIN_FILE to: ${TOOLCHAIN_FILE}")
 else()
-	message("Target Architecture not supplied, use -DTARGET_ARCH=<arch>")
-	set_toolchain("avr")
+	message(FATAL_ERROR "Target Architecture not supplied, use -DTARGET_ARCH=<arch>")
 endif()
 
 ## TODO Each tool file should make use of the TARGET_ARCH variable to determine flags like -mmcu and -march
@@ -258,7 +257,7 @@ list(APPEND MC_INCLUDE_DIRS
 	${CMAKE_SOURCE_DIR}/mincopter/
 	${CMAKE_SOURCE_DIR}/arch
 	${CMAKE_SOURCE_DIR}/arch/AP_HAL
-	${CMAKE_SOURCE_DIR}/arch/avr/mega
+	${CMAKE_SOURCE_DIR}/arch/avr
 	${CMAKE_SOURCE_DIR}/arch/arm/stm32
 	${CMAKE_SOURCE_DIR}/arch/linux
 	${CMAKE_SOURCE_DIR}/arch/linux/generic
@@ -314,12 +313,19 @@ if(${TARGET_ARCH_FAMILY} STREQUAL "generic")
 		"arch/linux/generic/*.cpp"
 		"arch/linux/*.cpp"
 	)
-elseif(${TARGET_ARCH_FAMILY} STREQUAL "avr")
+elseif(${TARGET_ARCH_FAMILY} STREQUAL "avrmega")
 	file(GLOB MC_LIBS_ARCH
 		"arch/avr/mega/*.cpp"
 		"arch/avr/mega/*.c"
 		"arch/avr/mega/utility/*.c"
 		"arch/avr/mega/utility/*.cpp"
+	)
+elseif(${TARGET_ARCH_FAMILY} STREQUAL "avrdx")
+	file(GLOB MC_LIBS_ARCH
+		"arch/avr/avrdx/*.cpp"
+		"arch/avr/avrdx/*.c"
+		"arch/avr/avrdx/utility/*.c"
+		"arch/avr/avrdx/utility/*.cpp"
 	)
 elseif(${TARGET_ARCH_FAMILY} STREQUAL "rpi")
 	file(GLOB MC_LIBS_ARCH

@@ -11,7 +11,6 @@
  */
 
 #include "HAL_AVR_APM2_Class.h"
-#include "AP_HAL_AVR_Main.h"
 
 #endif // __AP_HAL_AVR_H__
 

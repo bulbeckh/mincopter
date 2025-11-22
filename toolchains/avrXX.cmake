@@ -13,22 +13,16 @@ set(CMAKE_CXX_COMPILER /opt/microchip/xc8/v3.10/bin/xc8-cc)
 set(CMAKE_C_COMPILER_WORKS 1)
 set(CMAKE_CXX_COMPILER_WORKS 1)
 
-set(DFP_LOCATION ${CMAKE_SOURCE_DIR}/arch/avr/xc8/ )
+set(DFP_LOCATION ${CMAKE_SOURCE_DIR}/arch/avr/dx-dfp )
 
 add_compile_definitions(
 	#BOARD=atmega2560
-	CONFIG_HAL_BOARD=HAL_BOARD_AVR
+	CONFIG_HAL_BOARD=HAL_BOARD_AVRDX
 	#PORT=/dev/ttyACM0
 	F_CPU=16000000L
 	#_GNU_SOURCE
+	## TODO Do we really need to use this anymore - is used in a few places but can probably replace
 	TARGET_ARCH_AVR
-
-	## NOTE TODO This should really be defined elsewhere
-	#CONTROLLER_MPC
-	#CONTROLLER_NONE
-	#PLANNER_WAYPOINT
-	#PLANNER_NONE
-
 )
 
 #set(MCU atmega2560)
@@ -70,6 +64,9 @@ set(COMMON_FLAGS
 	-fsigned-char
 	-fstack-usage
 	-I${DFP_LOCATION}/include
+	-I/opt/microchip/xc8/v3.10/avr/avr/include
+	-I/opt/microchip/xc8/v3.10/avr/lib/gcc/avr/include
+	-I/opt/microchip/xc8/v3.10/avr/lib/gcc/avr/include-fixed
 )
 message("AVR Architecture - common flags: ${COMMON_FLAGS}")
 

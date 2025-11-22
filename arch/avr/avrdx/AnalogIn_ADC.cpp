@@ -5,12 +5,13 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
-#include "AnalogIn.h"
-using namespace AP_HAL_AVR;
+#include "avrdx/AnalogIn.h"
+
+using namespace AP_HAL_AVRDx;
 
 extern const AP_HAL::HAL& hal;
 
-ADCSource::ADCSource(uint8_t pin) :
+AVRDxAnalogSource::AVRDxAnalogSource(uint8_t pin) :
     _sum_count(0),
     _sum(0),
     _last_average(0),
@@ -20,7 +21,7 @@ ADCSource::ADCSource(uint8_t pin) :
 {
 }
 
-float ADCSource::read_average() {
+float AVRDxAnalogSource::read_average(void) {
     if (_pin == ANALOG_INPUT_BOARD_VCC) {
         uint16_t v = (uint16_t) _read_average();
         return 1126400UL / v;
@@ -29,7 +30,10 @@ float ADCSource::read_average() {
     }
 }
 
-float ADCSource::read_latest() {
+float AVRDxAnalogSource::read_latest(void) {
+	return 0.0f;
+	// TODO
+	/*
     uint8_t sreg = SREG;
     cli();
     uint16_t latest = _latest;
@@ -39,12 +43,10 @@ float ADCSource::read_latest() {
     } else {
         return latest;
     }
+	*/
 }
 
-/*
-  return voltage from 0.0 to 5.0V, scaled to Vcc
- */
-float ADCSource::voltage_average(void)
+float AVRDxAnalogSource::voltage_average(void)
 {
     float vcc_mV = hal.analogin->channel(ANALOG_INPUT_BOARD_VCC)->read_average();
     float v = read_average();
@@ -58,10 +60,7 @@ float ADCSource::voltage_average(void)
     return v * vcc_mV * 9.765625e-7; // 9.765625e-7 = 1.0/(1024*1000)
 }
 
-/*
-  return voltage from 0.0 to 5.0V, scaled to Vcc
- */
-float ADCSource::voltage_latest(void)
+float AVRDxAnalogSource::voltage_latest(void)
 {
     if (_pin == ANALOG_INPUT_BOARD_VCC) {
         return read_latest() * 0.001f;
@@ -78,18 +77,16 @@ float ADCSource::voltage_latest(void)
     return v * vcc_mV * 9.765625e-7; // 9.765625e-7 = 1.0/(1024*1000)
 }
 
-/*
-  return voltage from 0.0 to 5.0V, assuming a ratiometric sensor. This
-  means the result is really a pseudo-voltage, that assumes the supply
-  voltage is exactly 5.0V.
- */
-float ADCSource::voltage_average_ratiometric(void)
+float AVRDxAnalogSource::voltage_average_ratiometric(void)
 {
     float v = read_average();
     return v * (5.0f / 1023.0f);
 }
 
-void ADCSource::set_pin(uint8_t _ignore) {
+void AVRDxAnalogSource::set_pin(uint8_t _ignore) {
+	return;
+	// TODO
+	/*
 	// ensure the pin is marked as an INPUT pin
 	if (_pin != ANALOG_INPUT_NONE && _pin != ANALOG_INPUT_BOARD_VCC) {
 		int8_t dpin = hal.gpio->analogPinToDigitalPin(_pin);
@@ -107,19 +104,23 @@ void ADCSource::set_pin(uint8_t _ignore) {
 	_last_average = 0;
 	_latest = 0;
 	SREG = sreg;
+	*/
 }
 
-void ADCSource::set_stop_pin(uint8_t pin) {
+void AVRDxAnalogSource::set_stop_pin(uint8_t pin)
+{
     _stop_pin = pin;
 }
 
-void ADCSource::set_settle_time(uint16_t settle_time_ms) 
+void AVRDxAnalogSource::set_settle_time(uint16_t settle_time_ms) 
 {
     _settle_time_ms = settle_time_ms;
 }
 
-/* read_average is called from the normal thread (not an interrupt). */
-float ADCSource::_read_average() {
+float AVRDxAnalogSource::_read_average(void) {
+	return 0.0f;
+	// TODO
+	/*
     uint16_t sum;
     uint8_t sum_count;
 
@@ -128,7 +129,7 @@ float ADCSource::_read_average() {
         return _last_average;
     }
 
-    /* Read and clear in a critical section */
+    // Read and clear in a critical section
     uint8_t sreg = SREG;
     cli();
 
@@ -143,9 +144,13 @@ float ADCSource::_read_average() {
 
     _last_average = avg;
     return avg;
+	*/
 }
 
-void ADCSource::setup_read(void) {
+void AVRDxAnalogSource::setup_read(void) {
+	return;
+	// TODO
+	/*
     if (_stop_pin != ANALOG_INPUT_NONE) {
         uint8_t digital_pin = hal.gpio->analogPinToDigitalPin(_stop_pin);
         hal.gpio->pinMode(digital_pin, GPIO_OUTPUT);
@@ -155,35 +160,30 @@ void ADCSource::setup_read(void) {
         _read_start_time_ms = hal.scheduler->millis();
     }
     if (_pin == ANALOG_INPUT_BOARD_VCC) {
-
-		// For mega2560 and mega1280 we have 16-ADC channels so we also use the mux5 macro
-#if defined(__AVR_ATmega2560__) || defined(__AVR_AT_mega1280__)
-		// Clear the MUX5 bit if we are using a 16-channel ADC
         ADCSRB = (ADCSRB & ~(1 << MUX5));
-#endif
-		// This is the bitfield for selecting the AVCC reference **and** using the 1.1V single-ended input (MUX5:0 = 0b011110)
         ADMUX = _BV(REFS0)|_BV(MUX4)|_BV(MUX3)|_BV(MUX2)|_BV(MUX1);
     } else if (_pin == ANALOG_INPUT_NONE) {
-        /* noop */
+		// NOOP
     } else {
-#if defined(__AVR_ATmega2560__) || defined(__AVR_AT_mega1280__)
         ADCSRB = (ADCSRB & ~(1 << MUX5)) | (((_pin >> 3) & 0x01) << MUX5);
-        //ADCSRB = (((_pin >> 3) & 0x01) << MUX5);
-#endif
-		// We already set the MUX5 bit if our pin number is >= 8 so we take the last 3 bits
         ADMUX = _BV(REFS0) | (_pin & 0x07);
     }
+	*/
 }
 
-void ADCSource::stop_read(void) {
+void AVRDxAnalogSource::stop_read(void) {
+	return;
+	// TODO
+	/*
     if (_stop_pin != ANALOG_INPUT_NONE) {
         uint8_t digital_pin = hal.gpio->analogPinToDigitalPin(_stop_pin);
         hal.gpio->pinMode(digital_pin, GPIO_OUTPUT);
         hal.gpio->write(digital_pin, 0);
     }
+	*/
 }
 
-bool ADCSource::reading_settled(void)
+bool AVRDxAnalogSource::reading_settled(void)
 {
     if (_settle_time_ms != 0 && (hal.scheduler->millis() - _read_start_time_ms) < _settle_time_ms) {
         return false;
@@ -194,7 +194,7 @@ bool ADCSource::reading_settled(void)
 /* new_sample is called from an interrupt. It always has access to
  *  _sum and _sum_count. Lock out the interrupts briefly with
  * cli/sei to read these variables from outside an interrupt. */
-void ADCSource::new_sample(uint16_t sample) {
+void AVRDxAnalogSource::new_sample(uint16_t sample) {
     _sum += sample;
     _latest = sample;
     if (_sum_count >= 63) {

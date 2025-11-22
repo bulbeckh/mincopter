@@ -6,8 +6,10 @@
 #include <avr/interrupt.h>
 
 #include <AP_HAL.h>
-#include "AnalogIn.h"
-using namespace AP_HAL_AVR;
+
+#include "avrdx/AnalogIn.h"
+
+using namespace AP_HAL_AVRDx;
 
 extern const AP_HAL::HAL& hal;
 
@@ -15,54 +17,48 @@ extern const AP_HAL::HAL& hal;
  * This seems to be determined empirically */
 #define CHANNEL_READ_REPEAT 2
 
-AVRAnalogIn::AVRAnalogIn() :
-    _vcc(ADCSource(ANALOG_INPUT_BOARD_VCC)),
+AVRDxAnalogIn::AVRDxAnalogIn(void) :
+    _vcc(AVRDxAnalogSource(ANALOG_INPUT_BOARD_VCC)),
 	_channels{
-		// NOTE We initialise all 12 channels with 0 pin and then update the pin during call to _create_channel
-		ADCSource(0),
-		ADCSource(0),
-		ADCSource(0),
-		ADCSource(0),
-		ADCSource(0),
-		ADCSource(0),
-		ADCSource(0),
-		ADCSource(0),
-#if defined(__AVR_ATmega2560__) || defined(__AVR_AT_mega1280__)
-		ADCSource(0),
-		ADCSource(0),
-		ADCSource(0),
-		ADCSource(0)
-#endif
+		// TODO We define the max number of channels in the header file but we statically declare each on here?? Need to fix
+		// NOTE We initialise all channels with 0 pin and then update the pin during call to _create_channel
+		AVRDxAnalogSource(0),
+		AVRDxAnalogSource(0),
+		AVRDxAnalogSource(0),
+		AVRDxAnalogSource(0),
+		AVRDxAnalogSource(0),
+		AVRDxAnalogSource(0),
+		AVRDxAnalogSource(0),
+		AVRDxAnalogSource(0)
 	}
 {
 }
 
 
-void AVRAnalogIn::init(void* machtnichts) 
+void AVRDxAnalogIn::init(void*) 
 {
-    /* Register AVRAnalogIn::_timer_event with the scheduler. */
-    hal.scheduler->register_timer_process(AP_HAL_MEMBERPROC(AVRAnalogIn, &AVRAnalogIn::_timer_event));
-    /* Register each private channel with AVRAnalogIn. */
+	// TODO
+	
+    // Register AVRAnalogIn::_timer_event with the scheduler
+    hal.scheduler->register_timer_process(AP_HAL_MEMBERPROC(AVRDxAnalogIn, &AVRDxAnalogIn::_timer_event));
+
+    // Register each private channel with AVRAnalogIn
     _register_channel(ANALOG_INPUT_BOARD_VCC);
 
 	// Setup pins for each channel during initialisation
-	for (uint8_t i=0;i<AVR_INPUT_MAX_CHANNELS; i++) _channels[i].set_pin(0);
+	for (uint8_t i=0;i< AVR_INPUT_MAX_CHANNELS;i++) _channels[i].set_pin(0);
 }
 
 // NOTE I have heavily modified this to remove the use of new. We instead instantiate all ADCSource with a
 // pin of 0 and then update the channel when we create it (which also increments _num_channels)
-ADCSource* AVRAnalogIn::_create_channel(int16_t chnum) {
-    //ADCSource *ch = new ADCSource(chnum);
-
+AVRDxAnalogSource* AVRDxAnalogIn::_create_channel(int16_t chnum) {
     return _register_channel(chnum);
-    //return ch;
 }
 
-ADCSource* AVRAnalogIn::_register_channel(int16_t chnum) {
+AVRDxAnalogSource* AVRDxAnalogIn::_register_channel(int16_t chnum) {
     if (_num_channels >= AVR_INPUT_MAX_CHANNELS) {
         for(;;) {
-            hal.console->print_P(PSTR(
-                "Error: AP_HAL_AVR::AVRAnalogIn out of channels\r\n"));
+            hal.console->print_P(PSTR("Error: AP_HAL_AVR::AVRAnalogIn out of channels\r\n"));
             hal.scheduler->delay(1000);
         }
     }
@@ -73,70 +69,78 @@ ADCSource* AVRAnalogIn::_register_channel(int16_t chnum) {
 	
     /* Need to lock to increment _num_channels as it is used
      * by the interrupt to access _channels */
+
+	// TODO
+	/*
     uint8_t sreg = SREG;
     cli();
     _num_channels++;
     SREG = sreg;
 
     if (_num_channels == 1) {
-        /* After registering the first channel, we can enable the ADC */
+        // After registering the first channel, we can enable the ADC
         PRR0 &= ~_BV(PRADC);
         ADCSRA |= _BV(ADEN);
     }
 
 	// Return the address of the ADCSource object in the array
 	return &(_channels[_num_channels-1]);
+	*/
+	return NULL;
 }
 
-void AVRAnalogIn::_timer_event(void) 
+void AVRDxAnalogIn::_timer_event(void) 
 {
+	// TODO
+	return;
+
+	/*
     if (_channels[_active_channel]._pin == ANALOG_INPUT_NONE) {
         _channels[_active_channel].new_sample(0);
         goto next_channel;
     }
 
     if (ADCSRA & _BV(ADSC)) {
-        /* ADC Conversion is still running - this should not happen, as we
-         * are called at 1khz. */
+        // ADC Conversion is still running - this should not happen, as we are called at 1khz
         return;
     }
 
     if (_num_channels == 0) {
-        /* No channels are registered - nothing to be done. */
+        // No channels are registered - nothing to be done.
         return;
     }
 
     _channel_repeat_count++;
     if (_channel_repeat_count < CHANNEL_READ_REPEAT ||
         !_channels[_active_channel].reading_settled()) {
-        /* Start a new conversion, throw away the current conversion */
+        // Start a new conversion, throw away the current conversion
         ADCSRA |= _BV(ADSC);
         return;
     }
 
     _channel_repeat_count = 0;
 
-    /* Read the conversion registers. */
+    // Read the conversion registers
     {
         uint8_t low = ADCL;
         uint8_t high = ADCH;
         uint16_t sample = low | (((uint16_t)high) << 8);
-        /* Give the active channel a new sample */
+        // Give the active channel a new sample
         _channels[_active_channel].new_sample( sample );
     }
 next_channel:
-    /* stop the previous channel, if a stop pin is defined */
+    // stop the previous channel, if a stop pin is defined
     _channels[_active_channel].stop_read();
-    /* Move to the next channel */
+    // Move to the next channel
     _active_channel = (_active_channel + 1) % _num_channels;
-    /* Setup the next channel's conversion */
+    // Setup the next channel's conversion
     _channels[_active_channel].setup_read();
-    /* Start conversion */
+    // Start conversion
     ADCSRA |= _BV(ADSC);
+	*/
 }
 
-
-AP_HAL::AnalogSource* AVRAnalogIn::channel(int16_t ch) 
+AP_HAL::AnalogSource* AVRDxAnalogIn::channel(int16_t ch) 
 {
     if (ch == ANALOG_INPUT_BOARD_VCC) {
             return &_vcc;
