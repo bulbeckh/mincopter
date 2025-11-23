@@ -4,7 +4,7 @@
 // Alternative to FastDelegate
 
 
-#ifdef TARGET_ARCH_AVR
+#if defined(TARGET_ARCH_AVR)
 // Use minimal implementation of forward and remove_references
 #include <stdint.h>
 

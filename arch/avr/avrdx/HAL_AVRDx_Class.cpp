@@ -9,7 +9,6 @@
 using namespace AP_HAL;
 using namespace AP_HAL_AVRDx;
 
-
 // NOTE These are macros to create the UART drivers and ISRs for each UART
 // TODO Temporarily removed these
 /*
@@ -46,7 +45,7 @@ HAL_AVRDx::HAL_AVRDx(void) :
         &apm2SPIDriver,
         &avrAnalogIn,
         &avrEEPROMStorage,
-        &avrUart0Driver,
+        NULL, // &avrUart0Driver, // console
         &avrGPIO,
         &apm2RCInput,
         &apm2RCOutput,

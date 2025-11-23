@@ -3,7 +3,8 @@
 #include <avr/interrupt.h>
 #include <avr/io.h>
 
-#include "avrdx/utility/pins_arduino_mega.h"
+// HASH include "avrdx/utility/pins_arduino_mega.h"
+
 #include "avrdx/GPIO.h"
 
 using namespace AP_HAL_AVRDx;
@@ -91,10 +92,17 @@ void AVRDxGPIO::pinMode(uint8_t pin, uint8_t mode) {
 
 int8_t AVRDxGPIO::analogPinToDigitalPin(uint8_t pin)
 {
+	return 0;
+	// TODO
+	/*
 	return analogInputToDigitalPin(pin);
+	*/
 }
 
 uint8_t AVRDxGPIO::read(uint8_t pin) {
+	return 0;
+	// TODO
+	/*
     uint8_t bit = digitalPinToBitMask(pin);
     uint8_t port = digitalPinToPort(pin);
 
@@ -102,6 +110,7 @@ uint8_t AVRDxGPIO::read(uint8_t pin) {
 
     if (*portInputRegister(port) & bit) return 1;
     return 0;
+	*/
 }
 
 void AVRDxGPIO::write(uint8_t pin, uint8_t value) {
@@ -174,6 +183,9 @@ bool AVRDxGPIO::attach_interrupt(uint8_t interrupt_num, AP_HAL::Proc proc, uint8
 
 
 AP_HAL::DigitalSource* AVRDxGPIO::channel(uint16_t pin) {
+	return NULL;
+	// TODO
+	/*
     uint8_t bit = digitalPinToBitMask(pin);
     uint8_t port = digitalPinToPort(pin);
     if (port == NOT_A_PIN) return NULL;
@@ -184,6 +196,7 @@ AP_HAL::DigitalSource* AVRDxGPIO::channel(uint16_t pin) {
 	_head++;
 
     return &(_sources[_head-1]);
+	*/
 }
 
 void AVRDxDigitalSource::mode(uint8_t output) {
@@ -212,10 +225,14 @@ void AVRDxDigitalSource::mode(uint8_t output) {
 
 uint8_t AVRDxDigitalSource::read(void)
 {
+	return 0;
+	// TODO
+	/*
     const uint8_t bit = _bit;
     const uint8_t port = _port;
     if (*portInputRegister(port) & bit) return 1;
     return 0;
+	*/
 }
 
 void AVRDxDigitalSource::write(uint8_t value) {

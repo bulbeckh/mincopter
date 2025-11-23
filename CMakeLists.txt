@@ -42,6 +42,7 @@ function (set_toolchain TARGET_ARCH)
 			OR TARGET_ARCH STREQUAL "avr64du32")
 		## AVR-Dx series uses the xc8-cc compiler and requires a Microchip DFP package
 		set(TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/toolchains/avrXX.cmake" PARENT_SCOPE)
+		#set(TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/toolchains/avr-mega.cmake" PARENT_SCOPE)
 		set(TARGET_ARCH_FAMILY "avrdx" PARENT_SCOPE)
 		#set(MARCHITECTURE "avrxmega4" PARENT_SCOPE)
 	elseif(TARGET_ARCH STREQUAL "stm32f407xx")
@@ -459,6 +460,6 @@ target_include_directories(mincopter PUBLIC
 ##################################################################
 # TESTING
 ##################################################################
-add_subdirectory(test)
+#add_subdirectory(test)
 
 

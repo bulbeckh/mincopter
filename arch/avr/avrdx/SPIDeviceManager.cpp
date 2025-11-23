@@ -4,7 +4,7 @@
 
 #include "avrdx/SPIDriver.h"
 #include "avrdx/SPIDevices.h"
-#include "avrdx/utility/pins_arduino_mega.h"
+// HASH include "avrdx/utility/pins_arduino_mega.h"
 
 using namespace AP_HAL_AVRDx;
 

@@ -3,8 +3,10 @@
 
 namespace AP_HAL_AVRDx {
 
-	// TODO Update these names for the Dx-series
-    class HAL_AVRDx;
+	// TODO NOTE The actual HAL class is not part of the namespace
+	// TODO NOTE We should question why these should even be encapsulated in a namespace at all if they each
+	// have different names to other HALs classes anyway?
+    //class HAL_AVRDx;
 
     class AVRDxUARTDriver;
     class AVRDxI2CDriver;

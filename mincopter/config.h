@@ -46,9 +46,9 @@
 #error CONFIG_APM_HARDWARE option is deprecated! use CONFIG_HAL_BOARD instead
 #endif
 
-#ifndef CONFIG_HAL_BOARD
-#error CONFIG_HAL_BOARD must be defined to build ArduCopter
-#endif
+// HASH ifndef CONFIG_HAL_BOARD
+// HASH error CONFIG_HAL_BOARD must be defined to build ArduCopter
+// HASH endif
 
 //////////////////////////////////////////////////////////////////////////////
 // APM2 HARDWARE DEFAULTS

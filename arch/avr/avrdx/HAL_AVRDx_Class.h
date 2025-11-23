@@ -6,6 +6,11 @@
 #include <avrdx/AP_HAL_AVRDx.h>
 #include "avrdx/AP_HAL_AVRDx_Namespace.h"
 
+/*
+using namespace AP_HAL;
+using namespace AP_HAL_AVRDx;
+*/
+
 class HAL_AVRDx : public AP_HAL::HAL {
 
 	public:

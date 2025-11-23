@@ -7,17 +7,20 @@ set(CMAKE_SYSTEM_NAME Generic)
 set(CMAKE_SYSTEM_PROCESSOR avr)
 
 ## TODO This is the standard path for the Microchip XC8 install but should make it configurable
-set(CMAKE_C_COMPILER /opt/microchip/xc8/v3.10/bin/xc8-cc)
-set(CMAKE_CXX_COMPILER /opt/microchip/xc8/v3.10/bin/xc8-cc)
+#set(CMAKE_C_COMPILER /opt/microchip/xc8/v3.10/bin/xc8-cc)
+#set(CMAKE_CXX_COMPILER /opt/microchip/xc8/v3.10/bin/xc8-cc)
 
-set(CMAKE_C_COMPILER_WORKS 1)
-set(CMAKE_CXX_COMPILER_WORKS 1)
+set(CMAKE_C_COMPILER avr-gcc)
+set(CMAKE_CXX_COMPILER avr-g++)
+
+#set(CMAKE_C_COMPILER_WORKS 1)
+#set(CMAKE_CXX_COMPILER_WORKS 1)
 
 set(DFP_LOCATION ${CMAKE_SOURCE_DIR}/arch/avr/dx-dfp )
 
 add_compile_definitions(
 	#BOARD=atmega2560
-	CONFIG_HAL_BOARD=HAL_BOARD_AVRDX
+	HAL_BOARD_AVRDX
 	#PORT=/dev/ttyACM0
 	F_CPU=16000000L
 	#_GNU_SOURCE
@@ -45,12 +48,17 @@ fsigned-char  allows char to be signed
 
 ]]
 
+
+message("Using: -specs=${CMAKE_SOURCE_DIR}/arch/avr/dx-dfp/xc8/avr/device-specs/specs-${TARGET_ARCH}")
+
 ## NOTE TARGET_ARCH should be the same as the mmcu option for avr targets
 set(COMMON_FLAGS
-	-std=gnu++11
-	-mcpu=${TARGET_ARCH}
-	-mdfp=${DFP_LOCATION}/xc8
-	#-mmcu=${MARCHITECTURE}
+	-v
+	-specs=${CMAKE_SOURCE_DIR}/arch/avr/dx-dfp/xc8/avr/device-specs/specs-${TARGET_ARCH}
+	#-std=gnu++11
+	#-mcpu=${TARGET_ARCH}
+	#-mdfp=${DFP_LOCATION}/xc8
+	-mmcu=${TARGET_ARCH}
 	-mcall-prologues
 	-Os
 	-Wall
@@ -63,10 +71,10 @@ set(COMMON_FLAGS
 	-fdata-sections
 	-fsigned-char
 	-fstack-usage
-	-I${DFP_LOCATION}/include
-	-I/opt/microchip/xc8/v3.10/avr/avr/include
-	-I/opt/microchip/xc8/v3.10/avr/lib/gcc/avr/include
-	-I/opt/microchip/xc8/v3.10/avr/lib/gcc/avr/include-fixed
+	-I${DFP_LOCATION}/xc8/avr/include
+	#-I/opt/microchip/xc8/v3.10/avr/avr/include
+	#-I/opt/microchip/xc8/v3.10/avr/lib/gcc/avr/include
+	#-I/opt/microchip/xc8/v3.10/avr/lib/gcc/avr/include-fixed
 )
 message("AVR Architecture - common flags: ${COMMON_FLAGS}")
 
