@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <avr/interrupt.h>
 
-#include "ISRRegistry.h"
+#include "mega/utility/ISRRegistry.h"
 
 using namespace AP_HAL_AVR;
 

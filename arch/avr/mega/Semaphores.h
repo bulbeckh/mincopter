@@ -3,7 +3,7 @@
 #define __AP_HAL_AVR_SEMAPHORES_H__
 
 #include <AP_HAL.h>
-#include <AP_HAL_AVR_Namespace.h>
+#include <mega/AP_HAL_AVR_Namespace.h>
 
 class AP_HAL_AVR::AVRSemaphore : public AP_HAL::Semaphore {
 public:

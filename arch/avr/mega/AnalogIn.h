@@ -3,7 +3,7 @@
 #define __AP_HAL_AVR_ANALOG_IN_H__
 
 #include <AP_HAL.h>
-#include "AP_HAL_AVR_Namespace.h"
+#include "mega/AP_HAL_AVR_Namespace.h"
 
 // NOTE On mega2560/mega1280 we have 16 ADC channels but on mega1281/mega2561 we have 8 ADC channels
 

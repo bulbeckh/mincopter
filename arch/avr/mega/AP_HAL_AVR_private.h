@@ -2,16 +2,16 @@
 #ifndef __AP_HAL_AVR_PRIVATE_H__
 #define __AP_HAL_AVR_PRIVATE_H__
 
-#include "UARTDriver.h"
-#include "I2CDriver.h"
-#include "SPIDriver.h"
-#include "AnalogIn.h"
-#include "Storage.h"
-#include "GPIO.h"
-#include "RCInput.h"
-#include "RCOutput.h"
-#include "Scheduler.h"
-#include "Util.h"
-#include "utility/ISRRegistry.h"
+#include "mega/UARTDriver.h"
+#include "mega/I2CDriver.h"
+#include "mega/SPIDriver.h"
+#include "mega/AnalogIn.h"
+#include "mega/Storage.h"
+#include "mega/GPIO.h"
+#include "mega/RCInput.h"
+#include "mega/RCOutput.h"
+#include "mega/Scheduler.h"
+#include "mega/Util.h"
+#include "mega/utility/ISRRegistry.h"
 
 #endif // __AP_HAL_AVR_PRIVATE_H__

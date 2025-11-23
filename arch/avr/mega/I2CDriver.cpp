@@ -40,8 +40,8 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
-#include <AP_HAL.h>
-#include "I2CDriver.h"
+#include "mega/I2CDriver.h"
+
 using namespace AP_HAL_AVR;
 
 extern const AP_HAL::HAL& hal;

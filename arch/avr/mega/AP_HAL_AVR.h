@@ -10,7 +10,7 @@
  * and not expose implementation details.
  */
 
-#include "HAL_AVR_APM2_Class.h"
+#include "mega/HAL_AVR_APM2_Class.h"
 
 #endif // __AP_HAL_AVR_H__
 

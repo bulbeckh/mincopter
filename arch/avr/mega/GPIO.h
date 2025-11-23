@@ -3,7 +3,7 @@
 #define __AP_HAL_AVR_GPIO_H__
 
 #include <AP_HAL.h>
-#include "AP_HAL_AVR_Namespace.h"
+#include "mega/AP_HAL_AVR_Namespace.h"
 
 #define HAL_GPIO_A_LED_PIN        27
 #define HAL_GPIO_B_LED_PIN        26

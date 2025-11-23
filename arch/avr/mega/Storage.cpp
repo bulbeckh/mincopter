@@ -2,7 +2,8 @@
 
 #include <avr/io.h>
 #include <avr/eeprom.h>
-#include "Storage.h"
+
+#include "mega/Storage.h"
 using namespace AP_HAL_AVR;
 
 uint8_t AVREEPROMStorage::read_byte(uint16_t loc) {

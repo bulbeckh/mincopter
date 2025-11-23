@@ -3,10 +3,10 @@
 #define __AP_HAL_AVR_SPI_DRIVER_H__
 
 #include <AP_HAL.h>
-#include "AP_HAL_AVR_Namespace.h"
-#include "GPIO.h"
-#include "SPIDevices.h"
-#include "Semaphores.h"
+#include "mega/AP_HAL_AVR_Namespace.h"
+#include "mega/GPIO.h"
+#include "mega/SPIDevices.h"
+#include "mega/Semaphores.h"
 
 class AP_HAL_AVR::APM2SPIDeviceManager : public AP_HAL::SPIDeviceManager {
 public:

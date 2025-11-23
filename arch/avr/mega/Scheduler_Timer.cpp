@@ -3,7 +3,7 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
-#include "Scheduler.h"
+#include "mega/Scheduler.h"
 using namespace AP_HAL_AVR;
 
 #define cbi(sfr, bit) (_SFR_BYTE(sfr) &= ~_BV(bit))

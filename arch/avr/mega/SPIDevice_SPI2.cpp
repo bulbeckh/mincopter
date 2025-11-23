@@ -4,10 +4,10 @@
 #include <avr/io.h>
 
 #include <AP_HAL.h>
-#include "SPIDevices.h"
-#include "GPIO.h"
-#include "Semaphores.h"
-#include "utility/pins_arduino_mega.h"
+#include "mega/SPIDevices.h"
+#include "mega/GPIO.h"
+#include "mega/Semaphores.h"
+#include "mega/utility/pins_arduino_mega.h"
 using namespace AP_HAL_AVR;
 
 extern const AP_HAL::HAL& hal;

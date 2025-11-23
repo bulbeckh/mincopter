@@ -9,7 +9,7 @@
 #include <avr/interrupt.h>
 
 #include <AP_HAL.h>
-#include "AP_HAL_AVR_Namespace.h"
+#include "mega/AP_HAL_AVR_Namespace.h"
 
 /**
  * AVRUARTDriver is an implementation of UARTDriver for the AVR.

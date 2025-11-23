@@ -2,9 +2,9 @@
 
 #include <avr/interrupt.h>
 
-#include <AP_HAL.h>
-#include <AP_HAL_AVR.h>
-#include "RCOutput.h"
+#include <mega/AP_HAL_AVR.h>
+#include "mega/RCOutput.h"
+
 using namespace AP_HAL_AVR;
 
 extern const AP_HAL::HAL& hal;

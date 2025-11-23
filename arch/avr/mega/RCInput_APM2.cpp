@@ -3,10 +3,10 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
-#include <AP_HAL.h>
-#include <AP_HAL_AVR.h>
-#include "RCInput.h"
-#include "utility/ISRRegistry.h"
+#include <mega/AP_HAL_AVR.h>
+#include "mega/RCInput.h"
+#include "mega/utility/ISRRegistry.h"
+
 using namespace AP_HAL;
 using namespace AP_HAL_AVR;
 

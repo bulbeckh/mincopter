@@ -3,7 +3,7 @@
 #define __AP_HAL_AVR_SCHEDULER_H__
 
 #include <AP_HAL.h>
-#include "AP_HAL_AVR_Namespace.h"
+#include "mega/AP_HAL_AVR_Namespace.h"
 
 #define AVR_SCHEDULER_MAX_TIMER_PROCS 4
 

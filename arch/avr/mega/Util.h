@@ -3,8 +3,8 @@
 #define __AP_HAL_AVR_UTIL_H__
 
 #include <AP_HAL.h>
-#include "AP_HAL_AVR_Namespace.h"
-#include "memcheck.h"
+#include "mega/AP_HAL_AVR_Namespace.h"
+#include "mega/memcheck.h"
 
 class AP_HAL_AVR::AVRUtil : public AP_HAL::Util {
 public:

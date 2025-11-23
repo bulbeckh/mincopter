@@ -2,9 +2,10 @@
 #include <AP_HAL.h>
 
 
-#include <AP_HAL_AVR.h>
-#include "AP_HAL_AVR_private.h"
-#include "HAL_AVR_APM2_Class.h"
+#include <mega/AP_HAL_AVR.h>
+
+#include "mega/AP_HAL_AVR_private.h"
+#include "mega/HAL_AVR_APM2_Class.h"
 
 using namespace AP_HAL;
 using namespace AP_HAL_AVR;

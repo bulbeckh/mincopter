@@ -3,7 +3,7 @@
 #define __AP_HAL_AVR_SPI_DEVICES_H__
 
 #include <AP_HAL.h>
-#include "AP_HAL_AVR_Namespace.h"
+#include "mega/AP_HAL_AVR_Namespace.h"
 
 class AP_HAL_AVR::AVRSPI0DeviceDriver : public AP_HAL::SPIDeviceDriver {
 public:

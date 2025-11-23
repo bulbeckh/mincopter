@@ -6,7 +6,9 @@
 #include <avr/interrupt.h>
 
 #include <AP_HAL.h>
-#include "AnalogIn.h"
+
+#include "mega/AnalogIn.h"
+
 using namespace AP_HAL_AVR;
 
 extern const AP_HAL::HAL& hal;

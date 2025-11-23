@@ -5,9 +5,9 @@
 #include <avr/interrupt.h>
 
 #include <AP_HAL.h>
-#include <AP_HAL_AVR.h>
-#include "Semaphores.h"
-#include "Scheduler.h"
+#include <mega/AP_HAL_AVR.h>
+#include "mega/Semaphores.h"
+#include "mega/Scheduler.h"
 using namespace AP_HAL_AVR;
 
 extern const AP_HAL::HAL& hal;

@@ -8,8 +8,8 @@
  * is built iff we are building for HAL_BOARD_APM2. These defines must
  * wrap the whole HAL_AVR_APM2 class declaration and definition. */
 
-#include <AP_HAL_AVR.h>
-#include "AP_HAL_AVR_Namespace.h"
+#include <mega/AP_HAL_AVR.h>
+#include "mega/AP_HAL_AVR_Namespace.h"
 
 /**
  * HAL_AVR_APM2 class derives from HAL but provides an AVR-specific

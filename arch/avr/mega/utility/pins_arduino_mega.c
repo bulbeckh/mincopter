@@ -1,7 +1,7 @@
 #include <AP_HAL_Boards.h>
 
 #include <avr/io.h>
-#include "pins_arduino_mega.h"
+#include "mega/utility/pins_arduino_mega.h"
 
 const uint16_t PROGMEM port_to_mode_PGM[] = {
 	NOT_A_PORT,

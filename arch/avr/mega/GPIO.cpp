@@ -3,9 +3,10 @@
 #include <avr/interrupt.h>
 #include <avr/io.h>
 
-#include "utility/pins_arduino_mega.h"
+#include "mega/utility/pins_arduino_mega.h"
 
-#include "GPIO.h"
+#include "mega/GPIO.h"
+
 using namespace AP_HAL_AVR;
 
 

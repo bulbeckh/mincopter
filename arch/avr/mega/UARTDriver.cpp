@@ -25,9 +25,8 @@
 
 #include <avr/pgmspace.h>
 
-#include <AP_HAL.h>
 #include <AP_Math.h>
-#include "UARTDriver.h"
+#include "mega/UARTDriver.h"
 
 using namespace AP_HAL_AVR;
 
