@@ -23,270 +23,14 @@
 //
 #include "defines.h"
 
-///
-/// DO NOT EDIT THIS INCLUDE - if you want to make a local change, make that
-/// change in your local copy of APM_Config.h.
-///
-/*
-#ifdef USE_CMAKE_APM_CONFIG
- #include "APM_Config_cmake.h"  // <== Prefer cmake config if it exists
-#else
- #include "APM_Config.h" // <== THIS INCLUDE, DO NOT EDIT IT. EVER.
-#endif
-*/
 
-
-//////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////
-// HARDWARE CONFIGURATION AND CONNECTIONS
-//////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////
-
-#ifdef CONFIG_APM_HARDWARE
-#error CONFIG_APM_HARDWARE option is deprecated! use CONFIG_HAL_BOARD instead
-#endif
-
-// HASH ifndef CONFIG_HAL_BOARD
-// HASH error CONFIG_HAL_BOARD must be defined to build ArduCopter
-// HASH endif
-
-//////////////////////////////////////////////////////////////////////////////
-// APM2 HARDWARE DEFAULTS
-//
-
-// HENRY - APM2 configs here
-#if CONFIG_HAL_BOARD == HAL_BOARD_APM2
- # define CONFIG_IMU_TYPE   CONFIG_IMU_MPU6000
- # define CONFIG_SONAR_SOURCE SONAR_SOURCE_ANALOG_PIN
- # define MAGNETOMETER ENABLED
- # ifdef APM2_BETA_HARDWARE
-  #  define CONFIG_BARO     AP_BARO_BMP085
- # else // APM2 Production Hardware (default)
-  #  define CONFIG_BARO          AP_BARO_MS5611
-  #  define CONFIG_MS5611_SERIAL AP_BARO_MS5611_SPI
- # endif
-#elif CONFIG_HAL_BOARD == HAL_BOARD_AVR_SITL
- # define CONFIG_IMU_TYPE   CONFIG_IMU_SITL
- # define CONFIG_SONAR_SOURCE SONAR_SOURCE_ANALOG_PIN
- # define MAGNETOMETER ENABLED
- # define OPTFLOW DISABLED
-#elif CONFIG_HAL_BOARD == HAL_BOARD_PX4
- # define CONFIG_IMU_TYPE   CONFIG_IMU_PX4
- # define CONFIG_BARO       AP_BARO_PX4
- # define CONFIG_SONAR_SOURCE SONAR_SOURCE_ANALOG_PIN
- # define MAGNETOMETER ENABLED
- # define OPTFLOW DISABLED
-#elif CONFIG_HAL_BOARD == HAL_BOARD_FLYMAPLE
- # define CONFIG_IMU_TYPE CONFIG_IMU_FLYMAPLE
- # define CONFIG_BARO AP_BARO_BMP085
- # define CONFIG_COMPASS  AP_COMPASS_HMC5843
- # define CONFIG_ADC        DISABLED
- # define MAGNETOMETER ENABLED
- # define CONFIG_SONAR_SOURCE SONAR_SOURCE_ANALOG_PIN
- # define OPTFLOW DISABLED
-#elif CONFIG_HAL_BOARD == HAL_BOARD_LINUX
- # define CONFIG_IMU_TYPE CONFIG_IMU_L3G4200D
- # define CONFIG_BARO AP_BARO_BMP085
- # define CONFIG_COMPASS  AP_COMPASS_HMC5843
- # define CONFIG_ADC        DISABLED
- # define MAGNETOMETER ENABLED
- # define CONFIG_SONAR_SOURCE SONAR_SOURCE_ANALOG_PIN
- # define OPTFLOW DISABLED
-#endif
-
-//////////////////////////////////////////////////////////////////////////////
-// FRAME_CONFIG
-//
-#ifndef FRAME_CONFIG
- # define FRAME_CONFIG   QUAD_FRAME
-#endif
-
-/////////////////////////////////////////////////////////////////////////////////
-// TradHeli defaults
-#if FRAME_CONFIG == HELI_FRAME
-  # define RC_FAST_SPEED                        125
-  # define WP_YAW_BEHAVIOR_DEFAULT              WP_YAW_BEHAVIOR_LOOK_AHEAD
-  # define RATE_INTEGRATOR_LEAK_RATE            0.02f
-  # define RATE_ROLL_D                          0
-  # define RATE_PITCH_D                         0
-  # define HELI_PITCH_FF                        0
-  # define HELI_ROLL_FF                         0
-  # define HELI_YAW_FF                          0  
-  # define STABILIZE_THR                        THROTTLE_MANUAL_HELI
-  # define DRIFT_THR                            THROTTLE_MANUAL_HELI
-  # define MPU6K_FILTER                         10
-  # define HELI_STAB_COLLECTIVE_MIN_DEFAULT     0
-  # define HELI_STAB_COLLECTIVE_MAX_DEFAULT     1000
-  # define THR_MIN_DEFAULT                      0
-  # define AUTOTUNE                             DISABLED
-  
-  # ifndef HELI_CC_COMP
-    #define HELI_CC_COMP DISABLED
-  #endif
-  # ifndef HELI_PIRO_COMP
-    #define HELI_PIRO_COMP DISABLED
-  #endif
-  
-#endif
-
-/////////////////////////////////////////////////////////////////////////////////
-// Y6 defaults
-#if FRAME_CONFIG == Y6_FRAME
-  # define RATE_ROLL_P                  0.1f
-  # define RATE_ROLL_D                  0.006f
-  # define RATE_PITCH_P                 0.1f
-  # define RATE_PITCH_D                 0.006f
-  # define RATE_YAW_P                   0.150f
-  # define RATE_YAW_I                   0.015f
-#endif
-
-
-// optical flow doesn't work in SITL yet
-#ifdef DESKTOP_BUILD
-# define OPTFLOW DISABLED
-#endif
-
-
-//////////////////////////////////////////////////////////////////////////////
-// IMU Selection
-//
-#ifndef CONFIG_IMU_TYPE
- # define CONFIG_IMU_TYPE CONFIG_IMU_OILPAN
-#endif
-
-//////////////////////////////////////////////////////////////////////////////
-// ADC Enable - used to eliminate for systems which don't have ADC.
-//
-#ifndef CONFIG_ADC
- # if CONFIG_IMU_TYPE == CONFIG_IMU_OILPAN
-  #   define CONFIG_ADC ENABLED
- # else
-  #   define CONFIG_ADC DISABLED
- # endif
-#endif
-
-//////////////////////////////////////////////////////////////////////////////
-// PWM control
-// default RC speed in Hz
-#ifndef RC_FAST_SPEED
-   #   define RC_FAST_SPEED 490
-#endif
-
-////////////////////////////////////////////////////////
-// LED and IO Pins
-//
-#if CONFIG_HAL_BOARD == HAL_BOARD_APM1
-#elif CONFIG_HAL_BOARD == HAL_BOARD_APM2
-#elif CONFIG_HAL_BOARD == HAL_BOARD_AVR_SITL
-#elif CONFIG_HAL_BOARD == HAL_BOARD_PX4
-#elif CONFIG_HAL_BOARD == HAL_BOARD_FLYMAPLE
-#elif CONFIG_HAL_BOARD == HAL_BOARD_LINUX
- # define LED_ON           LOW
- # define LED_OFF          HIGH
-#endif
-
-//////////////////////////////////////////////////////////////////////////////
-// Barometer
-//
-
-#ifndef CONFIG_BARO
- # define CONFIG_BARO AP_BARO_BMP085
-#endif
-
-//////////////////////////////////////////////////////////////////////////////
-// Sonar
-//
-
-#ifndef CONFIG_SONAR_SOURCE
- # define CONFIG_SONAR_SOURCE SONAR_SOURCE_ADC
-#endif
-
-#if CONFIG_SONAR_SOURCE == SONAR_SOURCE_ADC && CONFIG_ADC == DISABLED
- # warning Cannot use ADC for CONFIG_SONAR_SOURCE, becaude CONFIG_ADC is DISABLED
- # warning Defaulting CONFIG_SONAR_SOURCE to ANALOG_PIN
- # undef CONFIG_SONAR_SOURCE
- # define CONFIG_SONAR_SOURCE SONAR_SOURCE_ANALOG_PIN
-#endif
-
-#if CONFIG_SONAR_SOURCE == SONAR_SOURCE_ADC
- # ifndef CONFIG_SONAR_SOURCE_ADC_CHANNEL
-  #  define CONFIG_SONAR_SOURCE_ADC_CHANNEL 7
- # endif
-#elif CONFIG_SONAR_SOURCE == SONAR_SOURCE_ANALOG_PIN
- # ifndef CONFIG_SONAR_SOURCE_ANALOG_PIN
-  #  define CONFIG_SONAR_SOURCE_ANALOG_PIN 0
- # endif
-#else
- # warning Invalid value for CONFIG_SONAR_SOURCE, disabling sonar
- # define CONFIG_SONAR DISABLED
-#endif
-
-#ifndef CONFIG_SONAR
- # define CONFIG_SONAR ENABLED
-#endif
-
-#ifndef SONAR_ALT_HEALTH_MAX
- # define SONAR_ALT_HEALTH_MAX 3            // number of good reads that indicates a healthy sonar
-#endif
-
-#ifndef SONAR_RELIABLE_DISTANCE_PCT
- # define SONAR_RELIABLE_DISTANCE_PCT 0.60f // we trust the sonar out to 60% of it's maximum range
-#endif
-
-#ifndef SONAR_GAIN_DEFAULT
- # define SONAR_GAIN_DEFAULT 0.8            // gain for controlling how quickly sonar range adjusts target altitude (lower means slower reaction)
-#endif
-
-#ifndef THR_SURFACE_TRACKING_VELZ_MAX
- # define THR_SURFACE_TRACKING_VELZ_MAX 150 // max vertical speed change while surface tracking with sonar
-#endif
-
-//////////////////////////////////////////////////////////////////////////////
-// Channel 7 and 8 default options
-//
-
-#ifndef CH7_OPTION
- # define CH7_OPTION            AUX_SWITCH_DO_NOTHING
-#endif
-
-#ifndef CH8_OPTION
- # define CH8_OPTION            AUX_SWITCH_DO_NOTHING
-#endif
-
-//////////////////////////////////////////////////////////////////////////////
-// HIL_MODE                                 OPTIONAL
-
-#ifndef HIL_MODE
- #define HIL_MODE        HIL_MODE_DISABLED
-#endif
-
-#if HIL_MODE != HIL_MODE_DISABLED       // we are in HIL mode
-
- # undef GPS_PROTOCOL
- # define GPS_PROTOCOL GPS_PROTOCOL_NONE
-
- #undef CONFIG_SONAR
- #define CONFIG_SONAR DISABLED
-#endif
-
-
-//////////////////////////////////////////////////////////////////////////////
-// GPS_PROTOCOL
-//
+// TODO Remove this check from the mcinstance.h file - rely on MC_GPS_TYPE instead
 #ifndef GPS_PROTOCOL
  // define GPS_PROTOCOL           GPS_PROTOCOL_AUTO
  # define GPS_PROTOCOL           GPS_PROTOCOL_UBLOX
 #endif
 
-
-#ifndef MAV_SYSTEM_ID
- # define MAV_SYSTEM_ID          1
-#endif
-
-
-//////////////////////////////////////////////////////////////////////////////
 // Serial port speeds.
-//
 #ifndef SERIAL0_BAUD
  # define SERIAL0_BAUD                   115200
 #endif
@@ -325,31 +69,13 @@
  # define GPS_HDOP_GOOD_DEFAULT         200     // minimum hdop that represents a good position.  used during pre-arm checks if fence is enabled
 #endif
 
-// GCS failsafe
-#ifndef FS_GCS
- # define FS_GCS                        DISABLED
-#endif
-#ifndef FS_GCS_TIMEOUT_MS
- # define FS_GCS_TIMEOUT_MS             5000    // gcs failsafe triggers after 5 seconds with no GCS heartbeat
-#endif
-// possible values for FS_GCS parameter
-#define FS_GCS_DISABLED                     0
-#define FS_GCS_ENABLED_ALWAYS_RTL           1
-#define FS_GCS_ENABLED_CONTINUE_MISSION     2
-
 // pre-arm check max velocity
 #ifndef PREARM_MAX_VELOCITY_CMS
  # define PREARM_MAX_VELOCITY_CMS           50.0f   // vehicle must be travelling under 50cm/s before arming
 #endif
 
-//////////////////////////////////////////////////////////////////////////////
-//  MAGNETOMETER
-#ifndef MAGNETOMETER
- # define MAGNETOMETER                   ENABLED
-#endif
-
 // expected magnetic field strength.  pre-arm checks will fail if 50% higher or lower than this value
-#if CONFIG_HAL_BOARD == HAL_BOARD_APM1 || CONFIG_HAL_BOARD == HAL_BOARD_APM2
+#if defined(HAL_BOARD_APM2)
  #ifndef COMPASS_MAGFIELD_EXPECTED
   # define COMPASS_MAGFIELD_EXPECTED     330        // pre arm will fail if mag field > 544 or < 115
  #endif
@@ -371,79 +97,9 @@
 #endif
 
 //////////////////////////////////////////////////////////////////////////////
-//  OPTICAL_FLOW
-#ifndef OPTFLOW                         // sets global enabled/disabled flag for optflow (as seen in CLI)
- # define OPTFLOW                       ENABLED
-#endif
-// optical flow based loiter PI values
-#ifndef OPTFLOW_ROLL_P
- #define OPTFLOW_ROLL_P 2.5f
-#endif
-#ifndef OPTFLOW_ROLL_I
- #define OPTFLOW_ROLL_I 0.5f
-#endif
-#ifndef OPTFLOW_ROLL_D
- #define OPTFLOW_ROLL_D 0.12f
-#endif
-#ifndef OPTFLOW_PITCH_P
- #define OPTFLOW_PITCH_P 2.5f
-#endif
-#ifndef OPTFLOW_PITCH_I
- #define OPTFLOW_PITCH_I 0.5f
-#endif
-#ifndef OPTFLOW_PITCH_D
- #define OPTFLOW_PITCH_D 0.12f
-#endif
-#ifndef OPTFLOW_IMAX
- #define OPTFLOW_IMAX 100
-#endif
-
-//////////////////////////////////////////////////////////////////////////////
-//  Auto Tuning
-#ifndef AUTOTUNE
- # define AUTOTUNE  ENABLED
-#endif
-
-//////////////////////////////////////////////////////////////////////////////
-//  Crop Sprayer
-#ifndef SPRAYER
- # define SPRAYER  DISABLED
-#endif
-
-//////////////////////////////////////////////////////////////////////////////
-//	EPM cargo gripper
-#ifndef EPM_ENABLED
- # define EPM_ENABLED DISABLED
-#endif
-
-//////////////////////////////////////////////////////////////////////////////
 // RADIO CONFIGURATION
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
-
-
-//////////////////////////////////////////////////////////////////////////////
-// FLIGHT_MODE
-//
-
-#if !defined(FLIGHT_MODE_1)
- # define FLIGHT_MODE_1                  STABILIZE
-#endif
-#if !defined(FLIGHT_MODE_2)
- # define FLIGHT_MODE_2                  STABILIZE
-#endif
-#if !defined(FLIGHT_MODE_3)
- # define FLIGHT_MODE_3                  STABILIZE
-#endif
-#if !defined(FLIGHT_MODE_4)
- # define FLIGHT_MODE_4                  STABILIZE
-#endif
-#if !defined(FLIGHT_MODE_5)
- # define FLIGHT_MODE_5                  STABILIZE
-#endif
-#if !defined(FLIGHT_MODE_6)
- # define FLIGHT_MODE_6                  STABILIZE
-#endif
 
 
 //////////////////////////////////////////////////////////////////////////////
@@ -466,76 +122,12 @@
  # define LAND_REQUIRE_MIN_THROTTLE_TO_DISARM ENABLED
 #endif
 
-//////////////////////////////////////////////////////////////////////////////
-// CAMERA TRIGGER AND CONTROL
-//
-#ifndef CAMERA
- # define CAMERA        ENABLED
-#endif
-
-//////////////////////////////////////////////////////////////////////////////
-// MOUNT (ANTENNA OR CAMERA)
-//
-#ifndef MOUNT
- # define MOUNT         ENABLED
-#endif
-
-#ifndef MOUNT2
- # define MOUNT2         DISABLED
-#endif
-
 
 //////////////////////////////////////////////////////////////////////////////
 // Attitude Control
 //
 
 // Flight mode roll, pitch, yaw, throttle and navigation definitions
-
-// Stabilize Mode
-#ifndef STABILIZE_YAW
- # define STABILIZE_YAW           	YAW_HOLD
-#endif
-#ifndef STABILIZE_RP
- # define STABILIZE_RP           	ROLL_PITCH_STABLE
-#endif
-#ifndef STABILIZE_THR
- # define STABILIZE_THR           	THROTTLE_MANUAL_TILT_COMPENSATED
-#endif
-
-// Acro Mode
-#ifndef ACRO_YAW
- # define ACRO_YAW           	    YAW_ACRO
-#endif
-
-#ifndef ACRO_RP
- # define ACRO_RP            	    ROLL_PITCH_ACRO
-#endif
-
-#ifndef ACRO_THR
- # define ACRO_THR           	    THROTTLE_MANUAL
-#endif
-
-#ifndef ACRO_LEVEL_MAX_ANGLE
- # define ACRO_LEVEL_MAX_ANGLE      3000
-#endif
-
-// Drift Mode
-#ifndef DRIFT_THR
- # define DRIFT_THR                 THROTTLE_MANUAL_TILT_COMPENSATED
-#endif
-
-// Sport Mode
-#ifndef SPORT_YAW
- # define SPORT_YAW           	    YAW_HOLD
-#endif
-
-#ifndef SPORT_RP
- # define SPORT_RP            	    ROLL_PITCH_SPORT
-#endif
-
-#ifndef SPORT_THR
- # define SPORT_THR           	    THROTTLE_HOLD
-#endif
 
 // Alt Hold Mode
 #ifndef ALT_HOLD_YAW
@@ -554,142 +146,6 @@
 // Note: Auto mode yaw behaviour is controlled by WP_YAW_BEHAVIOR parameter
 #ifndef WP_YAW_BEHAVIOR_DEFAULT
  # define WP_YAW_BEHAVIOR_DEFAULT   WP_YAW_BEHAVIOR_LOOK_AT_NEXT_WP_EXCEPT_RTL     
-#endif
-
-#ifndef AUTO_RP
- # define AUTO_RP                   ROLL_PITCH_AUTO
-#endif
-
-#ifndef AUTO_THR
- # define AUTO_THR                  THROTTLE_AUTO
-#endif
-
-// CIRCLE Mode
-#ifndef CIRCLE_YAW
- # define CIRCLE_YAW             	YAW_CIRCLE
-#endif
-
-#ifndef CIRCLE_RP
- # define CIRCLE_RP                 ROLL_PITCH_AUTO
-#endif
-
-#ifndef CIRCLE_THR
- # define CIRCLE_THR                THROTTLE_HOLD
-#endif
-
-#ifndef CIRCLE_NAV
- # define CIRCLE_NAV           	    NAV_CIRCLE
-#endif
-
-#ifndef CIRCLE_RADIUS
- # define CIRCLE_RADIUS             10              // radius in meters for circle mode
-#endif
-
-#ifndef CIRCLE_RATE
- # define CIRCLE_RATE               20.0f        // degrees per second turn rate
-#endif
-
-// Guided Mode
-// Note: Guided mode yaw behaviour is controlled by WP_YAW_BEHAVIOR parameter
-#ifndef GUIDED_RP
- # define GUIDED_RP                 ROLL_PITCH_AUTO
-#endif
-
-#ifndef GUIDED_THR
- # define GUIDED_THR                THROTTLE_AUTO
-#endif
-
-#ifndef GUIDED_NAV
- # define GUIDED_NAV           	    NAV_WP
-#endif
-
-// LOITER Mode
-#ifndef LOITER_YAW
- # define LOITER_YAW             	YAW_HOLD
-#endif
-
-#ifndef LOITER_RP
- # define LOITER_RP                 ROLL_PITCH_LOITER
-#endif
-
-#ifndef LOITER_THR
- # define LOITER_THR                THROTTLE_HOLD
-#endif
-
-#ifndef LOITER_NAV
- # define LOITER_NAV                NAV_LOITER
-#endif
-
-// POSITION Mode
-#ifndef POSITION_YAW
- # define POSITION_YAW             	YAW_HOLD
-#endif
-
-#ifndef POSITION_RP
- # define POSITION_RP               ROLL_PITCH_LOITER
-#endif
-
-#ifndef POSITION_THR
- # define POSITION_THR              THROTTLE_MANUAL_TILT_COMPENSATED
-#endif
-
-#ifndef POSITION_NAV
- # define POSITION_NAV              NAV_LOITER
-#endif
-
-
-// RTL Mode
-// Note: RTL Yaw behaviour is controlled by WP_YAW_BEHAVIOR parameter
-#ifndef RTL_RP
- # define RTL_RP                    ROLL_PITCH_AUTO
-#endif
-
-#ifndef RTL_THR
- # define RTL_THR                   THROTTLE_AUTO
-#endif
-
-#ifndef SUPER_SIMPLE
- # define SUPER_SIMPLE           	DISABLED
-#endif
-
-#ifndef SUPER_SIMPLE_RADIUS
- # define SUPER_SIMPLE_RADIUS    	1000
-#endif
-
-// RTL Mode
-#ifndef RTL_ALT_FINAL
- # define RTL_ALT_FINAL             0       // the altitude the vehicle will move to as the final stage of Returning to Launch.  Set to zero to land.
-#endif
-
-#ifndef RTL_ALT
- # define RTL_ALT 				    1500    // default alt to return to home in cm, 0 = Maintain current altitude
-#endif
-
-#ifndef RTL_ALT_MAX
- # define RTL_ALT_MAX               8000    // Max height to return to home in cm (i.e 80m)
-#endif
-
-#ifndef RTL_LOITER_TIME
- # define RTL_LOITER_TIME           5000    // Time (in milliseconds) to loiter above home before begining final descent
-#endif
-
-
-
-// Optical Flow LOITER Mode
-#ifndef OF_LOITER_YAW
- # define OF_LOITER_YAW          	YAW_HOLD
-#endif
-
-#ifndef OF_LOITER_RP
- # define OF_LOITER_RP              ROLL_PITCH_STABLE_OF
-#endif
-
-#ifndef OF_LOITER_THR
- # define OF_LOITER_THR             THROTTLE_HOLD
-#endif
-
-#ifndef OF_LOITER_NAV
- # define OF_LOITER_NAV             NAV_NONE
 #endif
 
 //////////////////////////////////////////////////////////////////////////////
@@ -979,25 +435,6 @@
 #endif
 
 
-//////////////////////////////////////////////////////////////////////////////
-// Developer Items
-//
 
-// use this to completely disable the CLI
-#ifndef CLI_ENABLED
-  #  define CLI_ENABLED           ENABLED
-#endif
-
-/*
-  build a firmware version string.
-  GIT_VERSION comes from Makefile builds
-*/
-
-#define THISFIRMWARE "ArduCopter V3.1.5"
-#ifndef GIT_VERSION
-#define FIRMWARE_STRING THISFIRMWARE
-#else
-#define FIRMWARE_STRING THISFIRMWARE " (" GIT_VERSION ")"
-#endif
 
 #endif // __ARDUCOPTER_CONFIG_H__

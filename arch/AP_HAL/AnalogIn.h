@@ -10,13 +10,8 @@ public:
     virtual float read_latest() = 0;
     virtual void set_pin(uint8_t p) = 0;
 
-    // optionally allow setting of a pin that stops the device from
-    // reading. This is needed for sonar devices where you have more
-    // than one sonar, and you want to stop them interfering with each
-    // other. It assumes that if held low the device is stopped, if
-    // held high the device starts reading.    
-    virtual void set_stop_pin(uint8_t p) = 0;
-
+	// REMOVED set_stop_pin
+	
     // optionally allow a settle period in milliseconds. This is only
     // used if a stop pin is set. If the settle period is non-zero
     // then the analog input code will wait to get a reading for that

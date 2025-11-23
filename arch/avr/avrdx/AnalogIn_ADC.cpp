@@ -16,7 +16,6 @@ AVRDxAnalogSource::AVRDxAnalogSource(uint8_t pin) :
     _sum(0),
     _last_average(0),
     _pin(pin),
-    _stop_pin(ANALOG_INPUT_NONE),
     _settle_time_ms(0)
 {
 }
@@ -83,20 +82,19 @@ float AVRDxAnalogSource::voltage_average_ratiometric(void)
     return v * (5.0f / 1023.0f);
 }
 
-void AVRDxAnalogSource::set_pin(uint8_t _ignore) {
+void AVRDxAnalogSource::set_pin(uint8_t pin) {
 	return;
 	// TODO
 	/*
 	// ensure the pin is marked as an INPUT pin
-	if (_pin != ANALOG_INPUT_NONE && _pin != ANALOG_INPUT_BOARD_VCC) {
-		int8_t dpin = hal.gpio->analogPinToDigitalPin(_pin);
-		if (dpin != -1) {
-			// enable as input without a pull-up. This gives the
-			// best results for our analog sensors
-			hal.gpio->pinMode(dpin, GPIO_INPUT);
-			hal.gpio->write(dpin, 0);
-		}
+	int8_t dpin = hal.gpio->analogPinToDigitalPin(_pin);
+	if (dpin != -1) {
+		// enable as input without a pull-up. This gives the
+		// best results for our analog sensors
+		hal.gpio->pinMode(dpin, GPIO_INPUT);
+		hal.gpio->write(dpin, 0);
 	}
+
 	uint8_t sreg = SREG;
 	cli();
 	_sum = 0;
@@ -105,11 +103,6 @@ void AVRDxAnalogSource::set_pin(uint8_t _ignore) {
 	_latest = 0;
 	SREG = sreg;
 	*/
-}
-
-void AVRDxAnalogSource::set_stop_pin(uint8_t pin)
-{
-    _stop_pin = pin;
 }
 
 void AVRDxAnalogSource::set_settle_time(uint16_t settle_time_ms) 
@@ -151,11 +144,6 @@ void AVRDxAnalogSource::setup_read(void) {
 	return;
 	// TODO
 	/*
-    if (_stop_pin != ANALOG_INPUT_NONE) {
-        uint8_t digital_pin = hal.gpio->analogPinToDigitalPin(_stop_pin);
-        hal.gpio->pinMode(digital_pin, GPIO_OUTPUT);
-        hal.gpio->write(digital_pin, 1);
-    }
     if (_settle_time_ms != 0) {
         _read_start_time_ms = hal.scheduler->millis();
     }
@@ -167,18 +155,6 @@ void AVRDxAnalogSource::setup_read(void) {
     } else {
         ADCSRB = (ADCSRB & ~(1 << MUX5)) | (((_pin >> 3) & 0x01) << MUX5);
         ADMUX = _BV(REFS0) | (_pin & 0x07);
-    }
-	*/
-}
-
-void AVRDxAnalogSource::stop_read(void) {
-	return;
-	// TODO
-	/*
-    if (_stop_pin != ANALOG_INPUT_NONE) {
-        uint8_t digital_pin = hal.gpio->analogPinToDigitalPin(_stop_pin);
-        hal.gpio->pinMode(digital_pin, GPIO_OUTPUT);
-        hal.gpio->write(digital_pin, 0);
     }
 	*/
 }

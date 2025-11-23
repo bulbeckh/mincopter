@@ -96,14 +96,10 @@ void init_ardupilot(void)
 
     //mincopter.hal.scheduler->register_timer_failsafe(failsafe_check, 1000);
 
-#if HIL_MODE != HIL_MODE_ATTITUDE
- #if CONFIG_ADC == ENABLED
-    // begin filtering the ADC Gyros
+	// NOTE This initialises the external ADCs (as opposed to the hal adc) if present
+	// We still include because we specify our ADC as AP_ADC_None usually
     mincopter.adc.Init();           // APM ADC library initialization
 	mincopter.hal.console->printf_P(PSTR("[INIT] ADC initialised\n"));
-
- #endif // CONFIG_ADC
-#endif // HIL_MODE
 
     // Do GPS init
     mincopter.g_gps = &mincopter.g_gps_driver;

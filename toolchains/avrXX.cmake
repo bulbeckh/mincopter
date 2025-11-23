@@ -53,7 +53,7 @@ message("Using: -specs=${CMAKE_SOURCE_DIR}/arch/avr/dx-dfp/xc8/avr/device-specs/
 
 ## NOTE TARGET_ARCH should be the same as the mmcu option for avr targets
 set(COMMON_FLAGS
-	-v
+	#-v
 	-specs=${CMAKE_SOURCE_DIR}/arch/avr/dx-dfp/xc8/avr/device-specs/specs-${TARGET_ARCH}
 	#-std=gnu++11
 	#-mcpu=${TARGET_ARCH}

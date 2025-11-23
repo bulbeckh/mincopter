@@ -18,75 +18,61 @@ extern const AP_HAL::HAL& hal;
 #define CHANNEL_READ_REPEAT 2
 
 AVRDxAnalogIn::AVRDxAnalogIn(void) :
-    _vcc(AVRDxAnalogSource(ANALOG_INPUT_BOARD_VCC)),
+    _vcc(NULL),
 	_channels{
 		// TODO We define the max number of channels in the header file but we statically declare each on here?? Need to fix
-		// NOTE We initialise all channels with 0 pin and then update the pin during call to _create_channel
-		AVRDxAnalogSource(0),
-		AVRDxAnalogSource(0),
-		AVRDxAnalogSource(0),
-		AVRDxAnalogSource(0),
-		AVRDxAnalogSource(0),
-		AVRDxAnalogSource(0),
-		AVRDxAnalogSource(0),
-		AVRDxAnalogSource(0)
-	}
+		AVRDxAnalogSource(ANALOG_INPUT_BOARD_VCC),
+		AVRDxAnalogSource(ANALOG_INPUT_NONE),
+		AVRDxAnalogSource(ANALOG_INPUT_NONE),
+		AVRDxAnalogSource(ANALOG_INPUT_NONE),
+		AVRDxAnalogSource(ANALOG_INPUT_NONE),
+		AVRDxAnalogSource(ANALOG_INPUT_NONE),
+		AVRDxAnalogSource(ANALOG_INPUT_NONE),
+		AVRDxAnalogSource(ANALOG_INPUT_NONE),
+		AVRDxAnalogSource(ANALOG_INPUT_NONE),
+	},
+	_num_channels{0},
+	_active_channel{0},
+	_channel_repeat_count{0}
 {
 }
 
 
 void AVRDxAnalogIn::init(void*) 
 {
-	// TODO
-	
+
     // Register AVRAnalogIn::_timer_event with the scheduler
     hal.scheduler->register_timer_process(AP_HAL_MEMBERPROC(AVRDxAnalogIn, &AVRDxAnalogIn::_timer_event));
 
-    // Register each private channel with AVRAnalogIn
-    _register_channel(ANALOG_INPUT_BOARD_VCC);
+	// Set VCC to be pointer to the first index in the array
+	_vcc = _channels;
+	_num_channels = 1;
 
-	// Setup pins for each channel during initialisation
-	for (uint8_t i=0;i< AVR_INPUT_MAX_CHANNELS;i++) _channels[i].set_pin(0);
-}
+	// Enable ADC
+	/*
+    //PRR0 &= ~_BV(PRADC);
+    ADCSRA |= _BV(ADEN);
+	*/
 
-// NOTE I have heavily modified this to remove the use of new. We instead instantiate all ADCSource with a
-// pin of 0 and then update the channel when we create it (which also increments _num_channels)
-AVRDxAnalogSource* AVRDxAnalogIn::_create_channel(int16_t chnum) {
-    return _register_channel(chnum);
+	// Enable ADC
+	ADC0.CTRLA |= ADC_ENABLE_bm;
+	
+	return;
 }
 
 AVRDxAnalogSource* AVRDxAnalogIn::_register_channel(int16_t chnum) {
-    if (_num_channels >= AVR_INPUT_MAX_CHANNELS) {
-        for(;;) {
-            hal.console->print_P(PSTR("Error: AP_HAL_AVR::AVRAnalogIn out of channels\r\n"));
-            hal.scheduler->delay(1000);
-        }
-    }
 
 	// NOTE Update the pin number
 	_channels[_num_channels].set_pin(chnum);
-    //_channels[_num_channels] = ch;
-	
-    /* Need to lock to increment _num_channels as it is used
-     * by the interrupt to access _channels */
 
-	// TODO
-	/*
-    uint8_t sreg = SREG;
+    /* Need to lock to increment _num_channels as it is used * by the interrupt to access _channels */
+    uint8_t sreg = CPU_SREG;
     cli();
     _num_channels++;
-    SREG = sreg;
-
-    if (_num_channels == 1) {
-        // After registering the first channel, we can enable the ADC
-        PRR0 &= ~_BV(PRADC);
-        ADCSRA |= _BV(ADEN);
-    }
+    CPU_SREG = sreg;
 
 	// Return the address of the ADCSource object in the array
 	return &(_channels[_num_channels-1]);
-	*/
-	return NULL;
 }
 
 void AVRDxAnalogIn::_timer_event(void) 
@@ -129,8 +115,6 @@ void AVRDxAnalogIn::_timer_event(void)
         _channels[_active_channel].new_sample( sample );
     }
 next_channel:
-    // stop the previous channel, if a stop pin is defined
-    _channels[_active_channel].stop_read();
     // Move to the next channel
     _active_channel = (_active_channel + 1) % _num_channels;
     // Setup the next channel's conversion
@@ -140,12 +124,22 @@ next_channel:
 	*/
 }
 
-AP_HAL::AnalogSource* AVRDxAnalogIn::channel(int16_t ch) 
+AP_HAL::AnalogSource* AVRDxAnalogIn::channel(int16_t channel)
 {
-    if (ch == ANALOG_INPUT_BOARD_VCC) {
-            return &_vcc;
-    } else {
-        return _create_channel(ch);
+    if (channel == ANALOG_INPUT_BOARD_VCC) return _vcc;
+
+	if (channel == ANALOG_INPUT_NONE) {
+		hal.console->printf("ADC:Requested NONE channel. Returning NULL\r\n");
+		return NULL;
+	}
+
+	// Check that we are not requesting a channel outside our range
+	if (channel > AVR_INPUT_MAX_CHANNELS) {
+		hal.console->printf("ADC:Requested invalid channel\r\n");
+		return NULL;
     }
+
+	// Check that we have actually set this channel up
+	return _register_channel(channel);
 }
 

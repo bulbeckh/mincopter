@@ -8,7 +8,7 @@ set(CMAKE_C_COMPILER arm-none-eabi-gcc)
 set(CMAKE_CXX_COMPILER arm-none-eabi-g++)
 
 add_compile_definitions(
-	CONFIG_HAL_BOARD=HAL_BOARD_STM32
+	HAL_BOARD_STM32
 	TARGET_ARCH_STM32
 )
 

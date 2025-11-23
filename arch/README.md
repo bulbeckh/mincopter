@@ -1,4 +1,13 @@
+### Targets
 
+`linux/generic`
+
+`avr/avr-*`
+- The mega-series boards can be compiled with most versions of avr-gcc. They newer dx-series, however, requires a more recent version. We can use either avr-gcc or Microchips proprietary xc8 compiler but we opt for the former as it is both open-source and easier to install. However, the device-specs for each board still need to be downloaded. They can be obtained here: TODO.
+
+`linux/rpi`
+
+`arm/stm32`
 
 ### Configuration
 

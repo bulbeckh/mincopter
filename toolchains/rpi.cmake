@@ -12,7 +12,7 @@ set(CMAKE_CXX_COMPILER g++)
 
 add_compile_definitions(
 	#BOARD=atmega2560
-	CONFIG_HAL_BOARD=HAL_BOARD_RPI
+	HAL_BOARD_RPI
 	#PORT=/dev/ttyACM0
 	F_CPU=16000000L
 	#_GNU_SOURCE
