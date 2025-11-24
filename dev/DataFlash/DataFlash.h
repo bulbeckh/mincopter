@@ -13,6 +13,20 @@
 #include <AP_Baro.h>
 #include <stdint.h>
 
+/* DataFlash/Storage has the following backends:
+ *
+ * APM2 (Microchip/Atmel DataFlash)
+ *
+ *
+ * DataFlash_Class 	------
+ * 		|
+ * 		|
+ * 		|
+ * DataFlash_Block	---------
+ * 		|					|
+ * DataFlash_Empty	DataFlash_SITL
+ *
+ */
 class DataFlash_Class
 {
 public:

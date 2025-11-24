@@ -71,7 +71,7 @@ void AP_Baro::calibrate()
 
     // reset the altitude offset when we calibrate. The altitude
     // offset is supposed to be for within a flight
-    //_alt_offset = 0;
+    _alt_offset = 0;
 
     {
         uint32_t tstart = hal.scheduler->millis();
@@ -139,7 +139,6 @@ void AP_Baro::update_calibration()
 
 // NOTE TODO This is the calculation used to estimate height from a barometer/pressure reading. Keeping for reference
 // but will be moved to MCState
-/*
 float AP_Baro::get_altitude(void)
 {
     float scaling, temp;
@@ -167,9 +166,8 @@ float AP_Baro::get_altitude(void)
     _last_altitude_t = _last_update;
 
     // ensure the climb rate filter is updated
-    _climb_rate_filter.update(_altitude, _last_update);
+    //_climb_rate_filter.update(_altitude, _last_update);
 
     return _altitude + _alt_offset;
 }
-*/
 

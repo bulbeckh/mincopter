@@ -2,8 +2,9 @@
 #include <AP_InertialSensor.h>
 #include <AP_Compass.h>
 
-#include <mcstate.h>
 #include <mcinstance.h>
+
+#include <mcstate.h>
 
 #include <AP_HAL/AP_HAL.h>
 #include <AP_HAL/HAL_Interface.h>
@@ -15,62 +16,88 @@
 const AP_HAL::HAL& hal = AP_HAL_BOARD_DRIVER;
 
 // GLOBALS
-MCState mcstate; 
 MCInstance mincopter;
+
+StateComplementary mcstate;
 
 // Should return 0 on successful tests and 1 on any other status
 uint8_t run_unit_tests(void)
 {
+	// Initialise/calibrate sensors
+	
+	// IMU
+	mincopter.ins.init(AP_InertialSensor::COLD_START, AP_InertialSensor::RATE_100HZ);
+
+	// Compass
+	mincopter.compass.init();
+
+	// Barometer
+	// TODO Not yet fused in complementary sensor but need to add
+
+	// Initialise state
+	// TODO
+	mcstate.init();
+
+	hal.console->printf("State and sensors initialised\r\n");
+
+	uint32_t loop_us;
+	// This should always be ~10,000us
+	uint32_t loop_fixed_us;
+
 	/* Test 1. Read value */
 	for (int i=0;i<1e7;i++) {
 		uint32_t ts_start = hal.scheduler->micros();
 
 		// Update INS sensors
 		bool status = mincopter.ins.update();
+
 		bool c_status = mincopter.compass.read();
 
 		// Update quaternion
-		mcstate.ahrs.ahrs_update();
+		mcstate.update();
 
-		if (!status || !c_status) {
-			hal.console->printf("Error in IMU or compass read\n");
-			return 1;
+		if (!status) {
+			hal.console->printf("Error in IMU read\n");
+			hal.scheduler->delay(100);
+			continue;
 		}
 
+		if (!c_status) {
+			hal.console->printf("Error in compass read\n");
+			hal.scheduler->delay(100);
+			continue;
+		}
+
+		/*
 		Vector3f accel = mincopter.ins.get_accel();
 		Vector3f gyro = mincopter.ins.get_gyro();
 		Vector3f mag_field = mincopter.compass.get_field();
+		*/
 
-		if (i%50==0) {
-			Quaternion& _temp_att = mcstate._state._attitude;
+		// Log
+		//Quaternion& _temp_att = mcstate._state._attitude;
 
-			float roll,pitch,yaw;
-			_temp_att.to_euler(&roll, &pitch, &yaw);
+		float roll = mcstate.data.euler.x;
+		float pitch = mcstate.data.euler.y;
+		float yaw = mcstate.data.euler.z;
 
-			// IN NED
-			hal.console->printf("<RPY>% 8.3f,% 8.3f,% 8.3f\n", roll, pitch, yaw);
-			hal.console->printf("<MAG>% 8.3f,% 8.3f,% 8.3f\n", mag_field.x, mag_field.y, mag_field.z);
-			hal.console->printf("<ACC>% 8.3f,% 8.3f,% 8.3f\n", accel.x, accel.y, accel.z);
-			hal.console->printf("<GYR>% 8.3f,% 8.3f,% 8.3f\n", gyro.x, gyro.y, gyro.z);
+		
 
-		}
+		// IN NED
+		hal.console->printf("%fs,<RPY>% 8.3f,% 8.3f,% 8.3f\n", (hal.scheduler->micros()-loop_fixed_us)*1.0e-6f, roll, pitch, yaw);
 
-		// 
-		uint32_t loop_us = hal.scheduler->micros()-ts_start;
+		loop_fixed_us = hal.scheduler->micros();
+		/*
+		hal.console->printf("<MAG>% 8.3f,% 8.3f,% 8.3f\n", mag_field.x, mag_field.y, mag_field.z);
+		hal.console->printf("<ACC>% 8.3f,% 8.3f,% 8.3f\n", accel.x, accel.y, accel.z);
+		hal.console->printf("<GYR>% 8.3f,% 8.3f,% 8.3f\n", gyro.x, gyro.y, gyro.z);
+		*/
 
-		// 50Hz = 20,000us
-		int32_t delay_us = 10000-(int32_t)loop_us;
+		loop_us = hal.scheduler->micros()-ts_start;
 
-		if (i%50==0) {
-			hal.console->printf("(loop, delay): %lu, %ld\n", loop_us, delay_us);
-		}
-
-		if (delay_us<0) {
-			delay_us=0;
-		}
 
 		// Delay (ms)
-		hal.scheduler->delay_microseconds(delay_us);
+		hal.scheduler->delay_microseconds(ap_max(0, 10000 - loop_us));
 	}
 
 	return 0;
@@ -82,13 +109,6 @@ int main()
 	// Core setup before actual testing
 	hal.init(0, NULL);
 	
-	// Initialise sensors
-	mincopter.ins.init(AP_InertialSensor::COLD_START, AP_InertialSensor::RATE_100HZ);
-	mincopter.compass.init();
-
-	// Initialise state
-	mcstate.init();
-
 	run_unit_tests();
 
 	// Test 1

@@ -1,4 +1,3 @@
-
 #pragma once
 
 /* Implementation of a complementary filter for state estimation */
@@ -23,7 +22,8 @@ class StateComplementary : public MCState
 
 		// TODO Alpha should be passed in as an initialised value somehow
 		/* @brief The alpha value of the complementary filter */
-		float alpha = 0.998;
+		//float alpha = 0.998;
+		float alpha = 0.98;
 
 		float alpha_yaw = 0.8;
 

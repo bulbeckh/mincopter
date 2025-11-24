@@ -41,16 +41,21 @@ void StateComplementary::update(void)
 	// Accelerometer and Gyrometer readings in NED frame
 	Vector3f accel_reading = mincopter.ins.get_accel();
 
+	// TODO NOTE This is fixed by enabling accelerometer offsets
+	/*
 	// Add offset constant for z-axis
 #ifdef TARGET_ARCH_AVR
 	accel_reading.z += 3.57;
 #endif
+	*/
 
 	// NOTE No need to normalise accel
 	//accel_reading.normalize();
 
 	// Get elapsed gyrometer time for use in integration of gyros
-	float ins_time_s= mincopter.ins.get_delta_time();
+	float ins_time_s = mincopter.ins.get_delta_time();
+	// NOTE TODO temporarily fixed this to 100Hz update rate
+	ins_time_s = 0.015;
 
 	// TODO Soon the 'native' sensor frame for all magnetometer/compasses will be defined as NED
 	// and we won't need this step
@@ -75,6 +80,7 @@ void StateComplementary::update(void)
 #endif
 
 	// TODO Remove this whole thing - we do magnetic declination correction AFTER we calculate the yaw
+	/*
 	// Correct for declination/inclination (using -68deg inc and +11deg dec)
 #ifdef TARGET_ARCH_AVR
 	Vector3f mag_ned(
@@ -85,7 +91,7 @@ void StateComplementary::update(void)
 	// Copy mag_reading
 	Vector3f mag_ned = mag_reading;
 #endif
-
+	*/
 
 	// TODO UPDATED
 	// Estimate **roll** and **pitch** from accelerometer gravity vector by also multiplying by sign of y
@@ -102,10 +108,6 @@ void StateComplementary::update(void)
 	 * float theta_magz = atan2f(mag_reading.z*sin(theta_magy) - mag_reading.y*cos(theta_magy),
 			mag_reading.x*cos(theta_magx) + sin(theta_magx)*(mag_reading.y*sin(theta_magy) + mag_reading.z*cos(theta_magy)));
 	*/
-
-	if (mag_reading.x == 0 && mag_reading.y == 0 && mag_reading.z == 0) {
-		mincopter.hal.console->printf("state est - 0 mag\r\n");
-	}
 
 	float theta_magz = atan2f(
 			-1*mag_reading.y*cos(theta_magx) + mag_reading.z*sin(theta_magx),
@@ -146,6 +148,7 @@ void StateComplementary::update(void)
 		euler_internal.z = alpha_yaw*theta_gyroz + (1-alpha_yaw)*theta_magz;
 	}
 
+	/*
 	mincopter.hal.console->printf("t: %f, eul:%f,%f,%f | %f,%f,%f | %f,%f,%f | %f,%f,%f\r\n",
 			ins_time_s,
 			euler_internal.x, euler_internal.y, euler_internal.z,
@@ -157,7 +160,8 @@ void StateComplementary::update(void)
 			gyro_reading.z,
 			mag_reading.x,
 			mag_reading.y,
-			mag_reading.z);
+			mag_reading.zate rate
+	*/
 
 	// Compute and update quaternion (in NED frame)
 	data.attitude.from_euler(

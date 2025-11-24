@@ -17,17 +17,26 @@ uint8_t run_unit_tests(AP_Baro& _barometer)
 		return 1;
 	}
 
+	// Calibrate (records ground pressure and temp so that we can use the altitude methods
+	_barometer.calibrate();
+
 	/* Test 1. Read value */
-	for (int i=0;i<8;i++) {
+	for (int i=0;i<1e6;i++) {
+
 		_barometer.read();
 
 		float _temp = _barometer.get_temperature();
 		float _pressure = _barometer.get_pressure();
 
-		hal.console->printf("T %f P %f\n", _temp, _pressure);
+		// Calculate altitude
+		float alt = _barometer.get_altitude();
 
+		// Log to console
+		hal.console->printf("Baro %d,%+6.3f,%+6.3f,%+6.3f\n", i, _temp, _pressure, alt);
+
+		// TODO
 		// Delay 10ms
-		hal.scheduler->delay(10);
+		hal.scheduler->delay(50);
 	}
 
 	return 0;

@@ -3,7 +3,12 @@
 `linux/generic`
 
 `avr/avr-*`
-- The mega-series boards can be compiled with most versions of avr-gcc. They newer dx-series, however, requires a more recent version. We can use either avr-gcc or Microchips proprietary xc8 compiler but we opt for the former as it is both open-source and easier to install. However, the device-specs for each board still need to be downloaded. They can be obtained here: TODO.
+- The mega-series boards can be compiled with most versions of avr-gcc. They newer dx-series, however, requires a more recent version. We can use either avr-gcc or Microchips proprietary xc8 compiler but we opt for the former as it is both open-source and easier to install. However, the device-specs for each board still need to be downloaded. They can be obtained here: https://packs.download.microchip.com/
+- We need to use a modern avr-gcc toolchain for compilation of the Dx-series with gcc. I have it working with the following (all built from source with instructions here https://avrdudes.github.io/avr-libc/avr-libc-user-manual/install_tools.html):
+    - gcc-avr 15.2.0
+    - avr-libc 2.5.1
+    - binutils-avr 2.45.1
+
 
 `linux/rpi`
 

@@ -110,6 +110,8 @@ AP_InertialSensor::init( Start_style style,
 		_accel_scale = Vector3f(1,1,1);
 	}
 
+	init_accel();
+
     if (WARM_START != style) {
         // do cold-start calibration for gyro only
         _init_gyro();
@@ -270,20 +272,17 @@ AP_InertialSensor::_init_accel()
 		max_offset = (accel_offset.x > accel_offset.y) ? accel_offset.x : accel_offset.y;
 		max_offset = (max_offset > accel_offset.z) ? max_offset : accel_offset.z;
 
-        uint8_t num_converged = 0;
+		// Check for convergence
 		if (total_change <= AP_INERTIAL_SENSOR_ACCEL_TOT_MAX_OFFSET_CHANGE && max_offset <= AP_INERTIAL_SENSOR_ACCEL_MAX_OFFSET) {
-			num_converged++;
+			hal.console->printf_P(PSTR("Acc converged:%f,%f,%f\r\n"), accel_offset.x, accel_offset.y, accel_offset.z);
+			break;
 		}
-
-        if (num_converged) break;
 
         hal.scheduler->delay(500);
     }
 
     // set the global accel offsets
     _accel_offset = accel_offset;
-
-    hal.console->print_P(PSTR(" "));
 
 	return;
 }

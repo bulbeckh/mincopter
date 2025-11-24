@@ -22,14 +22,15 @@ uint8_t run_unit_tests(Compass& _compass)
 			hal.console->printf("Error in compass read\n");
 			return 1;
 		}
-		//
 
+		// Read magnetic field
 		Vector3f field = _compass.get_field();
 
-		hal.console->printf("X: %f, Y: %f, Z: %f\n", field.x, field.y, field.z);
+		// Log to console
+		hal.console->printf("compass X: %f, Y: %f, Z: %f\r\n", field.x, field.y, field.z);
 
-		// Delay 500ms
-		hal.scheduler->delay(500);
+		// TODO
+		// Delay
 	}
 
 	return 0;

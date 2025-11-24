@@ -339,15 +339,19 @@ bool AP_Compass_HMC5843::read()
         // someone has tried to enable a compass for the first time
         // mid-flight .... we can't do that yet (especially as we won't
         // have the right orientation!)
+
+		hal.console->printf_P(PSTR("Tried to read compass without init\r\n"));
         return false;
     }
     if (!_healthy) {
         if (hal.scheduler->millis() < _retry_time) {
+			hal.console->printf_P(PSTR("Compass tried read too soon\r\n"));
             return false;
         }
         if (!re_initialise()) {
             _retry_time = hal.scheduler->millis() + 1000;
 			hal.i2c->setHighSpeed(false);
+			hal.console->printf_P(PSTR("Compass failed re-init\r\n"));
             return false;
         }
     }
@@ -358,6 +362,7 @@ bool AP_Compass_HMC5843::read()
 		  // try again in 1 second, and set I2c clock speed slower
 		  _retry_time = hal.scheduler->millis() + 1000;
 		  hal.i2c->setHighSpeed(false);
+		  hal.console->printf_P(PSTR("Compass failed accumulate\r\n"));
 		  return false;
 	   }
 	}

@@ -56,11 +56,20 @@ class AP_Baro
 			return _last_update;
 		}
 
+		/* @brief Calculate current altitude */
+		float get_altitude(void);
+
 	protected:
 		/* @brief Time of last barometer read (in ms) */
 		uint32_t _last_update;
 
 	private:
+		// Altitude variables
+
+		uint32_t _last_altitude_t;
+		float _altitude;
+		float _alt_offset;
+
 
 		/* @brief Temperature reading at ground (set during arming) */
 		float _ground_temperature;

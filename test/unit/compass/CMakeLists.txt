@@ -4,26 +4,26 @@
 file(GLOB math_srcs ${CMAKE_SOURCE_DIR}/lib/AP_Math/*.cpp)
 
 ## Create test executable
-add_executable(test-compass
-	test_compass_core.cpp
+add_executable(test-compass-read
+	test_compass_read.cpp
 
 	## Again, referencing AP_Math to avoid linking with mc-common
 	${math_srcs}
 )
 
 ## Link
-target_link_libraries(test-compass PUBLIC
+target_link_libraries(test-compass-read PUBLIC
 	mc-dev
 	mc-arch
 	## gtest libs
 )
 
-target_include_directories(test-compass PUBLIC
+target_include_directories(test-compass-read PUBLIC
 	${MC_INCLUDE_DIRS}
 )
 
 if(${TARGET_ARCH_FAMILY} STREQUAL "stm32")
-	target_link_libraries(test-compass PUBLIC
+	target_link_libraries(test-compass-read PUBLIC
 		-Wl,--whole-archive
 		stm32_static
 		-Wl,--no-whole-archive
