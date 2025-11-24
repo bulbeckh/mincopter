@@ -9,3 +9,4 @@ arch/arm/Drivers
 arch/avr/xc8
 arch/avr/dx-dfp
 *.bin
+**/screenlog.*

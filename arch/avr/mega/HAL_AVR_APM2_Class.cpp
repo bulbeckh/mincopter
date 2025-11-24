@@ -52,7 +52,7 @@ HAL_AVR_APM2::HAL_AVR_APM2() :
         &apm2SPIDriver,
         &avrAnalogIn,
         &avrEEPROMStorage,
-        &avrUart0Driver,
+        &avrUart2Driver, // &avrUart0Driver, // NOTE TODO Re-directed 'console' to telemetry
         &avrGPIO,
         &apm2RCInput,
         &apm2RCOutput,
@@ -68,6 +68,11 @@ void HAL_AVR_APM2::init(int argc, char * const argv[]) const {
     /* uartA is the serial port used for the console, so lets make sure
      * it is initialized at boot */
     uartA->begin(115200, 128, 128);
+
+	// TODO Maybe move this back to the init function in mincopter.cpp
+	// Start Telemetry console
+	uartC->begin(57600, 128, 128);
+
     /* The AVR RCInput drivers take an AP_HAL_AVR::ISRRegistry*
      * as the init argument */
     rcin->init((void*)&isrRegistry);
