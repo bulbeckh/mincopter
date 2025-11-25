@@ -466,7 +466,7 @@ sads
 
 */
 
-    uint32_t timer = micros();
+    uint32_t timer = hal.scheduler->micros();
 
     // wait for an INS sample
     if (!mincopter.ins.wait_for_sample(1000)) {
@@ -503,12 +503,12 @@ sads
 	
 	// TODO Check for call to a pose update
 	
-	uint32_t st = micros();
+	uint32_t st = hal.scheduler->micros();
 	
 	// Step the simulation by the desired microseconds (us)
 	hal.sim->tick(10000);
 
-	uint32_t gz_elapsed = micros()-st;
+	uint32_t gz_elapsed = hal.scheduler->micros()-st;
 #endif
 
     // mincopter.G_Dt is used by PI loops
@@ -531,7 +531,7 @@ sads
     // in multiples of the main loop tick. So if they don't run on
     // the first call to the scheduler they won't run on a later
     // call until scheduler.tick() is called again
-    uint32_t time_available = (timer + 10000) - micros();
+    uint32_t time_available = (timer + 10000) - hal.scheduler->micros();
 
 	//if (_counter<3) mincopter.hal.console->printf("STACK pre-loop:%u\n", mincopter.hal.util->available_memory());
 
@@ -564,7 +564,7 @@ sads
 		_telem_counter++;
 	}
 
-    uint32_t time_elapsed = micros() - timer;
+    uint32_t time_elapsed = hal.scheduler->micros() - timer;
     // Delay if we have time remaining (i.e. time took less than 10000us)
 
 	if (time_elapsed < 10000) {

@@ -161,6 +161,7 @@ void DataFlash_APM2::ReadManufacturerID()
 bool DataFlash_APM2::CardInserted()
 {
     //serialDebug("df_NumPages %d, detect:%d\n", df_NumPages, tmp);
+	// TODO replace digital read with the underlying HAL call
     //return (df_NumPages >= 4095 && digitalRead(DF_CARDDETECT) == 0);
     return (df_NumPages >= 4095);
 }

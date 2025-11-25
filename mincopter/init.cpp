@@ -124,7 +124,7 @@ void init_ardupilot(void)
         // the barometer becomes healthy when we get the first
         // HIL_STATE message
         //gcs_send_text_P(SEVERITY_LOW, PSTR("Waiting for first HIL_STATE message"));
-        delay(1000);
+        mincopter.hal.scheduler->delay(1000);
     }
 #endif
 

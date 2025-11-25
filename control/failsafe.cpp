@@ -151,7 +151,7 @@ void WP_Planner::failsafe_gps_check()
     }
 
     // calc time since last gps update
-    last_gps_update_ms = millis() - mincopter.gps_glitch.last_good_update();
+    last_gps_update_ms = hal.scheduler->millis() - mincopter.gps_glitch.last_good_update();
 
     // check if all is well
     if( last_gps_update_ms < FAILSAFE_GPS_TIMEOUT_MS) {

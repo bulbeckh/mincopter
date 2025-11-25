@@ -26,14 +26,6 @@ void set_land_complete(bool b);
 void set_pre_arm_check(bool b);
 void set_pre_arm_rc_check(bool b);
 
-// compat.pde 
-void delay(uint32_t ms);
-
-uint32_t millis();
-uint32_t micros();
-void pinMode(uint8_t pin, uint8_t output);
-void digitalWrite(uint8_t pin, uint8_t out);
-uint8_t digitalRead(uint8_t pin);
 
 // crash_check.pde
 void crash_check();

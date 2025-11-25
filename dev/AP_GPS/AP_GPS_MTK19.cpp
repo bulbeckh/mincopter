@@ -188,7 +188,7 @@ restart:
             parsed                  = true;
 
 #ifdef FAKE_GPS_LOCK_TIME
-            if (millis() > FAKE_GPS_LOCK_TIME*1000) {
+            if (hal.scheduler->millis() > FAKE_GPS_LOCK_TIME*1000) {
                 fix                 = true;
                 latitude            = -35000000UL;
                 longitude           = 149000000UL;

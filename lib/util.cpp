@@ -122,46 +122,6 @@ void set_pre_arm_rc_check(bool b)
     }
 }
 
-// compat.pde
-
-// TODO Why are these two the same? remove one
-void delay(uint32_t ms)
-{
-    mincopter.hal.scheduler->delay(ms);
-}
-
-void mavlink_delay(uint32_t ms)
-{
-    mincopter.hal.scheduler->delay(ms);
-}
-
-// TODO inline this
-uint32_t millis()
-{
-    return mincopter.hal.scheduler->millis();
-}
-
-uint32_t micros()
-{
-    return mincopter.hal.scheduler->micros();
-}
-
-void pinMode(uint8_t pin, uint8_t output)
-{
-    mincopter.hal.gpio->pinMode(pin, output);
-}
-
-void digitalWrite(uint8_t pin, uint8_t out)
-{
-    mincopter.hal.gpio->write(pin,out);
-}
-
-uint8_t digitalRead(uint8_t pin)
-{
-    return mincopter.hal.gpio->read(pin);
-}
-
-
 // Code to detect a crash main ArduCopter code
 #ifndef CRASH_CHECK_ITERATIONS_MAX
  # define CRASH_CHECK_ITERATIONS_MAX        20      // 2 second (ie. 10 iterations at 10hz) inverted indicates a crash
