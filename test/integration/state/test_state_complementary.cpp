@@ -82,9 +82,15 @@ uint8_t run_unit_tests(void)
 		float yaw = mcstate.data.euler.z;
 
 		
-
-		// IN NED
-		hal.console->printf("%fs,<RPY>% 8.3f,% 8.3f,% 8.3f\n", (hal.scheduler->micros()-loop_fixed_us)*1.0e-6f, roll, pitch, yaw);
+		// Log to console (not telemetry) at 4Hz
+		if (i%25==0) hal.uartA->printf("%fs,<RPY>% 8.3f (%8.3fdegc),% 8.3f (%8.3fdegc),% 8.3f (%8.3fdegc)\n",
+				(hal.scheduler->micros()-loop_fixed_us)*1.0e-6f,
+				roll,
+				roll*180.0f/M_PI_F,
+				pitch,
+				pitch*180.0f/M_PI_F,
+				yaw,
+				yaw*180.0f/M_PI_F);
 
 		loop_fixed_us = hal.scheduler->micros();
 		/*

@@ -188,14 +188,6 @@ class WP_Planner : public MC_Planner
 		*/
 		void init_disarm_motors();
 
-		/* @brief Disarms motors if copter has been stationary on ground for 15sec. Called at 1hz by 1hz_loop
-		*/
-		void auto_disarm_check(); 
-
-		/* @brief Checks run before motors are armed
-		*/
-		void pre_arm_checks(void);
-
 		/* @brief Reduces rate-of-change of yaw to a maximum value
 		* @param current_yaw The current yaw value. Usually control_yaw
 		* @param desired_yaw The target yaw value.
@@ -206,7 +198,6 @@ class WP_Planner : public MC_Planner
 		void get_throttle_althold_with_slew(int32_t target_alt, int16_t min_climb_rate, int16_t max_climb_rate);
 		
 	private:
-		bool pre_arm_gps_checks(void);
 
 		bool arm_checks(void);
 

@@ -22,6 +22,22 @@ extern MCInstance mincopter;
 /* Instantiate WP_Planner here */
 WP_Planner planner;
 
+
+void WP_Planner::set_land_complete(bool b)
+{
+    // if no change, exit immediately
+    if( planner.ap.land_complete == b )
+        return;
+
+    if(b){
+        Log_Write_Event(DATA_LAND_COMPLETE);
+    }else{
+        Log_Write_Event(DATA_NOT_LANDED);
+    }
+    ap.land_complete = b;
+}
+
+
 void WP_Planner::run(void)
 {
     /* When the planner is first run, it needs to wait until the sensor signals are all correct (i.e. GPS
@@ -37,42 +53,34 @@ void WP_Planner::run(void)
 	static int arm_delay_counter=0;
 #endif
 
+	// TODO This should instead be triggered by the telemetry
 	if (planner_arm_state==PlannerArmState::DISARMED) { 
 
-		// Run pre_arm_checks
-		pre_arm_checks();
-
-		// Return if we fail any pre arm checks
-		if (!ap.pre_arm_check) {
-			mincopter.hal.console->printf_P(PSTR("pre arm check failed\n"));
+		// Run arm checks
+		if (!arm_checks()) {
+			// TODO Log failed arm check
 			return;
 		}
 
-		// Run final arm checks
-		if (arm_checks())
-		{
-			// Attempt Arm
+		// Attempt Arm
 #ifdef TARGET_ARCH_LINUX
-			// Wait 1sec until we arm
-			if (arm_delay_counter<100) {
-				arm_delay_counter++;
-				return;
-			}
+		// Wait 1sec until we arm
+		if (arm_delay_counter<100) {
+			arm_delay_counter++;
+			return;
+		}
 #endif
 
-			// Begin to arm motors if we pass all arming checks
-			init_arm_motors();
+		// Begin to arm motors if we pass all arming checks
+		init_arm_motors();
 
-			// If the motor flag is actually set to armed then update the planner state to ARMED
-			if (mincopter.motors.armed()) {
-				planner_arm_state=PlannerArmState::ARMED;
-			} else {
-				return;
-			}
+		// If the motor flag is actually set to armed then update the planner state to ARMED
+		if (mincopter.motors.armed()) {
+			planner_arm_state=PlannerArmState::ARMED;
 		} else {
-			// Failed arm checks and need to return from ::run
 			return;
 		}
+
     }
 
 	// On the first iteration of the planner, we initialise the controller with a reference trajectory

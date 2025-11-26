@@ -12,19 +12,6 @@ extern MCInstance mincopter;
 #include "planner.h"
 #include "control.h"
 
-// ap_state.pde
-void set_home_is_set(bool b)
-{
-    // if no change, exit immediately
-    if( planner.ap.home_is_set == b )
-        return;
-
-    planner.ap.home_is_set 	= b;
-    if(b) {
-        Log_Write_Event(DATA_SET_HOME);
-    }
-}
-
 // ---------------------------------------------
 void set_auto_armed(bool b)
 {
@@ -35,90 +22,6 @@ void set_auto_armed(bool b)
     planner.ap.auto_armed = b;
     if(b){
         Log_Write_Event(DATA_AUTO_ARMED);
-    }
-}
-
-// TODO Why aren't these in failsafe.cpp
-// TODO Remove this whole function
-// ---------------------------------------------
-void set_failsafe_radio(bool b)
-{
-    // only act on changes
-    // -------------------
-    if(planner.failsafe.radio != b) {
-
-        // store the value so we don't trip the gate twice
-        // -----------------------------------------------
-        planner.failsafe.radio = b;
-
-        if (planner.failsafe.radio == false) {
-            // We've regained radio contact
-            // ----------------------------
-            //failsafe_radio_off_event();
-        }else{
-            // We've lost radio contact
-            // ------------------------
-            //failsafe_radio_on_event();
-        }
-
-    }
-}
-
-
-// ---------------------------------------------
-void set_failsafe_battery(bool b)
-{
-    planner.failsafe.battery = b;
-}
-
-
-// ---------------------------------------------
-void set_failsafe_gps(bool b)
-{
-    planner.failsafe.gps = b;
-}
-
-// ---------------------------------------------
-void set_takeoff_complete(bool b)
-{
-    // if no change, exit immediately
-    if( planner.ap.takeoff_complete == b )
-        return;
-
-    if(b){
-        Log_Write_Event(DATA_TAKEOFF);
-    }
-    planner.ap.takeoff_complete = b;
-}
-
-// ---------------------------------------------
-void set_land_complete(bool b)
-{
-    // if no change, exit immediately
-    if( planner.ap.land_complete == b )
-        return;
-
-    if(b){
-        Log_Write_Event(DATA_LAND_COMPLETE);
-    }else{
-        Log_Write_Event(DATA_NOT_LANDED);
-    }
-    planner.ap.land_complete = b;
-}
-
-// ---------------------------------------------
-
-void set_pre_arm_check(bool b)
-{
-    if(planner.ap.pre_arm_check != b) {
-        planner.ap.pre_arm_check = b;
-    }
-}
-
-void set_pre_arm_rc_check(bool b)
-{
-    if(planner.ap.pre_arm_rc_check != b) {
-        planner.ap.pre_arm_rc_check = b;
     }
 }
 
@@ -142,18 +45,10 @@ void crash_check()
     static int32_t baro_alt_prev;
 
     // return immediately if motors are not armed or pilot's throttle is above zero
-    if (!mincopter.motors.armed() || (mincopter.rc_3.control_in != 0 && !planner.failsafe.radio)) {
+    if (!mincopter.motors.armed() || (mincopter.rc_3.control_in != 0)) {
         inverted_count = 0;
         return;
     }
-
-    // return immediately if we are not in an angle stabilize flight mode or we are flipping
-		/*
-    if (mincopter.control_mode == ACRO || mincopter.ap.do_flip) {
-        inverted_count = 0;
-        return;
-    }
-		*/
 
     // check angles
     int32_t lean_max = planner.angle_max + CRASH_CHECK_ANGLE_DEVIATION_CD;
@@ -184,24 +79,6 @@ void crash_check()
     }
 }
 
-// inertia.pde
-
-// read_inertia - read inertia in from accelerometers
-/*
-void read_inertia()
-{
-    // inertial altitude estimates
-    mcstate.inertial_nav.update(mincopter.G_Dt);
-}
-*/
-
-// read_inertial_altitude - pull altitude and climb rate from inertial nav library
-void read_inertial_altitude()
-{
-    // with inertial nav we can update the altitude and climb rate at 50hz
-    mcstate.current_loc.alt = mcstate.get_altitude();
-    controller.climb_rate = mcstate.get_velocity().z;
-}
 
 // position_vector.pde
 
@@ -256,15 +133,6 @@ float pv_get_bearing_cd(const Vector3f &origin, const Vector3f &destination)
     return bearing;
 }
 
-void init_barometer(bool full_calibration)
-{
-    if (full_calibration) {
-        mincopter.barometer.calibrate();
-    }else{
-        mincopter.barometer.update_calibration();
-    }
-}
-
 // read the receiver RSSI as an 8 bit number for MAVLink
 // RC_CHANNELS_SCALED message
 void read_receiver_rssi(void)
@@ -279,9 +147,10 @@ void read_receiver_rssi(void)
     }
 }
 
-void init_home()
+void init_home(void)
 {
-    set_home_is_set(true);
+	// TODO Change this to update the **flight_state** parameter directly
+    //set_home_is_set(true);
     mcstate.home.id         = 0; //previously MAV_CMD_NAV_WAYPOINT
     mcstate.home.lng        = mincopter.g_gps->longitude;                                 // Lon * 10**7
     mcstate.home.lat        = mincopter.g_gps->latitude;                                  // Lat * 10**7
@@ -308,9 +177,12 @@ void init_home()
 
 
 // returns true if the GPS is ok and home position is set
-bool GPS_ok()
+bool GPS_ok(void)
 {
-    if (mincopter.g_gps != NULL && planner.ap.home_is_set && mincopter.g_gps->status() == GPS::GPS_OK_FIX_3D && !mincopter.gps_glitch.glitching() && !planner.failsafe.gps) {
+    if (mincopter.g_gps != NULL
+			&& planner.ap.home_is_set
+			&& mincopter.g_gps->status() == GPS::GPS_OK_FIX_3D
+			&& !mincopter.gps_glitch.glitching()) {
         return true;
     }else{
         return false;

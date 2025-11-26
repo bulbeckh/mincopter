@@ -130,8 +130,7 @@ void init_ardupilot(void)
 
 	// TODO NOTE We are very temporarily turning off barometer initialisation so that STM32 can run
 	
-    // read Baro pressure at ground
-    //init_barometer(true);
+	mincopter.barometer.calibrate();
 
 	// TODO Why is barometer initialised twice?
 	
@@ -140,8 +139,8 @@ void init_ardupilot(void)
     mincopter.ins.init(AP_InertialSensor::COLD_START, AP_InertialSensor::RATE_100HZ);
 	mincopter.hal.console->printf_P(PSTR("[INIT] IMU initialised\n"));
 
-    // set landed flag
-    set_land_complete(true);
+	// Set state as landed
+	planner.ap.land_complete = 1;
 
 #if LOGGING_ENABLED == ENABLED
     Log_Write_Startup();

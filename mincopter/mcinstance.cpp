@@ -14,45 +14,70 @@ extern MCInstance mincopter;
 #include "util.h"
 #include "log.h"
 
-void read_compass(void) {
-	mincopter.compass.accumulate();
-}
-
-// NOTE What is the difference between read_baro and barometer.accumulate?
-void read_baro(void) {
-	mincopter.barometer.accumulate();
-}
-
-void update_altitude()
+void accumulate_compass(void)
 {
-		// read in baro altitude
-		mincopter.barometer.read();
+	// Accumulate compass readings
+	mincopter.compass.accumulate();
 
-		// TODO What units is this supposed to return/assign
-		//planner.baro_alt = mcstate.get_altitude() * 100.f;
+	return;
+}
+
+void accumulate_barometer(void)
+{
+	// Accumulate barometer readings
+	mincopter.barometer.accumulate();
+
+	return;
+}
+
+void read_barometer(void)
+{
+	// Update barometer
+	mincopter.barometer.read();
+
+	return;
+}
+
+void read_batt_compass(void)
+{
+	// Update battery monitor
+    mincopter.battery.read();
+
+	// If we are monitoring current, then update the compass to correct for declination
+    if (mincopter.battery.monitoring() == AP_BATT_MONITOR_VOLTAGE_AND_CURRENT) {
+        mincopter.compass.set_current(mincopter.battery.current_amps());
+    }
+	
+	// Update compass
+	mincopter.compass.read()
+
+	// Log compass information
+	if (mincopter.log_bitmask & MASK_LOG_COMPASS) Log_Write_Compass();
+
+	return;
 }
 
 // called at 50hz
 void update_GPS(void)
 {
-		static uint32_t last_gps_reading;           // time of last gps message
-		static uint8_t ground_start_count = 10;     // counter used to grab at least 10 reads before commiting the Home location
+	static uint32_t last_gps_reading;           // time of last gps message
+	static uint8_t ground_start_count = 10;     // counter used to grab at least 10 reads before commiting the Home location
 
-		mincopter.g_gps->update();
+	mincopter.g_gps->update();
 
 		// logging and glitch protection run after every gps message
 		if (mincopter.g_gps->last_message_time_ms() != last_gps_reading) {
-				last_gps_reading = mincopter.g_gps->last_message_time_ms();
+			last_gps_reading = mincopter.g_gps->last_message_time_ms();
 
-				// log GPS message
-				if (mincopter.log_bitmask & MASK_LOG_GPS) {
-						mincopter.DataFlash.Log_Write_GPS(mincopter.g_gps, mcstate.current_loc.alt);
-				}
+			// log GPS message
+			if (mincopter.log_bitmask & MASK_LOG_GPS) {
+					mincopter.DataFlash.Log_Write_GPS(mincopter.g_gps, mcstate.current_loc.alt);
+			}
 
-				// run glitch protection and update AP_Notify if home has been initialised
-				if (planner.ap.home_is_set) {
-						mincopter.gps_glitch.check_position();
-				}
+			// run glitch protection and update AP_Notify if home has been initialised
+			if (planner.ap.home_is_set) {
+					mincopter.gps_glitch.check_position();
+			}
 		}
 
 		// checks to initialise home and take location based pictures
@@ -86,38 +111,4 @@ void update_GPS(void)
 						}
 				}
 		}
-}
-
-// update_batt_compass - read battery and compass
-// should be called at 10hz
-void read_batt_compass(void)
-{
-		// read battery before compass because it may be used for motor interference compensation
-    mincopter.battery.read();
-
-    // update compass with current value
-    if (mincopter.battery.monitoring() == AP_BATT_MONITOR_VOLTAGE_AND_CURRENT) {
-        mincopter.compass.set_current(mincopter.battery.current_amps());
-    }
-
-		// TODO Move these checks to ap_state as the failsafe lives there too
-
-    // check for low voltage or current if the low voltage check hasn't already been triggered
-    // we only check when we're not powered by USB to avoid false alarms during bench tests
-		/*
-    if (!mincopter.ap.usb_connected && !planner.failsafe.battery && mincopter.battery.exhausted(mincopter.fs_batt_voltage, mincopter.fs_batt_mah)) {
-        failsafe_battery_event();
-    }
-		*/
-
-#if HIL_MODE != HIL_MODE_ATTITUDE  // don't execute in HIL mode
-		if (mincopter.compass.read()) {
-				//mincopter.compass.null_offsets();
-		}
-		// log compass information
-		if (mincopter.log_bitmask & MASK_LOG_COMPASS) {
-				Log_Write_Compass();
-		}
-#endif
-
 }

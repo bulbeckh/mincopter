@@ -77,9 +77,9 @@ class MC_Planner
 		PlannerArmState planner_arm_state;
 
 	public:
-		AP_FAILSAFE_T failsafe;
+		failsafe_t failsafe;
 
-		AP_UNION_T ap;
+		flight_state_t ap;
 
 		// TODO AC_Fence removed temporarily
 		//AC_Fence fence;

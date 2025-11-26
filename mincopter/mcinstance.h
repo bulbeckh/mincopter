@@ -229,15 +229,15 @@ class MCInstance {
 
 /* @brief Triggers accumulation of compass sensor
 */
-void read_compass(void);
+void accumulate_compass(void);
 
 /* @brief Triggers accumulation of barometer sensor
 */ 
-void read_baro(void);
+void read_barometer(void);
 
 /* @brief Triggers reading of barometer and updates the `baro_alt` variable
 */
-void update_altitude(void);
+void accumulate_barometer(void);
 
 /* @brief Triggers update of the onboard GPS
 */

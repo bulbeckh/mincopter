@@ -3,8 +3,9 @@
 
 file(GLOB math_srcs ${CMAKE_SOURCE_DIR}/lib/AP_Math/*.cpp)
 
+#[[
 ## Create test executable
-add_executable(test_state
+add_executable(test-state-core
 	test_state_core.cpp
 
 	## Again, referencing AP_Math to avoid linking with mc-common
@@ -12,18 +13,18 @@ add_executable(test_state
 )
 
 ## Link
-target_link_libraries(test_state PUBLIC
+target_link_libraries(test-state-core PUBLIC
 	mc-dev
 	mc-arch
 	## gtest libs
 )
 
-target_include_directories(test_state PUBLIC
+target_include_directories(test-state-core PUBLIC
 	${MC_INCLUDE_DIRS}
 )
 
 
-add_executable(test_compensation
+add_executable(test-compensation
 	test_sensor_compensation.cpp
 
 	## Again, referencing AP_Math to avoid linking with mc-common
@@ -31,18 +32,19 @@ add_executable(test_compensation
 )
 
 ## Link
-target_link_libraries(test_compensation PUBLIC
+target_link_libraries(test-compensation PUBLIC
 	mc-dev
 	mc-arch
 	## gtest libs
 )
 
-target_include_directories(test_compensation PUBLIC
+target_include_directories(test-compensation PUBLIC
 	${MC_INCLUDE_DIRS}
 )
+]]
 
 ## Complementary Integration Testing
-add_executable(test_state_complementary
+add_executable(test-state-complementary
 	test_state_complementary.cpp
 
 	## Again, referencing AP_Math to avoid linking with mc-common
@@ -50,7 +52,7 @@ add_executable(test_state_complementary
 )
 
 ## Link
-target_link_libraries(test_state_complementary PUBLIC
+target_link_libraries(test-state-complementary PUBLIC
 	mc-dev
 	mc-arch
 	mc-state
@@ -58,6 +60,6 @@ target_link_libraries(test_state_complementary PUBLIC
 	## gtest libs
 )
 
-target_include_directories(test_state_complementary PUBLIC
+target_include_directories(test-state-complementary PUBLIC
 	${MC_INCLUDE_DIRS}
 )

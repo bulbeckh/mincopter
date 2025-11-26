@@ -111,12 +111,6 @@ void state_update(void)
 {
 	mcstate.update();
 
-	// TODO Just remove omega - not used by Controller PID
-	//mcstate.omega = mincopter.ins.get_gyro();
-
-	// TODO What is this actually doing? None of the values are used
-    //mcstate.update_trig();
-
 	return;
 }
 
@@ -601,17 +595,17 @@ const AP_Scheduler::Task scheduler_tasks[] PROGMEM = {
     { read_batt_compass,  10,   1 }, /* Sensor Update - Battery */
 	// NOTE TODO Why are barometer reads even scheduled at all??
     //{ /* update_altitude */ Delegate<void(void)>::Create<AP_Baro, &AP_Baro::read>((AP_Baro*)&mincopter.barometer),    10,   1 }, /* Sensor Update - Barometer (read) */
-    { update_altitude, 2, 1},
-    { read_compass, 2, 1},
+    { read_barometer, 2, 1},
+    { accumulate_compass, 2, 1},
 	//{ Delegate<void(void)>::Create<Compass, &Compass::accumulate>(&mincopter.compass),        2,   1 }, /* Sensor Update - Compass */
     //{ /* read_baro */ Delegate<void(void)>::Create<AP_Baro, &AP_Baro::accumulate>(&mincopter.barometer),  	       2,   1 }, /* Sensor Update - Barometer (accumulate) */
-    { read_baro, 2,   1 },
+    { accumulate_barometer, 2,   1 },
 #else
-    { update_GPS, 	       2, 900 }, /* Sensor Update - GPS */
-    { read_batt_compass,  10, 720 }, /* Sensor Update - Battery */
-    { update_altitude,    10,1000 }, /* Sensor Update - Barometer (read) */
-    { read_compass,        2, 420 }, /* Sensor Update - Compass */
-    { read_baro,  	       2, 250 }, /* Sensor Update - Barometer (accumulate) */
+    { update_GPS, 	      	 2,  900 }, /* Sensor Update - GPS */
+    { read_batt_compass,  	10,  720 }, /* Sensor Update - Battery */
+    { read_barometer,    	10, 1000 }, /* Sensor Update - Barometer (read) */
+    { accumulate_compass,    2,  420 }, /* Sensor Update - Compass */
+    { accumulate_barometer,  2,  250 }, /* Sensor Update - Barometer (accumulate) */
 #endif
 
 	/* NOTE These functions have been removed from the codebase. Kept here for reference only.
