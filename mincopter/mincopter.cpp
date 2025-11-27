@@ -107,6 +107,12 @@ void loop(void)
 	// Record loop start time
     uint32_t timer = hal.scheduler->micros();
 
+	// NOTE Testing - remove
+	// Cycle LEDs
+	hal.gpio->write(27, (_counter%300)/100==0 ? 0 : 1);
+	hal.gpio->write(26, (_counter%300)/100==1 ? 0 : 1);
+	hal.gpio->write(25, (_counter%300)/100==2 ? 0 : 1);
+	
     // wait for an INS sample
     if (!mincopter.ins.wait_for_sample(1000)) {
         Log_Write_Error(ERROR_SUBSYSTEM_MAIN, ERROR_CODE_MAIN_INS_DELAY);
@@ -233,25 +239,6 @@ void loop(void)
 
 	// Read telemetry for incoming commands
 	read_telemetry();
-
-	/*
-	if (_counter%100==0) {
-		uint16_t _tbuf[4];
-		for (uint8_t i=0;i<4;i++) {
-			_tbuf[i] = hal.uartC->read();
-		}
-
-		if (_tbuf[0]!= 0x0A || _tbuf[1]!= 0x1C) {
-			// Set heartbeat as missed
-			mincopter.hal.console->printf("HB miss\r\n");
-		}
-
-		if (_tbuf[3]!=_telem_counter) {
-			// Set hearbeat as missed
-			mincopter.hal.console->printf("HB miss\r\n");
-		}
-		_telem_counter++;
-	} */
 
     uint32_t time_elapsed = hal.scheduler->micros() - timer;
 

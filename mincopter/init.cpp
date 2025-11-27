@@ -17,6 +17,16 @@ void init_ardupilot(void)
 {
 	mincopter.hal.console->printf_P(PSTR("[INIT] Initialisation started..\n"));
 
+	// Set all board LEDs as outputs
+	mincopter.hal.gpio->pinMode(27, 1);
+	mincopter.hal.gpio->pinMode(26, 1);
+	mincopter.hal.gpio->pinMode(25, 1);
+	
+	// Switch all board LEDs on
+	mincopter.hal.gpio->write(27, 0);
+	mincopter.hal.gpio->write(26, 0);
+	mincopter.hal.gpio->write(25, 0);
+
     // GPS UART/Serial port initialisation
 #if GPS_PROTOCOL != GPS_PROTOCOL_IMU
 	// NOTE We use uartB for GPS on AVR, otherwise, for boards like RPI we

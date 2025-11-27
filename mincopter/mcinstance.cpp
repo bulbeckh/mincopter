@@ -154,7 +154,6 @@ void read_telemetry(void)
 
 							// Reset the heartbeat timestamp
 							planner.failsafe.telemetry_last_heartbeat_ms = mincopter.hal.scheduler->millis();
-							mincopter.hal.console->printf("Received correct pkt id\r\n");
 						} else {
 							// TODO 
 							// We have found a heartbeat message in the wrong order.
