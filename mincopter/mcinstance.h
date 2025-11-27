@@ -221,11 +221,18 @@ class MCInstance {
 
 		/* @brief HAL reference */
 		const AP_HAL::HAL& hal = AP_HAL_BOARD_DRIVER;
-
-		/* @brief Integration time (in seconds) for the gyros (DCM algorithm) */
-		// TODO Move this to the control folder as I believe it's the only place its used
-		float G_Dt = 0.02;
 };
+
+// TODO Move all of these
+
+/* @brief Run all required failsafe checks */
+void failsafe_checks(void);
+
+/* @brief Read and process incoming telemetry commands */
+void read_telemetry(void);
+
+/* @brief Send a heartbeat message to the remote telemetry */
+void send_telemetry_heartbeat(void);
 
 /* @brief Triggers accumulation of compass sensor
 */

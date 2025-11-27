@@ -53,6 +53,10 @@ typedef struct {
 	 * and checked during the failsafe checks */
 	uint8_t telemetry_active : 1;
 
+	/* @brief When we first connect to the telemetry, this is when we start to read/process commands. After this first, connection, we
+	 * should not lose connection again, and will trigger a failsafe if we do */
+	uint8_t telemetry_first_connect : 1;
+
 	/* @brief Flag for low battery. Set by the battery monitor and checked during the failsafe checks */
 	uint8_t battery_low : 1;
 

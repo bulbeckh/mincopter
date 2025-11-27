@@ -11,6 +11,8 @@ void read_receiver_rssi(void);
 void set_auto_armed(bool b);
 
 
+void dump_state(void);
+
 // crash_check.pde
 void crash_check();
 

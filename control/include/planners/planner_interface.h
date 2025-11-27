@@ -65,8 +65,14 @@ class MC_Planner
 			//fence(&mcstate)
 			//wp_nav((const MC_INAV_CLASS *)mcstate.inertial_nav, (const MC_AHRS_CLASS *)mcstate.ahrs)
 		{
+			// TODO Move this from here to an initialisation function
 			// Initialised planner states
 			planner_arm_state = PlannerArmState::DISARMED;
+
+			// Enable failsafes
+			failsafe.fs_enabled_telem = 1;
+			failsafe.fs_enabled_gps = 1;
+			failsafe.fs_enabled_battery = 1;
 		}
 
 

@@ -8,23 +8,6 @@
 const AP_HAL::HAL& hal = AP_HAL_BOARD_DRIVER;
 
 
-/* Design of simple console
- *
- * ## Receiver Interface
- *
- * Byte 1. Sync byte - always 0x24 ($)
- * Byte 2. Command Type (# args)
- * 	- 0x0A Receive Heartbeat (1)
- * 	- 0x0B Set PWM (2)
- * 	- 0x0C Run Motor Test (0)
- *
- * Byte 3+ Args
- * - 0x0A: [ heartbeat sequence number ]
- * - 0x0B: [ motor number, pwm val idx (0 = 1100, 1 = 1200, 2 = 1300, ... ) ]
- * - 0x0C: no args
- *
- *
- */
 
 
 // Should return 0 on successful tests and 1 on any other status

@@ -31,7 +31,7 @@ void init_ardupilot(void)
 
 #endif
 
-#if CONFIG_HAL_BOARD == HAL_BOARD_APM2
+#ifdef HAL_BOARD_APM2
     // Run the timer a bit slower on APM2 to reduce the interrupt load on the CPU
     mincopter.hal.scheduler->set_timer_speed(500);
 #endif
@@ -119,21 +119,15 @@ void init_ardupilot(void)
     mincopter.compass.init();
 	mincopter.hal.console->printf_P(PSTR("[INIT] Compass initialised\n"));
 	
-#if HIL_MODE != HIL_MODE_DISABLED
     while (!mincopter.barometer.healthy) {
         // the barometer becomes healthy when we get the first
         // HIL_STATE message
         //gcs_send_text_P(SEVERITY_LOW, PSTR("Waiting for first HIL_STATE message"));
         mincopter.hal.scheduler->delay(1000);
     }
-#endif
 
-	// TODO NOTE We are very temporarily turning off barometer initialisation so that STM32 can run
-	
 	mincopter.barometer.calibrate();
 
-	// TODO Why is barometer initialised twice?
-	
 	// TODO Why is ins initialised after MCState??
     // Warm up and read Gyro offsets
     mincopter.ins.init(AP_InertialSensor::COLD_START, AP_InertialSensor::RATE_100HZ);
