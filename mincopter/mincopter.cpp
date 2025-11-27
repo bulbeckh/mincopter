@@ -162,7 +162,7 @@ void loop(void)
 	mcstate.update();
 
 	// 2. Run controller & planner
-	if (planner.failsafe.telemetry_first_connect) {
+	if (planner.failsafe.telemetry_first_connect && planner.failsafe.telemetry_active) {
 
 		/* Our planner algorithm updates the desired roll and pitch based on our position from desired
 		 * waypoint as well as our velocity.

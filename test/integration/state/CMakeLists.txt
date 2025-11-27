@@ -1,6 +1,8 @@
 
 ## This will be included from the source CMakeLists.txt file
 
+if (MC_STATE_TYPE STREQUAL "COMPLEMENTARY")
+
 file(GLOB math_srcs ${CMAKE_SOURCE_DIR}/lib/AP_Math/*.cpp)
 
 #[[
@@ -63,3 +65,5 @@ target_link_libraries(test-state-complementary PUBLIC
 target_include_directories(test-state-complementary PUBLIC
 	${MC_INCLUDE_DIRS}
 )
+
+endif()

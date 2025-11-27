@@ -64,7 +64,7 @@ void read_telemetry(void)
 	uint8_t read_counter = 8;
 
 	// Next byte
-	uint8_t nb;
+	int16_t nb;
 
 	// State machine variables
 	static uint8_t cmd_state = 0;
@@ -75,16 +75,18 @@ void read_telemetry(void)
 		read_counter--;
 
 		// Read a single byte
-		nb = hal.console->read();
+		nb = mincopter.hal.uartC->read();
 
 		if (nb!=-1) {
+
+			mincopter.hal.console->printf("nb: %d\r\n", nb);
 
 			switch (cmd_state) {
 				case 0:
 					// Sync byte
 					if (nb!=0x24) {
 						// Log packet miss and reset state
-						hal.console->printf("cli pkt miss! resetting\r\n");
+						mincopter.hal.console->printf("cli pkt miss! resetting %d\r\n", nb);
 						cmd_state = 0;
 						cmd_type = 0;
 						remaining = 0;
@@ -114,15 +116,16 @@ void read_telemetry(void)
 							cmd_state++;
 							break;
 						case 0x0C:
-							// Run test
+							// Run motor test
 							cmd_type = 0x0C;
-							do_heartbeat = 5;
 							remaining = 0;
+							// TODO Add execution of motor tests
 							break;
 						case 0x0D:
-							// Attempt arming
+							// TODO Attempt arming
+							break;
 						default:
-							hal.console->printf("Wrong cmd type! resetting\r\n");
+							mincopter.hal.console->printf("Wrong cmd type! resetting\r\n");
 							cmd_state = 0;
 							cmd_type = 0;
 							remaining = 0;
@@ -147,9 +150,11 @@ void read_telemetry(void)
 						if (nb == planner.failsafe.telemetry_last_heartbeat_seq_id) {
 							// Flag that we have connected to telemetry. This will trigger the planner/controller logic
 							planner.failsafe.telemetry_first_connect = 1;
+							planner.failsafe.telemetry_active = 1;
 
 							// Reset the heartbeat timestamp
-							planner.failsafe.telemetry_last_heartbeat_ms = hal.scheduler->millis();
+							planner.failsafe.telemetry_last_heartbeat_ms = mincopter.hal.scheduler->millis();
+							mincopter.hal.console->printf("Received correct pkt id\r\n");
 						} else {
 							// TODO 
 							// We have found a heartbeat message in the wrong order.
@@ -186,15 +191,25 @@ void read_telemetry(void)
 
 void send_telemetry_heartbeat(void)
 {
-	/* If we have not yet connected to our telemetry, we keep sending heartbeat messages with
-	 * a sequence ID of 0x5A */
+	// TODO What do to when we receive a message from an old packet (i.e. identifier number less than what we are expecting
+	
+	uint8_t _telem_tx_buffer[] = {0x24, 0x0A, 0x00};
 
 	if (!planner.failsafe.telemetry_first_connect) {
+		/* If we have not yet connected to our telemetry, we keep sending heartbeat messages with
+		 * a sequence ID of 0x5A */
+		_telem_tx_buffer[2] = 0x5A;
 
+		// Set heartbeat id
+		planner.failsafe.telemetry_last_heartbeat_seq_id = 0x5A;
+	} else {
+		// Otherwise, we increment the sequence identifier and send
+		_telem_tx_buffer[2] = ++planner.failsafe.telemetry_last_heartbeat_seq_id;
 	}
 
-	/* 1. send a heartbeat message
-	 * 2. record the time we sent the message/timer started */
+	// Write the heartbeat message to telemetry
+	mincopter.hal.uartC->write(_telem_tx_buffer, 3);
+
 	return;
 }
 
@@ -215,9 +230,11 @@ void failsafe_checks(void)
 	// Run telemetry failsafe if enabled
 	if (planner.failsafe.fs_enabled_telem) {
 		// If we have passed 100ms without a response to our heartbeat message, then we mark the telemetry_active as false
-		if (hal.scheduler->millis() - planner.failsafe.telemetry_last_heartbeat_ms >= 1000ul) {
+		if (mincopter.hal.scheduler->millis() - planner.failsafe.telemetry_last_heartbeat_ms >= 1000ul) {
 			planner.failsafe.telemetry_active = 0;
+
 			// TODO Run failsafe action
+			mincopter.hal.uartA->printf("Failsafe miss..\r\n");
 		} else {
 			planner.failsafe.telemetry_active = 1;
 		}

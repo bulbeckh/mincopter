@@ -52,7 +52,7 @@ HAL_AVR_APM2::HAL_AVR_APM2() :
         &apm2SPIDriver,
         &avrAnalogIn,
         &avrEEPROMStorage,
-        &avrUart2Driver, // &avrUart0Driver, // NOTE TODO Re-directed 'console' to telemetry
+        &avrUart0Driver, // Console uart
         &avrGPIO,
         &apm2RCInput,
         &apm2RCOutput,
