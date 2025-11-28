@@ -50,12 +50,6 @@
 
 extern MCInstance mincopter;
 
-enum class PlannerArmState
-{
-    ARMED,
-    DISARMED
-};
-
 /* Base Interface for planner classes */
 class MC_Planner
 {
@@ -67,20 +61,21 @@ class MC_Planner
 		{
 			// TODO Move this from here to an initialisation function
 			// Initialised planner states
-			planner_arm_state = PlannerArmState::DISARMED;
+			ap.arm_active = 0;
 
 			// Enable failsafes
 			failsafe.fs_enabled_telem = 1;
 			failsafe.fs_enabled_gps = 1;
 			failsafe.fs_enabled_battery = 1;
+
+			ap.home_is_set = 0;
+			ap.arm_check = 0;
 		}
 
 
 		/* @brief Entry point for planner function
 		 */
 		virtual void run(void) = 0;
-
-		PlannerArmState planner_arm_state;
 
 	public:
 		failsafe_t failsafe;

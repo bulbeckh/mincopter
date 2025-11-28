@@ -48,7 +48,7 @@ void init_esc()
 
 }
 
- // init_rc_out -- initialise motors and check if pilot wants to perform ESC calibration
+// init_rc_out -- initialise motors and check if pilot wants to perform ESC calibration
 void init_rc_out()
 {
     mincopter.motors.set_update_rate(mincopter.rc_speed);

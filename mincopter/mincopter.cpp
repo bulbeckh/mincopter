@@ -65,6 +65,7 @@ MCInstance mincopter;
 /* @brief Interface to the scheduler which runs sensor updates and other non-HAL, non-interrupt functions */
 AP_Scheduler scheduler;
 
+// TODO Change this to the same model that we use for planner and control (i.e. generic header file and interface
 /* @brief Interface to the state estimation module */
 #ifdef MC_STATE_NONE
 	StateNone mcstate;
@@ -168,7 +169,7 @@ void loop(void)
 	mcstate.update();
 
 	// 2. Run controller & planner
-	if (planner.failsafe.telemetry_first_connect && planner.failsafe.telemetry_active) {
+	if (planner.failsafe.telemetry_active) {
 
 		/* Our planner algorithm updates the desired roll and pitch based on our position from desired
 		 * waypoint as well as our velocity.
@@ -213,8 +214,7 @@ void loop(void)
 		planner.run();
 
 		// Run controller only if ARMED
-		//if (planner.planner_arm_state==PlannerArmState::ARMED) controller.run();
-		controller.run();
+		if (planner.ap.arm_active) controller.run();
 	}
 
     // Tell the scheduler one tick has passed

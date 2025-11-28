@@ -53,16 +53,20 @@ void WP_Planner::run(void)
 	static int arm_delay_counter=0;
 #endif
 
-	// TODO This should instead be triggered by the telemetry
-	if (planner_arm_state==PlannerArmState::DISARMED) { 
+	// Commence arming if we are disarmed and have been requested to arm by the telemetry
+	if (!planner.ap.arm_active && planner.ap.arm_request_telem) { 
 
 		// Run arm checks
 		if (!arm_checks()) {
-			// TODO Log failed arm check
+			// Log to telemetry that we have failed to arm
+			mincopter.hal.uartC->printf("Failed arm check\r\n");
+
+			// Clear arm request flag
+			planner.ap.arm_request_telem = 0;
+
 			return;
 		}
 
-		// Attempt Arm
 #ifdef TARGET_ARCH_LINUX
 		// Wait 1sec until we arm
 		if (arm_delay_counter<100) {
@@ -74,14 +78,18 @@ void WP_Planner::run(void)
 		// Begin to arm motors if we pass all arming checks
 		init_arm_motors();
 
+		/*
 		// If the motor flag is actually set to armed then update the planner state to ARMED
 		if (mincopter.motors.armed()) {
-			planner_arm_state=PlannerArmState::ARMED;
 		} else {
 			return;
 		}
+		*/
 
     }
+
+	// TODO Replace the rest of this function with the nav/waypoint controller from Controller_CSC
+	return;
 
 	// On the first iteration of the planner, we initialise the controller with a reference trajectory
 	/*

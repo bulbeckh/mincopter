@@ -52,11 +52,17 @@ void WP_Planner::init_arm_motors(void)
 	// Set the current pressure/temperature as the ground pressure/ground temperature
 	mincopter.barometer.update_calibration();
 
+	// TODO We don't event use the motor or rc_* interfaces anymore. The mixer sends the correct control signal directly to the
+	// appropriate motors based on the configuration. We will eventually need some sort of custom motor/mixer configuration
+	// but for now this should suffice
+	
     // enable output to motors
-	init_rc_out();
+	//init_rc_out();
+	//init_esc();
 
-	init_esc();
-
+	// Update arm state to armed
+	planner.ap.arm_active = 1;
+	
     // log arming to dataflash
     Log_Write_Event(DATA_ARMED);
 
@@ -98,6 +104,7 @@ bool WP_Planner::arm_checks(void)
 	if(!mincopter.barometer.healthy) {
 		return;
 	}
+
 	// check Baro & inav alt are within 1m
 	if(fabs(mcstate.get_altitude() - baro_alt) > 100) {
 		return;

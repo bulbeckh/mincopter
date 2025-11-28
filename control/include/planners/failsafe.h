@@ -5,20 +5,33 @@
 // Union and and Failsafe typedefs
 typedef union {
 	struct {
-			uint8_t home_is_set         : 1; // 0
-											 //
-			uint8_t arm_check       : 1; // 4   // true if all pre-arm checks (rc, accel calibration, gps lock) have been performed
-			uint8_t auto_armed          : 1; // 5   // stops auto missions from beginning until throttle is raised
-											 //
-			uint8_t logging_started     : 1; // 6   // true if dataflash logging has started
 
-			uint8_t takeoff_complete    : 1; // 8
-			uint8_t land_complete       : 1; // 9   // true if we have detected a landing
-											 //
-			uint8_t usb_connected       : 1; // 15      // true if APM is powered from USB connection
+		/* @brief Flag that we have set home GPS position */
+		uint8_t home_is_set         : 1;
+										 
+		/* @brief Flag that arm checks are successful and we have updated state to armed. Cleared upon disarm */
+		uint8_t arm_check      	    : 1;
+		
+		/* @brief Flag that we have requested to arm. Cleared upon disarm */
+		uint8_t arm_requested_telem : 1;
 
-			uint8_t rc_receiver_present : 1; // 18  // true if we have an rc receiver present (i.e. if we've ever received an update
+		/* @brief Flag for whether we are currently armed. Set after call to **init_arm_motors** and cleared after disarm */
+		uint8_t arm_active 			: 1;
+
+		/* @brief Flag that we are currently logging to storage (either external, i.e. DataFlash, or internal storage */
+		uint8_t logging_active      : 1;
+
+		// TODO Replace with single flight state (landed, takeoff, waypoint)
+		uint8_t takeoff_complete    : 1; // 8
+		uint8_t land_complete       : 1; // 9   // true if we have detected a landing
+		
+		// TODO Check where this is used
+		/* @brief Whether we have connected via usb (which should indicate that we can log to console in addition to telem */
+		uint8_t usb_connected       : 1;
+
 	};
+
+	// Accessible as a single uint32_t for flight state logging purposes
 	uint32_t value;
 } flight_state_t;
 

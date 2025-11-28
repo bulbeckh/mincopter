@@ -300,19 +300,6 @@ void dump_state(void)
 
 };
 
-// ---------------------------------------------
-void set_auto_armed(bool b)
-{
-    // if no change, exit immediately
-    if( planner.ap.auto_armed == b )
-        return;
-
-    planner.ap.auto_armed = b;
-    if(b){
-        Log_Write_Event(DATA_AUTO_ARMED);
-    }
-}
-
 // Code to detect a crash main ArduCopter code
 #ifndef CRASH_CHECK_ITERATIONS_MAX
  # define CRASH_CHECK_ITERATIONS_MAX        20      // 2 second (ie. 10 iterations at 10hz) inverted indicates a crash
@@ -474,25 +461,6 @@ bool GPS_ok(void)
         return true;
     }else{
         return false;
-    }
-}
-
-
-// update_auto_armed - update status of auto_armed flag
-void update_auto_armed()
-{
-    // disarm checks
-    if(planner.ap.auto_armed){
-        // if motors are disarmed, auto_armed should also be false
-        if(!mincopter.motors.armed()) {
-            set_auto_armed(false);
-            return;
-        }
-    }else{
-        // if motors are armed and throttle is above zero auto_armed should be true
-        if(mincopter.motors.armed()) {
-            set_auto_armed(true);
-        }
     }
 }
 

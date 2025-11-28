@@ -552,8 +552,8 @@ void start_logging()
 	// TODO Why is the logging check/status in planner?
 	/*
     if (mincopter.log_bitmask != 0) {
-        if (!planner.ap.logging_started) {
-            planner.ap.logging_started = true;
+        if (!planner.ap.logging_active) {
+            planner.ap.logging_active = true;
             //in_mavlink_delay = true;
             mincopter.DataFlash.StartNewLog();
             //in_mavlink_delay = false;

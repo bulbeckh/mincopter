@@ -7,10 +7,6 @@
 void read_receiver_rssi(void);
 
 
-// AP_State.pde
-void set_auto_armed(bool b);
-
-
 void dump_state(void);
 
 // crash_check.pde
@@ -29,6 +25,5 @@ void init_home();
 
 bool GPS_ok();
 
-void update_auto_armed();
 
 
