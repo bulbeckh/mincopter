@@ -86,11 +86,6 @@ class MC_Planner
 		//AC_Fence fence;
 		//AC_WPNav wp_nav;
 
-		// The altitude as reported by Baro in cm – Values can be quite high
-		int32_t baro_alt;
-		int16_t desired_climb_rate;          // pilot desired climb rate - for logging purposes only
-		// Max lean-angle of the copter in centi-degrees
-		int16_t angle_max;
 		// We use atan2 and other trig techniques to calaculate angles
 		// We need to scale the longitude up to make these calcs work
 		// to account for decreasing distance between lines of longitude away from the equator
@@ -98,14 +93,5 @@ class MC_Planner
 		// Sometimes we need to remove the scaling for distance calcs
 		float scaleLongDown = 1;
 
-		/* Failsafe Parameters */
-		// TODO How does this relate to the above AP_FAILSAFE_T failsafe??
-		int8_t         failsafe_battery_enabled;   // battery failsafe enabled
-		float          fs_batt_voltage;            // battery voltage below which failsafe will be triggered
-		float          fs_batt_mah;                // battery capacity (in mah) below which failsafe will be triggered
-		int8_t         failsafe_gps_enabled;       // gps failsafe enabled
-		int8_t         failsafe_gcs;               // ground station failsafe behavior
-		int8_t         failsafe_throttle;
-		int16_t        failsafe_throttle_value;
 };
 

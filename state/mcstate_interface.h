@@ -32,6 +32,7 @@ class MCState
 	public:
 		/* @brief Structure containing all state data that needs to be updated during the called to **update** */
 		struct {
+			// TODO This doesn't need to be a double nor does it need to be an array - Vector3f will suffice
 			double position[3];
 			double velocity[3];
 

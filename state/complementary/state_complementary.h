@@ -27,7 +27,8 @@ class StateComplementary : public MCState
 
 		float alpha_yaw = 0.8;
 
-
+		/* @brief For fusion of vertical barometer data with integrated IMU data, we use this weighting */
+		float z_axis_fuse_alpha = 0.5;
 
 
 };

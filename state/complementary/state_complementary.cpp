@@ -174,6 +174,27 @@ void StateComplementary::update(void)
 
 	// TODO Add fusion of position and velocity measurements here - see complementary-derivation.ipynb in state/design for implementation
 
+
+	// Transform accelerometer reading from body frame to world frame
+	float accel_z_world = -1.0*sin(data.euler.y)*accel_reading.x + sin(data.euler.x)*cos(data.euler.y)*accel_reading.y
+		+ cos(data.euler.x)*cos(data.euler.y)*accel_reading.z;
+
+	accel_z_world += GRAVITY_MSS;
+
+	// Integrate z-axis velocity
+	data.velocity[2] = data.velocity[2] + accel_z_world*ins_time_s;
+
+	// TODO Should we be updating position with the previous timesteps velocity measurement or the most recent velocity measurement
+	
+	// Integrate position (with z-axis fuse weighting)
+	data.position[2] = z_axis_fuse_alpha*(data.position[2] + data.velocity[2]*ins_time_s);
+
+	// Fuse with barometer altitude reading. **get_altitude** returns a positive-value for upward positions so we invert reading
+	// to get to NED frame
+	data.position[2] += (1.0-z_axis_fuse_alpha) * -1.0f * mincopter.barometer.get_altitude();
+
+	// TODO Add GPS fusion for x-y axis state variables
+
 	return;
 }
 

@@ -108,12 +108,6 @@ void loop(void)
 	// Record loop start time
     uint32_t timer = hal.scheduler->micros();
 
-	// NOTE Testing - remove
-	// Cycle LEDs
-	hal.gpio->write(27, (_counter%300)/100==0 ? 0 : 1);
-	hal.gpio->write(26, (_counter%300)/100==1 ? 0 : 1);
-	hal.gpio->write(25, (_counter%300)/100==2 ? 0 : 1);
-	
     // wait for an INS sample
     if (!mincopter.ins.wait_for_sample(1000)) {
         Log_Write_Error(ERROR_SUBSYSTEM_MAIN, ERROR_CODE_MAIN_INS_DELAY);
@@ -168,6 +162,19 @@ void loop(void)
 	// 1. Update state, regardless of whether we are connected to telemetry
 	mcstate.update();
 
+	// Print some basic state information to console
+	if (_counter%100==0) {
+		hal.console->printf("State (r,p,y): (% 6.2fr,% 6.2fr,% 6.2fr), (% 8.2fd, % 8.2fd, % 8.2fd) height (% 6.3f)\r\n",
+				mcstate.data.euler.x,
+				mcstate.data.euler.y,
+				mcstate.data.euler.z,
+				mcstate.data.euler.x * 180.0f / M_PI_F,
+				mcstate.data.euler.y * 180.0f / M_PI_F,
+				mcstate.data.euler.z * 180.0f / M_PI_F,
+				mcstate.data.position[2]);
+	}
+
+
 	// 2. Run controller & planner
 	if (planner.failsafe.telemetry_active) {
 
@@ -220,6 +227,14 @@ void loop(void)
     // Tell the scheduler one tick has passed
     scheduler.tick();
 
+	// Read telemetry for incoming commands
+	read_telemetry();
+
+	// Update state LEDs
+	if (planner.ap.arm_active) {
+		hal.gpio->write(27, 0);
+	}
+
     // run all the tasks that are due to run. Note that we only
     // have to call this once per loop, as the tasks are scheduled
     // in multiples of the main loop tick. So if they don't run on
@@ -236,9 +251,6 @@ void loop(void)
 #else
     scheduler.run(time_available - 300);
 #endif
-
-	// Read telemetry for incoming commands
-	read_telemetry();
 
     uint32_t time_elapsed = hal.scheduler->micros() - timer;
 

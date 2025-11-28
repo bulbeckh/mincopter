@@ -79,7 +79,7 @@ void read_telemetry(void)
 
 		if (nb!=-1) {
 
-			mincopter.hal.console->printf("nb: %d\r\n", nb);
+			//mincopter.hal.console->printf("nb: %d\r\n", nb);
 
 			switch (cmd_state) {
 				case 0:
@@ -122,7 +122,10 @@ void read_telemetry(void)
 							// TODO Add execution of motor tests
 							break;
 						case 0x0D:
-							// TODO Attempt arming
+							// Set arm request flag
+							planner.ap.arm_requested_telem = 1;
+							mincopter.hal.console->printf("Arm requested from telem\r\n");
+							remaining = 0;
 							break;
 						default:
 							mincopter.hal.console->printf("Wrong cmd type! resetting\r\n");

@@ -23,9 +23,11 @@ void init_ardupilot(void)
 	mincopter.hal.gpio->pinMode(25, 1);
 	
 	// Switch all board LEDs on
+	/*
 	mincopter.hal.gpio->write(27, 0);
 	mincopter.hal.gpio->write(26, 0);
 	mincopter.hal.gpio->write(25, 0);
+	*/
 
     // GPS UART/Serial port initialisation
 #if GPS_PROTOCOL != GPS_PROTOCOL_IMU

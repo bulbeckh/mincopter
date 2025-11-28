@@ -314,8 +314,10 @@ void dump_state(void)
 // crash_check - disarms motors if a crash has been detected
 // crashes are detected by the vehicle being more than 20 degrees beyond it's angle limits continuously for more than 1 second
 // should be called at 10hz
-void crash_check()
+void crash_check(void)
 {
+	// TODO Re-write 
+	/*
     static uint8_t inverted_count;  // number of iterations we have been inverted
     static int32_t baro_alt_prev;
 
@@ -352,6 +354,9 @@ void crash_check()
         // we are not inverted so reset counter
         inverted_count = 0;
     }
+	*/
+
+	return;
 }
 
 

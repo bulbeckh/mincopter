@@ -61,8 +61,9 @@ void WP_Planner::run(void)
 
 		// Run arm checks
 		if (!arm_checks()) {
+			// TODO Change this to a reason
 			// Log to telemetry that we have failed to arm
-			mincopter.hal.uartC->printf("Failed arm check\r\n");
+			mincopter.hal.console->printf("Failed arm check\r\n");
 
 			// Clear arm request flag
 			planner.ap.arm_requested_telem = 0;

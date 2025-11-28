@@ -102,13 +102,20 @@ bool WP_Planner::arm_checks(void)
 	
 	// barometer health check
 	if(!mincopter.barometer.healthy) {
+		mincopter.hal.console->printf("arm check - bad barometer\r\n");
 		return false;
 	}
 
+	// TODO Even though we should have a similar test to ensure our state estimation hasn't diverged too far from ground
+	// truths like the barometer altitude, that test should probably be done in mcstate rather than as an arm check/failsafe check
+	
+	/*
 	// check Baro & inav alt are within 1m
 	if(fabs(mcstate.get_altitude() - baro_alt) > 100) {
+		mincopter.hal.console->printf("arm check -  baro altitude check\r\n");
 		return false;
 	}
+	*/
 
 	// 2. Compass Check
 	//
@@ -116,6 +123,7 @@ bool WP_Planner::arm_checks(void)
 
 	// check the compass is healthy
 	if(!mincopter.compass.healthy()) {
+		mincopter.hal.console->printf("arm check - bad compass\r\n");
 		return false;
 	}
 
@@ -127,14 +135,19 @@ bool WP_Planner::arm_checks(void)
 	}
 	*/
 
+	// TODO Re-enable this check - giving offsets of all zero - meaning compass is uncalibrated
 	// check for unreasonable compass offsets
-	if(offsets.length() > 500) {
+	/*
+	if(offsets.length() > 500 || offsets.length() == 0) {
+		mincopter.hal.console->printf("arm check - bad compass offsets (%f,%f,%f)\r\n", offsets.x, offsets.y, offsets.z);
 		return false;
 	}
+	*/
 
 	// check for unreasonable mag field length
 	float mag_field = mincopter.compass.get_field().length();
 	if (mag_field > COMPASS_MAGFIELD_EXPECTED*1.65 || mag_field < COMPASS_MAGFIELD_EXPECTED*0.35) {
+		mincopter.hal.console->printf("arm check - unreasonable mag field\r\n");
 		return false;
 	}
 
@@ -144,10 +157,14 @@ bool WP_Planner::arm_checks(void)
 	
 	float speed_cms = mcstate.get_velocity().length();     // speed according to inertial nav in cm/s
 	
+	// TODO Re-enable - currently not using GPS
 	// ensure GPS is ok and our speed is below 50cm/s
+	/*
 	if (!GPS_ok() || mincopter.gps_glitch.glitching() || speed_cms == 0 || speed_cms > PREARM_MAX_VELOCITY_CMS) {
+		mincopter.hal.console->printf("arm check - unhealthy GPS\r\n");
 		return false;
 	}
+	*/
 
 	// TODO We need to perform fence checks here but unsure where AP_Fence class should reside
 	// 4. Fence Check
@@ -170,21 +187,27 @@ bool WP_Planner::arm_checks(void)
     if ((mincopter.arming_check == ARMING_CHECK_ALL) || (mincopter.arming_check & ARMING_CHECK_INS)) {
         // check accelerometers have been calibrated
         if(!mincopter.ins.calibrated()) {
+			mincopter.hal.console->printf("arm check - uncalibrated accel\r\n");
             return false;
         }
 
         // check accels and gyros are healthy
         if(!mincopter.ins.get_gyro_health() || !mincopter.ins.get_accel_health()) {
+			mincopter.hal.console->printf("arm check - bad ins\r\n");
             return false;
         }
     }
 
+	// TODO As above - move to mcstate
+	/*
     // check Baro & inav alt are within 1m
     if ((mincopter.arming_check == ARMING_CHECK_ALL) || (mincopter.arming_check & ARMING_CHECK_BARO)) {
         if(fabs(mcstate.get_altitude() - baro_alt) > 100) {
+			mincopter.hal.console->printf("arm check - inav and baro mismatch\r\n");
             return false;
         }
     }
+	*/
 
 	// Flag that arm checks have been completed
     ap.arm_check = true;
