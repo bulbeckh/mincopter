@@ -38,7 +38,7 @@ void WP_Planner::init_arm_motors(void)
     init_home();
 
 	// TODO This should be part of a different interface - the one that pushes the 
-    calc_distance_and_bearing();
+    //calc_distance_and_bearing();
 
 	// Give location to compass so it can set magnetic declination
 	mincopter.compass.set_initial_location(mincopter.g_gps->latitude, mincopter.g_gps->longitude);
@@ -102,12 +102,12 @@ bool WP_Planner::arm_checks(void)
 	
 	// barometer health check
 	if(!mincopter.barometer.healthy) {
-		return;
+		return false;
 	}
 
 	// check Baro & inav alt are within 1m
 	if(fabs(mcstate.get_altitude() - baro_alt) > 100) {
-		return;
+		return false;
 	}
 
 	// 2. Compass Check
@@ -116,26 +116,26 @@ bool WP_Planner::arm_checks(void)
 
 	// check the compass is healthy
 	if(!mincopter.compass.healthy()) {
-		return;
+		return false;
 	}
 
 	// check compass learning is on or offsets have been set
 	Vector3f offsets = mincopter.compass.get_offsets();
 	/*
 	if(offsets.length() == 0) {
-		return;
+		return false;
 	}
 	*/
 
 	// check for unreasonable compass offsets
 	if(offsets.length() > 500) {
-		return;
+		return false;
 	}
 
 	// check for unreasonable mag field length
 	float mag_field = mincopter.compass.get_field().length();
 	if (mag_field > COMPASS_MAGFIELD_EXPECTED*1.65 || mag_field < COMPASS_MAGFIELD_EXPECTED*0.35) {
-		return;
+		return false;
 	}
 
 	// 3. GPS Check
@@ -146,18 +146,21 @@ bool WP_Planner::arm_checks(void)
 	
 	// ensure GPS is ok and our speed is below 50cm/s
 	if (!GPS_ok() || mincopter.gps_glitch.glitching() || speed_cms == 0 || speed_cms > PREARM_MAX_VELOCITY_CMS) {
-		return;
+		return false;
 	}
 
+	// TODO We need to perform fence checks here but unsure where AP_Fence class should reside
 	// 4. Fence Check
 	//
 	//
 	
 #if AC_FENCE == ENABLED
 	// check fence is initialised
+	/*
 	if(!fence.pre_arm_check() || (((fence.get_enabled_fences() & AC_FENCE_TYPE_CIRCLE) != 0))) {
-		return;
+		return false;
 	}
+	*/
 #endif
 
     // 5. INS Check
@@ -167,19 +170,19 @@ bool WP_Planner::arm_checks(void)
     if ((mincopter.arming_check == ARMING_CHECK_ALL) || (mincopter.arming_check & ARMING_CHECK_INS)) {
         // check accelerometers have been calibrated
         if(!mincopter.ins.calibrated()) {
-            return;
+            return false;
         }
 
         // check accels and gyros are healthy
         if(!mincopter.ins.get_gyro_health() || !mincopter.ins.get_accel_health()) {
-            return;
+            return false;
         }
     }
 
     // check Baro & inav alt are within 1m
     if ((mincopter.arming_check == ARMING_CHECK_ALL) || (mincopter.arming_check & ARMING_CHECK_BARO)) {
         if(fabs(mcstate.get_altitude() - baro_alt) > 100) {
-            return;
+            return false;
         }
     }
 

@@ -23,6 +23,8 @@ extern MCInstance mincopter;
 WP_Planner planner;
 
 
+// Remove the land_complete flag
+/*
 void WP_Planner::set_land_complete(bool b)
 {
     // if no change, exit immediately
@@ -36,6 +38,7 @@ void WP_Planner::set_land_complete(bool b)
     }
     ap.land_complete = b;
 }
+*/
 
 
 void WP_Planner::run(void)
@@ -54,7 +57,7 @@ void WP_Planner::run(void)
 #endif
 
 	// Commence arming if we are disarmed and have been requested to arm by the telemetry
-	if (!planner.ap.arm_active && planner.ap.arm_request_telem) { 
+	if (!planner.ap.arm_active && planner.ap.arm_requested_telem) { 
 
 		// Run arm checks
 		if (!arm_checks()) {
@@ -62,7 +65,7 @@ void WP_Planner::run(void)
 			mincopter.hal.uartC->printf("Failed arm check\r\n");
 
 			// Clear arm request flag
-			planner.ap.arm_request_telem = 0;
+			planner.ap.arm_requested_telem = 0;
 
 			return;
 		}
@@ -121,8 +124,8 @@ void WP_Planner::run(void)
 
 	/* Set the controller roll and pitch angles using the waypoint navigation. Because of the way that **update_wpnav**
 	 * works, the waypoint navigation algorithm should calculate a new desired roll/pitch every 4 iterations of ::run */
-	controller.control_roll = wp_nav.get_desired_roll();
-	controller.control_pitch = wp_nav.get_desired_pitch();
+	//controller.control_roll = wp_nav.get_desired_roll();
+	//controller.control_pitch = wp_nav.get_desired_pitch();
 	
 	/* TODO At some point during update_nav_mode, the control_yaw will be updated. It is passed through a slew filter
 	 * to ensure it stays between a specified rate. This is moved from controller to planner and now needs to be called
@@ -134,10 +137,10 @@ void WP_Planner::run(void)
 	//controller.control_yaw = get_yaw_slew(controller.control_yaw, mcstate.ahrs.yaw_sensor, AUTO_YAW_SLEW_RATE);
 
 	// TODO Is this slewing the yaw rate or yaw itself??
-	controller.control_yaw = get_yaw_slew(controller.control_yaw, 0, AUTO_YAW_SLEW_RATE);
+	//controller.control_yaw = get_yaw_slew(controller.control_yaw, 0, AUTO_YAW_SLEW_RATE);
 	
 	// Throttle determination
-  	get_throttle_althold_with_slew(wp_nav.get_desired_alt(), -wp_nav.get_descent_velocity(), wp_nav.get_climb_velocity());
+  	//get_throttle_althold_with_slew(wp_nav.get_desired_alt(), -wp_nav.get_descent_velocity(), wp_nav.get_climb_velocity());
  	
 }
 
@@ -160,8 +163,11 @@ void WP_Planner::get_throttle_althold_with_slew(int32_t target_alt, int16_t min_
 	return;
 }
 
+
+// TODO Remove
 // update_land_detector - checks if we have landed and updates the ap.land_complete flag
 // returns true if we have landed
+/*
 bool WP_Planner::update_land_detector()
 {
     // detect whether we have landed by watching for low climb rate and minimum throttle
@@ -171,7 +177,7 @@ bool WP_Planner::update_land_detector()
             if( land_detector < LAND_DETECTOR_TRIGGER) {
                 land_detector++;
             }else{
-                set_land_complete(true);
+                //set_land_complete(true);
                 land_detector = 0;
             }
         }
@@ -186,15 +192,16 @@ bool WP_Planner::update_land_detector()
     // return current state of landing
     return ap.land_complete;
 }
-
+*/
 
 void WP_Planner::run_nav_updates(void)
 {
     // fetch position from inertial navigation
     calc_position();
 
+	// TODO Removed until we define where AP_WPNav is
     // calculate distance and bearing for reporting and autopilot decisions
-    calc_distance_and_bearing();
+    //calc_distance_and_bearing();
 
 }
 
@@ -206,6 +213,7 @@ void WP_Planner::calc_position(){
     }
 }
 
+/*
 void WP_Planner::calc_distance_and_bearing()
 {
     Vector3f curr = mcstate.get_position();
@@ -225,17 +233,17 @@ void WP_Planner::calc_distance_and_bearing()
         //home_bearing = pv_get_bearing_cd(curr,Vector3f(0,0,0));
     }
 }
+*/
 
 //update_nav_mode - run navigation controller based on nav_mode
 // called at 100hz
+/*
 void WP_Planner::update_nav_mode()
 {
     // exit immediately if not auto_armed or inertial nav position bad
-	/*
     if (!ap.auto_armed || !mcstate.inertial_nav.position_ok()) {
         return;
 	}
-	*/
 
 	static int32_t firstcall=0;
 
@@ -248,10 +256,10 @@ void WP_Planner::update_nav_mode()
 
 		case WP_FLIGHT_STATE::FS_TAKEOFF:
 			if (firstcall<100) { 
-				/* This is the current position in cm */
+				// This is the current position in cm
 				Vector3f nav_target_position = mcstate.get_position();
 
-				/* Add 10 metres to target position */
+				// Add 10 metres to target position
 				nav_target_position.z += 1000;
 
 				wp_nav.set_destination(nav_target_position);
@@ -267,6 +275,7 @@ void WP_Planner::update_nav_mode()
     }
 
 }
+*/
 
 void WP_Planner::reset_nav_params(void)
 {
@@ -282,11 +291,13 @@ void WP_Planner::reset_nav_params(void)
 }
 
 // reset_land_detector - initialises land detector
+/*
 void WP_Planner::reset_land_detector()
 {
     set_land_complete(false);
     land_detector = 0;
 }
+*/
 
 // get_initial_alt_hold - get new target altitude based on current altitude and climb rate
 /*
@@ -328,6 +339,8 @@ bool WP_Planner::init_throttle( uint8_t new_throttle_mode )
 */
 
 
+// TODO Fence checks moved to failsafe check
+/*
 void WP_Planner::fence_check()
 {
 		uint8_t new_breaches; // the type of fence that has been breached
@@ -355,7 +368,8 @@ void WP_Planner::fence_check()
 
 						// disarm immediately if we think we are on the ground
 						// don't disarm if the high-altitude fence has been broken because it's likely the user has pulled their throttle to zero to bring it down
-						if(/* manual_flight_mode(control_mode) && */ mincopter.rc_3.control_in == 0 && !failsafe.radio && ((fence.get_breaches() & AC_FENCE_TYPE_ALT_MAX)== 0)){
+						if(// manual_flight_mode(control_mode) &&
+mincopter.rc_3.control_in == 0 && !failsafe.radio && ((fence.get_breaches() & AC_FENCE_TYPE_ALT_MAX)== 0)){
 								init_disarm_motors();
 						}else{
 								// if we are within 100m of the fence, RTL
@@ -374,6 +388,7 @@ void WP_Planner::fence_check()
 				Log_Write_Error(ERROR_SUBSYSTEM_FAILSAFE_FENCE, ERROR_CODE_ERROR_RESOLVED);
 		}
 }
+*/
 
 
 // get_yaw_slew - reduces rate of change of yaw to a maximum

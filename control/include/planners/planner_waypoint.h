@@ -1,5 +1,5 @@
 
-nc#pragma once
+#pragma once
 
 // Waypoint Implementation of Planner
 
@@ -135,7 +135,7 @@ class WP_Planner : public MC_Planner
 	
 	private:
 		/* @brief Waypoint Navigation library instance */
-		AC_WPNav wp_nav;
+		//AC_WPNav wp_nav;
 
 	private:
 
@@ -160,13 +160,13 @@ class WP_Planner : public MC_Planner
 		/* @brief Runs land detection during throttle loop
 		* @returns true if landed 
 		*/
-		bool update_land_detector();
+		//bool update_land_detector();
 
 
 	private:
 		/* @brief Unsets the land detector variable
 		*/
-		void reset_land_detector();
+		//void reset_land_detector();
 
 		// TODO NOTE init_throttle and get_initial_alt_hold use PI controllers that are outside of the controller abstraction. These PI
 		// controllers may even be better moved to the planner
@@ -203,21 +203,16 @@ class WP_Planner : public MC_Planner
 
 		/****** Failsafe Functions ******/
 
-		/* @brief Called when radio loses connection, triggering the failsafe to kick-in
-		*/
+		/* @brief Called when radio loses connection, triggering the failsafe to kick-in */
 		void failsafe_radio_on_event();
 
-		/* @brief Called when returning from a failsafe mode
-		*/
+		/* @brief Called when returning from a failsafe mode */
 		void failsafe_radio_off_event();
 
-		/* @brief Called when a low battery occurs, triggering failsafe
-		*/
+		/* @brief Called when a low battery occurs, triggering failsafe */
 		void failsafe_battery_event(void);
 
-		/* @brief Called when GPS returns signal
-		*/
-		void failsafe_gps_off_event(void);
+		/* @brief Called when GPS returns signal */
 		void failsafe_gps_check(void);
 
 		void fence_check();

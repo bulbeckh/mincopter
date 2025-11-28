@@ -12,6 +12,11 @@ extern MCInstance mincopter;
 
 #include "mcstate.h"
 
+
+// TODO These 5 failsafe functions will be implemented elsewhere
+
+
+/*
 void WP_Planner::failsafe_radio_on_event()
 {
     // if motors are not armed there is nothing to do
@@ -83,14 +88,18 @@ void WP_Planner::failsafe_radio_on_event()
     Log_Write_Error(ERROR_SUBSYSTEM_FAILSAFE_RADIO, ERROR_CODE_FAILSAFE_OCCURRED);
 
 }
+*/
 
+/*
 void WP_Planner::failsafe_radio_off_event()
 {
     // no need to do anything except log the error as resolved
     // user can now override roll, pitch, yaw and throttle and even use flight mode switch to restore previous flight mode
     Log_Write_Error(ERROR_SUBSYSTEM_FAILSAFE_RADIO, ERROR_CODE_FAILSAFE_RESOLVED);
 }
+*/
 
+/*
 void WP_Planner::failsafe_battery_event(void)
 {
     // return immediately if low battery event has already been triggered
@@ -136,7 +145,9 @@ void WP_Planner::failsafe_battery_event(void)
     Log_Write_Error(ERROR_SUBSYSTEM_FAILSAFE_BATT, ERROR_CODE_FAILSAFE_OCCURRED);
 
 }
+*/
 
+/*
 void WP_Planner::failsafe_gps_check()
 {
     uint32_t last_gps_update_ms;
@@ -180,3 +191,4 @@ void WP_Planner::failsafe_gps_check()
 			nav_mode = WP_FLIGHT_STATE::FS_LAND;
     }
 }
+*/
