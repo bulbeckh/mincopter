@@ -371,6 +371,9 @@ void crash_check(void)
 //    .y = longitude from home in cm
 //    .z = altitude above home in cm
 
+// TODO We keep this function here for now for reference as we will need to implement distance conversions later
+
+/* 
 // pv_latlon_to_vector - convert lat/lon coordinates to a position vector
 Vector3f pv_latlon_to_vector(int32_t lat, int32_t lon, int32_t alt)
 {
@@ -412,6 +415,7 @@ float pv_get_bearing_cd(const Vector3f &origin, const Vector3f &destination)
     }
     return bearing;
 }
+*/
 
 // read the receiver RSSI as an 8 bit number for MAVLink
 // RC_CHANNELS_SCALED message
@@ -451,8 +455,8 @@ void init_home(void)
         Log_Write_Cmd(0, &mcstate.home);
 
     // update navigation scalers.  used to offset the shrinking longitude as we go towards the poles
-    planner.scaleLongDown = longitude_scale(mcstate.home);
-    planner.scaleLongUp   = 1.0f/planner.scaleLongDown;
+    //planner.scaleLongDown = longitude_scale(mcstate.home);
+    //planner.scaleLongUp   = 1.0f/planner.scaleLongDown;
 }
 
 

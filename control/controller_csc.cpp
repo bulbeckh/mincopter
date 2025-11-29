@@ -96,8 +96,8 @@ void CSC_Controller::run(void)
 		y_vel_target = nav_y_pos.get_pi(/* Y-Target */ wp_list_y[wp_index] - pos.y, 0.25);
 
 		// Constrain velocity to be between [-2,2]
-		x_vel_target = max(-2.0f, min(2.0f, x_vel_target));
-		y_vel_target = max(-2.0f, min(2.0f, y_vel_target));
+		x_vel_target = ap_max(-2.0f, ap_min(2.0f, x_vel_target));
+		y_vel_target = ap_max(-2.0f, ap_min(2.0f, y_vel_target));
 
 	}
 

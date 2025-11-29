@@ -75,6 +75,9 @@ class Mixer {
 		 * on the controller output - force, <roll,pitch,yaw> torque */
 		void output(float total_force_n, float roll_t_nm, float pitch_t_nm, float yaw_t_nm);
 
+		/* @brief Get current motor PWM readings */
+		int16_t get_motor_pwm(uint8_t index);
+
 	private:
 
 		/* @brief Write calculated PWM signal to corresponding RC channel (ESC) */

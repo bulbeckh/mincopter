@@ -4,6 +4,16 @@
 #include "mcinstance.h"
 extern MCInstance mincopter;
 
+// TODO Getter method for console logging - probably remove or make friend or
+int16_t Mixer::get_motor_pwm(uint8_t index)
+{
+	if (index>=4) {
+		return -1;
+	}
+
+	return _motor_pwm_us[index];
+}
+
 void Mixer::output(float total_force_n, float roll_t_nm, float pitch_t_nm, float yaw_t_nm)
 {
 	// The following was the mixing algorithm using the matrix inverse of the force/torque to motor velocities transformation

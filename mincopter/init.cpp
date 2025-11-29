@@ -87,7 +87,7 @@ void init_ardupilot(void)
 		mincopter.hal.uartC->printf("Telem Test\r\n");
     }
 
-#if LOGGING_ENABLED == ENABLED
+#if defined(LOGGING_ENABLED)
 	/* NOTE The log_structure variable is an array of LogStructure objects. It is referenced in the log.h header
 	 * file but here we are getting the sizeof(log_structure) */
 
@@ -148,7 +148,7 @@ void init_ardupilot(void)
 	// Set state as landed
 	planner.ap.land_complete = 1;
 
-#if LOGGING_ENABLED == ENABLED
+#if defined(LOGGING_ENABLED)
     Log_Write_Startup();
 #endif
 

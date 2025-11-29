@@ -18,16 +18,8 @@ void default_dead_zones()
 {
     mincopter.rc_1.set_default_dead_zone(30);
     mincopter.rc_2.set_default_dead_zone(30);
-/*
-#if FRAME_CONFIG == HELI_FRAME
-    mincopter.rc_3.set_default_dead_zone(10);
-    mincopter.rc_4.set_default_dead_zone(15);
-    mincopter.rc_8.set_default_dead_zone(10);
-#else
-*/
     mincopter.rc_3.set_default_dead_zone(30);
     mincopter.rc_4.set_default_dead_zone(40);
-//#endif
     mincopter.rc_6.set_default_dead_zone(0);
 }
 

@@ -1,9 +1,3 @@
-/// -*- tab-width: 4; Mode: C++; c-basic-offset: 4; indent-tabs-mode: nil -*-
-
-#define ARM_DELAY               20  // called at 10hz so 2 seconds
-#define DISARM_DELAY            20  // called at 10hz so 2 seconds
-#define AUTO_TRIM_DELAY         100 // called at 10hz so 10 seconds
-#define AUTO_DISARMING_DELAY    15  // called at 1hz so 15 seconds
 
 #include "planner.h"
 
@@ -14,7 +8,6 @@
 
 extern MCInstance mincopter;
 
-
 #include "log.h"
 #include "radio.h"
 #include "util.h"
@@ -22,7 +15,7 @@ extern MCInstance mincopter;
 void WP_Planner::init_arm_motors(void)
 {
 
-#if LOGGING_ENABLED == ENABLED
+#if defined(LOGGING_ENABLED)
     start_logging();
 #endif
 
@@ -43,16 +36,13 @@ void WP_Planner::init_arm_motors(void)
 	// Give location to compass so it can set magnetic declination
 	mincopter.compass.set_initial_location(mincopter.g_gps->latitude, mincopter.g_gps->longitude);
 
-    // all I terms are invalid
-    // -----------------------
-#if CONTROLLER_PID
-    controller.reset_I_all();
-#endif
+	// TODO Add reset of PID/CSC controller I terms (and any other persistent state) here
 
+	// TODO Maybe we should move this to the **init_home** function
 	// Set the current pressure/temperature as the ground pressure/ground temperature
 	mincopter.barometer.update_calibration();
 
-	// TODO We don't event use the motor or rc_* interfaces anymore. The mixer sends the correct control signal directly to the
+	// TODO We don't even use the motor or rc_* interfaces anymore. The mixer sends the correct control signal directly to the
 	// appropriate motors based on the configuration. We will eventually need some sort of custom motor/mixer configuration
 	// but for now this should suffice
 	
@@ -64,7 +54,7 @@ void WP_Planner::init_arm_motors(void)
 	planner.ap.arm_active = 1;
 	
     // log arming to dataflash
-    Log_Write_Event(DATA_ARMED);
+    //Log_Write_Event(DATA_ARMED);
 
 	return;
 }
@@ -82,7 +72,7 @@ void WP_Planner::init_disarm_motors(void)
     planner.ap.takeoff_complete = false;
     
     // Log disarm to the dataflash
-    Log_Write_Event(DATA_DISARMED);
+	//Log_Write_Event(DATA_DISARMED);
 
     // suspend logging
 		// TODO why is this camelcase - change all sensor objects to lowercase
@@ -184,19 +174,17 @@ bool WP_Planner::arm_checks(void)
 	//
 	//
 	
-    if ((mincopter.arming_check == ARMING_CHECK_ALL) || (mincopter.arming_check & ARMING_CHECK_INS)) {
-        // check accelerometers have been calibrated
-        if(!mincopter.ins.calibrated()) {
-			mincopter.hal.console->printf("arm check - uncalibrated accel\r\n");
-            return false;
-        }
+	// check accelerometers have been calibrated
+	if(!mincopter.ins.calibrated()) {
+		mincopter.hal.console->printf("arm check - uncalibrated accel\r\n");
+		return false;
+	}
 
-        // check accels and gyros are healthy
-        if(!mincopter.ins.get_gyro_health() || !mincopter.ins.get_accel_health()) {
-			mincopter.hal.console->printf("arm check - bad ins\r\n");
-            return false;
-        }
-    }
+	// check accels and gyros are healthy
+	if(!mincopter.ins.get_gyro_health() || !mincopter.ins.get_accel_health()) {
+		mincopter.hal.console->printf("arm check - bad ins\r\n");
+		return false;
+	}
 
 	// TODO As above - move to mcstate
 	/*

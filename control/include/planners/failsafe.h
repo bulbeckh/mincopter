@@ -2,6 +2,23 @@
 
 #include <stdint.h>
 
+/* @brief Class representing which mode of flight we are in.
+ *
+ * We will always start in mode LAND, which indicates we are on the ground. We will always arm/disarm from the LAND mode.
+ *
+ * From LAND, we transition to takeoff (after arming) which is a small intermediate mode (typically <0.5s) from which we leave the ground and 
+ * try to reach a set altitude (usually ~50cm above the ground). During TAKEOFF mode, we also typically ignore control commands and
+ * send the same throttle PWM to all motors, ignoring tilt correction.
+ *
+ * The WAYPOINT mode is our standard flight mode, which runs the full control pipeline from planning (which calculates the required throttle
+ * and lean angles to get to the next waypoint) and the controllers (which turn these into force/torque signals for the mixer to convert
+ * to PWM outputs). */
+enum class flight_mode {
+	land_fm,
+	takeoff_fm,
+	waypoint_fm
+};
+
 // Union and and Failsafe typedefs
 typedef union {
 	struct {
@@ -22,12 +39,15 @@ typedef union {
 		uint8_t logging_active      : 1;
 
 		// TODO Replace with single flight state (landed, takeoff, waypoint)
-		uint8_t takeoff_complete    : 1; // 8
+		uint8_t takeoff_complete    : 1;
 		uint8_t land_complete       : 1; // 9   // true if we have detected a landing
 		
 		// TODO Check where this is used
 		/* @brief Whether we have connected via usb (which should indicate that we can log to console in addition to telem */
 		uint8_t usb_connected       : 1;
+
+		/* @brief The current flight mode (see above) that we are in */
+		flight_mode fm;
 
 	};
 

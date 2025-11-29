@@ -2,7 +2,7 @@
 
 #include "log.h"
 
-#if LOGGING_ENABLED == ENABLED
+#if defined(LOGGING_ENABLED)
 
 #include "mcinstance.h"
 #include "mcstate.h"
@@ -22,52 +22,6 @@ extern MCInstance mincopter;
 // are defined below. Order matters to the compiler.
 
 
-
-#if AUTOTUNE == ENABLED
-struct PACKED log_AutoTune {
-    LOG_PACKET_HEADER;
-    uint8_t axis;           // roll or pitch
-    uint8_t tune_step;      // tuning PI or D up or down
-    float   rate_min;       // maximum achieved rotation rate
-    float   rate_max;       // maximum achieved rotation rate
-    float   new_gain_rp;       // newly calculated gain
-    float   new_gain_rd;       // newly calculated gain
-    float   new_gain_sp;       // newly calculated gain
-};
-
-// Write an Current data packet
-void Log_Write_AutoTune(uint8_t axis, uint8_t tune_step, float rate_min, float rate_max, float new_gain_rp, float new_gain_rd, float new_gain_sp)
-{
-    struct log_AutoTune pkt = {
-        LOG_PACKET_HEADER_INIT(LOG_AUTOTUNE_MSG),
-        axis        : axis,
-        tune_step   : tune_step,
-        rate_min    : rate_min,
-        rate_max    : rate_max,
-        new_gain_rp  : new_gain_rp,
-        new_gain_rd  : new_gain_rd,
-        new_gain_sp  : new_gain_sp
-    };
-    mincopter.DataFlash.WriteBlock(&pkt, sizeof(pkt));
-}
-
-struct PACKED log_AutoTuneDetails {
-    LOG_PACKET_HEADER;
-    int16_t angle_cd;       // lean angle in centi-degrees
-    float   rate_cds;       // current rotation rate in centi-degrees / second
-};
-
-// Write an Current data packet
-void Log_Write_AutoTuneDetails(int16_t angle_cd, float rate_cds)
-{
-    struct log_AutoTuneDetails pkt = {
-        LOG_PACKET_HEADER_INIT(LOG_AUTOTUNEDETAILS_MSG),
-        angle_cd    : angle_cd,
-        rate_cds    : rate_cds
-    };
-    mincopter.DataFlash.WriteBlock(&pkt, sizeof(pkt));
-}
-#endif
 
 struct PACKED log_Current {
     LOG_PACKET_HEADER;
@@ -109,26 +63,6 @@ struct PACKED log_Optflow {
     int32_t roll;
     int32_t pitch;
 };
-
-// Write an optical flow packet
-/*
-void Log_Write_Optflow()
-{
- #if OPTFLOW == ENABLED
-    struct log_Optflow pkt = {
-        LOG_PACKET_HEADER_INIT(LOG_OPTFLOW_MSG),
-        dx              : optflow.dx,
-        dy              : optflow.dy,
-        surface_quality : optflow.surface_quality,
-        x_cm            : (int16_t) optflow.x_cm,
-        y_cm            : (int16_t) optflow.y_cm,
-        roll            : of_roll,
-        pitch           : of_pitch
-    };
-    DataFlash.WriteBlock(&pkt, sizeof(pkt));
- #endif     // OPTFLOW == ENABLED
-}
-*/
 
 struct PACKED log_Nav_Tuning {
     LOG_PACKET_HEADER;
@@ -494,12 +428,6 @@ void Log_Write_Error(uint8_t sub_system, uint8_t error_code)
 
 const struct LogStructure log_structure[] PROGMEM = {
     LOG_COMMON_STRUCTURES,
-#if AUTOTUNE == ENABLED
-    { LOG_AUTOTUNE_MSG, sizeof(log_AutoTune),
-      "ATUN", "BBfffff",       "Axis,TuneStep,RateMin,RateMax,RPGain,RDGain,SPGain" },
-    { LOG_AUTOTUNEDETAILS_MSG, sizeof(log_AutoTuneDetails),
-      "ATDE", "cf",          "Angle,Rate" },
-#endif
     { LOG_CURRENT_MSG, sizeof(log_Current),             
       "CURR", "IhIhhhf",     "TimeMS,ThrOut,ThrInt,Volt,Curr,Vcc,CurrTot" },
     { LOG_OPTFLOW_MSG, sizeof(log_Optflow),       
@@ -547,7 +475,7 @@ void Log_Read(uint16_t log_num, uint16_t start_page, uint16_t end_page)
 }
 
 // start a new log
-void start_logging() 
+void start_logging(void)
 {
 	// TODO Why is the logging check/status in planner?
 	/*
@@ -585,10 +513,6 @@ void Log_Write_Cmd(uint8_t num, const struct Location *wp) {}
 void Log_Write_Mode(uint8_t mode) {}
 void Log_Write_IMU() {}
 void Log_Write_GPS() {}
-#if AUTOTUNE == ENABLED
-void Log_Write_AutoTune(uint8_t axis, uint8_t tune_step, float rate_min, float rate_max, float new_gain_rp, float new_gain_rd, float new_gain_sp) {}
-void Log_Write_AutoTuneDetails(int16_t angle_cd, float rate_cds) {}
-#endif
 void Log_Write_Current() {}
 void Log_Write_Compass() {}
 void Log_Write_Attitude() {}

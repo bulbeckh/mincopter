@@ -38,7 +38,6 @@
  */
 
 #include <AC_Fence.h>
-// HASH include <AC_WPNav.h>
 
 #include "failsafe.h"
 
@@ -84,14 +83,6 @@ class MC_Planner
 
 		// TODO AC_Fence removed temporarily
 		//AC_Fence fence;
-		//AC_WPNav wp_nav;
-
-		// We use atan2 and other trig techniques to calaculate angles
-		// We need to scale the longitude up to make these calcs work
-		// to account for decreasing distance between lines of longitude away from the equator
-		float scaleLongUp = 1;
-		// Sometimes we need to remove the scaling for distance calcs
-		float scaleLongDown = 1;
 
 };
 

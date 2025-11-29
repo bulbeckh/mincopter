@@ -51,109 +51,21 @@
 
 #include <AC_WPNav.h>
 
-enum class WP_FLIGHT_STATE
-{
-		FS_TAKEOFF,
-		FS_WAYPOINT,
-		FS_LOITER,
-		FS_LAND
-};
-
 class WP_Planner : public MC_Planner
 {
+	public:
+		WP_Planner() : MC_Planner() { }
 
 	public:
-		WP_Planner() :
-			MC_Planner()
-		{
-		    /* Initialise planner states */
-		    nav_mode = WP_FLIGHT_STATE::FS_TAKEOFF;
-
-		}
-
-	public:
-
+		/* @brief Run planner */
 		void run(void) override;
 
-		/* @brief entry point into the planner. Called by scheduler */
-		void run_nav_updates(void);
-
-		/* @brief Runs navigation controller. Called by scheduler */
-		void update_nav_mode();
-
 	public:
-		float lon_error;
-		float lat_error; 
 
-		bool throttle_initialised;
-
-		// counter to verify landings
-		uint16_t land_detector;
-
+		// TODO Will bring back in when land detection is added 
+		//uint16_t land_detector;
 
 		/* Navigation Parameters */
-
-		// The original bearing to the next waypoint.  used to point the nose of the copter at the next waypoint
-		// Used in the YAW_LOOK_AHEAD_NEXT_WP yaw mode
-		int32_t original_wp_bearing;
-
-		// distance between plane and home in cm
-		int32_t home_distance;
-
-																							 
-		//TODO Remove wp_distance and wp_bearing - I think they are updated but not used
-		// Distance between copter and next wp in cm
-		uint32_t wp_distance;
-
-		// Angle from copter to next wp in centi-degrees
-		int32_t wp_bearing;
-
-		/* Yaw Variables */
-
-		// Yaw will point at this location if yaw_mode is set to YAW_LOOK_AT_LOCATION
-		Vector3f yaw_look_at_WP;
-		// bearing from current location to the yaw_look_at_WP
-		int32_t yaw_look_at_WP_bearing;
-
-		/* Planner State Variables */
-
-		/* @brief Control mode variable - NOTE will be replaced */
-		int8_t control_mode = STABILIZE;
-
-		/* @brief Flight mode variables that get updated during call to set_mode */
-		//uint8_t yaw_mode = STABILIZE_YAW;
-		//uint8_t roll_pitch_mode = STABILIZE_RP;
-		//uint8_t throttle_mode = STABILIZE_THR;
-		//
-		WP_FLIGHT_STATE nav_mode;
-
-		// Throttle variables
-		float target_alt_for_reporting;      // target altitude in cm for reporting (logs and ground station)
-
-		// The Commanded Throttle from the autopilot.
-		int16_t nav_throttle;    // 0-1000 for throttle control
-	
-	private:
-		/* @brief Waypoint Navigation library instance */
-		//AC_WPNav wp_nav;
-
-	private:
-
-		/* @brief Sets the control_mode (e.g. ALT_HOLD, STABILIZE, etc.)
-		* @param mode The control mode to be set.
-		*/
-		bool set_mode(uint8_t mode); /* @brief Gets latitude and longitude from inertial nav
-
-		*/
-		void calc_position();
-
-		/* @brief Calculates distance and bearing to waypoint. Sets wp_distance and wp_bearing
-		*/
-		void calc_distance_and_bearing();
-
-		/* @brief Zeroes-out wp_bearing, wp_location, lat, and long
-		*/
-		void reset_nav_params(void);
 
 	public:
 		// NOTE why does this return bool? Return val not used during throttle loop
@@ -161,24 +73,12 @@ class WP_Planner : public MC_Planner
 		* @returns true if landed 
 		*/
 		//bool update_land_detector();
-
-
-	private:
+		//
 		/* @brief Unsets the land detector variable
 		*/
 		//void reset_land_detector();
 
-		// TODO NOTE init_throttle and get_initial_alt_hold use PI controllers that are outside of the controller abstraction. These PI
-		// controllers may even be better moved to the planner
-
-		/* @brief Sets throttle mode
-		*/
-		//bool init_throttle( uint8_t new_throttle_mode );
-
-		/* This is called during set_throttle_mode to get the initial alt hold desired altitude */
-		//int32_t get_initial_alt_hold( int32_t alt_cm, int16_t climb_rate_cms);
-
-		/****** Arming Functions ******/
+	private:
 
 		/* @brief Arms motors. Starts logging, enables output to motors, and a few other functions
 		*/
@@ -187,35 +87,31 @@ class WP_Planner : public MC_Planner
 		/* @brief Disarms motors.
 		*/
 		void init_disarm_motors();
-
-		/* @brief Reduces rate-of-change of yaw to a maximum value
-		* @param current_yaw The current yaw value. Usually control_yaw
-		* @param desired_yaw The target yaw value.
-		* @param deg_per_sec The maximum rate-of-change of yaw value. For example AUTO_YAW_SLEW_RATE
-		*/
-		int32_t get_yaw_slew(int32_t current_yaw, int32_t desired_yaw, int16_t deg_per_sec);
-
-		void get_throttle_althold_with_slew(int32_t target_alt, int16_t min_climb_rate, int16_t max_climb_rate);
 		
 	private:
 
 		bool arm_checks(void);
 
+		// TODO Kept here only for reference when we actually need to implement failsafe checks in the scheduled
+		// failsafe function.
+
+		// TODO We should explore having a planner interface for any custom planner-specific failsafe checks that need to run
+		// at the failsafe frequency (10Hz)
 		/****** Failsafe Functions ******/
 
 		/* @brief Called when radio loses connection, triggering the failsafe to kick-in */
-		void failsafe_radio_on_event();
+		//void failsafe_radio_on_event();
 
 		/* @brief Called when returning from a failsafe mode */
-		void failsafe_radio_off_event();
+		//void failsafe_radio_off_event();
 
 		/* @brief Called when a low battery occurs, triggering failsafe */
-		void failsafe_battery_event(void);
+		//void failsafe_battery_event(void);
 
 		/* @brief Called when GPS returns signal */
-		void failsafe_gps_check(void);
+		//void failsafe_gps_check(void);
 
-		void fence_check();
+		void fence_check(void);
 
 };
 

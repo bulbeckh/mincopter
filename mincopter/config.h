@@ -394,7 +394,7 @@
 // Dataflash logging control
 //
 #ifndef LOGGING_ENABLED
- # define LOGGING_ENABLED                ENABLED
+	#define LOGGING_ENABLED
 #endif
 
 #if CONFIG_HAL_BOARD == HAL_BOARD_APM1 || CONFIG_HAL_BOARD == HAL_BOARD_APM2 || CONFIG_HAL_BOARD == HAL_BOARD_AVR_SITL
