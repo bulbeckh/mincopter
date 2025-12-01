@@ -29,8 +29,11 @@ typedef union {
 		/* @brief Flag that arm checks are successful and we have updated state to armed. Cleared upon disarm */
 		uint8_t arm_check      	    : 1;
 		
-		/* @brief Flag that we have requested to arm. Cleared upon disarm */
+		/* @brief Flag that we have requested to arm. Cleared upon attempt to arm */
 		uint8_t arm_requested_telem : 1;
+
+		/* @brief Flag that we have requested to disarm. Cleared upon attempt to disarm */
+		uint8_t disarm_requested_telem :1;
 
 		/* @brief Flag for whether we are currently armed. Set after call to **init_arm_motors** and cleared after disarm */
 		uint8_t arm_active 			: 1;

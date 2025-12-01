@@ -61,25 +61,30 @@ void WP_Planner::init_arm_motors(void)
 
 void WP_Planner::init_disarm_motors(void)
 {
+	// Disarm
+	planner.ap.arm_active = 0;
+
     // Return immediately if we are already disarmed
-    if (!mincopter.motors.armed()) return;
+    //if (!mincopter.motors.armed()) return;
 
 	// Set motor arm to false
-    mincopter.motors.armed(false);
+    //mincopter.motors.armed(false);
 
 	// TODO We should change the land/takeoff to a flight state [landed, takeoff, flying]
     // we are not in the air
-    planner.ap.takeoff_complete = false;
+    //planner.ap.takeoff_complete = false;
     
     // Log disarm to the dataflash
 	//Log_Write_Event(DATA_DISARMED);
 
     // suspend logging
 		// TODO why is this camelcase - change all sensor objects to lowercase
-    mincopter.DataFlash.EnableWrites(false);
+    //mincopter.DataFlash.EnableWrites(false);
 
     // disable gps velocity based centrefugal force compensation
     //mcstate.ahrs.set_correct_centrifugal(false);
+	
+	return;
 }
 
 bool WP_Planner::arm_checks(void)

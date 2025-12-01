@@ -13,12 +13,13 @@ target_include_directories(mc-common PUBLIC
 	${MC_INCLUDE_DIRS}
 )
 
+#[[
 target_link_libraries(mc-common PUBLIC
 	mc-control
 	mc-arch
 	mc-dev
-	)
-
+)
+]]
 
 
 

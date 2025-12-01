@@ -477,6 +477,8 @@ void Log_Read(uint16_t log_num, uint16_t start_page, uint16_t end_page)
 // start a new log
 void start_logging(void)
 {
+
+	uint8_t temp = 0;
 	// TODO Why is the logging check/status in planner?
 	/*
     if (mincopter.log_bitmask != 0) {
@@ -504,6 +506,7 @@ void start_logging(void)
         mincopter.DataFlash.EnableWrites(true);
     }
 	*/
+	return;
 }
 
 #else // LOGGING_ENABLED

@@ -127,20 +127,6 @@
 // Attitude Control
 //
 
-// Flight mode roll, pitch, yaw, throttle and navigation definitions
-
-// Alt Hold Mode
-#ifndef ALT_HOLD_YAW
- # define ALT_HOLD_YAW           	YAW_HOLD
-#endif
-
-#ifndef ALT_HOLD_RP
- # define ALT_HOLD_RP            	ROLL_PITCH_STABLE
-#endif
-
-#ifndef ALT_HOLD_THR
- # define ALT_HOLD_THR           	THROTTLE_HOLD
-#endif
 
 // AUTO Mode
 // Note: Auto mode yaw behaviour is controlled by WP_YAW_BEHAVIOR parameter
@@ -151,47 +137,6 @@
 //////////////////////////////////////////////////////////////////////////////
 // Attitude Control
 //
-
-// Acro mode gains
-#ifndef ACRO_RP_P
- # define ACRO_RP_P                 4.5f
-#endif
-
-#ifndef ACRO_YAW_P
- # define ACRO_YAW_P                4.5f
-#endif
-
-// Stabilize (angle controller) gains
-#ifndef STABILIZE_ROLL_P
- # define STABILIZE_ROLL_P          4.5f
-#endif
-#ifndef STABILIZE_ROLL_I
- # define STABILIZE_ROLL_I          0.0f
-#endif
-#ifndef STABILIZE_ROLL_IMAX
- # define STABILIZE_ROLL_IMAX    	0
-#endif
-
-#ifndef STABILIZE_PITCH_P
- # define STABILIZE_PITCH_P         4.5f
-#endif
-#ifndef STABILIZE_PITCH_I
- # define STABILIZE_PITCH_I         0.0f
-#endif
-#ifndef STABILIZE_PITCH_IMAX
- # define STABILIZE_PITCH_IMAX   	0
-#endif
-
-#ifndef  STABILIZE_YAW_P
- # define STABILIZE_YAW_P           4.5f            // increase for more aggressive Yaw Hold, decrease if it's bouncy
-#endif
-#ifndef  STABILIZE_YAW_I
- # define STABILIZE_YAW_I           0.0f
-#endif
-#ifndef  STABILIZE_YAW_IMAX
- # define STABILIZE_YAW_IMAX        0
-#endif
-
 #ifndef YAW_LOOK_AHEAD_MIN_SPEED
  # define YAW_LOOK_AHEAD_MIN_SPEED  100             // minimum ground speed in cm/s required before copter is aimed at ground course
 #endif
@@ -249,58 +194,7 @@
 #endif
 
 
-//////////////////////////////////////////////////////////////////////////////
-// Rate controlled stabilized variables
-//
 
-#ifndef MAX_ROLL_OVERSHOOT
- #define MAX_ROLL_OVERSHOOT			3000
-#endif
-
-#ifndef MAX_PITCH_OVERSHOOT
- #define MAX_PITCH_OVERSHOOT		3000
-#endif
-
-#ifndef MAX_YAW_OVERSHOOT
- #define MAX_YAW_OVERSHOOT			1000
-#endif
-
-#ifndef ACRO_BALANCE_ROLL
- #define ACRO_BALANCE_ROLL			1.0f
-#endif
-
-#ifndef ACRO_BALANCE_PITCH
- #define ACRO_BALANCE_PITCH			1.0f
-#endif
-
-//////////////////////////////////////////////////////////////////////////////
-// Loiter position control gains
-//
-#ifndef LOITER_P
- # define LOITER_P             		1.0f
-#endif
-#ifndef LOITER_I
- # define LOITER_I             		0.0f
-#endif
-#ifndef LOITER_IMAX
- # define LOITER_IMAX          		0
-#endif
-
-//////////////////////////////////////////////////////////////////////////////
-// Loiter rate control gains
-//
-#ifndef LOITER_RATE_P
- # define LOITER_RATE_P          	1.0f
-#endif
-#ifndef LOITER_RATE_I
- # define LOITER_RATE_I          	0.5f
-#endif
-#ifndef LOITER_RATE_D
- # define LOITER_RATE_D          	0.0f
-#endif
-#ifndef LOITER_RATE_IMAX
- # define LOITER_RATE_IMAX       	400             // maximum acceleration from I term build-up in cm/s/s
-#endif
 
 //////////////////////////////////////////////////////////////////////////////
 // Autopilot rotate rate limits
@@ -332,19 +226,6 @@
 # define THROTTLE_IN_DEADBAND    100            // the throttle input channel's deadband in PWM
 #endif
 
-#ifndef ALT_HOLD_TAKEOFF_JUMP
- # define ALT_HOLD_TAKEOFF_JUMP 20              // jump in altitude target when taking off in Loiter or AltHold flight modes
-#endif
-
-#ifndef ALT_HOLD_P
- # define ALT_HOLD_P            1.0f
-#endif
-#ifndef ALT_HOLD_I
- # define ALT_HOLD_I            0.0f
-#endif
-#ifndef ALT_HOLD_IMAX
- # define ALT_HOLD_IMAX         300
-#endif
 
 // RATE control
 #ifndef THROTTLE_RATE_P
@@ -366,14 +247,6 @@
  # define PILOT_VELZ_MAX    250     // maximum vertical velocity in cm/s
 #endif
 
-// max distance in cm above or below current location that will be used for the alt target when transitioning to alt-hold mode
-#ifndef ALT_HOLD_INIT_MAX_OVERSHOOT
- # define ALT_HOLD_INIT_MAX_OVERSHOOT 200
-#endif
-// the acceleration used to define the distance-velocity curve
-#ifndef ALT_HOLD_ACCEL_MAX
- # define ALT_HOLD_ACCEL_MAX 250    // if you change this you must also update the duplicate declaration in AC_WPNav.h
-#endif
 
 // Throttle Accel control
 #ifndef THROTTLE_ACCEL_P
@@ -393,9 +266,8 @@
 //////////////////////////////////////////////////////////////////////////////
 // Dataflash logging control
 //
-#ifndef LOGGING_ENABLED
-	#define LOGGING_ENABLED
-#endif
+// TODO NOTE Temporarily turned of logging due to build issue
+// #define LOGGING_ENABLED
 
 #if CONFIG_HAL_BOARD == HAL_BOARD_APM1 || CONFIG_HAL_BOARD == HAL_BOARD_APM2 || CONFIG_HAL_BOARD == HAL_BOARD_AVR_SITL
  // APM1 & APM2 default logging

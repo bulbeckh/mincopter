@@ -29,23 +29,7 @@ void read_telemetry(void)
 	 * We use a state machine that persists between calls so that we can process some of a stream before yielding.
 	 *
 	 * # Packet Stream Design & Command API
-	 *
-	 * Byte 1. Sync byte - always 0x24 ($)
-	 *
-	 * Byte 2. Command Type (# args)
-	 *  - 0x00 Not a command. Used during state machine reset.
-	 * 	- 0x0A Receive Heartbeat (1)
-	 * 	- 0x0B Set PWM (2)
-	 * 	- 0x0C Run Motor Test (0)
-	 * 	- 0x0D Request ARM
-	 *
-	 * Byte 3+ Args
-	 * - 0x0A: [ heartbeat sequence number ]
-	 * - 0x0B: [ motor number, pwm val idx (0 = 1100, 1 = 1200, 2 = 1300, ... ) ]
-	 * - 0x0C: no args
-	 * - 0x0D: no args
-	 *
-	 * # State Machine Design
+	 * TODO see mincopter-terminal repo
 	 *
 	 * We use four variables to capture the state of our state machine.
 	 *
@@ -77,9 +61,10 @@ void read_telemetry(void)
 		// Read a single byte
 		nb = mincopter.hal.uartC->read();
 
-		if (nb!=-1) {
+		// Prepare buffer for if we have to send acknowledgements - typically 2 bytes only
+		uint8_t telem_tx_buffer[] = {0x24, 0x00};
 
-			//mincopter.hal.console->printf("nb: %d\r\n", nb);
+		if (nb!=-1) {
 
 			switch (cmd_state) {
 				case 0:
@@ -109,24 +94,44 @@ void read_telemetry(void)
 							cmd_state++;
 							break;
 						case 0x0B:
-							// Set PWM
+							// Arm request
 							cmd_type = 0x0B;
-							// Expect 2 packets (motor #, pwm index)
-							remaining = 2;
-							cmd_state++;
-							break;
-						case 0x0C:
-							// Run motor test
-							cmd_type = 0x0C;
-							remaining = 0;
-							// TODO Add execution of motor tests
-							break;
-						case 0x0D:
+
 							// Set arm request flag
 							planner.ap.arm_requested_telem = 1;
 							mincopter.hal.console->printf("Arm requested from telem\r\n");
+
+							// Acknowledge the arm request
+							telem_tx_buffer[1] = 0x0B;
+							mincopter.hal.uartC->write(telem_tx_buffer, 2);
+
 							remaining = 0;
 							break;
+
+						case 0x0C:
+							// Flight state requested
+							// TODO create a byte packet of a flight state and send
+							remaining = 0;
+							break;
+						case 0x0D:
+							// Test command
+							// TOOD
+							remaining = 0;
+							break;
+						case 0x0E:
+							// Disarm request
+
+							// Flag that an immediate disarm was requested
+							planner.ap.disarm_requested_telem = 1;
+							mincopter.hal.console->printf("Disarm requested from telem\r\n");
+							
+							// Acknowledge disarm request
+							telem_tx_buffer[1] = 0x0E;
+							mincopter.hal.uartC->write(telem_tx_buffer, 2);
+
+							remaining = 0;
+							break;
+
 						default:
 							mincopter.hal.console->printf("Wrong cmd type! resetting\r\n");
 							cmd_state = 0;
@@ -161,9 +166,6 @@ void read_telemetry(void)
 							// TODO 
 							// We have found a heartbeat message in the wrong order.
 						}
-					} else if (cmd_type==0x0B) {
-						// Set PWM
-						// TODO Use the 'remaining' variable as an index to which argument we are currently parsing
 					} else {
 						// TODO
 						// We should flag here that we have a command type that doesn't take any arguments

@@ -37,8 +37,8 @@ void WP_Planner::run(void)
 	static int arm_delay_counter=0;
 #endif
 
-	// Commence arming if we are disarmed and have been requested to arm by the telemetry
-	if (!planner.ap.arm_active && planner.ap.arm_requested_telem) { 
+	// Commence arming if we are disarmed and have been requested to arm by the telemetry and have not also requested to disarm
+	if (!planner.ap.arm_active && planner.ap.arm_requested_telem && !planner.ap.disarm_requested_telem) {
 
 		// Run arm checks
 		if (!arm_checks()) {
@@ -51,6 +51,9 @@ void WP_Planner::run(void)
 
 			return;
 		}
+
+		// Clear arm request flag
+		planner.ap.arm_requested_telem = 0;
 
 #ifdef TARGET_ARCH_LINUX
 		// Wait 1sec until we arm
@@ -71,33 +74,43 @@ void WP_Planner::run(void)
 		}
 		*/
 
-    }
+    } else if (planner.ap.arm_active && planner.ap.disarm_requested_telem) {
+		// TODO
+		// Attempt disarm
+	}
+
+	// Clear all arm/disarm request flags after each run
+	planner.ap.arm_requested_telem = 0;
+	planner.ap.disarm_requested_telem = 0;
 
 	// TODO Replace the rest of this function with the nav/waypoint controller from Controller_CSC. We need the planner to
 	// determine the throttle and desired lean/yaw angles which are passed to the controller
 	return;
 
-	// On the first iteration of the planner, we initialise the controller with a reference trajectory
-	/*
-	static uint8_t state_ref_call=0;
-	if (!state_ref_call) {
-		float ref[12] = {0, 0, -10, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-		controller.update_constant_state_reference(ref);
-		state_ref_call=1;
+	// Run planner if we are armed
+	if (planner.ap.arm_active) {
+		// On the first iteration of the planner, we initialise the controller with a reference trajectory
+		/*
+		static uint8_t state_ref_call=0;
+		if (!state_ref_call) {
+			float ref[12] = {0, 0, -10, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+			controller.update_constant_state_reference(ref);
+			state_ref_call=1;
+		}
+		*/
+
+		/*
+		 * 1. Check failsafe and fence.
+		 *
+		 * 2. Check if criteria is met to move to next state (i.e. from LAND to first WP or from 4th WP to 5th WP).
+		 *
+		 * 3. Use planner to determine control inputs/targets.
+		 */
+
+		// 1. Failsafe and fence checks
+		// TODO What is the behaviour if fence_check fails?
+		fence_check();
 	}
-	*/
-
-	/*
-	 * 1. Check failsafe and fence.
-	 *
-	 * 2. Check if criteria is met to move to next state (i.e. from LAND to first WP or from 4th WP to 5th WP).
-	 *
-	 * 3. Use planner to determine control inputs/targets.
-	 */
-
-  	// 1. Failsafe and fence checks
-	// TODO What is the behaviour if fence_check fails?
-	fence_check();
 
 	return;
 }
