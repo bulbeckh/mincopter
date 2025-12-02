@@ -291,9 +291,9 @@ AP_InertialSensor::_init_accel()
 /// @note this should not be called while flying because it reads from the eeprom which can be slow
 bool AP_InertialSensor::calibrated()
 {
-		// TODO This may be the incorrect way to check calibration. Previous code checked to see if the eeprom
-    //return _accel_offset[0];
-		return false;
+	// TODO This may be the incorrect way to check calibration. Previous code checked to see if the eeprom
+    return _accel_offset[0];
+	//return false;
 }
 
 // _calibrate_model - perform low level accel calibration

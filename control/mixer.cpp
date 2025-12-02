@@ -106,19 +106,12 @@ void Mixer::output(float total_force_n, float roll_t_nm, float pitch_t_nm, float
 	// Write our calculated PWM signals to the corresponding HAL RC channel
 	write_pwm_channel();
 
+#ifdef TARGET_ARCH_LINUX
 	mincopter.hal.sim->control_input[0] = total_force_n;
 	mincopter.hal.sim->control_input[1] = roll_t_nm;
 	mincopter.hal.sim->control_input[2] = pitch_t_nm;
 	mincopter.hal.sim->control_input[3] = yaw_t_nm;
-	
-	/* MOVED TO MINCOPTER
-	static uint32_t cnt=0;
-	if (cnt%100==0) {
-		mincopter.hal.console->printf("PWM: %d,%d,%d,%d\n", _motor_pwm_us[0], _motor_pwm_us[1], _motor_pwm_us[2], _motor_pwm_us[3]);
-		mincopter.hal.console->printf("allocation: %f,%f,%f,%f\n", safe_sqrt(allocations[0]), safe_sqrt(allocations[1]), safe_sqrt(allocations[2]), safe_sqrt(allocations[3]));
-	}
-	cnt++;
-	*/
+#endif
 	
 	return;
 }
@@ -131,7 +124,9 @@ void Mixer::write_pwm_channel(void)
 		mincopter.hal.rcout->write(_motor_to_channel_map[i], _motor_pwm_us[i]);
 
 		// TODO Remove this - bad hack
+#ifdef TARGET_ARCH_LINUX
 		mincopter.hal.sim->motor_out[i] = _motor_pwm_us[i];
+#endif
 	}
 
 	return;

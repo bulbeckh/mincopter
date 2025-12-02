@@ -311,12 +311,20 @@ void dump_state(void)
  # define CRASH_CHECK_ALT_CHANGE_LIMIT_CM   50      // baro altitude must not change by more than 50cm
 #endif
 
-// crash_check - disarms motors if a crash has been detected
-// crashes are detected by the vehicle being more than 20 degrees beyond it's angle limits continuously for more than 1 second
-// should be called at 10hz
-void crash_check(void)
+void crash_checks(void)
 {
-	// TODO Re-write 
+	// TODO Re-write. For now, just checks if we are upside down or >60deg tilt
+	
+	Vector3f eul = mcstate.get_euler_angles();
+	
+	// Check if we have roll/tilt greater than 60 degrees
+	if (fabs(eul.x) >= 1.05f || fabs(eul.y) >= 1.05f) {
+		mincopter.hal.console->printf("Crash flagged during crash check - tilt>=60degc\r\n");
+		
+		// Disarm
+		planner.ap.arm_active = 0;
+	}
+
 	/*
     static uint8_t inverted_count;  // number of iterations we have been inverted
     static int32_t baro_alt_prev;

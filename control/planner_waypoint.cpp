@@ -75,8 +75,8 @@ void WP_Planner::run(void)
 		*/
 
     } else if (planner.ap.arm_active && planner.ap.disarm_requested_telem) {
-		// TODO
-		// Attempt disarm
+		// Attempt disarm is we are armed and we have received a disarm request
+		init_disarm_motors();
 	}
 
 	// Clear all arm/disarm request flags after each run

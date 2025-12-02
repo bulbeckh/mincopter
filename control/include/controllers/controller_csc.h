@@ -24,13 +24,13 @@ class CSC_Controller : public MC_Controller
 		/* @brief Run controller (including call to mixer) */
 		void run(void) override;
 
+		/* @brief Controller mixer algorithm */
+		Mixer mixer;
+
 	private:
 
 		/* @brief Counter to ensure outer runs at 20Hz */
 		uint32_t csc_counter;
-
-		/* @brief Controller mixer algorithm */
-		Mixer mixer;
 
 		/* @brief PID Rate controllers */
 		AC_PID rate_roll;

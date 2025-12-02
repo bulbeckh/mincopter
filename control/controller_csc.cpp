@@ -68,7 +68,7 @@ void CSC_Controller::run(void)
 	/* This is a quick hack in place of a 'take-off' function to high-throttle all motors for first half second */
 	if (csc_counter<100) {
 		mixer.output(0, 0, 0, 0);
-		csc_counter ++;
+		csc_counter++;
 		return;
 	}
 
@@ -88,7 +88,7 @@ void CSC_Controller::run(void)
 
 		// Check if we have reached desired waypoint target
 		
-		if (abs(pos.x - wp_list_x[wp_index]) <1 && abs(pos.y - wp_list_y[wp_index])<1) {
+		if (fabs(pos.x - wp_list_x[wp_index]) <1 && fabs(pos.y - wp_list_y[wp_index])<1) {
 			wp_index = ++wp_index % 4;
 		}
 		
@@ -110,6 +110,8 @@ void CSC_Controller::run(void)
 		// TODO This should really be the net z-axis body frame force and not just m*g (hover force)
 
 		// TODO Hardcoded mass here needs to be configurable
+		// TODO Temporarily replaced this with a fixed zero-ed roll/pitch
+		/*
 		float desired_roll = y_accel_target / (2.43*GRAVITY_MSS);
 		float desired_pitch = -1*x_accel_target / (2.43*GRAVITY_MSS);
 
@@ -119,6 +121,9 @@ void CSC_Controller::run(void)
 
 		desired_roll = safe_asin(desired_roll);
 		desired_pitch = safe_asin(desired_pitch);
+		*/
+		float desired_roll = 0;
+		float desired_pitch = 0;
 
 		// Run angle error controllers (outer)
 
@@ -135,13 +140,16 @@ void CSC_Controller::run(void)
 		yaw_rate_target = error_yaw.get_pi(0 - orientation.z, 0.05);
 
 		// Throttle ctrl
-		// NOTE We have set a target of 20m here
-		vert_vel_target = pos_throttle.get_pi(-10 - pos.z, 0.05);
+		// NOTE We have set a target of 2m here
+		vert_vel_target = pos_throttle.get_pi(-2 - pos.z, 0.05);
 	}
 
 	float rt = rate_roll.get_pi(roll_rate_target - gyros.x, 0.01);
 	float pt = rate_pitch.get_pi(pitch_rate_target - gyros.y, 0.01);
-	float yt = rate_yaw.get_pi(yaw_rate_target - gyros.z, 0.01);
+
+	// TODO Added zero-yaw rate target
+	//float yt = rate_yaw.get_pi(yaw_rate_target - gyros.z, 0.01);
+	float yt = rate_yaw.get_pi(0 - gyros.z, 0.01);
 
 	float tforce = vel_throttle.get_pi(vert_vel_target - vel.z, 0.01);
 

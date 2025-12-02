@@ -164,14 +164,19 @@ void loop(void)
 
 	// Print some basic state information to console
 	if (_counter%100==0) {
-		hal.console->printf("State (r,p,y): (% 6.2fr,% 6.2fr,% 6.2fr), (% 8.2fd, % 8.2fd, % 8.2fd) height (% 6.3f)\r\n",
+		hal.console->printf("State (r,p,y): (% 6.2fr,% 6.2fr,% 6.2fr), (% 8.2fd, % 8.2fd, % 8.2fd) height (% 6.3f) %s, [%u,%u,%u,%u]\r\n",
 				mcstate.data.euler.x,
 				mcstate.data.euler.y,
 				mcstate.data.euler.z,
 				mcstate.data.euler.x * 180.0f / M_PI_F,
 				mcstate.data.euler.y * 180.0f / M_PI_F,
 				mcstate.data.euler.z * 180.0f / M_PI_F,
-				mcstate.data.position[2]);
+				mcstate.data.position[2],
+				planner.ap.arm_active ? "armed" : "disarmed",
+				controller.mixer.get_motor_pwm(0),
+				controller.mixer.get_motor_pwm(1),
+				controller.mixer.get_motor_pwm(2),
+				controller.mixer.get_motor_pwm(3));
 	}
 
 
@@ -221,7 +226,19 @@ void loop(void)
 		planner.run();
 
 		// Run controller only if ARMED
-		if (planner.ap.arm_active) controller.run();
+		if (planner.ap.arm_active) {
+			controller.run();
+		}
+	}
+
+	// Set motor PWM to minimum each iteration if we are not armed
+	if (planner.ap.arm_active) {
+		// TODO We should use an rcoutput interface function like '::zero' instead
+		// Otherwise, make sure to zero all PWM output
+		hal.rcout->write(0,1000);
+		hal.rcout->write(1,1000);
+		hal.rcout->write(2,1000);
+		hal.rcout->write(3,1000);
 	}
 
     // Tell the scheduler one tick has passed
@@ -307,6 +324,7 @@ const AP_Scheduler::Task scheduler_tasks[] PROGMEM = {
 // TODO The run-times for these two functions need to be tested - 500us and 300us are arbitrarary
 	{ send_telemetry_heartbeat, 10,  500 }, /* Telemetry 	 - heartbeat message */
 	{ failsafe_checks,			10,  300 }, /* Failsafe		 - run all required failsafe checks */
+	{ crash_checks, 			10,  300 }  /* Crash		 - run checks to see if we have likely crashed */
 #endif
 
 	/* NOTE These functions have been removed from the codebase. Kept here for reference only.

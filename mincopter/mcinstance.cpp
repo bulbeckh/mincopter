@@ -239,6 +239,10 @@ void failsafe_checks(void)
 
 			// TODO Run failsafe action
 			mincopter.hal.uartA->printf("Failsafe miss..\r\n");
+
+			// TODO This is not the ideal behaviour in a failsafe miss and we should also check for at least 2-3 failsafe misses before disarming
+			// Disarm immediately
+			planner.ap.arm_active = 0;
 		} else {
 			planner.failsafe.telemetry_active = 1;
 		}

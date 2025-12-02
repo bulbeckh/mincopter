@@ -114,9 +114,9 @@ uint8_t run_unit_tests(AP_InertialSensor& _imu)
 
 		// Check that our measurement matches what is expected for this index, within a certain tolerance
 
-		if ( abs(target_readings[orientation_number][0]-accel.x) < 1e-3 &&
-				abs(target_readings[orientation_number][1] - accel.y) < 1e-3 &&
-				abs(target_readings[orientation_number][2] - accel.z) < 1e-3 ) {
+		if ( fabs(target_readings[orientation_number][0]-accel.x) < 1e-3 &&
+				fabs(target_readings[orientation_number][1] - accel.y) < 1e-3 &&
+				fabs(target_readings[orientation_number][2] - accel.z) < 1e-3 ) {
 
 			// Increment the correct reading counter
 			correct_reading_counter++;

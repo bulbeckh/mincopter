@@ -56,6 +56,7 @@ void WP_Planner::init_arm_motors(void)
     // log arming to dataflash
     //Log_Write_Event(DATA_ARMED);
 
+	mincopter.hal.console->printf("ARMED\r\n");
 	return;
 }
 
@@ -84,6 +85,9 @@ void WP_Planner::init_disarm_motors(void)
     // disable gps velocity based centrefugal force compensation
     //mcstate.ahrs.set_correct_centrifugal(false);
 	
+	// Log disarmed status to console
+	mincopter.hal.console->printf("DISARMED\r\n");
+
 	return;
 }
 

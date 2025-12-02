@@ -7,7 +7,7 @@
 
 void dump_state(void);
 
-void crash_check(void);
+void crash_checks(void);
 
 void init_home(void);
 
