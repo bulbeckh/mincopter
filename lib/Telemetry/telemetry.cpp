@@ -1,8 +1,8 @@
 
 #include "telemetry.h"
 
-#include "mcinstance.h"
-extern MCInstance mincopter;
+#include "AP_HAL/AP_HAL.h"
+extern const AP_HAL::HAL& hal;
 
 void Telemetry::read(uint8_t max_bytes)
 {
@@ -35,7 +35,7 @@ void Telemetry::read(uint8_t max_bytes)
 		read_counter--;
 
 		// Read a single byte
-		nb = mincopter.hal.uartC->read();
+		nb = hal.uartC->read();
 
 		// Prepare buffer for if we have to send acknowledgements - typically 2 bytes only
 		uint8_t telem_tx_buffer[] = {0x24, 0x00};
@@ -47,7 +47,7 @@ void Telemetry::read(uint8_t max_bytes)
 					// Sync byte
 					if (nb!=0x24) {
 						// Log packet miss and reset state
-						mincopter.hal.console->printf("cli pkt miss! resetting %d\r\n", nb);
+						hal.console->printf("cli pkt miss! resetting %d\r\n", nb);
 						cmd_state = 0;
 						cmd_type = 0;
 						remaining = 0;
@@ -92,8 +92,15 @@ void Telemetry::read(uint8_t max_bytes)
 
 						case 0x0D:
 							// Test command
-							// TOOD
-							remaining = 0;
+							cmd_type = 0x0D;
+
+							// For the test command, we read 8 bytes of arguments, however, the remaining flag is modified midway through
+							//
+							// The first two are [command type, number of command arguments]
+							//
+
+							cmd_state++;
+							remaining = 8;
 							break;
 						case 0x0E:
 							// Disarm request
@@ -106,7 +113,7 @@ void Telemetry::read(uint8_t max_bytes)
 							break;
 
 						default:
-							mincopter.hal.console->printf("Wrong cmd type! resetting\r\n");
+							hal.console->printf("Wrong cmd type! resetting\r\n");
 							cmd_state = 0;
 							cmd_type = 0;
 							remaining = 0;
@@ -133,7 +140,44 @@ void Telemetry::read(uint8_t max_bytes)
 						// Callback
 						mincopter_telemetry_command_heartbeatrequest(argbuffer);
 					} else if (cmd_type==0x0D) {
-						// TODO Test command
+						if (remaining==6) {
+							// We have parsed the first two arguments of the testrequest command and now need to update the 'remaining'
+							// variable to the actual number of expected remaining arguments, which was the previous byte.
+							//
+							// If this test doesn't actually have any arguments, then argbuffer[6] will be 0x00 and we will set 'remaining'
+							// to 0 and the check at the end of this case should cause this switch to break.
+							//
+							// The structure of argbuffer may be somewhat confusing for the test command. I will illustrate below with
+							// a few examples. Regardless of how many arguments our test command actually takes, we allocate an 8-byte buffer
+							// called argbuffer. For other telemetry message like the heartbeat, the remaining flag is started at an index
+							// with the number of arguments. In the heartbeat case this is 1 and the argbuffer looks like the following:
+							//
+							// heartbeat message argbuffer
+							// seq_id  1     2     3     4     5     6     7
+							// [0x45, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
+							//
+							// With the test command however, we start the argbuffer at the end and then jump when we actually know how
+							// many arguments this test command has. For a test command with two test arguments, the buffer looks like:
+							//
+							// test message argbuffer (test has 2 arguments)
+							//  arg1  arg0   2     3     4     5    #arg cmd_id
+							// [0x45, 0x8E, 0x00, 0x00, 0x00, 0x00, 0x02, 0xF0]
+							//
+							// And again with four arguments
+							//
+							// test message argbuffer (test has 4 arguments)
+							//  arg3  arg2  arg1  arg0   4     5    #arg cmd_id
+							// [0x45, 0x3F, 0x10, 0x65, 0x00, 0x00, 0x02, 0xF0]
+							//
+
+							remaining = ((uint8_t*)argbuffer)[6];
+						}
+
+						if (remaining==0) {
+							// Callback
+							mincopter_telemetry_command_testrequest(argbuffer);
+						}
+
 					} else {
 						// TODO
 						// We should flag here that we have a command type that doesn't take any arguments

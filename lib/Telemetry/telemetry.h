@@ -28,7 +28,7 @@ class Telemetry {
 		uint8_t remaining;
 
 		/* @brief Argument buffer for passing to callback functions. NOTE: We should have **at max** 16 arguments for any command */
-		uint8_t argbuffer[16];
+		uint8_t argbuffer[8];
 
 };
 

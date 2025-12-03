@@ -31,6 +31,7 @@ add_executable(test-hal-cli
 
 target_link_libraries(test-hal-cli PUBLIC
 	mc-arch
+	mc-common
 	## gtest libs
 )
 
