@@ -44,6 +44,15 @@ void read_telemetry(void)
 	 * an error, we should also re-send a hearbeat message as the heartbeat response for the telemetry may have been corrupted in the stream.
 	 */
 
+	// TODO This is another instance where we have a scheduled function that just calls another class function. Bad design - needs to be fixed
+	// Read telemetry
+	mincopter.telemetry.read(8);
+
+	return;
+
+	// TODO Remove
+
+	/*
 	// We read up to 8 bytes from the console each iteration
 	uint8_t read_counter = 8;
 
@@ -191,6 +200,7 @@ void read_telemetry(void)
 			return;
 		}
 	}
+	*/
 }
 
 void send_telemetry_heartbeat(void)

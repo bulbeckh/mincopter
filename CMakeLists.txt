@@ -271,6 +271,7 @@ list(APPEND MC_INCLUDE_DIRS
 	${CMAKE_SOURCE_DIR}/lib/AP_Math
 	${CMAKE_SOURCE_DIR}/lib/Filter
 	${CMAKE_SOURCE_DIR}/lib/RC_Channel
+	${CMAKE_SOURCE_DIR}/lib/Telemetry
 	${CMAKE_SOURCE_DIR}/lib/
 	#${CMAKE_SOURCE_DIR}/state/AP_AHRS
 	#${CMAKE_SOURCE_DIR}/state/AP_InertialNav

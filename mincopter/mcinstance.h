@@ -14,6 +14,8 @@
 #include <AP_HAL/AP_HAL.h>
 #include <arch/AP_HAL/HAL_Interface.h>
 
+#include "telemetry.h"
+
 // HASH include <APM_PI.h>
 #include <RC_Channel.h>
 
@@ -79,6 +81,8 @@ class MCInstance {
 	public:
 
 		AP_BattMonitor battery;
+
+		Telemetry telemetry;
 
 #ifdef MC_STORAGE_FILE
 		DataFlash_File DataFlash;
