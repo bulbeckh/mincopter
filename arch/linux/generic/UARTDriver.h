@@ -3,44 +3,61 @@
 
 #include <arch/linux/generic/AP_HAL_Generic.h>
 
+#include <cstdio>
+
 class generic::GenericUARTDriver : public AP_HAL::UARTDriver {
 	public:
 		GenericUARTDriver(bool default_console);
 
 		/* Generic implementations of UARTDriver virtual methods */
-		void begin(uint32_t b);
+		void begin(uint32_t b) override;
 
-		void begin(uint32_t b, uint16_t rxS, uint16_t txS);
+		void begin(uint32_t b, uint16_t rxS, uint16_t txS) override;
 
-		void end();
+		void end(void) override;
 
-		void flush();
+		void flush(void) override;
 
-		bool is_initialized();
+		bool is_initialized(void) override { return initialised; }
 
-		void set_blocking_writes(bool blocking);
+		void set_blocking_writes(bool blocking) override;
 
-		bool tx_pending();
+		bool tx_pending(void) override;
 
 		/* Generic implementations of Stream virtual methods */
-		int16_t available();
-		int16_t txspace();
-		int16_t read();
+		int16_t available(void) override;
+		int16_t txspace(void) override;
+		int16_t read(void) override;
 
 		/* Generic implementations of Print virtual methods */
-		size_t write(uint8_t c);
-		size_t write(const uint8_t *buffer, size_t size);
+		size_t write(uint8_t c) override;
+		size_t write(const uint8_t *buffer, size_t size) override;
 
+	private:
+		int master_fd;
+
+		/* @brief Whether we have initialised */
+		bool initialised{false};
+
+		/* @brief Pointer to file descriptor for this UART */
+		FILE* generic_fp;
+
+		/* @brief Whether this UART is the console UART (in which case we use STDIN and STDOUT and do not create pseudo-terminals */
+		bool _console;
+
+	public:
+		/*
 		void set_device_path(const char *path);
 
 		void _timer_tick(void);
+		*/
 
 	private:
+		/*
 		const char *device_path;
 		int _rd_fd;
 		int _wr_fd;
 		bool _nonblocking_writes;
-		bool _console;
 		volatile bool _initialised;
 		volatile bool _in_timer;
 
@@ -62,5 +79,6 @@ class generic::GenericUARTDriver : public AP_HAL::UARTDriver {
 		int _write_fd(const uint8_t *buf, uint16_t n);
 		int _read_fd(uint8_t *buf, uint16_t n);
 		uint64_t _last_write_time;
+		*/
 };
 

@@ -28,6 +28,7 @@ static generic::GenericScheduler schedulerInstance;
 static generic::GenericUARTDriver uartADriver(true);
 static generic::GenericUARTDriver uartBDriver(false);
 static generic::GenericUARTDriver uartCDriver(false);
+
 static generic::GenericI2CDriver  i2cDriver(&i2cSemaphore, "/dev/i2c-1");
 static generic::GenericSPIDeviceManager spiDeviceManager;
 static generic::GenericAnalogIn analogIn;
@@ -47,7 +48,7 @@ HAL_Generic::HAL_Generic() :
         &spiDeviceManager,
         &analogIn,
         &storageDriver,
-        &uartADriver,
+        &uartADriver,    /* Console UART */
         &gpioDriver,
         &rcinDriver,
         &rcoutDriver,
