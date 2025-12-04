@@ -35,8 +35,6 @@ class LQR_Controller : public MC_Controller
 		void control_output(float*);
 
 	private:
-		/* @brief Controller mixer algorithm */
-		Mixer mixer;
 
 		/* @brief LQR Gain matrix (row-major) */
 		float lqr_k[48] = {

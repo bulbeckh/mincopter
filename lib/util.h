@@ -5,7 +5,7 @@
 #include <AP_Math.h>
 
 
-void dump_state(void);
+void dump_state(uint32_t _counter);
 
 void crash_checks(void);
 

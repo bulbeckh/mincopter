@@ -1,4 +1,6 @@
 
+#pragma once
+
 #include <stdint.h>
 
 /* Default implementation of QuadCopter mixer

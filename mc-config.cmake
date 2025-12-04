@@ -19,7 +19,7 @@ set(MC_SIM_LEVEL "2") ##
 
 ## Specify control/planning here
 set(MC_CONTROLLER_TYPE "NONE")
-set(MC_PLANNER_TYPE "") ## (NONE, WAYPOINT)
+set(MC_PLANNER_TYPE "NONE") ## (NONE, WAYPOINT)
 
 ## Specify state here
 ## TODO Change these names

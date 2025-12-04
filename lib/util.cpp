@@ -48,7 +48,7 @@ extern MCInstance mincopter;
  *
  *
  */
-void dump_state(void) 
+void dump_state(uint32_t _counter) 
 {
 #ifdef TARGET_ARCH_LINUX
 	// Sensor readings

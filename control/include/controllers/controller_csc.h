@@ -24,9 +24,6 @@ class CSC_Controller : public MC_Controller
 		/* @brief Run controller (including call to mixer) */
 		void run(void) override;
 
-		/* @brief Controller mixer algorithm */
-		Mixer mixer;
-
 	private:
 
 		/* @brief Counter to ensure outer runs at 20Hz */

@@ -4,6 +4,8 @@
 #include "mcinstance.h"
 #include "mcstate.h"
 
+#include "mixer.h"
+
 class MC_Controller {
 
 	public:
@@ -22,6 +24,9 @@ class MC_Controller {
 		// TODO Add destructor
 
 	public:
+
+		/* @brief Mixer Instance */
+		Mixer mixer;
 
 		/* @brief Runs controller taking in the state and instance objects and updating control output
 		 * @param
