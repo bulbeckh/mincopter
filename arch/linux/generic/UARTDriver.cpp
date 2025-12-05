@@ -2,6 +2,15 @@
 
 #include <arch/linux/generic/UARTDriver.h>
 
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <string.h>
+#include <termios.h>
+
+/*
 #include <errno.h>
 #include <termios.h>
 #include <stdlib.h>
@@ -11,8 +20,10 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <poll.h>
+
 #include <assert.h>
 #include <sys/ioctl.h>
+*/
 
 /*
   buffer handling macros
@@ -42,25 +53,61 @@ void GenericUARTDriver::begin(uint32_t b)
 
 void GenericUARTDriver::begin(uint32_t b, uint16_t rxS, uint16_t txS) 
 {
+	// If we are already initialised, then we should not create another pseudo-term. In other HAL implementations, we
+	// sometimes re-initialise to use a different baudrate but in simulation, we ignore baudrate anyway 
+	if (initialised) {
+		return;
+	}
+
 	// If this is the console terminal instance then we can just use printf
 	if (_console) {
 		initialised = true;
-		::printf("Initialised console terminal with stdin, stdout\r\n");
+		::printf("[HAL ] Initialised console terminal with stdin, stdout\r\n");
 		return;
 	}
 
 	// TODO
 	master_fd = posix_openpt(O_RDWR | O_NOCTTY);
-	grantpt(master_fd);
-	unlockpt(master_fd);
+
+	if (master_fd==-1) {
+		hal.scheduler->panic("[HAL ] Unable to open pseudo-terminal for UART\r\n");
+		return;
+	}
+
+	if(grantpt(master_fd)) {
+		hal.scheduler->panic("[HAL ] Bad pseudo-terminal grant\r\n");
+		return;
+	}
+
+	if(unlockpt(master_fd)) {
+		hal.scheduler->panic("[HAL ] Unable to unlock pseudo-terminal for UART\r\n");
+		return;
+	}
 
 	generic_fp = fdopen(master_fd, "r+");
 
-	if (!generic_fp) hal.scheduler->panic("Unable to start uart terminal\r\n");
+	if (!generic_fp) hal.scheduler->panic("[HAL ] Unable to start uart terminal\r\n");
 
 	char* pseudo_name = ptsname(master_fd);
 
-	::printf("Initialised uart with pseudo terminal %s\r\n", pseudo_name);
+	::printf("[HAL ] Initialised uart with pseudo terminal %s\r\n", pseudo_name);
+
+	// Turn off echo
+	int slave_fd = open(pseudo_name, O_RDWR | O_NOCTTY);
+
+	struct termios slave_attr;
+	tcgetattr(slave_fd, &slave_attr);
+
+	slave_attr.c_lflag &= ~ECHO;
+	slave_attr.c_lflag &= ~ICANON;
+	slave_attr.c_lflag &= ~ISIG;
+	slave_attr.c_iflag = 0;
+	slave_attr.c_oflag = 0;
+
+	slave_attr.c_cflag |= CLOCAL;
+
+	tcsetattr(slave_fd, TCSANOW, &slave_attr);
+	close(slave_fd);
 
 	return;
 }
@@ -103,7 +150,7 @@ int16_t GenericUARTDriver::txspace(void)
 
 int16_t GenericUARTDriver::read(void)
 { 
-	char uart_next_char[1];
+	char uart_next_char[256];
 
 	// If we are in the console uart, then we read a single character and return it
 	if (_console) {
@@ -115,13 +162,13 @@ int16_t GenericUARTDriver::read(void)
 		return (int16_t)(*uart_next_char);
 	}
 
-	char* char_ptr = fgets(uart_next_char, sizeof(uart_next_char), generic_fp);
+	int next_char = fgetc(generic_fp);
 
 	// Return -1 if we did not read anything
-	if (!char_ptr) return -1;
+	if (!next_char) return -1;
 
 	// Otherwise return the read character
-	return (int16_t)(*uart_next_char);
+	return (int16_t)(next_char);
 }
 
 size_t GenericUARTDriver::write(uint8_t c) 

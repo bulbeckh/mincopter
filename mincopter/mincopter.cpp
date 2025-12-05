@@ -350,7 +350,7 @@ extern "C" {
 
 		/* Print initial RAM available after HAL initialisation */
 		uint16_t _mem_left = mincopter.hal.util->available_memory();
-		mincopter.hal.console->printf_P(PSTR("Pre-init RAM:%u\n"), _mem_left);
+		mincopter.hal.console->printf_P(PSTR("[INIT] Pre-init RAM:%u\n"), _mem_left);
 
 		// Initialise MinCopter
 		init_ardupilot();

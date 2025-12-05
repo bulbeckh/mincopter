@@ -152,6 +152,8 @@ AP_InertialSensor::_init_gyro()
     // we try to get a good calibration estimate for up to 10 seconds
     // if the gyros are stable, we should get it in 1 second
 	// TODO num_converged as the name when we had multiple gyros/accels - change it to just converged
+	
+	hal.console->printf("[GYRO] Testing convergence: ");
     for (int16_t j = 0; j <= 20 && !num_converged; j++) {
         Vector3f gyro_sum, gyro_avg, gyro_diff;
         float diff_norm;
@@ -190,14 +192,15 @@ AP_InertialSensor::_init_gyro()
 
     if (num_converged) {
         // all OK
+    	hal.console->printf("\r\n[GYRO] Converged\r\n");
         return;
     }
 
     // we've kept the user waiting long enough - use the best pair we
     // found so far
-    hal.console->println();
+
 	if (!converged) {
-		hal.console->printf_P(PSTR("gyro did not converge\n"));
+		hal.console->printf_P(PSTR("\r\n[GYRO] gyro did not converge\r\n"));
 		_gyro_offset = best_avg;
 	}
 	
@@ -224,7 +227,7 @@ AP_InertialSensor::_init_accel()
     // cold start
     hal.scheduler->delay(100);
 
-    hal.console->print_P(PSTR("Init Accel"));
+    hal.console->print_P(PSTR("[ACC ] Init Accel\r\n"));
 
     // clear accelerometer offsets and scaling
 	_accel_offset = Vector3f(0,0,0);
@@ -274,7 +277,7 @@ AP_InertialSensor::_init_accel()
 
 		// Check for convergence
 		if (total_change <= AP_INERTIAL_SENSOR_ACCEL_TOT_MAX_OFFSET_CHANGE && max_offset <= AP_INERTIAL_SENSOR_ACCEL_MAX_OFFSET) {
-			hal.console->printf_P(PSTR("Acc converged:%f,%f,%f\r\n"), accel_offset.x, accel_offset.y, accel_offset.z);
+			hal.console->printf_P(PSTR("[ACC ] Acc converged: %f,%f,%f\r\n"), accel_offset.x, accel_offset.y, accel_offset.z);
 			break;
 		}
 
