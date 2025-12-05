@@ -9,6 +9,7 @@
 #include <fcntl.h>
 #include <string.h>
 #include <termios.h>
+#include <sys/ioctl.h>
 
 /*
 #include <errno.h>
@@ -22,7 +23,6 @@
 #include <poll.h>
 
 #include <assert.h>
-#include <sys/ioctl.h>
 */
 
 /*
@@ -109,6 +109,11 @@ void GenericUARTDriver::begin(uint32_t b, uint16_t rxS, uint16_t txS)
 	tcsetattr(slave_fd, TCSANOW, &slave_attr);
 	close(slave_fd);
 
+	// Set nonblocking character reads
+	int generic_fd = fileno(generic_fp);
+	int generic_flags = fcntl(generic_fd, F_GETFL, 0);
+	fcntl(generic_fd, F_SETFL, generic_flags | O_NONBLOCK);
+
 	return;
 }
 
@@ -139,7 +144,7 @@ bool GenericUARTDriver::tx_pending(void)
 
 int16_t GenericUARTDriver::available(void)
 { 
-	// TODO I think we should be able to see query this
+	// TODO 
 	return 0;
 }
 
@@ -152,6 +157,8 @@ int16_t GenericUARTDriver::read(void)
 { 
 	char uart_next_char[256];
 
+	// TODO scanf is blocking - need to change. Even though we don't typically write to the console
+	// TODO We should think about making the console UART write-only 
 	// If we are in the console uart, then we read a single character and return it
 	if (_console) {
 		int n = ::scanf("%c", &uart_next_char);
@@ -165,7 +172,7 @@ int16_t GenericUARTDriver::read(void)
 	int next_char = fgetc(generic_fp);
 
 	// Return -1 if we did not read anything
-	if (!next_char) return -1;
+	if (!next_char || next_char==EOF) return -1;
 
 	// Otherwise return the read character
 	return (int16_t)(next_char);
@@ -195,6 +202,9 @@ size_t GenericUARTDriver::write(const uint8_t *buffer, size_t size)
 	}
 	
 	::fprintf(generic_fp, "%.*s", size, (const char*)buffer);
+
+	// Flush to uart immediately
+	flush();
 
 	// TODO Should this really return 0??
 	

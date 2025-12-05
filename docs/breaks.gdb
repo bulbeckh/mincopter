@@ -40,7 +40,8 @@ set print pretty on
 #break PID_Controller::run
 #break AP_Motors::output
 
-#break GZ_Interface::send_control_output
+#break GZ_Interface::recv_state_input
+break failsafe_checks
 
 #break generic::GenericGZInterface::tick
 #break AHRS_Complementary::ahrs_update
@@ -50,7 +51,7 @@ set print pretty on
 
 #break CSC_Controller::run
 
-break GenericUARTDriver::read
+#break GenericUARTDriver::read
 
 run > /dev/null 2>&1
 

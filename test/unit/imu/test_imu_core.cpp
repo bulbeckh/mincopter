@@ -83,7 +83,7 @@ uint8_t run_unit_tests(AP_InertialSensor& _imu)
 
 		// We always use 5m in the air so we don't have any unexpected ground collisions
 		hal.sim->set_mincopter_position(0,0,-5);
-		hal.sim->set_mincopter_velocity(0,0,0);
+		//hal.sim->set_mincopter_velocity(0,0,0);
 		hal.sim->set_mincopter_linvelocity(0,0,0);
 
 		// Set the correct position

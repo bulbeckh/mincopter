@@ -241,14 +241,23 @@ void failsafe_checks(void)
 	// TODO It is strange that we have a flag to run the telemetry failsafe and other failsafe
 	// checks. I can't find a reason or state in which they shouldn't be run.
 	
-	// Run telemetry failsafe if enabled
-	if (planner.failsafe.fs_enabled_telem) {
-		// If we have passed 100ms without a response to our heartbeat message, then we mark the telemetry_active as false
-		if (mincopter.hal.scheduler->millis() - planner.failsafe.telemetry_last_heartbeat_ms >= 1000ul) {
+	// Run telemetry failsafe if enabled and **only** after we have first connected to a telemetry
+	if (planner.failsafe.fs_enabled_telem && planner.failsafe.telemetry_first_connect) {
+		// If we have passed 300ms without a response to our heartbeat message, then we consider the failsafe to have been missed and
+		// we mark the telemetry_active as false
+		//
+		// We send heartbeat requests every 100ms and we expect a response back (in the correct sequence). When we receive that then we
+		// set the telemetry_last_heartbeat_ms to the time that the response was received.
+		//
+		// We read (at most) 8 bytes of the telemetry every 10ms so we expect that we can parse a full response between two heartbeat
+		// requests
+
+		uint32_t elapsed = mincopter.hal.scheduler->millis() - planner.failsafe.telemetry_last_heartbeat_ms;
+		if (elapsed >= 300ul) {
 			planner.failsafe.telemetry_active = 0;
 
 			// TODO Run failsafe action
-			mincopter.hal.uartA->printf("Failsafe miss..\r\n");
+			mincopter.hal.uartA->printf("Failsafe miss.. (%u elapsed)\r\n", mincopter.hal.scheduler->millis() - planner.failsafe.telemetry_last_heartbeat_ms);
 
 			// TODO This is not the ideal behaviour in a failsafe miss and we should also check for at least 2-3 failsafe misses before disarming
 			// Disarm immediately

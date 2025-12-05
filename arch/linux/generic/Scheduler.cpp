@@ -37,13 +37,13 @@ uint32_t GenericScheduler::millis(void)
 {
 	// Retrieve simulation timestamp from the last sim packet. Timestamp
 	// is in seconds so multiply by 1000 to get to ms
-	return 1000*(uint32_t)hal.sim->last_sensor_state.timestamp;
+	return (uint32_t)(1000*hal.sim->last_sensor_state.timestamp);
 }
 
 uint32_t GenericScheduler::micros(void)
 {
 	// We don't have a conception of a micro-second in the simulated environment so we just return the millisecond multiplied by 1000
-	return 1e6*(uint32_t)hal.sim->last_sensor_state.timestamp;
+	return (uint32_t)(1e6*hal.sim->last_sensor_state.timestamp);
 }
 
 void GenericScheduler::delay_microseconds(uint16_t us)

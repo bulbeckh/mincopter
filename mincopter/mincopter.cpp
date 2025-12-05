@@ -164,7 +164,8 @@ void loop(void)
 
 	// Print some basic state information to console
 	if (_counter%100==0) {
-		hal.console->printf("State (r,p,y): (% 6.2fr,% 6.2fr,% 6.2fr), (% 8.2fd, % 8.2fd, % 8.2fd) height (% 6.3f) %s, [%u,%u,%u,%u]\r\n",
+		hal.console->printf("[%u]State (r,p,y): (% 6.2fr,% 6.2fr,% 6.2fr), (% 8.2fd, % 8.2fd, % 8.2fd) height (% 6.3f) %s, [%u,%u,%u,%u]\r\n",
+				hal.scheduler->millis(),
 				mcstate.data.euler.x,
 				mcstate.data.euler.y,
 				mcstate.data.euler.z,
@@ -232,7 +233,7 @@ void loop(void)
 	}
 
 	// Set motor PWM to minimum each iteration if we are not armed
-	if (planner.ap.arm_active) {
+	if (!planner.ap.arm_active) {
 		// TODO We should use an rcoutput interface function like '::zero' instead
 		// Otherwise, make sure to zero all PWM output
 		hal.rcout->write(0,1000);
@@ -260,11 +261,10 @@ void loop(void)
     uint32_t time_available = (timer + 10000) - hal.scheduler->micros();
 
 #ifdef TARGET_ARCH_LINUX
-	/* NOTE In the simulated environment, the round of 10 GZ sensor updates takes about 10ms
-	 * so we run the scheduled run to account for this */
-	uint32_t runtime = gz_elapsed>(uint32_t)10000 ? 300 : (uint32_t)(10000-gz_elapsed);
+	//uint32_t runtime = gz_elapsed>(uint32_t)10000 ? 300 : (uint32_t)(10000-gz_elapsed);
 	// Run whatever has more time available. Will likely be the runtime because gz_time normally takes >10ms
-	scheduler.run(runtime);
+	//scheduler.run(runtime);
+	scheduler.run(10000);
 #else
     scheduler.run(time_available - 300);
 #endif
@@ -308,13 +308,12 @@ const AP_Scheduler::Task scheduler_tasks[] PROGMEM = {
 #ifdef TARGET_ARCH_LINUX
     { update_GPS, 	       2,   1 }, /* Sensor Update - GPS */
     { read_batt_compass,  10,   1 }, /* Sensor Update - Battery */
-	// NOTE TODO Why are barometer reads even scheduled at all??
-    //{ /* update_altitude */ Delegate<void(void)>::Create<AP_Baro, &AP_Baro::read>((AP_Baro*)&mincopter.barometer),    10,   1 }, /* Sensor Update - Barometer (read) */
     { read_barometer, 2, 1},
     { accumulate_compass, 2, 1},
-	//{ Delegate<void(void)>::Create<Compass, &Compass::accumulate>(&mincopter.compass),        2,   1 }, /* Sensor Update - Compass */
-    //{ /* read_baro */ Delegate<void(void)>::Create<AP_Baro, &AP_Baro::accumulate>(&mincopter.barometer),  	       2,   1 }, /* Sensor Update - Barometer (accumulate) */
     { accumulate_barometer, 2,   1 },
+	{ send_telemetry_heartbeat, 10, 1 },
+	{ failsafe_checks, 10, 1 },
+	{ crash_checks, 10, 1}
 #else
     { update_GPS, 	      	     2,  900 }, /* Sensor Update - GPS */
     { read_batt_compass,  	    10,  720 }, /* Sensor Update - Battery */
@@ -326,6 +325,11 @@ const AP_Scheduler::Task scheduler_tasks[] PROGMEM = {
 	{ failsafe_checks,			10,  300 }, /* Failsafe		 - run all required failsafe checks */
 	{ crash_checks, 			10,  300 }  /* Crash		 - run checks to see if we have likely crashed */
 #endif
+
+	// TODO Was previously exploring providing sensor class methods directly as callbacks rather than wrapper functions like 'accumulate_compass' that just call the underlying sensor method anyway
+    //{ /* update_altitude */ Delegate<void(void)>::Create<AP_Baro, &AP_Baro::read>((AP_Baro*)&mincopter.barometer),    10,   1 }, /* Sensor Update - Barometer (read) */
+	//{ Delegate<void(void)>::Create<Compass, &Compass::accumulate>(&mincopter.compass),        2,   1 }, /* Sensor Update - Compass */
+    //{ /* read_baro */ Delegate<void(void)>::Create<AP_Baro, &AP_Baro::accumulate>(&mincopter.barometer),  	       2,   1 }, /* Sensor Update - Barometer (accumulate) */
 
 	/* NOTE These functions have been removed from the codebase. Kept here for reference only.
 	 *

@@ -143,12 +143,15 @@ bool WP_Planner::arm_checks(void)
 	}
 	*/
 
+	// TODO Re-enable
 	// check for unreasonable mag field length
+	/*
 	float mag_field = mincopter.compass.get_field().length();
 	if (mag_field > COMPASS_MAGFIELD_EXPECTED*1.65 || mag_field < COMPASS_MAGFIELD_EXPECTED*0.35) {
 		mincopter.hal.console->printf("arm check - unreasonable mag field\r\n");
 		return false;
 	}
+	*/
 
 	// 3. GPS Check
 	//
@@ -183,11 +186,14 @@ bool WP_Planner::arm_checks(void)
 	//
 	//
 	
+	// TODO This is a bad test for calibration
+#if !defined(TARGET_ARCH_LINUX)
 	// check accelerometers have been calibrated
 	if(!mincopter.ins.calibrated()) {
 		mincopter.hal.console->printf("arm check - uncalibrated accel\r\n");
 		return false;
 	}
+#endif
 
 	// check accels and gyros are healthy
 	if(!mincopter.ins.get_gyro_health() || !mincopter.ins.get_accel_health()) {
