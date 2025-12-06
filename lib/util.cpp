@@ -241,6 +241,7 @@ void dump_state(uint32_t _counter)
 	// In linux/generic (simulation) targets we dump all relevant information at 1Hz
 	
 	// Dump to console @1Hz
+	/*
 	if (_counter%100==0) {
 		mincopter.hal.console->printf("---[LOOP, simtime=%f, iterations=%u]----------------------\r\n", mincopter.hal.sim->last_sensor_state.timestamp, mincopter.hal.sim->last_sensor_state.iterations);
 
@@ -249,13 +250,11 @@ void dump_state(uint32_t _counter)
 		mincopter.hal.console->printf("    acc  (m/2  )     | %+6.2f | %+6.2f | %+6.2f |\r\n", _acc_meas.x, _acc_meas.y, _acc_meas.z);
 		mincopter.hal.console->printf("    mag  (ut   )     | %+6.2f | %+6.2f | %+6.2f |\r\n\n", _mag_meas.x, _mag_meas.y, _mag_meas.z);
 
-		/*
-		mincopter.hal.console->printf("mag : % 6.2f, % 6.2f, % 6.2f\n"), _mag_meas.x, _mag_meas.y, _mag_meas.z);
-		mincopter.hal.console->printf("baro: % 6.2f, % 6.2f\n"), _pres, _temperature);
-		mincopter.hal.console->printf("gpss: %d\n"), _status);
-		mincopter.hal.console->printf("gll : %d, %d\n"), mincopter.g_gps->latitude, mincopter.g_gps->longitude);
-		mincopter.hal.console->printf("galt: %d\n"), mincopter.g_gps->altitude_cm);
-		*/
+		//mincopter.hal.console->printf("mag : % 6.2f, % 6.2f, % 6.2f\n"), _mag_meas.x, _mag_meas.y, _mag_meas.z);
+		//mincopter.hal.console->printf("baro: % 6.2f, % 6.2f\n"), _pres, _temperature);
+		//mincopter.hal.console->printf("gpss: %d\n"), _status);
+		//mincopter.hal.console->printf("gll : %d, %d\n"), mincopter.g_gps->latitude, mincopter.g_gps->longitude);
+		//mincopter.hal.console->printf("galt: %d\n"), mincopter.g_gps->altitude_cm);
 		
 		mincopter.hal.console->printf("state estimation (position/velocity)\r\n");
 		mincopter.hal.console->printf("| x (m)  | y (m)  | z (m)  | dx (m/s) | dy (m/s) | dz (m/s) |\r\n");
@@ -268,11 +267,9 @@ void dump_state(uint32_t _counter)
 		mincopter.hal.console->printf("| %+6.2f | %+6.2f | %+6.2f |    - |      - |     - |\r\n",
 				roll, pitch, yaw);
 
-		/*
-		mincopter.hal.console->printf("att q1,q2,q3,q4: %f, %f, %f, %f\n"), _temp_att[0], _temp_att[1], _temp_att[2], _temp_att[3]);
-		mincopter.hal.console->printf("eul r,p,y      : %f, %f, %f\n"), roll, pitch, yaw);
-		mincopter.hal.console->printf("homelng/lat/alt: %d, %d, %d\n"), mcstate.home.lat, mcstate.home.lng, mcstate.home.alt);
-		*/
+		//mincopter.hal.console->printf("att q1,q2,q3,q4: %f, %f, %f, %f\n"), _temp_att[0], _temp_att[1], _temp_att[2], _temp_att[3]);
+		//mincopter.hal.console->printf("eul r,p,y      : %f, %f, %f\n"), roll, pitch, yaw);
+		//mincopter.hal.console->printf("homelng/lat/alt: %d, %d, %d\n"), mcstate.home.lat, mcstate.home.lng, mcstate.home.alt);
 
 		mincopter.hal.console->printf("control\r\n");
 		mincopter.hal.console->printf("| F       | RollT   | PitchT  | YawT    |\r\n");
@@ -293,6 +290,7 @@ void dump_state(uint32_t _counter)
 				);
 
 	}
+	*/
 #endif
 
 
@@ -448,15 +446,15 @@ void init_home(void)
     mcstate.home.lat        = mincopter.g_gps->latitude;                                  // Lat * 10**7
     mcstate.home.alt        = mincopter.g_gps->altitude_cm;                                                        // Home is always 0
 
-    // Save Home to EEPROM
-    // -------------------
-    // no need to save this to EPROM
-		// REMOVED
-    //set_cmd_with_index(home, 0);
+	// Set the 'home_set' flag
+	// TODO This flag should be cleared when we land/disarm
+	mcstate.home_set = true;
 
-    // set inertial nav's home position
-	
-	// NOTE During the simulation, the simulated values may be set to zero when this is called
+	mincopter.hal.console->printf("init home\r\n");
+
+	// TODO We should read ground pressure and ground temperature here. They should be stored as part of the 'home' reading
+
+	// TODO This currently is not implemented but should really have the same functionality as the above code. Consider merging all
     mcstate.set_home_position(mincopter.g_gps->longitude, mincopter.g_gps->latitude);
 
     if (mincopter.log_bitmask & MASK_LOG_CMD)
@@ -465,6 +463,8 @@ void init_home(void)
     // update navigation scalers.  used to offset the shrinking longitude as we go towards the poles
     //planner.scaleLongDown = longitude_scale(mcstate.home);
     //planner.scaleLongUp   = 1.0f/planner.scaleLongDown;
+	
+	return;
 }
 
 

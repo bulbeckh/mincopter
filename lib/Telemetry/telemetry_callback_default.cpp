@@ -24,8 +24,12 @@ __attribute__((weak)) void mincopter_telemetry_command_heartbeatrequest(void* ar
 	 *
 	 * argptr[0]: last heartbeat sequence ID */
 	if (((uint8_t*)argptr)[0] == planner.failsafe.telemetry_last_heartbeat_seq_id) {
-		// Flag that we have connected to telemetry. This will trigger the planner/controller logic
-		planner.failsafe.telemetry_first_connect = 1;
+
+		if (!planner.failsafe.telemetry_first_connect) {
+			// Flag that we have connected to telemetry. This will trigger the planner/controller logic
+			planner.failsafe.telemetry_first_connect = 1;
+			mincopter.hal.console->printf("[TELE] Connected to telemetry\r\n");
+		}
 		planner.failsafe.telemetry_active = 1;
 
 		// Reset the heartbeat timestamp

@@ -28,8 +28,23 @@ class StateComplementary : public MCState
 		float alpha_yaw = 0.8;
 
 		/* @brief For fusion of vertical barometer data with integrated IMU data, we use this weighting */
-		float z_axis_fuse_alpha = 0.5;
+		float z_axis_baro_fuse_alpha = 0.3;
 
+		/* @brief Weighting for how much we fuse accelerometer integration (position) over GPS position */
+		float x_axis_gps_fuse_alpha = 0.1;
+		float y_axis_gps_fuse_alpha = 0.1;
+		float z_axis_gps_fuse_alpha = 0.1;
+
+		/* @brief Weighting for how much we fuse accelerometer integration (velocity) over GPS velocities */
+		float x_axis_gpsvel_fuse_alpha = 0.05;
+		float y_axis_gpsvel_fuse_alpha = 0.05;
+		float z_axis_gpsvel_fuse_alpha = 0.05;
+
+		/* @brief Estimates of 3D position from GPS to be fused with position state. Kept as state variable
+		 * for logging purposes */
+		float x_position_est;
+		float y_position_est;
+		float z_position_est;
 
 };
 

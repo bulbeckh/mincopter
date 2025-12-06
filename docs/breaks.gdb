@@ -41,11 +41,13 @@ set print pretty on
 #break AP_Motors::output
 
 #break GZ_Interface::recv_state_input
-break failsafe_checks
+#break failsafe_checks
 
 #break generic::GenericGZInterface::tick
-#break AHRS_Complementary::ahrs_update
 #break LQR_Controller::run
+
+break StateComplementary::update
+break init_home
 
 #break MCState::init
 

@@ -111,7 +111,6 @@ void CSC_Controller::run(void)
 
 		// TODO Hardcoded mass here needs to be configurable
 		// TODO Temporarily replaced this with a fixed zero-ed roll/pitch
-		/*
 		float desired_roll = y_accel_target / (2.43*GRAVITY_MSS);
 		float desired_pitch = -1*x_accel_target / (2.43*GRAVITY_MSS);
 
@@ -121,9 +120,11 @@ void CSC_Controller::run(void)
 
 		desired_roll = safe_asin(desired_roll);
 		desired_pitch = safe_asin(desired_pitch);
-		*/
+		
+		/*
 		float desired_roll = 0;
 		float desired_pitch = 0;
+		*/
 
 		// Run angle error controllers (outer)
 
@@ -141,7 +142,7 @@ void CSC_Controller::run(void)
 
 		// Throttle ctrl
 		// NOTE We have set a target of 2m here
-		vert_vel_target = pos_throttle.get_pi(-2 - pos.z, 0.05);
+		vert_vel_target = pos_throttle.get_pi(-10 - pos.z, 0.05);
 	}
 
 	float rt = rate_roll.get_pi(roll_rate_target - gyros.x, 0.01);

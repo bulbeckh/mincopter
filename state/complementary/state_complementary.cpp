@@ -23,7 +23,6 @@ void StateComplementary::update(void)
 		// TODO NOTE In the first few iterations of the simulation, our packet contains no valid
 		// readings and will send 'nans' or all zeroes as measurement for a few of the sensors. This
 		// corrupts our complementary filter so we basically ignore the first 20 iterations and assume no movement
-		_state_counter++;
 	
 		// No roll rates
 		data.euler_rates.x = 0.0f;
@@ -33,6 +32,8 @@ void StateComplementary::update(void)
 		// No roll/pitch/yaw
 		data.attitude.from_euler(0.0f, 0.0f, 0.0f);
 		data.euler = Vector3f(0.0f, 0.0f, 0.0f);
+
+		_state_counter++;
 
 		return;
 	}
@@ -148,20 +149,6 @@ void StateComplementary::update(void)
 		euler_internal.z = alpha_yaw*theta_gyroz + (1-alpha_yaw)*theta_magz;
 	}
 
-	/*
-	mincopter.hal.console->printf("t: %f, eul:%f,%f,%f | %f,%f,%f | %f,%f,%f | %f,%f,%f\r\n",
-			ins_time_s,
-			euler_internal.x, euler_internal.y, euler_internal.z,
-			accel_reading.x,
-			accel_reading.y,
-			accel_reading.z,
-			gyro_reading.x,
-			gyro_reading.y,
-			gyro_reading.z,
-			mag_reading.x,
-			mag_reading.y,
-			mag_reading.zate rate
-	*/
 
 	// Compute and update quaternion (in NED frame)
 	data.attitude.from_euler(
@@ -174,26 +161,97 @@ void StateComplementary::update(void)
 
 	// TODO Add fusion of position and velocity measurements here - see complementary-derivation.ipynb in state/design for implementation
 
+	// We only update/fuse position and velocity measurements if we have set our initial latitude/longitude/altitude (from GPS) as well as our
+	// ground pressure and temperature
+	if (home_set) {
 
-	// Transform accelerometer reading from body frame to world frame
-	float accel_z_world = -1.0*sin(data.euler.y)*accel_reading.x + sin(data.euler.x)*cos(data.euler.y)*accel_reading.y
-		+ cos(data.euler.x)*cos(data.euler.y)*accel_reading.z;
+		// Integrate accelerometer for position/velocityS
 
-	accel_z_world += GRAVITY_MSS;
+		// TODO This transformation should be a standard transformation with one of the math libraries (matrix3f?) and one of the existing state representations (DCM)
+		// Convert IMU reading to world frame
+		float accel_x_world = cos(data.euler.y)*cos(data.euler.z)*accel_reading.x
+			+ accel_reading.y*(sin(data.euler.x)*sin(data.euler.y)*cos(data.euler.z) - cos(data.euler.x)*sin(data.euler.z))
+			+ accel_reading.z*(cos(data.euler.x)*sin(data.euler.y)*cos(data.euler.z) + sin(data.euler.x)*sin(data.euler.z));
 
-	// Integrate z-axis velocity
-	data.velocity[2] = data.velocity[2] + accel_z_world*ins_time_s;
+		float accel_y_world = cos(data.euler.y)*sin(data.euler.z)*accel_reading.x
+			+ accel_reading.y*(sin(data.euler.x)*sin(data.euler.y)*sin(data.euler.z) + cos(data.euler.x)*cos(data.euler.z))
+			+ accel_reading.z*(cos(data.euler.x)*sin(data.euler.y)*sin(data.euler.z) - sin(data.euler.x)*cos(data.euler.z));
 
-	// TODO Should we be updating position with the previous timesteps velocity measurement or the most recent velocity measurement
-	
-	// Integrate position (with z-axis fuse weighting)
-	data.position[2] = z_axis_fuse_alpha*(data.position[2] + data.velocity[2]*ins_time_s);
+		// Transform accelerometer reading from body frame to world frame
+		float accel_z_world = -1.0*sin(data.euler.y)*accel_reading.x + sin(data.euler.x)*cos(data.euler.y)*accel_reading.y
+			+ cos(data.euler.x)*cos(data.euler.y)*accel_reading.z;
 
-	// Fuse with barometer altitude reading. **get_altitude** returns a positive-value for upward positions so we invert reading
-	// to get to NED frame
-	data.position[2] += (1.0-z_axis_fuse_alpha) * -1.0f * mincopter.barometer.get_altitude();
+		// Correct world frame z-accel for gravity
+		accel_z_world += GRAVITY_MSS;
 
-	// TODO Add GPS fusion for x-y axis state variables
+		// TODO Fuse GPS velocity
+		Vector3f gps_ned_velocities = mincopter.g_gps->velocity_vector();
+
+		// TODO We update state at 100Hz but we receive new barometer/gps readings at a lower frequency. We need to add a flag
+		// for checks for new sensor data and only fuse when it is received.
+		
+		// TODO Should we be updating position with the previous timesteps velocity measurement or the most recent velocity measurement
+		// Integrate velocities
+		data.velocity[0] = (1-x_axis_gpsvel_fuse_alpha)*(data.velocity[0] + accel_x_world*ins_time_s) + x_axis_gpsvel_fuse_alpha*gps_ned_velocities.x;
+		data.velocity[1] = (1-y_axis_gpsvel_fuse_alpha)*(data.velocity[1] + accel_y_world*ins_time_s) + y_axis_gpsvel_fuse_alpha*gps_ned_velocities.y;
+		data.velocity[2] = (1-z_axis_gpsvel_fuse_alpha)*(data.velocity[2] + accel_z_world*ins_time_s) + z_axis_gpsvel_fuse_alpha*gps_ned_velocities.z;
+
+		// TODO Fuse GPS position
+		// We have the GPS latitude/longitude and altitude (as well as the three velocity measurements). We fuse our state estimation with
+		// these to get an accurate position reading.
+		//
+		// int32_t g_gps->latitude : current latitude in degrees*1e7
+		// int32_t g_gps->longitude : current longitude in degrees*1e7
+		// int32_t g_gps->altitude_cm : current altitude in cm
+		//
+		// int32_t home.lat : latitude (deg*1e7) at time of arm
+		// int32_t home.lng : longitude (deg*1e7) at time of arm
+		// int32_t home.alt : altitude (cm) at time of arm
+		//
+		// Vector3f g_gps->velocity_vector() : GPS NED velocities in m/s
+		
+		int32_t lat_offset = mincopter.g_gps->latitude - home.lat;
+		int32_t lng_offset = mincopter.g_gps->longitude - home.lng;
+
+		x_position_est = lat_offset*0.0111320f;
+		y_position_est = 4.0075000f*lng_offset*cos(M_PI_F*mincopter.g_gps->latitude/(180*1e7f)) / 360.0f;
+
+		z_position_est = -1.0f*mincopter.g_gps->altitude_cm / 1e2f;
+
+		// Integrate position (with z-axis fuse weighting)
+		data.position[0] = (1-x_axis_gps_fuse_alpha)*(data.position[0] + data.velocity[0]*ins_time_s) + x_axis_gps_fuse_alpha*x_position_est;
+		data.position[1] = (1-y_axis_gps_fuse_alpha)*(data.position[1] + data.velocity[1]*ins_time_s) + y_axis_gps_fuse_alpha*y_position_est;
+
+		// For z-axis, we fuse both GPS position as well as barometer with a lot more weighting to barometer
+		data.position[2] = (1-z_axis_baro_fuse_alpha-z_axis_gps_fuse_alpha)*(data.position[2] + data.velocity[2]*ins_time_s)
+			+ z_axis_baro_fuse_alpha*mincopter.barometer.get_altitude()*(-1.0f)
+			+ z_axis_gps_fuse_alpha*z_position_est;
+
+	}
+
+	if (_state_counter%100==0) {
+		mincopter.hal.console->printf("t: %f, pos(%f,%f,%f) lat/lng offset (%d,%d)\r\n", //eul:%f,%f,%f | %f,%f,%f | %f,%f,%f | %f,%f,%f | %f,%f,%f\r\n",
+				ins_time_s,
+				/*
+				euler_internal.x, euler_internal.y, euler_internal.z,
+				accel_reading.x,
+				accel_reading.y,
+				accel_reading.z,
+				gyro_reading.x,
+				gyro_reading.y,
+				gyro_reading.z,
+				mag_reading.x,
+				mag_reading.y,
+				mag_reading.z,
+				*/
+				x_position_est,
+				y_position_est,
+				z_position_est,
+				mincopter.g_gps->latitude - home.lat,
+				mincopter.g_gps->longitude - home.lng);
+	}
+
+	_state_counter++;
 
 	return;
 }

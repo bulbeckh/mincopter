@@ -326,55 +326,58 @@ void read_batt_compass(void)
 // called at 50hz
 void update_GPS(void)
 {
+	// TODO Unused - remove
 	static uint32_t last_gps_reading;           // time of last gps message
 	static uint8_t ground_start_count = 10;     // counter used to grab at least 10 reads before commiting the Home location
 
+	// Run a GPS update round
 	mincopter.g_gps->update();
 
-		// logging and glitch protection run after every gps message
-		if (mincopter.g_gps->last_message_time_ms() != last_gps_reading) {
-			last_gps_reading = mincopter.g_gps->last_message_time_ms();
+	// logging and glitch protection run after every gps message
+	if (mincopter.g_gps->last_message_time_ms() != last_gps_reading) {
+		last_gps_reading = mincopter.g_gps->last_message_time_ms();
 
-			// log GPS message
-			if (mincopter.log_bitmask & MASK_LOG_GPS) {
-					mincopter.DataFlash.Log_Write_GPS(mincopter.g_gps, mcstate.current_loc.alt);
-			}
+		// log GPS message
+		if (mincopter.log_bitmask & MASK_LOG_GPS) mincopter.DataFlash.Log_Write_GPS(mincopter.g_gps, mcstate.current_loc.alt);
 
-			// run glitch protection and update AP_Notify if home has been initialised
-			if (planner.ap.home_is_set) {
-					mincopter.gps_glitch.check_position();
-			}
-		}
+		// TODO planner.ap.home_is_set is a duplicate flag with mcstate.home_set - Need to decide which to use
+		// run glitch protection and update AP_Notify if home has been initialised
+		// TODO What is the GPS glitch protection and is it needed?
+		//if (planner.ap.home_is_set) mincopter.gps_glitch.check_position();
+	}
 
-		// checks to initialise home and take location based pictures
-		if (mincopter.g_gps->new_data && mincopter.g_gps->status() >= GPS::GPS_OK_FIX_3D) {
-				// clear new data flag
-				mincopter.g_gps->new_data = false;
+	// TODO Remove
+	// checks to initialise home and take location based pictures
+	/*
+	if (mincopter.g_gps->new_data && mincopter.g_gps->status() >= GPS::GPS_OK_FIX_3D) {
+		// clear new data flag
+		mincopter.g_gps->new_data = false;
 
-				// check if we can initialise home yet
-				if (!planner.ap.home_is_set) {
-						// if we have a 3d lock and valid location
-						if(mincopter.g_gps->status() >= GPS::GPS_OK_FIX_3D && mincopter.g_gps->latitude != 0) {
-								if( ground_start_count > 0 ) {
-										ground_start_count--;
-								}else{
-										// after 10 successful reads store home location
-										// ap.home_is_set will be true so mincopter will only happen once
-										ground_start_count = 0;
-										
-										// TODO Move mincopter to btree as it initialises the start location on GPS lock
-										init_home();
+		// check if we can initialise home yet
+		if (!planner.ap.home_is_set) {
+			// if we have a 3d lock and valid location
+			if (mincopter.g_gps->status() >= GPS::GPS_OK_FIX_3D && mincopter.g_gps->latitude != 0) {
+				if (ground_start_count > 0) {
+					ground_start_count--;
+				} else {
+					// after 10 successful reads store home location
+					// ap.home_is_set will be true so mincopter will only happen once
+					ground_start_count = 0;
+						
+						// TODO Move mincopter to btree as it initialises the start location on GPS lock
+						init_home();
 
-										// set system clock for log timestamps
-										mincopter.hal.util->set_system_clock(mincopter.g_gps->time_epoch_usec());
+						// set system clock for log timestamps
+						mincopter.hal.util->set_system_clock(mincopter.g_gps->time_epoch_usec());
 
-										// Set compass declination automatically
-										mincopter.compass.set_initial_location(mincopter.g_gps->latitude, mincopter.g_gps->longitude);
-								}
-						} else {
-								// start again if we lose 3d lock
-								ground_start_count = 10;
-						}
+						// Set compass declination automatically
+						mincopter.compass.set_initial_location(mincopter.g_gps->latitude, mincopter.g_gps->longitude);
 				}
+			} else {
+				// start again if we lose 3d lock
+				ground_start_count = 10;
+			}
 		}
+	}
+	*/
 }

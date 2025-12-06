@@ -164,8 +164,9 @@ void loop(void)
 
 	// Print some basic state information to console
 	if (_counter%100==0) {
-		hal.console->printf("[%u]State (r,p,y): (% 6.2fr,% 6.2fr,% 6.2fr), (% 8.2fd, % 8.2fd, % 8.2fd) height (% 6.3f) %s, [%u,%u,%u,%u]\r\n",
+		hal.console->printf("[%u, armed=%d]State (r,p,y): (% 6.2fr,% 6.2fr,% 6.2fr), (% 8.2fd, % 8.2fd, % 8.2fd) height (% 6.3f) %s, [%u,%u,%u,%u]\r\n",
 				hal.scheduler->millis(),
+				planner.ap.arm_active,
 				mcstate.data.euler.x,
 				mcstate.data.euler.y,
 				mcstate.data.euler.z,
@@ -252,6 +253,11 @@ void loop(void)
 	if (planner.ap.arm_active) {
 		hal.gpio->write(27, 0);
 	}
+
+#ifdef TARGET_ARCH_LINUX
+	// Log state to the simulation debug file
+	dump_state(_counter);
+#endif
 
     // run all the tasks that are due to run. Note that we only
     // have to call this once per loop, as the tasks are scheduled
