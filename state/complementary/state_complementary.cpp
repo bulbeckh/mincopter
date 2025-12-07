@@ -144,9 +144,20 @@ void StateComplementary::update(void)
 		float theta_gyroy = euler_internal.y + data.euler_rates.y*ins_time_s;
 		float theta_gyroz = euler_internal.z + data.euler_rates.z*ins_time_s;
 
-		euler_internal.x = alpha*theta_gyrox + (1-alpha)*theta_magx;
-		euler_internal.y = alpha*theta_gyroy + (1-alpha)*theta_magy;
-		euler_internal.z = alpha_yaw*theta_gyroz + (1-alpha_yaw)*theta_magz;
+		// We fuse with the accelerometer tilt only when we are not accelerating (norm is close to 9.8)
+		
+		float a_norm = safe_sqrt(accel_reading.x*accel_reading.x + accel_reading.y*accel_reading.y + accel_reading.z*accel_reading.z);
+
+		if (fabs(a_norm - 9.8) >= 1.0f) {
+			// If we are accelerating too much then just integrate gyro
+			euler_internal.x = theta_gyrox;
+			euler_internal.y = theta_gyroy;
+			euler_internal.z = theta_gyroz;
+		} else {
+			euler_internal.x = alpha*theta_gyrox + (1-alpha)*theta_magx;
+			euler_internal.y = alpha*theta_gyroy + (1-alpha)*theta_magy;
+			euler_internal.z = alpha_yaw*theta_gyroz + (1-alpha_yaw)*theta_magz;
+		}
 	}
 
 

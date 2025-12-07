@@ -138,7 +138,11 @@ void init_ardupilot(void)
         mincopter.hal.scheduler->delay(1000);
     }
 
+	// TODO Part of this function sets the ground pressure/temperature which should really be done upon arming
+	// Also in simulation, this functions hangs as we do not have a reading from gazebo before initialisation
+#ifndef TARGET_ARCH_LINUX
 	mincopter.barometer.calibrate();
+#endif
 
 	// TODO Why is ins initialised after MCState??
     // Warm up and read Gyro offsets

@@ -23,9 +23,9 @@ class StateComplementary : public MCState
 		// TODO Alpha should be passed in as an initialised value somehow
 		/* @brief The alpha value of the complementary filter */
 		//float alpha = 0.998;
-		float alpha = 0.98;
+		float alpha = 0.998;
 
-		float alpha_yaw = 0.8;
+		float alpha_yaw = 0.998;
 
 		/* @brief For fusion of vertical barometer data with integrated IMU data, we use this weighting */
 		float z_axis_baro_fuse_alpha = 0.3;

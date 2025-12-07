@@ -150,7 +150,7 @@ void CSC_Controller::run(void)
 
 	// TODO Added zero-yaw rate target
 	//float yt = rate_yaw.get_pi(yaw_rate_target - gyros.z, 0.01);
-	float yt = rate_yaw.get_pi(0 - gyros.z, 0.01);
+	float yt = rate_yaw.get_pi(yaw_rate_target - gyros.z, 0.01);
 
 	float tforce = vel_throttle.get_pi(vert_vel_target - vel.z, 0.01);
 

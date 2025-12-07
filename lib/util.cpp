@@ -65,8 +65,6 @@ void dump_state(uint32_t _counter)
 
 	// Actual state
 
-	float _pres = mincopter.barometer.get_pressure();
-	float _temperature = mincopter.barometer.get_temperature();
 
 	Quaternion& _temp_att = mcstate.data.attitude;
 
@@ -93,6 +91,8 @@ void dump_state(uint32_t _counter)
 	 * 0x08 Actual state (from gazebo)
 	 *
 	 * 0x09 GPS position and velocity
+	 *
+	 * 0x0A Barometer readings and inferred altitude
 	 */
 
 	// RPY
@@ -222,6 +222,19 @@ void dump_state(uint32_t _counter)
 	std::memcpy(log_packet+24, &gps_vel_vector.z, 4);
 
 	mincopter.hal.sim->log_state(log_packet, 28, 0x09);
+
+	// Barometer pressure/temperature and inferred altitude
+	float _pres = mincopter.barometer.get_pressure();
+	float _temperature = mincopter.barometer.get_temperature();
+	float alt_inferred = mincopter.barometer.get_altitude();
+
+	std::memcpy(log_packet, &iterations, 4);
+	std::memcpy(log_packet+4, &_pres, 4);
+	std::memcpy(log_packet+8, &_temperature, 4);
+	std::memcpy(log_packet+12, &alt_inferred, 4);
+
+	mincopter.hal.sim->log_state(log_packet, 16, 0x10);
+
 
 	// Update position directly as a test every second
 	/*

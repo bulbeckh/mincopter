@@ -191,6 +191,16 @@ class Parser:
             y['gps_vel_north'].append(veln)
             y['gps_vel_east'].append(vele)
             y['gps_vel_down'].append(veld)
+
+        elif frame[2]==0x10:
+            iterations, baro_pressure, baro_temp, baro_alt = struct.unpack('<Ifff', frame[4:])
+            x['baro_pressure'].append(iterations)
+            x['baro_temperature'].append(iterations)
+            x['baro_alt_inferred'].append(iterations)
+
+            y['baro_pressure'].append(baro_pressure)
+            y['baro_temperature'].append(baro_temp)
+            y['baro_alt_inferred'].append(baro_alt)
     
     def read_mincopter_log(self, path):
         '''Reads the mincopter log - file typically located in build-generic/mincopter_log.txt'''
@@ -245,7 +255,10 @@ class Parser:
             'gps_alt_cm': [],
             'gps_vel_north': [],
             'gps_vel_east': [],
-            'gps_vel_down': []
+            'gps_vel_down': [],
+            'baro_pressure': [],
+            'baro_temperature': [],
+            'baro_alt_inferred': []
         }
         
         y = {
@@ -295,7 +308,10 @@ class Parser:
             'gps_alt_cm': [],
             'gps_vel_north': [],
             'gps_vel_east': [],
-            'gps_vel_down': []
+            'gps_vel_down': [],
+            'baro_pressure': [],
+            'baro_temperature': [],
+            'baro_alt_inferred': []
         }
    
         idx = 0

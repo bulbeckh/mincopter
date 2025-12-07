@@ -27,6 +27,10 @@ void AP_Baro_Sim::read(void)
 	// TODO Retrieve from data member directly
 	//hal.sim->get_barometer_pressure(pressure_pa);
 
+	// NOTE Narrowing conversion from double to float
+	// Get pressure reading from sim
+	pressure_pa = hal.sim->last_sensor_state.pressure;
+
 	temperature_degc = 26;
 
 	// Log read value
