@@ -50,7 +50,7 @@ typedef union {
 		uint8_t usb_connected       : 1;
 
 		/* @brief The current flight mode (see above) that we are in */
-		flight_mode fm;
+		flight_mode fm{flight_mode::land_fm};
 
 	};
 

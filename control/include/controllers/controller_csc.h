@@ -21,8 +21,12 @@ class CSC_Controller : public MC_Controller
 		CSC_Controller();
 
 	public:
-		/* @brief Run controller (including call to mixer) */
-		void run(void) override;
+		// Implemented controller run methods
+		void run_position(void) override;
+		void run_xy_position_z_velocity(void) override;
+		void run_roll_pitch_z_velocity(void) override;
+
+		void reset(void) override;
 
 	private:
 
@@ -38,21 +42,8 @@ class CSC_Controller : public MC_Controller
 		AC_PID error_pitch;
 		AC_PID error_yaw;
 
-		float roll_rate_target;
-		float pitch_rate_target;
-		float yaw_rate_target;
-
-		// Throttle controllers/variables
-		float vert_vel_target;
-
 		AC_PID pos_throttle;
 		AC_PID vel_throttle;
-
-		// TODO This should/could be moved to planner
-		// Navigation Controllers
-		
-		float x_vel_target;
-		float y_vel_target;
 
 		AC_PID nav_x_pos;
 		AC_PID nav_y_pos;
@@ -60,12 +51,19 @@ class CSC_Controller : public MC_Controller
 		AC_PID nav_x_vel;
 		AC_PID nav_y_vel;
 
-	private:
-		/* @brief Simple waypoint follower */
-		uint8_t wp_index{0};
 
-		int32_t wp_list_x[4];
-		int32_t wp_list_y[4];
+	private:
+		void csc_run_roll_pitch(void);
+		void csc_run_yaw(void);
+
+		void csc_run_rp_velocity(void);
+		void csc_run_yaw_velocity(void);
+
+		void csc_run_xy_position(void);
+		void csc_run_z_position(void);
+
+		void csc_run_xy_velocity(void);
+		void csc_run_z_velocity(void);
 
 };
 

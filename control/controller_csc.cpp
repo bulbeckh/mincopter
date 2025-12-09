@@ -46,126 +46,211 @@ CSC_Controller::CSC_Controller()
 	*/
 
 {
-	// TODO Initialise this elsewhere
-	
-	wp_list_x[0] = 10;
-	wp_list_y[0] = 0;
-
-	wp_list_x[1] = 0;
-	wp_list_y[1] = 10;
-
-	wp_list_x[2] = -10;
-	wp_list_y[2] = 0;
-
-	wp_list_x[3] = 0;
-	wp_list_y[3] = -10;
 }
 
-void CSC_Controller::run(void)
+/* Cascaded PID Controller (CSC)
+ *
+ * This implementation a cascaded PID controller supports three calling interfaces from the planner.
+ *
+ * ## Control pipeline
+ * We have three separate control pipelines that we each provide some sort of target, dependent on the run method we call. For example, in the run_position method,
+ * the planner sets an (x,y,z) position as well as a yaw target. In the run_xy_position_z_velocity method though, the planner provides an (x,y) position but a 
+ * target velocity for the z-axis (in addition to a yaw target).
+ *
+ * x and y position reference -> [csc_run_xy_position] -> x and y velocity reference -> [csc_run_xy_velocity] -> roll/pitch reference -> [csc_run_roll_pitch] -> roll/pitch rate targets -> [csc_run_rp_velocity] -> u_rt, u_pt (roll and pitch torque control actions)
+ * 
+ * z position reference -> [csc_run_z_position] -> z velocity reference -> [csc_run_z_velocity] -> u_force (control action)
+ *
+ * yaw reference -> [csc_run_yaw] -> yaw rate target -> [csc_run_yaw_velocity] -> u_yt (yaw torque control action)
+ *
+ */
+
+void CSC_Controller::reset(void)
 {
-	// This is called at 10Hz in the mainloop. We wait a second for the state estimation to settle before we launch
+	// TODO Reset PID controller I-terms
+
+	// Reset run counter so that our cascaded functions run at the correct frequency
+	csc_counter = 0;
+
+	return;
+}
+
+void CSC_Controller::run_position(void)
+{
+	// Run x-y controller pipeline
+	csc_run_xy_position();
 	
-	/* This is a quick hack in place of a 'take-off' function to high-throttle all motors for first half second */
-	if (csc_counter<100) {
-		mixer.output(0, 0, 0, 0);
-		csc_counter++;
-		return;
+	// Run yaw pipeline
+	csc_run_yaw();
+	
+	// Run z-position (throttle) pipeline
+	csc_run_z_position();
+
+	// At each base controller function, we always need to increment the csc_counter and also send the control action to the mixer
+	csc_counter++;
+
+	// TODO Fix hardcoded mass
+	mixer.output(2.43*GRAVITY_MSS - u_force, u_rt, u_pt, u_yt);
+
+	return;
+}
+
+void CSC_Controller::run_xy_position_z_velocity(void)
+{
+	// Run x-y position controller
+	csc_run_xy_position();
+
+	// Run z-velocity controller
+	csc_run_z_velocity();
+
+	// Run yaw controller
+	csc_run_yaw();
+
+	// At each base controller function, we always need to increment the csc_counter and also send the control action to the mixer
+	csc_counter++;
+
+	// TODO Fix hardcoded mass
+	mixer.output(2.43*GRAVITY_MSS - u_force, u_rt, u_pt, u_yt);
+
+	return;
+}
+
+void CSC_Controller::run_roll_pitch_z_velocity(void)
+{
+	// Run roll-pitch controller
+	csc_run_roll_pitch();
+
+	// Run z-velocity controller
+	csc_run_z_velocity();
+
+	// Run yaw controller
+	csc_run_yaw();
+
+	// At each base controller function, we always need to increment the csc_counter and also send the control action to the mixer
+	csc_counter++;
+
+	// TODO Fix hardcoded mass
+	mixer.output(2.43*GRAVITY_MSS - u_force, u_rt, u_pt, u_yt);
+
+	return;
+}
+
+void CSC_Controller::csc_run_roll_pitch(void)
+{
+	if (csc_counter%5==0) {
+		Vector3f orientation = mcstate.get_euler_angles();
+		reference[0].droll = error_roll.get_pi(reference[0].roll - orientation.x, 0.05);
+		reference[0].dpitch = error_pitch.get_pi(reference[0].pitch - orientation.y, 0.05);
 	}
 
-	Vector3f orientation = mcstate.get_euler_angles();
+	// TODO Do we need to limit the roll/pitch angular velocities?
+	
+	csc_run_rp_velocity();
+
+	return;
+}
+
+void CSC_Controller::csc_run_yaw(void)
+{
+	if (csc_counter%5==0) {
+		Vector3f orientation = mcstate.get_euler_angles();
+		reference[0].dyaw = error_yaw.get_pi(reference[0].yaw - orientation.z, 0.05);
+	}
+
+	csc_run_yaw_velocity();
+
+	return;
+}
+
+void CSC_Controller::csc_run_rp_velocity(void)
+{
 	Vector3f gyros = mincopter.ins.get_gyro();
 
-	Vector3f pos = mcstate.get_position();
-	Vector3f vel = mcstate.get_velocity();
+	// Calculate roll/pitch torques
+	u_rt = rate_roll.get_pi(reference[0].droll - gyros.x, 0.01);
+	u_pt = rate_pitch.get_pi(reference[0].dpitch - gyros.y, 0.01);
 
+	return;
+}
+
+void CSC_Controller::csc_run_yaw_velocity(void)
+{
+	Vector3f gyros = mincopter.ins.get_gyro();
+
+	// Calculate yaw torque
+	u_yt = rate_yaw.get_pi(reference[0].dyaw - gyros.z, 0.01);
+
+	return;
+}
+
+
+
+void CSC_Controller::csc_run_xy_position(void)
+{
 	if (csc_counter%25==0) {
+		Vector3f pos = mcstate.get_position();
 
-		// TODO We actually need to first convert the targeted (x,y) position into a 'body-yaw' aligned frame first as
-		// this frames x,y axes are what the roll,pitch will impact
-
-		// Run outer nav loop at 4Hz
-		// NOTE Target of x=10m, y=10m
-
-		// Check if we have reached desired waypoint target
-		
-		if (fabs(pos.x - wp_list_x[wp_index]) <1 && fabs(pos.y - wp_list_y[wp_index])<1) {
-			wp_index = ++wp_index % 4;
-		}
-		
-		x_vel_target = nav_x_pos.get_pi(/* X-Target */ wp_list_x[wp_index] - pos.x, 0.25);
-		y_vel_target = nav_y_pos.get_pi(/* Y-Target */ wp_list_y[wp_index] - pos.y, 0.25);
+		// Run xy position controllers
+		reference[0].dx = nav_x_pos.get_pi(reference[0].x - pos.x, 0.25);
+		reference[0].dy = nav_y_pos.get_pi(reference[0].y - pos.y, 0.25);
 
 		// Constrain velocity to be between [-2,2]
-		x_vel_target = ap_max(-2.0f, ap_min(2.0f, x_vel_target));
-		y_vel_target = ap_max(-2.0f, ap_min(2.0f, y_vel_target));
-
+		reference[0].dx = ap_max(-2.0f, ap_min(2.0f, reference[0].dx));
+		reference[0].dy = ap_max(-2.0f, ap_min(2.0f, reference[0].dy));
 	}
 
-	if (csc_counter%5==0) {
-		// Run nav inner
+	csc_run_xy_velocity();
 
-		float x_accel_target = nav_x_vel.get_pi(x_vel_target - vel.x, 0.05);
-		float y_accel_target = nav_y_vel.get_pi(y_vel_target - vel.y, 0.05);
+	return;
+}
+
+void CSC_Controller::csc_run_xy_velocity(void)
+{
+	if (csc_counter%5==0) {
+		Vector3f vel = mcstate.get_velocity();
+		float x_accel_target = nav_x_vel.get_pi(reference[0].dx - vel.x, 0.05);
+		float y_accel_target = nav_y_vel.get_pi(reference[0].dy - vel.y, 0.05);
 
 		// TODO This should really be the net z-axis body frame force and not just m*g (hover force)
 
 		// TODO Hardcoded mass here needs to be configurable
-		// TODO Temporarily replaced this with a fixed zero-ed roll/pitch
-		float desired_roll = y_accel_target / (2.43*GRAVITY_MSS);
-		float desired_pitch = -1*x_accel_target / (2.43*GRAVITY_MSS);
+		reference[0].roll = y_accel_target / (2.43*GRAVITY_MSS);
+		reference[0].pitch = -1*x_accel_target / (2.43*GRAVITY_MSS);
 
 		// Constrain 'pre-sin' roll,pitch to be between [-0.7,0.7] so that our actual desired roll,pitch is between [-pi/4, pi/4]
-		desired_roll = ap_min(ap_max(desired_roll, -0.7), 0.7);
-		desired_pitch = ap_min(ap_max(desired_pitch, -0.7), 0.7);
+		reference[0].roll = ap_min(ap_max(reference[0].roll, -0.7), 0.7);
+		reference[0].pitch = ap_min(ap_max(reference[0].pitch, -0.7), 0.7);
 
-		desired_roll = safe_asin(desired_roll);
-		desired_pitch = safe_asin(desired_pitch);
-		
-		/*
-		float desired_roll = 0;
-		float desired_pitch = 0;
-		*/
-
-		// Run angle error controllers (outer)
-
-		// In the first 2secs, we just zero the roll and pitch when we 'takeoff'
-		if (csc_counter<200) {
-			roll_rate_target = error_roll.get_pi(0 - orientation.x, 0.05);
-			pitch_rate_target = error_pitch.get_pi(0 - orientation.y, 0.05);
-		} else {
-			roll_rate_target = error_roll.get_pi(desired_roll - orientation.x, 0.05);
-			pitch_rate_target = error_pitch.get_pi(desired_pitch - orientation.y, 0.05);
-		}
-
-		// Desired yaw is set to zero
-		yaw_rate_target = error_yaw.get_pi(0 - orientation.z, 0.05);
-
-		// Throttle ctrl
-		// NOTE We have set a target of 2m here
-		vert_vel_target = pos_throttle.get_pi(-10 - pos.z, 0.05);
+		reference[0].roll = safe_asin(reference[0].roll);
+		reference[0].pitch = safe_asin(reference[0].pitch);
 	}
 
-	float rt = rate_roll.get_pi(roll_rate_target - gyros.x, 0.01);
-	float pt = rate_pitch.get_pi(pitch_rate_target - gyros.y, 0.01);
-
-	// TODO Added zero-yaw rate target
-	//float yt = rate_yaw.get_pi(yaw_rate_target - gyros.z, 0.01);
-	float yt = rate_yaw.get_pi(yaw_rate_target - gyros.z, 0.01);
-
-	float tforce = vel_throttle.get_pi(vert_vel_target - vel.z, 0.01);
-
-	// NOTE Confusingly, we subtract tforce here because the output of our controller is negative if we desire to go up, since we have chosen a NED world frame.
-	mixer.output(2.43*GRAVITY_MSS - tforce, rt, pt, yt);
-
-	/*
-	if (csc_counter%100) {
-		mincopter.hal.console->printf("CSC: %f, %f, %f, %f\n", 2.43*GRAVITY_MSS - tforce, rt, pt, yt);
-	}
-	*/
-
-	csc_counter++;
+	// TODO The above linear velocity controller runs at 20Hz but so does the roll/pitch controller? We should be slowing on of them
+	csc_run_roll_pitch();
 
 	return;
 }
+
+void CSC_Controller::csc_run_z_position(void)
+{
+	if (csc_counter%5==0) {
+		Vector3f pos = mcstate.get_position();
+		reference[0].dz = pos_throttle.get_pi(reference[0].z - pos.z, 0.05);
+	}
+
+	csc_run_z_velocity();
+
+	return;
+}
+
+void CSC_Controller::csc_run_z_velocity(void)
+{
+	Vector3f vel = mcstate.get_velocity();
+	u_force = vel_throttle.get_pi(reference[0].dz - vel.z, 0.01);
+
+	return;
+}
+
+
 
 

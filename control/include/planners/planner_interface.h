@@ -44,9 +44,6 @@
 #include "mcinstance.h"
 #include "mcstate.h"
 
-// HASH include "ahrs.h"
-// HASH include "inav.h"
-
 extern MCInstance mincopter;
 
 /* Base Interface for planner classes */

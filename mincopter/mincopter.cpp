@@ -224,13 +224,8 @@ void loop(void)
 		 *
 		 */
 
-		// The planner should run at every iteration but the controller should only run when armed
+		// Run the planner. The controller is called from within the planner
 		planner.run();
-
-		// Run controller only if ARMED
-		if (planner.ap.arm_active) {
-			controller.run();
-		}
 	}
 
 	// Set motor PWM to minimum each iteration if we are not armed

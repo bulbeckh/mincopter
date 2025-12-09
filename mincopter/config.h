@@ -109,38 +109,6 @@
  # define FS_THR_VALUE_DEFAULT             975
 #endif
 
-#ifndef LAND_SPEED
- # define LAND_SPEED    50          // the descent speed for the final stage of landing in cm/s
-#endif
-#ifndef LAND_START_ALT
- # define LAND_START_ALT 1000         // altitude in cm where land controller switches to slow rate of descent
-#endif
-#ifndef LAND_DETECTOR_TRIGGER
- # define LAND_DETECTOR_TRIGGER 50    // number of 50hz iterations with near zero climb rate and low throttle that triggers landing complete.
-#endif
-#ifndef LAND_REQUIRE_MIN_THROTTLE_TO_DISARM // require pilot to reduce throttle to minimum before vehicle will disarm
- # define LAND_REQUIRE_MIN_THROTTLE_TO_DISARM ENABLED
-#endif
-
-
-//////////////////////////////////////////////////////////////////////////////
-// Attitude Control
-//
-
-
-// AUTO Mode
-// Note: Auto mode yaw behaviour is controlled by WP_YAW_BEHAVIOR parameter
-#ifndef WP_YAW_BEHAVIOR_DEFAULT
- # define WP_YAW_BEHAVIOR_DEFAULT   WP_YAW_BEHAVIOR_LOOK_AT_NEXT_WP_EXCEPT_RTL     
-#endif
-
-//////////////////////////////////////////////////////////////////////////////
-// Attitude Control
-//
-#ifndef YAW_LOOK_AHEAD_MIN_SPEED
- # define YAW_LOOK_AHEAD_MIN_SPEED  100             // minimum ground speed in cm/s required before copter is aimed at ground course
-#endif
-
 
 //////////////////////////////////////////////////////////////////////////////
 // Stabilize Rate Control
@@ -191,16 +159,6 @@
 #endif
 #ifndef RATE_YAW_IMAX
  # define RATE_YAW_IMAX            	800
-#endif
-
-
-
-
-//////////////////////////////////////////////////////////////////////////////
-// Autopilot rotate rate limits
-//
-#ifndef AUTO_YAW_SLEW_RATE
- # define AUTO_YAW_SLEW_RATE    60              // degrees/sec
 #endif
 
 

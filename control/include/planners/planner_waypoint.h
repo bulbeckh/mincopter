@@ -16,10 +16,6 @@
  * ARMED    - Can send outputs to motors.
  * DISARMED - Cannot send outputs to motors.
  *
- * ## Sensor States
- * CLEAN    - All sensors have valid readings and can be trusted.
- * DIRTY    - At least one sensor is not working and has been broken for a minimum threshold time.
- *
  * planner_waypoint is responsible for generating the following control inputs to the controller
  *
  * - control_pitch. 
@@ -28,21 +24,6 @@
  * - a desired altitude (from wp_nav.get_desired_alt)
  * - a descent velocity (from wp_nav.get_descent_velocity)
  * - a climb velocity (from wp_nav.get_climb_velocity)
- *
- * TODO I don't actually think yaw is even used in the autonomous modes
- *
- * Planner follows this loop:
- *
- * - update_nav_mode (called by scheduler)
- *   - update_wpnav
- *   	 - advance_target_along_track
- *   	   - (sets wp_nav._target variable which is used in get_desired_alt)
- *   	 - get_loiter_acceleration_to_lean_angles
- *   - update_loiter
- *   	 - (four steps)
- *   	 - get_loiter_acceleration_to_lean_angles
- * 
- * TODO A lot of the functionality specified in this base class needs to be hoisted to the parent class - planner.h
  *
  */
 
@@ -54,7 +35,7 @@
 class WP_Planner : public MC_Planner
 {
 	public:
-		WP_Planner() : MC_Planner() { }
+		WP_Planner();
 
 	public:
 		/* @brief Run planner */
@@ -112,6 +93,13 @@ class WP_Planner : public MC_Planner
 		//void failsafe_gps_check(void);
 
 		void fence_check(void);
+
+	private:
+		/* @brief Simple waypoint follower */
+		uint8_t wp_index{0};
+
+		int32_t wp_list_x[4];
+		int32_t wp_list_y[4];
 
 };
 

@@ -22,6 +22,22 @@ extern MCInstance mincopter;
 /* Instantiate WP_Planner here */
 WP_Planner planner;
 
+WP_Planner::WP_Planner(void) : MC_Planner()
+{
+	// TODO Initialise this elsewhere
+	wp_list_x[0] = 10;
+	wp_list_y[0] = 0;
+
+	wp_list_x[1] = 0;
+	wp_list_y[1] = 10;
+
+	wp_list_x[2] = -10;
+	wp_list_y[2] = 0;
+
+	wp_list_x[3] = 0;
+	wp_list_y[3] = -10;
+}
+
 void WP_Planner::run(void)
 {
     /* When the planner is first run, it needs to wait until the sensor signals are all correct (i.e. GPS
@@ -50,13 +66,12 @@ void WP_Planner::run(void)
 		// Begin to arm motors if we pass all arming checks
 		init_arm_motors();
 
-		/*
-		// If the motor flag is actually set to armed then update the planner state to ARMED
-		if (mincopter.motors.armed()) {
-		} else {
-			return;
+		// If we armed successfully, then we move to takeoff
+		if (planner.ap.arm_active) {
+			controller.reset();
+			// TODO We skip the takeoff stage for now
+			planner.ap.fm = flight_mode::waypoint_fm;
 		}
-		*/
 
     } else if (planner.ap.arm_active && planner.ap.disarm_requested_telem) {
 		// Attempt disarm is we are armed and we have received a disarm request
@@ -67,12 +82,41 @@ void WP_Planner::run(void)
 	planner.ap.arm_requested_telem = 0;
 	planner.ap.disarm_requested_telem = 0;
 
-	// TODO Replace the rest of this function with the nav/waypoint controller from Controller_CSC. We need the planner to
-	// determine the throttle and desired lean/yaw angles which are passed to the controller
-	return;
-
 	// Run planner if we are armed
 	if (planner.ap.arm_active) {
+
+		if (planner.ap.fm == flight_mode::waypoint_fm) {
+			// x-y-z pos
+			
+			Vector3f pos = mcstate.get_position();
+
+			// Check if we have reached desired waypoint target using the reference trajectory provided by the planner
+			if (fabs(pos.x - controller.reference[0].x) < 1 && fabs(pos.y - controller.reference[0].y) < 1) {
+				wp_index = ++wp_index % 4;
+
+				// TODO When changing waypoints/target, we should also reset the controller so we don't use error accumulated from an outdated target
+			}
+
+			controller.reference[0].x = wp_list_x[wp_index];
+			controller.reference[0].y = wp_list_y[wp_index];
+
+			controller.reference[0].z = -10;
+
+			controller.reference[0].yaw = 0;
+
+			// Call controller
+			controller.run_position();
+
+		} else if (planner.ap.fm == flight_mode::land_fm) {
+			// We always start in land mode
+
+		} else if (planner.ap.fm == flight_mode::takeoff_fm) {
+			// r/p, z-vel
+			// TODO
+		} else {
+			// TODO If we reach here then we are in an incorrect mode - should be logged and we land immediately
+		}
+
 		// On the first iteration of the planner, we initialise the controller with a reference trajectory
 		/*
 		static uint8_t state_ref_call=0;
@@ -93,7 +137,7 @@ void WP_Planner::run(void)
 
 		// 1. Failsafe and fence checks
 		// TODO What is the behaviour if fence_check fails?
-		fence_check();
+		//fence_check();
 	}
 
 	return;
@@ -109,7 +153,7 @@ bool WP_Planner::update_land_detector()
     if (abs(controller.climb_rate) < 20 && mincopter.motors.limit.throttle_lower) {
         if (!ap.land_complete) {
             // run throttle controller if accel based throttle controller is enabled and active (active means it has been given a target)
-            if( land_detector < LAND_DETECTOR_TRIGGER) {
+            if( land_detector < 50) {
                 land_detector++;
             }else{
                 //set_land_complete(true);
