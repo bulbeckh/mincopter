@@ -78,9 +78,31 @@ void WP_Planner::run(void)
 		init_disarm_motors();
 	}
 
+	// If we have received a land request, then switch controller to land mode
+	if (planner.ap.land_requested_telem) {
+		controller.reset();
+
+		// Setup our target state once upon request to land
+		Vector3f pos = mcstate.get_position();
+
+		// Set target position to current x/y position
+		controller.reference[0].x = pos.x;
+		controller.reference[0].y = pos.y;
+
+		// TODO Why would this not be +0.2m/s in NED frame
+		// Set z-velocity to 0.2m/s (NED frame)
+		controller.reference[0].dz = 1.0f;
+
+		controller.reference[0].yaw = 0;
+
+		// Switch to land mode
+		planner.ap.fm = flight_mode::land_fm;
+	}
+
 	// Clear all arm/disarm request flags after each run
 	planner.ap.arm_requested_telem = 0;
 	planner.ap.disarm_requested_telem = 0;
+	planner.ap.land_requested_telem = 0;
 
 	// Run planner if we are armed
 	if (planner.ap.arm_active) {
@@ -108,11 +130,10 @@ void WP_Planner::run(void)
 			controller.run_position();
 
 		} else if (planner.ap.fm == flight_mode::land_fm) {
-			// We always start in land mode
-
+			// TODO Why isn't the land controller working
+			controller.run_xy_position_z_velocity();
 		} else if (planner.ap.fm == flight_mode::takeoff_fm) {
-			// r/p, z-vel
-			// TODO
+			// TODO r/p, z-vel
 		} else {
 			// TODO If we reach here then we are in an incorrect mode - should be logged and we land immediately
 		}

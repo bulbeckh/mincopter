@@ -13,6 +13,7 @@ const AP_HAL::HAL& hal = AP_HAL_BOARD_DRIVER;
 void mincopter_telemetry_command_heartbeatrequest(void* argptr) {}
 void mincopter_telemetry_command_armrequest(void* argptr) {}
 void mincopter_telemetry_command_disarmrequest(void* argptr) {}
+void mincopter_telemetry_command_landrequest(void* argptr) {}
 void mincopter_telemetry_command_flightstaterequest(void* argptr) {}
 
 // Telemetry instance

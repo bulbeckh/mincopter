@@ -18,6 +18,19 @@ extern MCInstance mincopter;
 // Stub functions for telemetry callbacks. NOTE: By default we use these functions but in things like test modules, we overwrite them
 // with our custom behaviour
 
+__attribute__((weak)) void mincopter_telemetry_command_landrequest(void* argptr)
+{
+	// Flag that a switch to land mode was requested
+	planner.ap.land_requested_telem = 1;
+	mincopter.hal.console->printf("Land requested from telem\r\n");
+							
+	// Acknowledge land request
+	uint8_t telem_tx_buffer[] = {0x24, 0x0F};
+	mincopter.hal.uartC->write(telem_tx_buffer, 2);
+
+	return;
+}
+
 __attribute__((weak)) void mincopter_telemetry_command_heartbeatrequest(void* argptr)
 {
 	/* Arguments:

@@ -112,6 +112,16 @@ void Telemetry::read(uint8_t max_bytes)
 							remaining = 0;
 							break;
 
+						case 0x0F:
+							// Land request
+							cmd_type = 0x0F;
+
+							// Callback
+							mincopter_telemetry_command_landrequest(NULL);
+
+							remaining = 0;
+							break;
+
 						default:
 							hal.console->printf("Wrong cmd type! resetting\r\n");
 							cmd_state = 0;

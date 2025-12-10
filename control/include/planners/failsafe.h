@@ -35,6 +35,9 @@ typedef union {
 		/* @brief Flag that we have requested to disarm. Cleared upon attempt to disarm */
 		uint8_t disarm_requested_telem :1;
 
+		/* @brief Flag that we have requested to switch to land mode. Cleared immediately after */
+		uint8_t land_requested_telem :1;
+
 		/* @brief Flag for whether we are currently armed. Set after call to **init_arm_motors** and cleared after disarm */
 		uint8_t arm_active 			: 1;
 

@@ -43,5 +43,6 @@ void mincopter_telemetry_command_armrequest(void* argptr);
 void mincopter_telemetry_command_disarmrequest(void* argptr);
 void mincopter_telemetry_command_flightstaterequest(void* argptr);
 void mincopter_telemetry_command_testrequest(void* argptr);
+void mincopter_telemetry_command_landrequest(void* argptr);
 
 

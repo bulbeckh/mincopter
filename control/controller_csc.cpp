@@ -27,7 +27,7 @@ CSC_Controller::CSC_Controller()
 	error_yaw(5, 0, 0, CSC_PID_IMAX),
 
 	pos_throttle(1.0,0,0, CSC_PID_IMAX),
-	vel_throttle(1.0,0,0, CSC_PID_IMAX),
+	vel_throttle(1.0,0.2,0, CSC_PID_IMAX),
 
 	// Navigation Controllers - TODO May be moved
 	// TODO Modify gains - significant overshoot in x,y waypoint response

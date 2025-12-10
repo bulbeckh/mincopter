@@ -26,6 +26,7 @@ class StateComplementary : public MCState
 		float alpha = 0.998;
 
 		float alpha_yaw = 0.998;
+		//float alpha_yaw = 1.0f;
 
 		/* @brief For fusion of vertical barometer data with integrated IMU data, we use this weighting */
 		float z_axis_baro_fuse_alpha = 0.3;
@@ -46,6 +47,10 @@ class StateComplementary : public MCState
 		float y_position_est;
 		float z_position_est;
 
+	private:
+		float ins_time_s{0.015f};
+
+		uint32_t last_state_run_ms;
 };
 
 

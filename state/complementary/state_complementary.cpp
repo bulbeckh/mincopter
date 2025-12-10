@@ -54,9 +54,8 @@ void StateComplementary::update(void)
 	//accel_reading.normalize();
 
 	// Get elapsed gyrometer time for use in integration of gyros
-	float ins_time_s = mincopter.ins.get_delta_time();
+	//float ins_time_s = mincopter.ins.get_delta_time();
 	// NOTE TODO temporarily fixed this to 100Hz update rate
-	ins_time_s = 0.015;
 
 	// TODO Soon the 'native' sensor frame for all magnetometer/compasses will be defined as NED
 	// and we won't need this step
@@ -137,7 +136,15 @@ void StateComplementary::update(void)
 		euler_internal.y = theta_magy;
 		euler_internal.z = theta_magz;
 		_first_update = 0;
+
+		// Record ins_time_s
+		last_state_run_ms = mincopter.hal.scheduler->millis();
+
 	} else {
+		// Update the elapsed time and log current time
+		ins_time_s = (mincopter.hal.scheduler->millis() - last_state_run_ms)/1e3f;
+		last_state_run_ms = mincopter.hal.scheduler->millis();
+
 		// Fuse with gyro
 		// TODO Change gyro_reading to the euler rate for integration
 		float theta_gyrox = euler_internal.x + data.euler_rates.x*ins_time_s;
@@ -148,7 +155,7 @@ void StateComplementary::update(void)
 		
 		float a_norm = safe_sqrt(accel_reading.x*accel_reading.x + accel_reading.y*accel_reading.y + accel_reading.z*accel_reading.z);
 
-		if (fabs(a_norm - 9.8) >= 1.0f) {
+		if (fabs(a_norm - 9.8) >= 0.5f) {
 			// If we are accelerating too much then just integrate gyro
 			euler_internal.x = theta_gyrox;
 			euler_internal.y = theta_gyroy;
@@ -170,11 +177,9 @@ void StateComplementary::update(void)
 	// Update the euler angles
 	data.euler = euler_internal;
 
-	// TODO Add fusion of position and velocity measurements here - see complementary-derivation.ipynb in state/design for implementation
-
 	// We only update/fuse position and velocity measurements if we have set our initial latitude/longitude/altitude (from GPS) as well as our
 	// ground pressure and temperature
-	if (home_set) {
+	if (home_set && !_first_update) {
 
 		// Integrate accelerometer for position/velocityS
 
