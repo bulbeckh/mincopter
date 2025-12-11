@@ -60,14 +60,10 @@ uint16_t DataFlash_Block::start_new_log(void)
     uint16_t last_page = find_last_page();
 
     StartRead(last_page);
-    //Serial.print("last page: ");	Serial.println(last_page);
-    //Serial.print("file #: ");	Serial.println(GetFileNumber());
-    //Serial.print("file page: ");	Serial.println(GetFilePage());
 
     if(find_last_log() == 0 || GetFileNumber() == 0xFFFF) {
         SetFileNumber(1);
         StartWrite(1);
-        //Serial.println("start log from 0");
         log_write_started = true;
         return 1;
     }

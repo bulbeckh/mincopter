@@ -8,14 +8,27 @@ extern MCInstance mincopter;
 
 void StateComplementary::update(void)
 {
-	/* **Complementary Filter Update method
+	/* ##Complementary Filter Update method
 	 *
-	 * These equations are derived assuming both the ENU frame and **extrinsic** euler
-	 * angles. Since our sensors and measurements are in NED frame, we start by converting
-	 * sensor measurements to ENU, computing orientation and then converting roll, pitch, yaw
-	 * back to NED frame
+	 * These equations are derived assuming both NED frame and **extrinsic** euler angles.
 	 *
-	 */
+	 * Our state consists of a 12-element vector (attitude, angular velocity, position, linear velocity) in
+	 * the earth frame (NED convention).
+	 *
+	 * We use the integration of the gyros as the basis for roll, pitch, and yaw (3 states), and the (double)
+	 * integration of the accelerometer as a basis for the position and velocity (6 states). The angular 
+	 * velocity (3 states) is either taken directly from the gyrometers (in body frame) or converted to the
+	 * earth frame.
+	 *
+	 * From there, we fuse a number of different sensors to remove drift from the gyro/acc.
+	 *
+	 * 1. Under zero acceleration, the accelerometer gives us an estimation of the roll/pitch angles.
+	 * 2. After compensating for roll/pitch, the compass gives us an estimate of yaw.
+	 * 3. The barometer gives us a an accurate estimate of the current height (z-axis).
+	 * 4. The GPS 3D position (and 3D velocity) gives us a estimate of position/velocity.
+	 *
+	 * How these sensors are fused depends on the state class but for complementary filters, we are simply
+	 * using a weighted average between the integrated gyro/acc estimate and the above sensor readings. */
 
 	static uint16_t _state_counter=0;
 	if (_state_counter<20) {
@@ -119,16 +132,17 @@ void StateComplementary::update(void)
 	
 	Vector3f gyro_reading = mincopter.ins.get_gyro();
 	
-	// Update euler rates ahead of gyro integration below
-	/*
+
+	// Update euler rates ahead of gyro integration below either in the earth frame (technically correct) or body frame (bf gyro rates, approximate)
+#ifdef STATE_USE_DCM_EULER_RATES
 	_ahrs_state->_euler_rates.x = gyro_reading.x + gyro_reading.y*sin(_ahrs_state->_euler.x)*tan(_ahrs_state->_euler.y) + gyro_reading.z*cos(_ahrs_state->_euler.x)*tan(_ahrs_state->_euler.y);
 	_ahrs_state->_euler_rates.y = gyro_reading.y*cos(_ahrs_state->_euler.x) - gyro_reading.z*sin(_ahrs_state->_euler.x);
 	_ahrs_state->_euler_rates.z = gyro_reading.y*sin(_ahrs_state->_euler.x) / cos(_ahrs_state->_euler.y) + gyro_reading.z*cos(_ahrs_state->_euler.x) / cos(_ahrs_state->_euler.y);
-	*/
-
+#else
 	data.euler_rates.x = gyro_reading.x;
 	data.euler_rates.y = gyro_reading.y;
 	data.euler_rates.z = gyro_reading.z;
+#endif
 
 	if (_first_update) {
 		// Don't fuse on first update
@@ -245,6 +259,7 @@ void StateComplementary::update(void)
 
 	}
 
+	// Log state every second
 	if (_state_counter%100==0) {
 		mincopter.hal.console->printf("t: %f, pos(%f,%f,%f) lat/lng offset (%d,%d)\r\n", //eul:%f,%f,%f | %f,%f,%f | %f,%f,%f | %f,%f,%f | %f,%f,%f\r\n",
 				ins_time_s,
@@ -267,6 +282,7 @@ void StateComplementary::update(void)
 				mincopter.g_gps->longitude - home.lng);
 	}
 
+	// Increment state counter (used for logging)
 	_state_counter++;
 
 	return;

@@ -18,7 +18,7 @@
  * APM2 (Microchip/Atmel DataFlash)
  *
  *
- * DataFlash_Class 	------
+ * DataFlash_Class 	------> DataFlash_File
  * 		|
  * 		|
  * 		|

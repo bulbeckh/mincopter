@@ -51,6 +51,10 @@ class CSC_Controller : public MC_Controller
 		AC_PID nav_x_vel;
 		AC_PID nav_y_vel;
 
+	private:
+		/* @brief Roll/Pitch rate limits */
+		float limit_droll{1.0f};
+		float limit_dpitch{1.0f};
 
 	private:
 		void csc_run_roll_pitch(void);

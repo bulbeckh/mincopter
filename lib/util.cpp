@@ -84,6 +84,7 @@ void dump_state(uint32_t _counter)
 	 * 0x02 Position
 	 * 0x03 Velocity
 	 * 0x04 Euler Rates
+	 *
 	 * 0x05 Control Input
 	 * 0x06 Motor velocities
 	 *

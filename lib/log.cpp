@@ -479,33 +479,18 @@ void start_logging(void)
 {
 
 	uint8_t temp = 0;
-	// TODO Why is the logging check/status in planner?
-	/*
     if (mincopter.log_bitmask != 0) {
         if (!planner.ap.logging_active) {
             planner.ap.logging_active = true;
-            //in_mavlink_delay = true;
+
             mincopter.DataFlash.StartNewLog();
-            //in_mavlink_delay = false;
             mincopter.DataFlash.Log_Write_Message_P(PSTR(FIRMWARE_STRING));
-
-#if defined(PX4_GIT_VERSION) && defined(NUTTX_GIT_VERSION)
-            mincopter.DataFlash.Log_Write_Message_P(PSTR("PX4: " PX4_GIT_VERSION " NuttX: " NUTTX_GIT_VERSION));
-#endif
-
-            // write system identifier as well if available
-            char sysid[40];
-            if (mincopter.hal.util->get_system_id(sysid)) {
-                mincopter.DataFlash.Log_Write_Message(sysid);
-            }
-
-            // log the flight mode
-            //Log_Write_Mode(mincopter.control_mode);
         }
+
         // enable writes
         mincopter.DataFlash.EnableWrites(true);
     }
-	*/
+
 	return;
 }
 

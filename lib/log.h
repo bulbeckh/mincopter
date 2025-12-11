@@ -25,11 +25,6 @@ void Log_Write_Mode(uint8_t mode);
 void Log_Write_IMU();
 void Log_Write_GPS();
 
-#if AUTOTUNE == ENABLED
-void Log_Write_AutoTune(uint8_t axis, uint8_t tune_step, float rate_min, float rate_max, float new_gain_rp, float new_gain_rd, float new_gain_sp);
-void Log_Write_AutoTuneDetails(int16_t angle_cd, float rate_cds);
-#endif
-
 void Log_Write_Current();
 void Log_Write_Compass();
 void Log_Write_Attitude();

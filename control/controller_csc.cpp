@@ -141,6 +141,20 @@ void CSC_Controller::csc_run_roll_pitch(void)
 		Vector3f orientation = mcstate.get_euler_angles();
 		reference[0].droll = error_roll.get_pi(reference[0].roll - orientation.x, 0.05);
 		reference[0].dpitch = error_pitch.get_pi(reference[0].pitch - orientation.y, 0.05);
+
+		// Constrain roll/pitch to be within bounds
+		if (reference[0].droll < -1.0f*limit_droll) {
+			reference[0].droll = -1.0f*limit_droll;
+		} else if (reference[0].droll > limit_droll) {
+			reference[0].droll = limit_droll;
+		}
+
+		if (reference[0].dpitch < -1.0f*limit_dpitch) {
+			reference[0].dpitch = -1.0f*limit_dpitch;
+		} else if (reference[0].dpitch > limit_dpitch) {
+			reference[0].dpitch = limit_dpitch;
+		}
+
 	}
 
 	// TODO Do we need to limit the roll/pitch angular velocities?
