@@ -6,6 +6,10 @@
 #include <AP_HAL.h>
 #include "DataFlash.h"
 
+#include "log.h"
+
+#include "mincopter/defines.h"
+
 extern AP_HAL::HAL& hal;
 
 // the last page holds the log format in first 4 bytes. Please change
@@ -232,7 +236,19 @@ int16_t DataFlash_Block::get_log_data(uint16_t log_num, uint16_t page, uint32_t 
             struct log_Format pkt;
             uint8_t t = offset / sizeof(pkt);
             uint8_t ofs = offset % sizeof(pkt);
-            Log_Fill_Format(&_structures[t], pkt);
+
+			const struct LogStructure* s = &_structures[t];
+            //Log_Fill_Format(&_structures[t], pkt);
+			pkt.head1 = HEAD_BYTE1;
+			pkt.head2 = HEAD_BYTE2;
+			pkt.msgid = LOG_FORMAT_MSG;
+			pkt.type = PGM_UINT8(&s->msg_type);
+			pkt.length = PGM_UINT8(&s->msg_len);
+			strncpy_P(pkt.name, s->name, sizeof(pkt.name));
+			strncpy_P(pkt.format, s->format, sizeof(pkt.format));
+			strncpy_P(pkt.labels, s->labels, sizeof(pkt.labels));
+
+
             uint8_t n = sizeof(pkt) - ofs;
             if (n > len) {
                 n = len;

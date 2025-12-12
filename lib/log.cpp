@@ -1,4 +1,3 @@
-// -*- tab-width: 4; Mode: C++; c-basic-offset: 4; indent-tabs-mode: nil -*-
 
 #include "log.h"
 
@@ -10,32 +9,14 @@
 extern MCInstance mincopter;
 
 #include "planner.h"
-
 #include "control.h"
 
 #include "util.h"
 
-// Code to Write and Read packets from DataFlash log memory
-// Code to interact with the user to dump or erase logs
-
-// These are function definitions so the Menu can be constructed before the functions
-// are defined below. Order matters to the compiler.
+#include "AP_Progmem.h"
 
 
-
-struct PACKED log_Current {
-    LOG_PACKET_HEADER;
-    uint32_t time_ms;
-    int16_t  throttle_out;
-    //uint32_t throttle_integrator;
-    int16_t  battery_voltage;
-    int16_t  current_amps;
-    uint16_t board_voltage;
-    float    current_total;
-};
-
-// Write an Current data packet
-void Log_Write_Current()
+void Log_Write_Current(void)
 {
     uint16_t bv = mincopter.board_vcc_analog_source->voltage_latest() * 1000;
 
@@ -43,7 +24,6 @@ void Log_Write_Current()
         LOG_PACKET_HEADER_INIT(LOG_CURRENT_MSG),
         time_ms             : mincopter.hal.scheduler->millis(),
         throttle_out        : mincopter.rc_3.servo_out,
-        //throttle_integrator : throttle_integrator,
         battery_voltage     : (int16_t) (mincopter.battery.voltage() * 100.0f),
         current_amps        : (int16_t) (mincopter.battery.current_amps() * 100.0f),
         board_voltage       : bv,
@@ -52,75 +32,6 @@ void Log_Write_Current()
     mincopter.DataFlash.WriteBlock(&pkt, sizeof(pkt));
 }
 
-// TODO This can be removed
-struct PACKED log_Optflow {
-    LOG_PACKET_HEADER;
-    int16_t dx;
-    int16_t dy;
-    uint8_t surface_quality;
-    int16_t x_cm;
-    int16_t y_cm;
-    int32_t roll;
-    int32_t pitch;
-};
-
-struct PACKED log_Nav_Tuning {
-    LOG_PACKET_HEADER;
-    uint32_t time_ms;
-    float    desired_pos_x;
-    float    desired_pos_y;
-    float    pos_x;
-    float    pos_y;
-    float    desired_vel_x;
-    float    desired_vel_y;
-    float    vel_x;
-    float    vel_y;
-    float    desired_accel_x;
-    float    desired_accel_y;
-};
-
-// Write an Nav Tuning packet
-void Log_Write_Nav_Tuning()
-{
-    const Vector3f &desired_position = Vector3f(0,0,0); /* planner.wp_nav.get_loiter_target();*/
-    const Vector3f &position = mcstate.get_position();
-    const Vector3f &velocity = mcstate.get_velocity();
-
-    struct log_Nav_Tuning pkt = {
-        LOG_PACKET_HEADER_INIT(LOG_NAV_TUNING_MSG),
-        time_ms         : mincopter.hal.scheduler->millis(),
-        desired_pos_x   : desired_position.x,
-        desired_pos_y   : desired_position.y,
-        pos_x           : position.x,
-        pos_y           : position.y,
-        desired_vel_x   : 0, /* planner.wp_nav.desired_vel.x, */
-        desired_vel_y   : 0, /* planner.wp_nav.desired_vel.y, */
-        vel_x           : velocity.x,
-        vel_y           : velocity.y,
-        desired_accel_x : 0, /* planner.wp_nav.desired_accel.x, */
-        desired_accel_y : 0  /* planner.wp_nav.desired_accel.y */
-    };
-    mincopter.DataFlash.WriteBlock(&pkt, sizeof(pkt));
-}
-
-struct PACKED log_Control_Tuning {
-    LOG_PACKET_HEADER;
-    uint32_t time_ms;
-    int16_t  throttle_in;
-    int16_t  angle_boost;
-    int16_t  throttle_out;
-    float    desired_alt;
-    float    inav_alt;
-    int32_t  baro_alt;
-		/*
-    int16_t  desired_sonar_alt;
-    int16_t  sonar_alt;
-		*/
-    int16_t  desired_climb_rate;
-    int16_t  climb_rate;
-};
-
-// Write a control tuning packet
 void Log_Write_Control_Tuning()
 {
     struct log_Control_Tuning pkt = {
@@ -141,20 +52,6 @@ void Log_Write_Control_Tuning()
     };
     mincopter.DataFlash.WriteBlock(&pkt, sizeof(pkt));
 }
-
-struct PACKED log_Compass {
-    LOG_PACKET_HEADER;
-    uint32_t time_ms;
-    int16_t  mag_x;
-    int16_t  mag_y;
-    int16_t  mag_z;
-    int16_t  offset_x;
-    int16_t  offset_y;
-    int16_t  offset_z;
-    int16_t  motor_offset_x;
-    int16_t  motor_offset_y;
-    int16_t  motor_offset_z;
-};
 
 // Write a Compass packet
 void Log_Write_Compass()
@@ -178,19 +75,6 @@ void Log_Write_Compass()
     mincopter.DataFlash.WriteBlock(&pkt, sizeof(pkt));
 }
 
-struct PACKED log_Performance {
-    LOG_PACKET_HEADER;
-    uint8_t renorm_count;
-    uint8_t renorm_blowup;
-    uint16_t num_long_running;
-    uint16_t num_loops;
-    uint32_t max_time;
-    int16_t  pm_test;
-    uint8_t i2c_lockup_count;
-    uint16_t ins_error_count;
-    uint8_t inav_error_count;
-};
-
 // Write a performance monitoring packet
 void Log_Write_Performance()
 {
@@ -209,114 +93,30 @@ void Log_Write_Performance()
     mincopter.DataFlash.WriteBlock(&pkt, sizeof(pkt));
 }
 
-struct PACKED log_Cmd {
-    LOG_PACKET_HEADER;
-    uint8_t command_total;
-    uint8_t command_number;
-    uint8_t waypoint_id;
-    uint8_t waypoint_options;
-    uint8_t waypoint_param1;
-    int32_t waypoint_altitude;
-    int32_t waypoint_latitude;
-    int32_t waypoint_longitude;
-};
-
-// Write a command processing packet
-void Log_Write_Cmd(uint8_t num, const struct Location *wp)
-{
-    struct log_Cmd pkt = {
-        LOG_PACKET_HEADER_INIT(LOG_CMD_MSG),
-        command_total       : 0, /* mincopter.command_total, */
-        command_number      : num,
-        waypoint_id         : wp->id,
-        waypoint_options    : wp->options,
-        waypoint_param1     : wp->p1,
-        waypoint_altitude   : wp->alt,
-        waypoint_latitude   : wp->lat,
-        waypoint_longitude  : wp->lng
-    };
-    mincopter.DataFlash.WriteBlock(&pkt, sizeof(pkt));
-}
-
-struct PACKED log_Attitude {
-    LOG_PACKET_HEADER;
-    uint32_t time_ms;
-    int16_t  control_roll;
-    int16_t  roll;
-    int16_t  control_pitch;
-    int16_t  pitch;
-    uint16_t control_yaw;
-    uint16_t yaw;
-};
-
-// Write an attitude packet
+// TODO 
 void Log_Write_Attitude()
 {
     struct log_Attitude pkt = {
         LOG_PACKET_HEADER_INIT(LOG_ATTITUDE_MSG),
         time_ms         : mincopter.hal.scheduler->millis(),
-        control_roll    : (int16_t)controller.control_roll,
-        roll            : (int16_t)mcstate.roll_sensor,
-        control_pitch   : (int16_t)controller.control_pitch,
-        pitch           : (int16_t)mcstate.pitch_sensor,
-        control_yaw     : (uint16_t)controller.control_yaw,
-        yaw             : (uint16_t)mcstate.yaw_sensor
+        control_roll    : 0, /* (int16_t)controller.control_roll, ) */
+        roll            : 0, /* (int16_t)mcstate.roll_sensor, ) */
+        control_pitch   : 0, /* (int16_t)controller.control_pitch, ) */
+        pitch           : 0, /* (int16_t)mcstate.pitch_sensor, ) */
+        control_yaw     : 0, /* (uint16_t)controller.control_yaw, ) */
+        yaw             : 0 /* (uint16_t)mcstate.yaw_sensor */
     };
     mincopter.DataFlash.WriteBlock(&pkt, sizeof(pkt));
 }
-
-struct PACKED log_Mode {
-    LOG_PACKET_HEADER;
-    uint8_t mode;
-    int16_t throttle_cruise;
-};
-
-// Write a mode packet
-void Log_Write_Mode(uint8_t mode)
-{
-    struct log_Mode pkt = {
-        LOG_PACKET_HEADER_INIT(LOG_MODE_MSG),
-        mode            : mode,
-        throttle_cruise : 0.0f /*controller.throttle_cruise, */
-    };
-    mincopter.DataFlash.WriteBlock(&pkt, sizeof(pkt));
-}
-
-struct PACKED log_Startup {
-    LOG_PACKET_HEADER;
-};
 
 // Write Startup packet
-void Log_Write_Startup()
+void Log_Write_Startup(void)
 {
     struct log_Startup pkt = {
         LOG_PACKET_HEADER_INIT(LOG_STARTUP_MSG)
     };
     mincopter.DataFlash.WriteBlock(&pkt, sizeof(pkt));
 }
-
-struct PACKED log_Event {
-    LOG_PACKET_HEADER;
-    uint8_t id;
-};
-
-// Wrote an event packet
-void Log_Write_Event(uint8_t id)
-{
-    if (mincopter.log_bitmask != 0) {
-        struct log_Event pkt = {
-            LOG_PACKET_HEADER_INIT(LOG_EVENT_MSG),
-            id  : id
-        };
-        mincopter.DataFlash.WriteBlock(&pkt, sizeof(pkt));
-    }
-}
-
-struct PACKED log_Data_Int16t {
-    LOG_PACKET_HEADER;
-    uint8_t id;
-    int16_t data_value;
-};
 
 // Write an int16_t data packet
 void Log_Write_Data(uint8_t id, int16_t value)
@@ -331,11 +131,6 @@ void Log_Write_Data(uint8_t id, int16_t value)
     }
 }
 
-struct PACKED log_Data_UInt16t {
-    LOG_PACKET_HEADER;
-    uint8_t id;
-    uint16_t data_value;
-};
 
 // Write an uint16_t data packet
 void Log_Write_Data(uint8_t id, uint16_t value)
@@ -350,11 +145,6 @@ void Log_Write_Data(uint8_t id, uint16_t value)
     }
 }
 
-struct PACKED log_Data_Int32t {
-    LOG_PACKET_HEADER;
-    uint8_t id;
-    int32_t data_value;
-};
 
 // Write an int32_t data packet
 void Log_Write_Data(uint8_t id, int32_t value)
@@ -369,12 +159,6 @@ void Log_Write_Data(uint8_t id, int32_t value)
     }
 }
 
-struct PACKED log_Data_UInt32t {
-    LOG_PACKET_HEADER;
-    uint8_t id;
-    uint32_t data_value;
-};
-
 // Write a uint32_t data packet
 void Log_Write_Data(uint8_t id, uint32_t value)
 {
@@ -387,12 +171,6 @@ void Log_Write_Data(uint8_t id, uint32_t value)
         mincopter.DataFlash.WriteBlock(&pkt, sizeof(pkt));
     }
 }
-
-struct PACKED log_Data_Float {
-    LOG_PACKET_HEADER;
-    uint8_t id;
-    float data_value;
-};
 
 // Write a float data packet
 void Log_Write_Data(uint8_t id, float value)
@@ -407,14 +185,6 @@ void Log_Write_Data(uint8_t id, float value)
     }
 }
 
-// REMOVED CAMERA LOGGING
-
-struct PACKED log_Error {
-    LOG_PACKET_HEADER;
-    uint8_t sub_system;
-    uint8_t error_code;
-};
-
 // Write an error packet
 void Log_Write_Error(uint8_t sub_system, uint8_t error_code)
 {
@@ -426,32 +196,169 @@ void Log_Write_Error(uint8_t sub_system, uint8_t error_code)
     mincopter.DataFlash.WriteBlock(&pkt, sizeof(pkt));
 }
 
+void Log_Write_IMU(void)
+{
+    uint32_t tstamp = mincopter.hal.scheduler->millis();
+    const Vector3f &gyro = mincopter.ins.get_gyro();
+    const Vector3f &accel = mincopter.ins.get_accel();
+    struct log_IMU pkt = {
+        LOG_PACKET_HEADER_INIT(LOG_IMU_MSG),
+        timestamp : tstamp,
+        gyro_x  : gyro.x,
+        gyro_y  : gyro.y,
+        gyro_z  : gyro.z,
+        accel_x : accel.x,
+        accel_y : accel.y,
+        accel_z : accel.z
+    };
+    mincopter.DataFlash.WriteBlock(&pkt, sizeof(pkt));
+    return;
+}
+
+void Log_Write_Baro(void)
+{
+    struct log_BARO pkt = {
+        LOG_PACKET_HEADER_INIT(LOG_BARO_MSG),
+        timestamp     : mincopter.hal.scheduler->millis(),
+        altitude      : 0, /* baro.get_altitude(), */
+        pressure	  : 0, /* baro.get_pressure(), */
+        temperature   : 0, /* (int16_t)(baro.get_temperature() * 100), */
+    };
+    mincopter.DataFlash.WriteBlock(&pkt, sizeof(pkt));
+	return;
+}
+
+// Write an GPS packet
+void Log_Write_GPS(void)
+{
+    struct log_GPS pkt = {
+        LOG_PACKET_HEADER_INIT(LOG_GPS_MSG),
+    	status        : (uint8_t)mincopter.g_gps->status(),
+    	gps_week_ms   : mincopter.g_gps->time_week_ms,
+    	gps_week      : mincopter.g_gps->time_week,
+        num_sats      : mincopter.g_gps->num_sats,
+        hdop          : mincopter.g_gps->hdop,
+        latitude      : mincopter.g_gps->latitude,
+        longitude     : mincopter.g_gps->longitude,
+        rel_altitude  : 0, /* relative_alt, */
+        altitude      : mincopter.g_gps->altitude_cm,
+        ground_speed  : mincopter.g_gps->ground_speed_cm,
+        ground_course : mincopter.g_gps->ground_course_cd,
+        vel_z         : mincopter.g_gps->velocity_down(),
+        apm_time      : mincopter.hal.scheduler->millis()
+    };
+    mincopter.DataFlash.WriteBlock(&pkt, sizeof(pkt));
+	return;
+}
+
+// Write an RCIN packet
+void Log_Write_RCIN(void)
+{
+    struct log_RCIN pkt = {
+        LOG_PACKET_HEADER_INIT(LOG_RCIN_MSG),
+        timestamp     : mincopter.hal.scheduler->millis(),
+        chan1         : mincopter.hal.rcin->read(0),
+        chan2         : mincopter.hal.rcin->read(1),
+        chan3         : mincopter.hal.rcin->read(2),
+        chan4         : mincopter.hal.rcin->read(3),
+        chan5         : mincopter.hal.rcin->read(4),
+        chan6         : mincopter.hal.rcin->read(5),
+        chan7         : mincopter.hal.rcin->read(6),
+        chan8         : mincopter.hal.rcin->read(7)
+    };
+    mincopter.DataFlash.WriteBlock(&pkt, sizeof(pkt));
+	return;
+}
+
+// Write an SERVO packet
+void Log_Write_RCOUT(void)
+{
+    struct log_RCOUT pkt = {
+        LOG_PACKET_HEADER_INIT(LOG_RCOUT_MSG),
+        timestamp     : mincopter.hal.scheduler->millis(),
+        chan1         : mincopter.hal.rcout->read(0),
+        chan2         : mincopter.hal.rcout->read(1),
+        chan3         : mincopter.hal.rcout->read(2),
+        chan4         : mincopter.hal.rcout->read(3),
+        chan5         : mincopter.hal.rcout->read(4),
+        chan6         : mincopter.hal.rcout->read(5),
+        chan7         : mincopter.hal.rcout->read(6),
+        chan8         : mincopter.hal.rcout->read(7)
+    };
+    mincopter.DataFlash.WriteBlock(&pkt, sizeof(pkt));
+	return;
+}
+
+/* write a structure format to the log */
+void Log_Write_Format(const struct LogStructure *s)
+{
+    struct log_Format pkt;
+
+    memset(&pkt, 0, sizeof(pkt));
+
+    pkt.head1 = HEAD_BYTE1;
+    pkt.head2 = HEAD_BYTE2;
+    pkt.msgid = LOG_FORMAT_MSG;
+    pkt.type = PGM_UINT8(&s->msg_type);
+    pkt.length = PGM_UINT8(&s->msg_len);
+    strncpy_P(pkt.name, s->name, sizeof(pkt.name));
+    strncpy_P(pkt.format, s->format, sizeof(pkt.format));
+    strncpy_P(pkt.labels, s->labels, sizeof(pkt.labels));
+
+    mincopter.DataFlash.WriteBlock(&pkt, sizeof(pkt));
+
+	return;
+}
+
+void Log_Write_Message(const char *message)
+{
+    struct log_Message pkt = {
+        LOG_PACKET_HEADER_INIT(LOG_MESSAGE_MSG),
+        msg  : {}
+    };
+    strncpy(pkt.msg, message, sizeof(pkt.msg));
+    mincopter.DataFlash.WriteBlock(&pkt, sizeof(pkt));
+	return;
+}
+
+void Log_Write_Message_P(const prog_char_t *message)
+{
+    struct log_Message pkt = {
+        LOG_PACKET_HEADER_INIT(LOG_MESSAGE_MSG),
+        msg  : {}
+    };
+    strncpy_P(pkt.msg, message, sizeof(pkt.msg));
+    mincopter.DataFlash.WriteBlock(&pkt, sizeof(pkt));
+	return;
+}
+
 const struct LogStructure log_structure[] PROGMEM = {
-    LOG_COMMON_STRUCTURES,
+    { LOG_FORMAT_MSG, sizeof(log_Format), 
+      "FMT", "BBnNZ",      "Type,Length,Name,Format" }, 
+    { LOG_GPS_MSG, sizeof(log_GPS),
+      "GPS",  "BIHBcLLeeEefI", "Status,TimeMS,Week,NSats,HDop,Lat,Lng,RelAlt,Alt,Spd,GCrs,VZ,T" },
+    { LOG_IMU_MSG, sizeof(log_IMU),
+      "IMU",  "Iffffff",     "TimeMS,GyrX,GyrY,GyrZ,AccX,AccY,AccZ" },
+    { LOG_MESSAGE_MSG, sizeof(log_Message),
+      "MSG",  "Z",     "Message"},
+    { LOG_RCIN_MSG, sizeof(log_RCIN),
+      "RCIN",  "Ihhhhhhhh",     "TimeMS,Chan1,Chan2,Chan3,Chan4,Chan5,Chan6,Chan7,Chan8" },
+    { LOG_RCOUT_MSG, sizeof(log_RCOUT),
+      "RCOU",  "Ihhhhhhhh",     "TimeMS,Chan1,Chan2,Chan3,Chan4,Chan5,Chan6,Chan7,Chan8" },
+    { LOG_BARO_MSG, sizeof(log_BARO),
+      "BARO",  "Iffc",     "TimeMS,Alt,Press,Temp" },
     { LOG_CURRENT_MSG, sizeof(log_Current),             
       "CURR", "IhIhhhf",     "TimeMS,ThrOut,ThrInt,Volt,Curr,Vcc,CurrTot" },
-    { LOG_OPTFLOW_MSG, sizeof(log_Optflow),       
-      "OF",   "hhBccee",   "Dx,Dy,SQual,X,Y,Roll,Pitch" },
-    { LOG_NAV_TUNING_MSG, sizeof(log_Nav_Tuning),       
-      "NTUN", "Iffffffffff", "TimeMS,DPosX,DPosY,PosX,PosY,DVelX,DVelY,VelX,VelY,DAccX,DAccY" },
     { LOG_CONTROL_TUNING_MSG, sizeof(log_Control_Tuning),
       "CTUN", "Ihhhffecchh", "TimeMS,ThrIn,AngBst,ThrOut,DAlt,Alt,BarAlt,DSAlt,SAlt,DCRt,CRt" },
     { LOG_COMPASS_MSG, sizeof(log_Compass),             
       "MAG", "Ihhhhhhhhh",    "TimeMS,MagX,MagY,MagZ,OfsX,OfsY,OfsZ,MOfsX,MOfsY,MOfsZ" },
-    { LOG_COMPASS2_MSG, sizeof(log_Compass),             
-      "MAG2","Ihhhhhhhhh",    "TimeMS,MagX,MagY,MagZ,OfsX,OfsY,OfsZ,MOfsX,MOfsY,MOfsZ" },
     { LOG_PERFORMANCE_MSG, sizeof(log_Performance), 
       "PM",  "BBHHIhBHB",    "RenCnt,RenBlw,NLon,NLoop,MaxT,PMT,I2CErr,INSErr,INAVErr" },
-    { LOG_CMD_MSG, sizeof(log_Cmd),                 
-      "CMD", "BBBBBeLL",     "CTot,CNum,CId,COpt,Prm1,Alt,Lat,Lng" },
     { LOG_ATTITUDE_MSG, sizeof(log_Attitude),       
       "ATT", "IccccCC",      "TimeMS,DesRoll,Roll,DesPitch,Pitch,DesYaw,Yaw" },
-    { LOG_MODE_MSG, sizeof(log_Mode),
-      "MODE", "Mh",          "Mode,ThrCrs" },
     { LOG_STARTUP_MSG, sizeof(log_Startup),         
       "STRT", "",            "" },
-    { LOG_EVENT_MSG, sizeof(log_Event),         
-      "EV",   "B",           "Id" },
     { LOG_DATA_INT16_MSG, sizeof(log_Data_Int16t),         
       "D16",   "Bh",         "Id,Value" },
     { LOG_DATA_UINT16_MSG, sizeof(log_Data_UInt16t),         
@@ -484,7 +391,8 @@ void start_logging(void)
             planner.ap.logging_active = true;
 
             mincopter.DataFlash.StartNewLog();
-            mincopter.DataFlash.Log_Write_Message_P(PSTR(FIRMWARE_STRING));
+			// TODO Replace with another first line initialisation method (with model number, time, etc.)
+            //mincopter.DataFlash.Log_Write_Message_P(PSTR(FIRMWARE_STRING));
         }
 
         // enable writes
@@ -497,8 +405,6 @@ void start_logging(void)
 #else // LOGGING_ENABLED
 
 void Log_Write_Startup() {}
-void Log_Write_Cmd(uint8_t num, const struct Location *wp) {}
-void Log_Write_Mode(uint8_t mode) {}
 void Log_Write_IMU() {}
 void Log_Write_GPS() {}
 void Log_Write_Current() {}
@@ -509,8 +415,6 @@ void Log_Write_Data(uint8_t id, uint16_t value){}
 void Log_Write_Data(uint8_t id, int32_t value){}
 void Log_Write_Data(uint8_t id, uint32_t value){}
 void Log_Write_Data(uint8_t id, float value){}
-void Log_Write_Event(uint8_t id){}
-void Log_Write_Nav_Tuning() {}
 void Log_Write_Control_Tuning() {}
 void Log_Write_Performance() {}
 void Log_Write_Error(uint8_t sub_system, uint8_t error_code) {}

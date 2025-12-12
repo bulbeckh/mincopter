@@ -186,6 +186,10 @@ else()
 	message(FATAL_ERROR "Barometer device not supported.")
 endif()
 
+
+## For logs to work, we need this flag
+add_compile_definitions( LOGGING_ENABLED )
+
 if(MC_STORAGE_TYPE STREQUAL "FILE")
 	add_compile_definitions(MC_STORAGE_FILE)
 elseif(MC_STORAGE_TYPE STREQUAL "DATAFLASH")

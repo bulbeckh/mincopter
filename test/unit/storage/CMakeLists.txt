@@ -10,7 +10,7 @@ add_executable(test-df-core
 target_link_libraries(test-df-core PUBLIC
 	mc-dev
 	mc-arch
-	mc-common
+	#mc-common
 	## gtest libs
 )
 

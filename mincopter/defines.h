@@ -52,6 +52,15 @@
 #define LOG_INDEX_MSG                   0xF0
 #define MAX_NUM_LOGS                    50
 
+// message types for common messages
+#define LOG_FORMAT_MSG	  128
+#define LOG_GPS_MSG		  130
+#define LOG_IMU_MSG		  131
+#define LOG_MESSAGE_MSG	  132
+#define LOG_RCIN_MSG      133
+#define LOG_RCOUT_MSG     134
+#define LOG_BARO_MSG	  136
+
 #define MASK_LOG_ATTITUDE_FAST          (1<<0)
 #define MASK_LOG_ATTITUDE_MED           (1<<1)
 #define MASK_LOG_GPS                    (1<<2)

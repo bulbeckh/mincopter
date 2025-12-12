@@ -471,9 +471,6 @@ void init_home(void)
 	// TODO This currently is not implemented but should really have the same functionality as the above code. Consider merging all
     mcstate.set_home_position(mincopter.g_gps->longitude, mincopter.g_gps->latitude);
 
-    if (mincopter.log_bitmask & MASK_LOG_CMD)
-        Log_Write_Cmd(0, &mcstate.home);
-
     // update navigation scalers.  used to offset the shrinking longitude as we go towards the poles
     //planner.scaleLongDown = longitude_scale(mcstate.home);
     //planner.scaleLongUp   = 1.0f/planner.scaleLongDown;

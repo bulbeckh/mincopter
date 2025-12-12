@@ -7,6 +7,10 @@
 #include <AP_Math.h>
 #include <AP_Baro.h>
 
+#include "log.h"
+
+#include "mincopter/defines.h"
+
 extern const AP_HAL::HAL& hal;
 
 
@@ -267,6 +271,7 @@ uint16_t DataFlash_Block::find_last_page_of_log(uint16_t log_number)
     return -1;
 }
 
+// TODO There are multiple definitions of this  - need to merge into one
 #define PGM_UINT8(addr) pgm_read_byte((const prog_char *)addr)
 
 /*
@@ -569,142 +574,6 @@ uint16_t DataFlash_Class::StartNewLog(void)
     return ret;
 }
 
-/*
-  write a structure format to the log
- */
-void DataFlash_Class::Log_Fill_Format(const struct LogStructure *s, struct log_Format &pkt)
-{
-    memset(&pkt, 0, sizeof(pkt));
-    pkt.head1 = HEAD_BYTE1;
-    pkt.head2 = HEAD_BYTE2;
-    pkt.msgid = LOG_FORMAT_MSG;
-    pkt.type = PGM_UINT8(&s->msg_type);
-    pkt.length = PGM_UINT8(&s->msg_len);
-    strncpy_P(pkt.name, s->name, sizeof(pkt.name));
-    strncpy_P(pkt.format, s->format, sizeof(pkt.format));
-    strncpy_P(pkt.labels, s->labels, sizeof(pkt.labels));
-}
-
-/*
-  write a structure format to the log
- */
-void DataFlash_Class::Log_Write_Format(const struct LogStructure *s)
-{
-    struct log_Format pkt;
-    Log_Fill_Format(s, pkt);
-    WriteBlock(&pkt, sizeof(pkt));
-}
 
 
-// Write an GPS packet
-void DataFlash_Class::Log_Write_GPS(const GPS *gps, int32_t relative_alt)
-{
-    struct log_GPS pkt = {
-        LOG_PACKET_HEADER_INIT(LOG_GPS_MSG),
-    	status        : (uint8_t)gps->status(),
-    	gps_week_ms   : gps->time_week_ms,
-    	gps_week      : gps->time_week,
-        num_sats      : gps->num_sats,
-        hdop          : gps->hdop,
-        latitude      : gps->latitude,
-        longitude     : gps->longitude,
-        rel_altitude  : relative_alt,
-        altitude      : gps->altitude_cm,
-        ground_speed  : gps->ground_speed_cm,
-        ground_course : gps->ground_course_cd,
-        vel_z         : gps->velocity_down(),
-        apm_time      : hal.scheduler->millis()
-    };
-    WriteBlock(&pkt, sizeof(pkt));
-}
 
-// Write an RCIN packet
-void DataFlash_Class::Log_Write_RCIN(void)
-{
-    struct log_RCIN pkt = {
-        LOG_PACKET_HEADER_INIT(LOG_RCIN_MSG),
-        timestamp     : hal.scheduler->millis(),
-        chan1         : hal.rcin->read(0),
-        chan2         : hal.rcin->read(1),
-        chan3         : hal.rcin->read(2),
-        chan4         : hal.rcin->read(3),
-        chan5         : hal.rcin->read(4),
-        chan6         : hal.rcin->read(5),
-        chan7         : hal.rcin->read(6),
-        chan8         : hal.rcin->read(7)
-    };
-    WriteBlock(&pkt, sizeof(pkt));
-}
-
-// Write an SERVO packet
-void DataFlash_Class::Log_Write_RCOUT(void)
-{
-    struct log_RCOUT pkt = {
-        LOG_PACKET_HEADER_INIT(LOG_RCOUT_MSG),
-        timestamp     : hal.scheduler->millis(),
-        chan1         : hal.rcout->read(0),
-        chan2         : hal.rcout->read(1),
-        chan3         : hal.rcout->read(2),
-        chan4         : hal.rcout->read(3),
-        chan5         : hal.rcout->read(4),
-        chan6         : hal.rcout->read(5),
-        chan7         : hal.rcout->read(6),
-        chan8         : hal.rcout->read(7)
-    };
-    WriteBlock(&pkt, sizeof(pkt));
-}
-
-// Write a BARO packet
-void DataFlash_Class::Log_Write_Baro(AP_Baro& /* baro */)
-{
-    struct log_BARO pkt = {
-        LOG_PACKET_HEADER_INIT(LOG_BARO_MSG),
-        timestamp     : hal.scheduler->millis(),
-        altitude      : 0, /* baro.get_altitude(), */
-        pressure	  : 0, /* baro.get_pressure(), */
-        temperature   : 0, /* (int16_t)(baro.get_temperature() * 100), */
-    };
-    WriteBlock(&pkt, sizeof(pkt));
-}
-
-// Write an raw accel/gyro data packet
-void DataFlash_Class::Log_Write_IMU(const AP_InertialSensor &ins)
-{
-    uint32_t tstamp = hal.scheduler->millis();
-    const Vector3f &gyro = ins.get_gyro();
-    const Vector3f &accel = ins.get_accel();
-    struct log_IMU pkt = {
-        LOG_PACKET_HEADER_INIT(LOG_IMU_MSG),
-        timestamp : tstamp,
-        gyro_x  : gyro.x,
-        gyro_y  : gyro.y,
-        gyro_z  : gyro.z,
-        accel_x : accel.x,
-        accel_y : accel.y,
-        accel_z : accel.z
-    };
-    WriteBlock(&pkt, sizeof(pkt));
-    return;
-}
-
-// Write a text message to the log
-void DataFlash_Class::Log_Write_Message(const char *message)
-{
-    struct log_Message pkt = {
-        LOG_PACKET_HEADER_INIT(LOG_MESSAGE_MSG),
-        msg  : {}
-    };
-    strncpy(pkt.msg, message, sizeof(pkt.msg));
-    WriteBlock(&pkt, sizeof(pkt));
-}
-
-// Write a text message to the log
-void DataFlash_Class::Log_Write_Message_P(const prog_char_t *message)
-{
-    struct log_Message pkt = {
-        LOG_PACKET_HEADER_INIT(LOG_MESSAGE_MSG),
-        msg  : {}
-    };
-    strncpy_P(pkt.msg, message, sizeof(pkt.msg));
-    WriteBlock(&pkt, sizeof(pkt));
-}
