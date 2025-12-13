@@ -45,10 +45,15 @@ void DataFlash_Block::WriteBlock(const void *pBuffer, uint16_t size)
         return;
     }
     while (size > 0) {
+		// Check how many bytes remaining in this page
         uint16_t n = df_PageSize - df_BufferIdx;
+
+		// If we have enough bytes then trim to remaining bytes to write (size)
         if (n > size) {
             n = size;
         }
+		// TODO What happens when we don't have enough remaining??
+		// We end up calling BlockWrite with a buffer & size that don't fit - BlockWrite will wrap to beginning
 
         if (df_BufferIdx == 0) {
             // if we are at the start of a page we need to insert a
@@ -56,6 +61,10 @@ void DataFlash_Block::WriteBlock(const void *pBuffer, uint16_t size)
             if (n > df_PageSize - sizeof(struct PageHeader)) {
                 n = df_PageSize - sizeof(struct PageHeader);
             }
+			
+
+			// NOTE I believe the FileNumber is the log number and the df_FilePage is the number of pages that this
+			// log takes up. I think we always start writing a new log on a new page.
             struct PageHeader ph = { df_FileNumber, df_FilePage };
             BlockWrite(df_BufferNum, df_BufferIdx, &ph, sizeof(ph), pBuffer, n);
             df_BufferIdx += n + sizeof(ph);
@@ -67,11 +76,16 @@ void DataFlash_Block::WriteBlock(const void *pBuffer, uint16_t size)
         size -= n;
         pBuffer = (const void *)(n + (uintptr_t)pBuffer);
 
+		// TODO Why is this == and not >= ? Wouldn't we need to handle the case when our buffer is greater than
+		// the page size (after multiple calls to WriteBlock ??
+		// If we are at the end, then move to next page (reset df_BufferIdx and increment the pageAdr)
         if (df_BufferIdx == df_PageSize) {
             FinishWrite();
             df_FilePage++;
         }
     }
+
+	return;
 }
 
 

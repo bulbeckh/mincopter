@@ -4,6 +4,8 @@
 ## Create test executable
 add_executable(test-df-core
 	test_dataflash_core.cpp
+	## TODO This needs to change. We cannot link the entire mc-common library because it depends on mincopter so we instead link a specific log file
+	${CMAKE_SOURCE_DIR}/lib/logstructure.cpp
 )
 
 ## Link

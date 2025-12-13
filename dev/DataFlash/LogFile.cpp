@@ -137,10 +137,13 @@ void DataFlash_Block::get_log_boundaries(uint16_t log_num, uint16_t & start_page
             }
         }
     }
+
     if (start_page == df_NumPages+1 || start_page == 0) {
         start_page = 1;
     }
+
     end_page = find_last_page_of_log(log_num);
+
     if (end_page == 0) {
         end_page = start_page;
     }
@@ -169,6 +172,7 @@ bool DataFlash_Block::check_wrapped(void)
 }
 
 
+// TODO Move to log
 // This funciton finds the last log number
 uint16_t DataFlash_Block::find_last_log(void)
 {
@@ -371,6 +375,7 @@ void DataFlash_Class::_print_log_entry(uint8_t msg_type,
             ofs += sizeof(v);
             break;
         }
+		/* // TODO LatLon is removed
         case 'L': {
             int32_t v;
             memcpy(&v, &pkt[ofs], sizeof(v));
@@ -378,6 +383,7 @@ void DataFlash_Class::_print_log_entry(uint8_t msg_type,
             ofs += sizeof(v);
             break;
         }
+		*/
         case 'n': {
             char v[5];
             memcpy(&v, &pkt[ofs], sizeof(v));
@@ -566,7 +572,23 @@ uint16_t DataFlash_Class::StartNewLog(void)
 
     // write log formats so the log is self-describing
     for (uint8_t i=0; i<_num_types; i++) {
-        Log_Write_Format(&_structures[i]);
+
+        //Log_Write_Format(&_structures[i]);
+
+    	struct log_Format pkt;
+    	memset(&pkt, 0, sizeof(pkt));
+
+		pkt.head1 = HEAD_BYTE1;
+		pkt.head2 = HEAD_BYTE2;
+		pkt.msgid = LOG_FORMAT_MSG;
+		pkt.type = PGM_UINT8(&_structures[i].msg_type);
+		pkt.length = PGM_UINT8(&_structures[i].msg_len);
+		strncpy_P(pkt.name, _structures[i].name, sizeof(pkt.name));
+		strncpy_P(pkt.format, _structures[i].format, sizeof(pkt.format));
+		strncpy_P(pkt.labels, _structures[i].labels, sizeof(pkt.labels));
+
+    	WriteBlock(&pkt, sizeof(pkt));
+
         // avoid corrupting the APM1/APM2 dataflash by writing too fast
         hal.scheduler->delay(10);
     }

@@ -73,6 +73,35 @@
  *
  */
 
+
+/* Logging and External Storage
+ *
+ * We should write the logging interface without assuming that we use external storage (i.e. the storage
+ * interface should also match hal.storage).
+ *
+ * The storage device can either be block storage (like the ATMEL dataflash) or to a filesystem (i.e. linux/generic).
+ *
+ *
+ * Decision about how the logs are stored/retrieved should be left to the device implementation.
+ *
+ * 1. Log Interface
+ *
+ * get_num_logs
+ * get_logs
+ * write_log
+ * init - needs be called at the start and passed an instance of external storage to use
+ *
+ * 2a. Block Interface
+ * Uses pages for storage with headers for each page. Exposes methods
+ *
+ *
+ *
+ *
+ */
+
+
+
+
 /*
   unfortunately these need to be macros because of a limitation of
   named member structure initialisation in g++
@@ -318,7 +347,6 @@ void Log_Read(uint16_t log_num, uint16_t start_page, uint16_t end_page);
 
 /* @brief Functions to write logs */
 void Log_Write_Startup();
-
 
 void Log_Write_Format(const struct LogStructure *s);
 

@@ -11,43 +11,49 @@
 
 class DataFlash_APM2 : public DataFlash_Block
 {
-private:
-    //Methods
-    void                    BufferToPage (uint8_t BufferNum, uint16_t PageAdr, uint8_t wait);
-    void                    PageToBuffer(uint8_t BufferNum, uint16_t PageAdr);
-    void                    WaitReady();
-    uint8_t	            ReadStatusReg();
-    uint8_t     	    ReadStatus();
-    uint16_t                PageSize();
+	public:
+		// DataFlash_Class Override
+		void Init(const struct LogStructure *structure, uint8_t num_types) override;
+		bool CardInserted() override;
 
-    // write size bytes of data to a page. The caller must ensure that
-    // the data fits within the page, otherwise it will wrap to the
-    // start of the page
-    // If pHeader is not NULL then write the header bytes before the data
-    void		    BlockWrite(uint8_t BufferNum, uint16_t IntPageAdr, 
-				       const void *pHeader, uint8_t hdr_size,
-				       const void *pBuffer, uint16_t size);
+		// DataFlash_Block Override
+		void ReadManufacturerID(void) override;
 
-    // read size bytes of data to a page. The caller must ensure that
-    // the data fits within the page, otherwise it will wrap to the
-    // start of the page
-    bool 		    BlockRead(uint8_t BufferNum, uint16_t IntPageAdr, void *pBuffer, uint16_t size);
-    uint8_t	            BufferRead (uint8_t BufferNum, uint16_t IntPageAdr);
+	private:
 
-    void                    PageErase (uint16_t PageAdr);
-    void                    BlockErase (uint16_t BlockAdr);
-    void                    ChipErase();
+		// DataFlash_Block Overrides
+		void BufferToPage (uint8_t BufferNum, uint16_t PageAdr, uint8_t wait) override;
+		void PageToBuffer(uint8_t BufferNum, uint16_t PageAdr) override;
+		void PageErase(uint16_t PageAdr) override;
+		void BlockErase(uint16_t BlockAdr) override;
+		void ChipErase(void) override;
+		void WaitReady(void) override;
 
-    // take a semaphore safely
-    bool		            _sem_take(uint8_t timeout);
+		// write size bytes of data to a page. The caller must ensure that
+		// the data fits within the page, otherwise it will wrap to the
+		// start of the page
+		// If pHeader is not NULL then write the header bytes before the data
+		void BlockWrite(uint8_t BufferNum, uint16_t IntPageAdr, 
+						   const void *pHeader, uint8_t hdr_size,
+						   const void *pBuffer, uint16_t size) override;
 
-    AP_HAL::SPIDeviceDriver* _spi;
-    AP_HAL::Semaphore* _spi_sem;
+		// read size bytes of data to a page. The caller must ensure that
+		// the data fits within the page, otherwise it will wrap to the
+		// start of the page
+		bool BlockRead(uint8_t BufferNum, uint16_t IntPageAdr, void *pBuffer, uint16_t size) override;
 
-public:
-    void        Init(const struct LogStructure *structure, uint8_t num_types);
-    void        ReadManufacturerID();
-    bool        CardInserted();
+	private:
+		uint8_t ReadStatusReg(void);
+		uint8_t ReadStatus(void);
+		uint16_t PageSize(void);
+
+		uint8_t BufferRead (uint8_t BufferNum, uint16_t IntPageAdr);
+
+		// take a semaphore safely
+		bool _sem_take(uint8_t timeout);
+
+		AP_HAL::SPIDeviceDriver* _spi;
+		AP_HAL::Semaphore* _spi_sem;
 };
 
 #endif
