@@ -110,7 +110,7 @@ void loop(void)
 
     // wait for an INS sample
     if (!mincopter.ins.wait_for_sample(1000)) {
-        Log_Write_Error(ERROR_SUBSYSTEM_MAIN, ERROR_CODE_MAIN_INS_DELAY);
+        //Log_Write_Error(ERROR_SUBSYSTEM_MAIN, ERROR_CODE_MAIN_INS_DELAY);
 		return;
     }
 

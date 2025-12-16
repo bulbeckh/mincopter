@@ -71,13 +71,14 @@ class DataFlash_Class
 			uint8_t head1, head2, msgid;
 		};
 
+		// TODO Temporarily moved to public
+		virtual uint16_t start_new_log(void) = 0;
 
 	protected:
 		void _print_log_entry(uint8_t msg_type, 
 							  void (*print_mode)(AP_HAL::BetterStream *port, uint8_t mode),
 							  AP_HAL::BetterStream *port);
 		
-		virtual uint16_t start_new_log(void) = 0;
 
 		const struct LogStructure *_structures;
 		uint8_t _num_types;

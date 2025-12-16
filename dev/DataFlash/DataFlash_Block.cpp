@@ -172,10 +172,11 @@ uint16_t DataFlash_Block::GetFilePage()
     return df_FilePage;
 }
 
-void DataFlash_Block::EraseAll()
+void DataFlash_Block::EraseAll(void)
 {
     log_write_started = false;
     for (uint16_t j = 1; j <= (df_NumPages+1)/8; j++) {
+		hal.console->printf("Erasing log %hu/%hu\r\n", j, (df_NumPages+1)/8);
         BlockErase(j);
         if (j%6 == 0) {
             hal.scheduler->delay(6);

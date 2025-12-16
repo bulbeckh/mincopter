@@ -318,7 +318,7 @@ void read_batt_compass(void)
 	mincopter.compass.read();
 
 	// Log compass information
-	if (mincopter.log_bitmask & MASK_LOG_COMPASS) Log_Write_Compass();
+	//if (mincopter.log_bitmask & MASK_LOG_COMPASS) Log_Write_Compass();
 
 	return;
 }
@@ -338,7 +338,7 @@ void update_GPS(void)
 		last_gps_reading = mincopter.g_gps->last_message_time_ms();
 
 		// log GPS message
-		if (mincopter.log_bitmask & MASK_LOG_GPS) Log_Write_GPS();
+		//if (mincopter.log_bitmask & MASK_LOG_GPS) Log_Write_GPS();
 
 		// TODO planner.ap.home_is_set is a duplicate flag with mcstate.home_set - Need to decide which to use
 		// run glitch protection and update AP_Notify if home has been initialised
