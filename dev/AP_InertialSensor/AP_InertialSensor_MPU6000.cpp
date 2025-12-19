@@ -564,7 +564,7 @@ bool AP_InertialSensor_MPU6000::_hardware_init(Sample_rate sample_rate)
 float AP_InertialSensor_MPU6000::get_gyro_drift_rate(void)
 {
     // 0.5 degrees/second/minute
-    return ToRad(0.5/60);
+    return radians(0.5/60);
 }
 
 // return true if a sample is available

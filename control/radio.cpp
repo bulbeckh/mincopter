@@ -16,18 +16,22 @@ extern MCInstance mincopter;
 
 void default_dead_zones()
 {
+	/*
     mincopter.rc_1.set_default_dead_zone(30);
     mincopter.rc_2.set_default_dead_zone(30);
     mincopter.rc_3.set_default_dead_zone(30);
     mincopter.rc_4.set_default_dead_zone(40);
     mincopter.rc_6.set_default_dead_zone(0);
+	*/
 }
 
 void init_esc()
 {
+	/*
 	mincopter.motors.set_update_rate(50);
 	mincopter.motors.enable();
 	mincopter.motors.armed(true);
+	*/
 
 	// TODO What was this doing?
 	/*
@@ -43,14 +47,14 @@ void init_esc()
 // init_rc_out -- initialise motors and check if pilot wants to perform ESC calibration
 void init_rc_out()
 {
-    mincopter.motors.set_update_rate(mincopter.rc_speed);
+    //mincopter.motors.set_update_rate(mincopter.rc_speed);
     //mincopter.motors.set_frame_orientation(mincopter.frame_orientation);
 	// NOTE TODO This is hardcoded to 1 which is the X orientation frame
-    mincopter.motors.set_frame_orientation(1);
-    mincopter.motors.Init();                                              // motor initialisation
+    //mincopter.motors.set_frame_orientation(1);
+    //mincopter.motors.Init();                                              // motor initialisation
 
 #ifdef CONTROLLER_PID
-    mincopter.motors.set_min_throttle(controller.throttle_min);
+    //mincopter.motors.set_min_throttle(controller.throttle_min);
 #endif
 
 		/*
@@ -61,18 +65,20 @@ void init_rc_out()
 		*/
 
     // we want the input to be scaled correctly
-	mincopter.rc_1.set_angle(4500 /* ROLL_PITCH_INPUT_MAX */);
-	mincopter.rc_2.set_angle(4500 /* ROLL_PITCH_INPUT_MAX */);
+	//mincopter.rc_1.set_angle(4500 /* ROLL_PITCH_INPUT_MAX */);
+	//mincopter.rc_2.set_angle(4500 /* ROLL_PITCH_INPUT_MAX */);
 	// TODO Remove this hardcode
-	mincopter.rc_4.set_angle(4500);
+	//mincopter.rc_4.set_angle(4500);
 
 	// This is the max and minimum for the output of the throttle accel controller
 	// This is currently [130,1000]
-	mincopter.rc_3.set_range(130,1000);
+	//mincopter.rc_3.set_range(130,1000);
 
+	/*
 	mincopter.rc_1.set_type(RC_CHANNEL_TYPE_ANGLE_RAW);
 	mincopter.rc_2.set_type(RC_CHANNEL_TYPE_ANGLE_RAW);
 	mincopter.rc_4.set_type(RC_CHANNEL_TYPE_ANGLE_RAW);
+	*/
 
 	//mincopter.rc_3.set_range_out(0,1000);
 
@@ -110,7 +116,7 @@ void init_rc_out()
 void output_min()
 {
     // enable motors
-    mincopter.motors.enable();
-    mincopter.motors.output_min();
+    //mincopter.motors.enable();
+    //mincopter.motors.output_min();
 }
 

@@ -278,7 +278,7 @@ float AP_InertialSensor_L3G4200D::get_delta_time(void)
 float AP_InertialSensor_L3G4200D::get_gyro_drift_rate(void) 
 {
     // 0.5 degrees/second/minute (a guess)
-    return ToRad(0.5/60);
+    return radians(0.5/60);
 }
 
 // Accumulate values from accels and gyros

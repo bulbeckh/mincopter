@@ -23,7 +23,7 @@ target_include_directories(test-imu-core PUBLIC
 )
 
 if(${TARGET_ARCH_FAMILY} STREQUAL "stm32")
-	target_link_libraries(test-imu-read PUBLIC
+	target_link_libraries(test-imu-core PUBLIC
 		-Wl,--whole-archive
 		stm32_static
 		-Wl,--no-whole-archive

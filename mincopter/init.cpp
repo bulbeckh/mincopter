@@ -96,10 +96,6 @@ void init_ardupilot(void)
     mincopter.DataFlash.Init(log_structure, 22);
 	mincopter.hal.console->printf_P(PSTR("[INIT] DataFlash initialised\n"));
 
-    if (!mincopter.DataFlash.CardInserted()) {
-        //gcs_send_text_P(SEVERITY_LOW, PSTR("No dataflash inserted"));
-        mincopter.log_bitmask = 0;
-    }
 #endif
 
 	/* NOTE no RC input in auto modes */

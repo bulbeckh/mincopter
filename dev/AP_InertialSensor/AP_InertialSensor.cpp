@@ -177,7 +177,7 @@ AP_InertialSensor::_init_gyro()
 		if (j == 0) {
 			best_diff = diff_norm;
 			best_avg = gyro_avg;
-		} else if (gyro_diff.length() < ToRad(0.1f)) {
+		} else if (gyro_diff.length() < radians(0.1f)) {
 			// we want the average to be within 0.1 bit, which is 0.04 degrees/s
 			last_average = (gyro_avg * 0.5f) + (last_average * 0.5f);
 			_gyro_offset = last_average;

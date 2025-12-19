@@ -274,7 +274,6 @@ list(APPEND MC_INCLUDE_DIRS
 	${CMAKE_SOURCE_DIR}/lib/AP_Curve
 	${CMAKE_SOURCE_DIR}/lib/AP_Math
 	${CMAKE_SOURCE_DIR}/lib/Filter
-	${CMAKE_SOURCE_DIR}/lib/RC_Channel
 	${CMAKE_SOURCE_DIR}/lib/Telemetry
 	${CMAKE_SOURCE_DIR}/lib/
 	#${CMAKE_SOURCE_DIR}/state/AP_AHRS
@@ -289,7 +288,6 @@ list(APPEND MC_INCLUDE_DIRS
 	${CMAKE_SOURCE_DIR}/dev/AP_Declination
 	${CMAKE_SOURCE_DIR}/dev/AP_GPS
 	${CMAKE_SOURCE_DIR}/dev/AP_InertialSensor
-	${CMAKE_SOURCE_DIR}/dev/AP_Motors
 	${CMAKE_SOURCE_DIR}/dev/DataFlash
 	${CMAKE_SOURCE_DIR}/control/include/controllers/AC_PID
 	${CMAKE_SOURCE_DIR}/control/include/controllers/

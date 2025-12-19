@@ -97,7 +97,7 @@ GPS::update(void)
                 _velocity_east  = _vel_east * 0.01f;
                 _velocity_down  = _vel_down * 0.01f;
             } else {
-                float gps_heading = ToRad(ground_course_cd * 0.01f);
+                float gps_heading = radians(ground_course_cd * 0.01f);
                 float gps_speed   = ground_speed_cm * 0.01f;
                 float sin_heading, cos_heading;
 

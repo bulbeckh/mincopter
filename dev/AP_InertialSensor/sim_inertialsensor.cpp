@@ -29,7 +29,7 @@ float AP_InertialSensor_Sim::get_gyro_drift_rate(void)
 {
 	// NOTE This drift rate was taken from the MPU6000 IMU. Not sure what it would be for simulation
     // 0.5 degrees/second/minute
-    return ToRad(0.5/60);
+    return radians(0.5/60);
 }
 
 bool AP_InertialSensor_Sim::update( void )
