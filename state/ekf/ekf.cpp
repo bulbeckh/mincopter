@@ -12,18 +12,42 @@ extern MCInstance mincopter;
 // Casadi generated c functions for ekf prediction and correction steps
 extern "C" {
 	int ekf_predict(const EKF_DATA_TYPE** arg, EKF_DATA_TYPE** res, long long int* iw, EKF_DATA_TYPE* w, int mem);
-	int ekf_correct(const EKF_DATA_TYPE** arg, EKF_DATA_TYPE** res, long long int* iw, EKF_DATA_TYPE* w, int mem);
+	int ekf_fuse_acc(const EKF_DATA_TYPE** arg, EKF_DATA_TYPE** res, long long int* iw, EKF_DATA_TYPE* w, int mem);
+	int ekf_fuse_mag(const EKF_DATA_TYPE** arg, EKF_DATA_TYPE** res, long long int* iw, EKF_DATA_TYPE* w, int mem);
+	int ekf_fuse_gps(const EKF_DATA_TYPE** arg, EKF_DATA_TYPE** res, long long int* iw, EKF_DATA_TYPE* w, int mem);
+	int ekf_fuse_baro(const EKF_DATA_TYPE** arg, EKF_DATA_TYPE** res, long long int* iw, EKF_DATA_TYPE* w, int mem);
 }
 
-/* NOTE TODO The following are two placeholders for the predict, correct functions while we reduce size */
-int _none_ekf_predict(const EKF_DATA_TYPE** arg, EKF_DATA_TYPE** res, long long int* iw, EKF_DATA_TYPE* w, int mem) {
+/* NOTE TODO The following is a placeholder for the predict, correct functions while we reduce size */
+int _none_ekf_function(const EKF_DATA_TYPE** arg, EKF_DATA_TYPE** res, long long int* iw, EKF_DATA_TYPE* w, int mem) {
 	return 0;
 }
 
-int _none_ekf_correct(const EKF_DATA_TYPE** arg, EKF_DATA_TYPE** res, long long int* iw, EKF_DATA_TYPE* w, int mem)
-{
-	return 0;
+void StateEKF::ekf_predict(void) {
+	// Run prediction step (last three args are real/int workspace sizes and memory index, which are all 0)
+	
+	int _result = ekf_predict((const EKF_DATA_TYPE**)ekf_predict_arg, ekf_predict_res, 0, 0, 0);
+	//int _result = _none_ekf_function((const EKF_DATA_TYPE**)ekf_predict_arg, ekf_predict_res, 0, 0, 0);
+	
+	return;
 }
+
+void StateEKF::ekf_fuse_acc(void) {
+	// TODO
+}
+
+void StateEKF::ekf_fuse_mag(void) {
+	// TODO
+}
+
+void StateEKF::ekf_fuse_gps(void) {
+	// TODO
+}
+
+void StateEKF::ekf_fuse_baro(void) {
+	// TODO
+}
+
 
 void StateEKF::update(void)
 {
@@ -31,28 +55,42 @@ void StateEKF::update(void)
 	
 	// Prepare the predict and correct variable arrays with sensor readings and previous estimated state from _state
 	setup_ekf_args();
-	
-	// Run prediction step (last three args are real/int workspace sizes and memory index, which are all 0)
-	// NOTE Not sure why the ekf_predict function requires const double** arg as the arg changes between prediction runs.
-	
-	int _result = ekf_predict((const EKF_DATA_TYPE**)ekf_predict_arg, ekf_predict_res, 0, 0, 0);
-	//int _result = _none_ekf_predict((const EKF_DATA_TYPE**)ekf_predict_arg, ekf_predict_res, 0, 0, 0);
+
+	ekf_predict();
+
+#if EKF_FUSE_ACC
+	ekf_fuse_acc();
+#endif
+
+#if EKF_FUSE_MAG
+	ekf_fuse_mag();
+#endif
+
+#if EKF_FUSE_GPS
+	ekf_fuse_gps();
+#endif
+
+#if EKF_FUSE_BARO
+	ekf_fuse_baro();
+#endif
 
 	// Run correction step
 	_result = ekf_correct((const EKF_DATA_TYPE**)ekf_correct_arg, ekf_correct_res, 0, 0, 0);
-	//_result = _none_ekf_correct((const EKF_DATA_TYPE**)ekf_correct_arg, ekf_correct_res, 0, 0, 0);
 
-	// Normalise quaternion before re-assigning
+
+
+	// Update internal state variables
+	
+	// Check that the norm is non-zero
 	float q_norm = safe_sqrt(sq(ekf_correct_res[0][6]) + sq(ekf_correct_res[0][7]) + sq(ekf_correct_res[0][8]) + sq(ekf_correct_res[0][9]));
 
-	// Check that the norm is non-zero
 	if (q_norm > 1e-6) { 
 		ekf_correct_res[0][6] /= q_norm;
 		ekf_correct_res[0][7] /= q_norm;
 		ekf_correct_res[0][8] /= q_norm;
 		ekf_correct_res[0][9] /= q_norm;
 	} else {
-		// TODO - What to do here?
+		// TODO - Log that we have a zero quaternion (which likely indicates and error w EKF functions)
 	}
 
 	// Update MCState via _state variable - _result[0] is the state_out as (x,v,q)
@@ -82,8 +120,8 @@ void StateEKF::update(void)
 
 void StateEKF::setup_ekf_args(void)
 {
-	/* Predict setup */
-
+	// This function is run at each iteration of the EKF and reads the latest measurements from each of the sensors
+	// that are being fused on this timestep
 
 	// TODO Does our dt represent a gyrometer time or an accelerometer time?
 	// Read dt from gyrometer
@@ -91,13 +129,6 @@ void StateEKF::setup_ekf_args(void)
 	
 	// Get w - latest gyrometer reading in rad/s
 	Vector3f gyro = mincopter.ins.get_gyro();
-
-	// NOTE TODO We are deliberately switching (rotating) the axis here because the MPU6050 on my breadboard is backwards
-	/*
-	w[0] = -gyro.x;
-	w[1] = -gyro.y;
-	w[2] = gyro.z;
-	*/
 	
 	// Get a - latest accel reading in m/s2
 	Vector3f accel = mincopter.ins.get_accel();
