@@ -112,8 +112,12 @@ void WP_Planner::run(void)
 			
 			Vector3f pos = mcstate.get_position();
 
+			// TODO This is skipping the first waypoint because since we don't initialise 'controller.reference', it assumes the first reference is (0,0,0) which we are 
+			// definitely within on the first call and so it moves to next target (0,10). Need to fix by initialising controller.reference
+
 			// Check if we have reached desired waypoint target using the reference trajectory provided by the planner
 			if (fabs(pos.x - controller.reference[0].x) < 1 && fabs(pos.y - controller.reference[0].y) < 1) {
+				mincopter.hal.console->printf("[PLAN] Reference point reached. Moving to next waypoint\r\n");
 				wp_index = ++wp_index % 4;
 
 				// TODO When changing waypoints/target, we should also reset the controller so we don't use error accumulated from an outdated target
@@ -125,6 +129,13 @@ void WP_Planner::run(void)
 			controller.reference[0].z = -10;
 
 			controller.reference[0].yaw = 0;
+
+			// Set arbitrary hover position
+			/*
+			controller.reference[0].x = 4;
+			controller.reference[0].y = 4;
+			controller.reference[0].z = -5;
+			*/
 
 			// Call controller
 			controller.run_position();

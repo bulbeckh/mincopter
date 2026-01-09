@@ -30,17 +30,7 @@ MPC_Controller controller;
 void MPC_Controller::run()
 {
 	// NOTE This is called at 100Hz currently but our linearised system is at 10Hz so we should actually update the MPC every 10 iterations
-	/*
-	static uint8_t mpc_iteration=0;
-	if (mpc_iteration==9) {
-		// 10th iteration
-		mpc_iteration=0;
-	} else {
-		mpc_iteration+=1;
-		return;
-	}
-	*/
-
+	
 	/* **Part 1.** Retrieve current state dynamics and update l and u vectors with (linearised) dynamics (from A matrix)
 	 * States 0:3 (the position in inertial frame) will come from inertial nav. States 3:6 (attitude) will come from the AHRS roll,pitch,yaw sensors
 	 * Statest 6:9 (the translational velocities) will come from the inertial nav too. States 9:12 (body frame rates) will come from
@@ -56,10 +46,14 @@ void MPC_Controller::run()
 	 */
 
 	// Part 1
+	//
+	// We first retrieve the latest state and update our MPC state matrix. This latest state is used to set
+	// the initial conditions as state constraints.
+	
 	float state12[12];
 
 	// Position & velocity values are in cm. Convert to m to match state dynamic equations used by MPC.
-	Vector3f position = mcstate.inertial_nav.get_position();
+	Vector3f position = mcstate.data.position
 	Vector3f velocity = mcstate.inertial_nav.get_velocity();
 
 	state12[0] = position.x*1e-2;
@@ -82,7 +76,7 @@ void MPC_Controller::run()
 	state12[10] = ang_rates.y;
 	state12[11] = ang_rates.z;
 	
-	// Update L and U constraint matrices with system dynamics
+	// Update L and U constraint matrices with system dynamics (initial conditions are set as current state)
 	for (int i=0;i<12;i++) {
 		lower_constraint[120+i] = 0.0f;
 		for (int j=0;j<12;j++) {
@@ -94,16 +88,25 @@ void MPC_Controller::run()
 	}
 
 	// Part 2.
+	//
+	// Here we update our OSQP q matrix with the latest reference trajectory. The reformulation of the MPC
+	// minimisation problem to a QP problem requires including a linear q term if we are tracking a reference.
+	//
+	// q = -P^{T}x_{r} = -Px_{r}
+	//
+	// With a time-horizon of N=10, our q matrix has size (120 + 40,) however our last 40 states which is the input
+	// reference will be zero.
 
-	// Update Q matrix with reference trajectory
+	// Update reference trajectory
 	for (int i=0;i<10;i++) {
 		for (int j=0;j<12;j++) {
 			// NOTE We only update the first 120 rows as there is no reference tracking/penalty for the input
 			q_constraint[i*12+j] = -1*state_reference[i*12+j]*penalty_vector[i*12+j];
 		}
 	}
-	// Update Q matrix with input constraints TODO This should not be hardcoded as it doesn't change between loops
-	// like the reference trajectory may do.
+
+	// TODO Why is this 0.1f? It should be 0.0f
+	// Zero the input reference states
 	for (int i=0;i<10;i++) {
 		for (int j=0;j<4;j++) {
 			q_constraint[120+i*4+j] = 0.1f;
@@ -112,14 +115,10 @@ void MPC_Controller::run()
 
 	osqp_update_data_vec(&solver, q_constraint, lower_constraint, upper_constraint);
 
-	// Part 3.
-	
-	// Solve MPC problem
+	// Part 3. Solve MPC problem
 	exitflag = osqp_solve(&solver);
 
-	// Part 4.
-	
-	// Update control vector TODO This is a vector now but should soon call a method to update the mixer values.
+	// Part 4. Update control vector TODO This is a vector now but should soon call a method to update the mixer values.
 	float control_vector[4];
 	for (int i=0;i<4;i++) {
 		control_vector[i] = solver.solution->x[120+i];
@@ -133,6 +132,7 @@ void MPC_Controller::run()
 	// TODO For now, use a mixer function embedded into the MPC to convert to a PWM signal but later move mixer to own class
 	mixer_generate_pwm(control_vector[0], control_vector[1], control_vector[2], control_vector[3], exitflag);
 
+	return;
 }
 
 void MPC_Controller::mixer_generate_pwm(float thrust, float roll, float pitch, float yaw, uint16_t exitflag)

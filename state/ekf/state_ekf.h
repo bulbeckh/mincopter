@@ -30,8 +30,16 @@
 #include "mcstate_interface.h"
 
 #define EKF_DATA_TYPE float
+
+/* @brief The size of our state vector */
 #define EKF_STATE_SIZE 16
+
+/* @brief The size of either axis of our (square) covariance matrix */
 #define EKF_COVARIANCE_SIZE 16
+
+/* @brief The size of the fusion (z) vector. NOTE Even though we fuse seperately,
+ * we can re-use the vt and kgain matrices */
+#define EKF_FUSION_SIZE 13
 
 #define EKF_FUSE_ACC 1
 #define EKF_FUSE_MAG 1
@@ -90,13 +98,13 @@ class StateEKF : public MCState {
 		EKF_DATA_TYPE drift_gyro[3];
 		EKF_DATA_TYPE drift_acc[3];
 
-		//EKF_DATA_TYPE cov[ EKF_COVARIANCE_SIZE * EKF_COVARIANCE_SIZE ];
+		// Our state vector takes the form [x, v, q]. We maintain two sets of the state vector (state_est and
+		// state_out) as our generated casadi functions cannot run in-place. **state_est** is updated after the
+		// call to predict and after each of the fusion functions so it should be the most up-to-date state matrix
 
-		// Output states (from each fusion function)
 		EKF_DATA_TYPE state_out[ EKF_STATE_SIZE ];
 		EKF_DATA_TYPE cov_out[ EKF_COVARIANCE_SIZE * EKF_COVARIANCE_SIZE ];
 
-		// Input states
 		EKF_DATA_TYPE state_est[ EKF_STATE_SIZE ];
 		EKF_DATA_TYPE cov_est[ EKF_COVARIANCE_SIZE * EKF_COVARIANCE_SIZE ];
 
@@ -113,14 +121,13 @@ class StateEKF : public MCState {
 
 		EKF_DATA_TYPE* ekf_predict_res[2] = {state_est, cov_est};
 
+		// In debug modes, we can examine the kalman gain and the kalman error
+		EKF_DATA_TYPE vt[ EKF_FUSION_SIZE ];
 
-		// TODO These kgain and vt matrices are wrong size as they are different for each fusion
-		// vt is (12,1) and kgain is (10,12)
-		EKF_DATA_TYPE vt[12];
-		EKF_DATA_TYPE kgain[120];
-
+		EKF_DATA_TYPE kgain[ EKF_FUSION_SIZE * EKF_STATE_SIZE ];
 
 		/* 1. Accelerometer Fusion */
+#if EKF_FUSE_ACC
 		EKF_DATA_TYPE* ekf_fuse_acc_arg[4] = {
 			a,
 			&var_accel,
@@ -129,8 +136,10 @@ class StateEKF : public MCState {
 		};
 
 		EKF_DATA_TYPE* ekf_fuse_acc_res[4] = {state_out, cov_out, vt, kgain};
+#endif
 
 		/* 2. Magnetometer Fusion */
+#if EKF_FUSE_MAG
 		EKF_DATA_TYPE* ekf_fuse_mag_arg[4] = {
 			m,
 			&var_mag,
@@ -139,8 +148,10 @@ class StateEKF : public MCState {
 		};
 
 		EKF_DATA_TYPE* ekf_fuse_mag_res[4] = {state_out, cov_out, vt, kgain};
+#endif
 
 		/* 3. GPS Fusion */
+#if EKF_FUSE_GPS
 		EKF_DATA_TYPE* ekf_fuse_gps_arg[6] = {
 			gps_pos,
 			gps_vel,
@@ -151,8 +162,10 @@ class StateEKF : public MCState {
 		};
 
 		EKF_DATA_TYPE* ekf_fuse_gps_res[4] = {state_out, cov_out, vt, kgain};
+#endif
 
 		/* 4. Barometer Fusion */
+#if EKF_FUSE_BARO
 		EKF_DATA_TYPE* ekf_fuse_baro_arg[4] = {
 			&barometer_altitude,
 			&var_barometer,
@@ -161,6 +174,7 @@ class StateEKF : public MCState {
 		};
 
 		EKF_DATA_TYPE* ekf_fuse_baro_res[4] = {state_out, cov_out, vt, kgain};
+#endif
 
 	public:
 

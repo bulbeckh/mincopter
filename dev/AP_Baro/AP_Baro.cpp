@@ -151,9 +151,11 @@ float AP_Baro::get_altitude(void)
 
 	//  NOTE This code was originally used to update for slower CPUs
     // on slower CPUs use a less exact, but faster, calculation
+	/*
     scaling                                 = (float)_ground_pressure / (float)get_pressure();
     temp                                    = ((float)_ground_temperature) + 273.15f;
     _altitude = logf(scaling) * temp * 29.271267f;
+	*/
 
     // on faster CPUs use a more exact calculation
     scaling                                 = (float)get_pressure() / (float)_ground_pressure;

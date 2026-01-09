@@ -29,7 +29,7 @@ wrksrc := $(wildcard *workspace.c)
 wrkhead := $(wildcard *workspace.h)
 
 emosqp: libemosqp.a emosqp.c $(wrksrc) $(wrkhead)
-	gcc -g -o emosqp emosqp.c $(wrksrc) libemosqp.a $(INCLUDES) $(LDLIBS)
+	gcc -o emosqp emosqp.c $(wrksrc) libemosqp.a $(INCLUDES) $(LDLIBS)
 
 .PHONY: clean
 clean:

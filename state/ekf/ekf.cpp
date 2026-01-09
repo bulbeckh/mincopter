@@ -25,15 +25,31 @@ int _none_ekf_function(const EKF_DATA_TYPE** arg, EKF_DATA_TYPE** res, long long
 
 void StateEKF::ekf_predict(void) {
 	// Run prediction step (last three args are real/int workspace sizes and memory index, which are all 0)
+	int result = ekf_predict((const EKF_DATA_TYPE**)ekf_predict_arg, ekf_predict_res, 0, 0, 0);
+	//int _result = _none_ekf_function((const EKF_DATA_TYPE**)ekf_predict_arg, ekf_predict_res, 0, 0, 0);\
 	
-	int _result = ekf_predict((const EKF_DATA_TYPE**)ekf_predict_arg, ekf_predict_res, 0, 0, 0);
-	//int _result = _none_ekf_function((const EKF_DATA_TYPE**)ekf_predict_arg, ekf_predict_res, 0, 0, 0);
+	// After the prediction step, we have the state and covariance in state_est and cov_est. These are used as inputs
+	// to the fuse functions.
+	//
+	// If we are planning to fuse on different time steps, we should also update the mcstate representation (data) here.
 	
 	return;
 }
 
 void StateEKF::ekf_fuse_acc(void) {
-	// TODO
+	int result = ekf_fuse_acc((const EKF_DATA_TYPE**)ekf_fuse_acc_arg, ekf_fuse_acc_res, 0, 0, 0);
+
+	if (result) {
+		// Update the state_est and cov_est matrices so that if we call another fuse function, they will be using the latest data
+		for (uint16_t i=0;i<EKF_STATE_SIZE;i++) state_est[i] = state_out[i];
+		for (uint16_t i=0;i<EKF_COVARIANCE_SIZE * EKF_COVARIANCE_SIZE;i++) cov_est[i] = cov_out[i];
+
+	} else {
+		mincopter.hal.console->printf("[EKF] Error in accelerometer fusion\r\n");
+		return;
+	}
+
+	return;
 }
 
 void StateEKF::ekf_fuse_mag(void) {
@@ -74,31 +90,38 @@ void StateEKF::update(void)
 	ekf_fuse_baro();
 #endif
 
-	// Run correction step
-	_result = ekf_correct((const EKF_DATA_TYPE**)ekf_correct_arg, ekf_correct_res, 0, 0, 0);
-
-
-
+	// After zero or more fusion steps, the latest state/covariance will be available in state_est and cov_est and we
+	// should update our internal state using these two matrices
+	
 	// Update internal state variables
 	
 	// Check that the norm is non-zero
-	float q_norm = safe_sqrt(sq(ekf_correct_res[0][6]) + sq(ekf_correct_res[0][7]) + sq(ekf_correct_res[0][8]) + sq(ekf_correct_res[0][9]));
+	float q_norm = safe_sqrt(sq(state_est[6]) + sq(state_est[7]) + sq(state_est[8]) + sq(state_est[9]));
 
-	if (q_norm > 1e-6) { 
-		ekf_correct_res[0][6] /= q_norm;
-		ekf_correct_res[0][7] /= q_norm;
-		ekf_correct_res[0][8] /= q_norm;
-		ekf_correct_res[0][9] /= q_norm;
+	if (q_norm != 0.0f) {
+		state_est[6] /= q_norm;
+		state_est[7] /= q_norm;
+		state_est[8] /= q_norm;
+		state_est[9] /= q_norm;
 	} else {
 		// TODO - Log that we have a zero quaternion (which likely indicates and error w EKF functions)
+		mincopter.hal.console->printf("[EKF] Zero-quaternion after update\r\n");
+		return;
 	}
 
+	// MCState maintains the following state variables that we need to update after every EKF run
+	//
+	// - x, position (3x float)
+	// - v, velocity (3x float)
+	// - q, quaternion (4x float)
+	// - euler angles (3x float)
+	
 	// Update MCState via _state variable - _result[0] is the state_out as (x,v,q)
 	data.attitude(
-			ekf_correct_res[0][6],
-			ekf_correct_res[0][7],
-			ekf_correct_res[0][8],
-			ekf_correct_res[0][9]);
+			state_est[6],
+			state_est[7],
+			state_est[8],
+			state_est[9]);
 
 	// Also update euler angles
 	data.attitude.to_euler(
@@ -107,13 +130,13 @@ void StateEKF::update(void)
 			&data.euler.z
 			);
 
-	data.position[0] = ekf_correct_res[0][0];
-	data.position[1] = ekf_correct_res[0][1];
-	data.position[2] = ekf_correct_res[0][2];
+	data.position[0] = state_est[0];
+	data.position[1] = state_est[1];
+	data.position[2] = state_est[2];
 
-	data.velocity[0] = ekf_correct_res[0][3];
-	data.velocity[1] = ekf_correct_res[0][4];
-	data.velocity[2] = ekf_correct_res[0][5];
+	data.velocity[0] = state_est[3];
+	data.velocity[1] = state_est[4];
+	data.velocity[2] = state_est[5];
 
 	return;
 }
@@ -122,47 +145,31 @@ void StateEKF::setup_ekf_args(void)
 {
 	// This function is run at each iteration of the EKF and reads the latest measurements from each of the sensors
 	// that are being fused on this timestep
+	//
+	// We need to retrieve the following readings ahead of our prediction and fusion/correction steps
+	//
+	// State: x
+	// State: v
+	// State: q
+	// Accelerometer Measurement
+	// Accelerometer Variance
+	// Gyrometer Measurement
+	// Gyrometer Variance
+	// Magnetometer Measurement
+	// Magnetometer Variance
+	// GPS Position
+	// GPS Velocity
+	// GPS Variances
+	// Barometer altitude estimate
+	// Barometer variance
+	//
+	//
+	// Some of the variances will be constant and other (like the GPS) will change between each update
 
 	// TODO Does our dt represent a gyrometer time or an accelerometer time?
 	// Read dt from gyrometer
 	dt = 0.01; // 100Hz approx.
-	
-	// Get w - latest gyrometer reading in rad/s
-	Vector3f gyro = mincopter.ins.get_gyro();
-	
-	// Get a - latest accel reading in m/s2
-	Vector3f accel = mincopter.ins.get_accel();
-	Vector3f accel_normalized = accel;
-	
-	accel_normalized.normalize();
-
-	/* NOTE TODO Our EKF is wrong as the functions expect a normalized acceleration vector but we actually need to integrate the
-	 * real acceleration (in m/s2). For now, to get the orientation working, we pass in the normalized vector to use as a
-	 * gravitational measurement, knowing that the pos/vel will not work */
-
-	a[0] = accel.x;
-	a[1] = accel.y;
-	a[2] = accel.z;
-
-	// NOTE TODO See above comment about rotations for gyro/accel for MPU6050
-	/*
-	a[0] = -accel_normalized.x;
-	a[1] = -accel_normalized.y;
-	a[2] = accel_normalized.z;
-	*/
-
-	// Get accel and gyro variances TODO These should not change and be retrieved during
-	// init from the sensor drivers
-	
-	/* 
-	var_gyro = 0.3*0.3;
-	var_accel = 0.5*0.5;
-	var_mag = 0.8*0.8;
-	*/
-	var_gyro = 0.01*0.01;
-	var_accel = 1000*1000;
-	var_mag = 0.01*0.01;
-	
+			   
 	// Get state (q,x,v) from _state
 	// TODO FIx this - should not really be using mcstate directly for state here - should be passed in from somewhere else
 	x[0] = data.position[0];
@@ -172,8 +179,25 @@ void StateEKF::setup_ekf_args(void)
 	v[0] = data.velocity[0];
 	v[1] = data.velocity[1];
 	v[2] = data.velocity[2];
+
+	q[0] = data.attitude[0];
+	q[1] = data.attitude[1];
+	q[2] = data.attitude[2];
+	q[3] = data.attitude[3];
 	
-	/* Correct step */
+	// Get latest gyrometer reading in rad/s
+	Vector3f gyro = mincopter.ins.get_gyro();
+	
+	// Get latest accel reading in m/s2
+	Vector3f accel = mincopter.ins.get_accel();
+
+	a[0] = accel.x;
+	a[1] = accel.y;
+	a[2] = accel.z;
+
+	w[0] = gyro.x;
+	w[1] = gyro.y;
+	w[2] = gyro.z;
 	
 	// Get m - latest magnetometer reading
 	Vector3f field = mincopter.compass.get_field();
@@ -184,9 +208,10 @@ void StateEKF::setup_ekf_args(void)
 	m[0] = field.x;
 	m[1] = field.y;
 	m[2] = field.z;
-	
-	// Get gps pos/vel/variances
-	// TODO I don't even think GPS is fused in the function call - need to check
+
+	var_gyro = 0.01*0.01;
+	var_accel = 1000*1000;
+	var_mag = 0.01*0.01;
 	
 
 	// TODO Check this calculation
@@ -194,21 +219,27 @@ void StateEKF::setup_ekf_args(void)
 	int32_t lat_offset = mincopter.g_gps->latitude - home.lat;
 	int32_t lon_offset = mincopter.g_gps->latitude - home.lng;
 
-	// The (very simple) model we are using is 1deg lat = 111.32km (north-south)
-	//
-	// For longitude, we do 
-
 	gps_pos[0] = (lat_offset*111320) / (1e7); // North (x)
 	gps_pos[1] = (lon_offset*40075000) * cos(mincopter.g_gps->latitude/1e7) / (1e7); // East (y)
-	gps_pos[2] = 0.0f;
+																					 
+	// Update altitude reading NOTE we need this in NED frame so we subtract the altitude_cm from the home alt as these are in ENU frame
+	gps_pos[2] = (home.alt - mincopter.g_gps->altitude_cm) / 100.0f;
 
-	gps_vel[0] = 0.0f;
-	gps_vel[1] = 0.0f;
-	gps_vel[2] = 0.0f;
+	Vector3f velocity_reading_gps = mincopter.g_gps->velocity_vector();
+
+	// Update velocity readings
+	gps_vel[0] = velocity_reading_gps.x;
+	gps_vel[1] = velocity_reading_gps.y;
+	gps_vel[2] = velocity_reading_gps.z;
 
 	var_gps_pos = 100;
 	var_gps_vel = 100;
-	
+
+	// Update altitude (barometer) reading
+	barometer_altitude = mincopter.barometer.get_altitude();
+
+	var_barometer = 0.1*0.1;
+
 	return;
 }
 
