@@ -114,12 +114,12 @@ class StateEKF : public MCState {
 			a,
 			&var_gyro,
 			&var_accel,
-			cov, 
+			cov_est,  /* NOTE We temporarily use cov_out here rather than create another (third) covariance matrix */
 			q,
 			x,
 			v};
 
-		EKF_DATA_TYPE* ekf_predict_res[2] = {state_est, cov_est};
+		EKF_DATA_TYPE* ekf_predict_res[2] = {state_out, cov_out};
 
 		// In debug modes, we can examine the kalman gain and the kalman error
 		EKF_DATA_TYPE vt[ EKF_FUSION_SIZE ];

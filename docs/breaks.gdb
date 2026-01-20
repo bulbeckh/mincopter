@@ -46,8 +46,11 @@ set print pretty on
 #break generic::GenericGZInterface::tick
 #break LQR_Controller::run
 
-break StateComplementary::update
-break init_home
+#break StateComplementary::update
+#break init_home
+
+
+break StateEKF::update
 
 #break MCState::init
 

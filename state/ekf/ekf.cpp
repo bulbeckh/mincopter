@@ -24,20 +24,32 @@ int _none_ekf_function(const EKF_DATA_TYPE** arg, EKF_DATA_TYPE** res, long long
 }
 
 void StateEKF::ekf_predict(void) {
+
+	// When we run ekf_predict, our last interaction should be either a fusion (in which case the cov_out and cov_est should
+	// be equal) or a previous call to ekf_predict. If that latter, we need to ensure that our covariance matrix that we are
+	// feeding in (which is confusingly re-using the cov_out variable) is correct
+	
 	// Run prediction step (last three args are real/int workspace sizes and memory index, which are all 0)
-	int result = ekf_predict((const EKF_DATA_TYPE**)ekf_predict_arg, ekf_predict_res, 0, 0, 0);
+	int result = ::ekf_predict((const EKF_DATA_TYPE**)ekf_predict_arg, ekf_predict_res, 0, 0, 0);
 	//int _result = _none_ekf_function((const EKF_DATA_TYPE**)ekf_predict_arg, ekf_predict_res, 0, 0, 0);\
 	
 	// After the prediction step, we have the state and covariance in state_est and cov_est. These are used as inputs
 	// to the fuse functions.
 	//
 	// If we are planning to fuse on different time steps, we should also update the mcstate representation (data) here.
+	if (result) {
+		for (uint16_t i=0;i<EKF_STATE_SIZE;i++) state_est[i] = state_out[i];
+		for (uint16_t i=0;i<EKF_COVARIANCE_SIZE * EKF_COVARIANCE_SIZE;i++) cov_est[i] = cov_out[i];
+	} else {
+		mincopter.hal.console->printf("[EKF] Error in ekf predict\r\n");
+		return;
+	}
 	
 	return;
 }
 
 void StateEKF::ekf_fuse_acc(void) {
-	int result = ekf_fuse_acc((const EKF_DATA_TYPE**)ekf_fuse_acc_arg, ekf_fuse_acc_res, 0, 0, 0);
+	int result = ::ekf_fuse_acc((const EKF_DATA_TYPE**)ekf_fuse_acc_arg, ekf_fuse_acc_res, 0, 0, 0);
 
 	if (result) {
 		// Update the state_est and cov_est matrices so that if we call another fuse function, they will be using the latest data
@@ -53,20 +65,73 @@ void StateEKF::ekf_fuse_acc(void) {
 }
 
 void StateEKF::ekf_fuse_mag(void) {
-	// TODO
+	int result = ::ekf_fuse_mag((const EKF_DATA_TYPE**)ekf_fuse_mag_arg, ekf_fuse_mag_res, 0, 0, 0);
+
+	if (result) {
+		// Update the state_est and cov_est matrices so that if we call another fuse function, they will be using the latest data
+		for (uint16_t i=0;i<EKF_STATE_SIZE;i++) state_est[i] = state_out[i];
+		for (uint16_t i=0;i<EKF_COVARIANCE_SIZE * EKF_COVARIANCE_SIZE;i++) cov_est[i] = cov_out[i];
+
+	} else {
+		mincopter.hal.console->printf("[EKF] Error in mag fusion\r\n");
+		return;
+	}
+
+	return;
 }
 
 void StateEKF::ekf_fuse_gps(void) {
-	// TODO
+	int result = ::ekf_fuse_gps((const EKF_DATA_TYPE**)ekf_fuse_gps_arg, ekf_fuse_gps_res, 0, 0, 0);
+
+	if (result) {
+		// Update the state_est and cov_est matrices so that if we call another fuse function, they will be using the latest data
+		for (uint16_t i=0;i<EKF_STATE_SIZE;i++) state_est[i] = state_out[i];
+		for (uint16_t i=0;i<EKF_COVARIANCE_SIZE * EKF_COVARIANCE_SIZE;i++) cov_est[i] = cov_out[i];
+
+	} else {
+		mincopter.hal.console->printf("[EKF] Error in gps fusion\r\n");
+		return;
+	}
+
+	return;
 }
 
 void StateEKF::ekf_fuse_baro(void) {
-	// TODO
+	int result = ::ekf_fuse_baro((const EKF_DATA_TYPE**)ekf_fuse_baro_arg, ekf_fuse_baro_res, 0, 0, 0);
+
+	if (result) {
+		// Update the state_est and cov_est matrices so that if we call another fuse function, they will be using the latest data
+		for (uint16_t i=0;i<EKF_STATE_SIZE;i++) state_est[i] = state_out[i];
+		for (uint16_t i=0;i<EKF_COVARIANCE_SIZE * EKF_COVARIANCE_SIZE;i++) cov_est[i] = cov_out[i];
+
+	} else {
+		mincopter.hal.console->printf("[EKF] Error in baro fusion\r\n");
+		return;
+	}
+
+	return;
 }
 
 
 void StateEKF::update(void)
 {
+
+	// TODO Remove this for something else
+	static uint16_t _state_counter=0;
+	if (_state_counter<20) {
+
+		data.euler_rates.x = 0.0f;
+		data.euler_rates.y = 0.0f;
+		data.euler_rates.z = 0.0f;
+
+		// No roll/pitch/yaw
+		data.attitude.from_euler(0.0f, 0.0f, 0.0f);
+		data.euler = Vector3f(0.0f, 0.0f, 0.0f);
+
+		_state_counter++;
+		return;
+	}
+
 	// This is called from the main loop at ~100Hz
 	
 	// Prepare the predict and correct variable arrays with sensor readings and previous estimated state from _state
@@ -259,9 +324,11 @@ void StateEKF::reset(void)
 	for (uint8_t i=0;i<10;i++) {
 		for (uint8_t j=0;j<10;j++) {
 			if (i==j) {
-				cov[i*10+j] = 1.0f;
+				cov_out[i*10+j] = 1.0f;
+				cov_est[i*10+j] = 1.0f;
 			} else {
-				cov[i*10+j] = 0.0f;
+				cov_out[i*10+j] = 0.0f;
+				cov_est[i*10+j] = 0.0f;
 			}
 		}
 	}
