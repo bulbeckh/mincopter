@@ -20,11 +20,11 @@ elseif(MC_STATE_TYPE STREQUAL "MADGWICK")
 elseif(MC_STATE_TYPE STREQUAL "EKF")
 	list(APPEND MC_LIBS_STATE
 		${CMAKE_SOURCE_DIR}/state/ekf/ekf.cpp
-		${CMAKE_SOURCE_DIR}/state/ekf/ekf_predict.c
-		${CMAKE_SOURCE_DIR}/state/ekf/ekf_fuse_acc.c
-		${CMAKE_SOURCE_DIR}/state/ekf/ekf_fuse_baro.c
-		${CMAKE_SOURCE_DIR}/state/ekf/ekf_fuse_gps.c
-		${CMAKE_SOURCE_DIR}/state/ekf/ekf_fuse_mag.c
+		${CMAKE_SOURCE_DIR}/state/ekf/ekf_predict_10state.c
+		${CMAKE_SOURCE_DIR}/state/ekf/ekf_fuse_acc_10state.c
+		${CMAKE_SOURCE_DIR}/state/ekf/ekf_fuse_baro_10state.c
+		${CMAKE_SOURCE_DIR}/state/ekf/ekf_fuse_gps_10state.c
+		${CMAKE_SOURCE_DIR}/state/ekf/ekf_fuse_mag_10state.c
 		#${CMAKE_SOURCE_DIR}/state/ekf/ekf_correct.c
 		#${CMAKE_SOURCE_DIR}/state/ekf/ekf_predict_mx.c
 		#${CMAKE_SOURCE_DIR}/state/ekf/ekf_correct_mx.c

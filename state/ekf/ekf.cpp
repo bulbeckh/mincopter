@@ -37,7 +37,7 @@ void StateEKF::ekf_predict(void) {
 	// to the fuse functions.
 	//
 	// If we are planning to fuse on different time steps, we should also update the mcstate representation (data) here.
-	if (result) {
+	if (!result) {
 		for (uint16_t i=0;i<EKF_STATE_SIZE;i++) state_est[i] = state_out[i];
 		for (uint16_t i=0;i<EKF_COVARIANCE_SIZE * EKF_COVARIANCE_SIZE;i++) cov_est[i] = cov_out[i];
 	} else {
@@ -48,10 +48,11 @@ void StateEKF::ekf_predict(void) {
 	return;
 }
 
+#if EKF_FUSE_ACC
 void StateEKF::ekf_fuse_acc(void) {
 	int result = ::ekf_fuse_acc((const EKF_DATA_TYPE**)ekf_fuse_acc_arg, ekf_fuse_acc_res, 0, 0, 0);
 
-	if (result) {
+	if (!result) {
 		// Update the state_est and cov_est matrices so that if we call another fuse function, they will be using the latest data
 		for (uint16_t i=0;i<EKF_STATE_SIZE;i++) state_est[i] = state_out[i];
 		for (uint16_t i=0;i<EKF_COVARIANCE_SIZE * EKF_COVARIANCE_SIZE;i++) cov_est[i] = cov_out[i];
@@ -63,11 +64,13 @@ void StateEKF::ekf_fuse_acc(void) {
 
 	return;
 }
+#endif
 
+#if EKF_FUSE_MAG
 void StateEKF::ekf_fuse_mag(void) {
 	int result = ::ekf_fuse_mag((const EKF_DATA_TYPE**)ekf_fuse_mag_arg, ekf_fuse_mag_res, 0, 0, 0);
 
-	if (result) {
+	if (!result) {
 		// Update the state_est and cov_est matrices so that if we call another fuse function, they will be using the latest data
 		for (uint16_t i=0;i<EKF_STATE_SIZE;i++) state_est[i] = state_out[i];
 		for (uint16_t i=0;i<EKF_COVARIANCE_SIZE * EKF_COVARIANCE_SIZE;i++) cov_est[i] = cov_out[i];
@@ -79,11 +82,13 @@ void StateEKF::ekf_fuse_mag(void) {
 
 	return;
 }
+#endif
 
+#if EKF_FUSE_GPS
 void StateEKF::ekf_fuse_gps(void) {
 	int result = ::ekf_fuse_gps((const EKF_DATA_TYPE**)ekf_fuse_gps_arg, ekf_fuse_gps_res, 0, 0, 0);
 
-	if (result) {
+	if (!result) {
 		// Update the state_est and cov_est matrices so that if we call another fuse function, they will be using the latest data
 		for (uint16_t i=0;i<EKF_STATE_SIZE;i++) state_est[i] = state_out[i];
 		for (uint16_t i=0;i<EKF_COVARIANCE_SIZE * EKF_COVARIANCE_SIZE;i++) cov_est[i] = cov_out[i];
@@ -95,11 +100,13 @@ void StateEKF::ekf_fuse_gps(void) {
 
 	return;
 }
+#endif
 
+#if EKF_FUSE_BARO
 void StateEKF::ekf_fuse_baro(void) {
 	int result = ::ekf_fuse_baro((const EKF_DATA_TYPE**)ekf_fuse_baro_arg, ekf_fuse_baro_res, 0, 0, 0);
 
-	if (result) {
+	if (!result) {
 		// Update the state_est and cov_est matrices so that if we call another fuse function, they will be using the latest data
 		for (uint16_t i=0;i<EKF_STATE_SIZE;i++) state_est[i] = state_out[i];
 		for (uint16_t i=0;i<EKF_COVARIANCE_SIZE * EKF_COVARIANCE_SIZE;i++) cov_est[i] = cov_out[i];
@@ -111,7 +118,7 @@ void StateEKF::ekf_fuse_baro(void) {
 
 	return;
 }
-
+#endif
 
 void StateEKF::update(void)
 {
@@ -275,9 +282,9 @@ void StateEKF::setup_ekf_args(void)
 	m[2] = field.z;
 
 	var_gyro = 0.01*0.01;
-	var_accel = 1000*1000;
+	//var_accel = 1000*1000;
+	var_accel = 0.01*0.01;
 	var_mag = 0.01*0.01;
-	
 
 	// TODO Check this calculation
 	// GPS delta from home location in centi-degrees (deg*1e7)

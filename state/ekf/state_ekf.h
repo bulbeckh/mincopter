@@ -29,22 +29,22 @@
 
 #include "mcstate_interface.h"
 
-#define EKF_DATA_TYPE float
+#define EKF_DATA_TYPE double
 
 /* @brief The size of our state vector */
-#define EKF_STATE_SIZE 16
+#define EKF_STATE_SIZE 10
 
 /* @brief The size of either axis of our (square) covariance matrix */
-#define EKF_COVARIANCE_SIZE 16
+#define EKF_COVARIANCE_SIZE 10
 
 /* @brief The size of the fusion (z) vector. NOTE Even though we fuse seperately,
  * we can re-use the vt and kgain matrices */
 #define EKF_FUSION_SIZE 13
 
-#define EKF_FUSE_ACC 1
-#define EKF_FUSE_MAG 1
-#define EKF_FUSE_GPS 1
-#define EKF_FUSE_BARO 1
+#define EKF_FUSE_ACC 0
+#define EKF_FUSE_MAG 0
+#define EKF_FUSE_GPS 0
+#define EKF_FUSE_BARO 0
 
 class StateEKF : public MCState {
 	public:
