@@ -240,6 +240,9 @@ bool GenericGZInterface::recv_state_input(void)
 
 	last_sensor_state = *pkt;
 
+	// Set our valid flag, indicating that we have received data
+	valid = true;
+
     return true;
 }
 

@@ -14,34 +14,33 @@ void AP_GPS_Sim::init(AP_HAL::UARTDriver* /* unused */, enum GPS_Engine_Setting 
 
 bool AP_GPS_Sim::read(void)
 {
-	// Retrieve sensor readings from GZ interface
-	// TODO Retrieve directly
-	//hal.sim->update_gps_position(latitude, longitude, altitude_cm);
-	//hal.sim->update_gps_velocities(_vel_north, _vel_east, _vel_down);
+	// Update our GPS data if we have a valid read
+	if (hal.sim->valid) {
 
-	// Get latitude and longitude readings
-	double sim_lat = hal.sim->last_sensor_state.lat_deg;
-	double sim_lon = hal.sim->last_sensor_state.lng_deg;
+		// Get latitude and longitude readings
+		double sim_lat = hal.sim->last_sensor_state.lat_deg;
+		double sim_lon = hal.sim->last_sensor_state.lng_deg;
 
-	latitude = (int32_t)(sim_lat*1e7);
-	longitude = (int32_t)(sim_lon*1e7);
-	altitude_cm = (int32_t)(hal.sim->last_sensor_state.alt_met*1e2);
+		latitude = (int32_t)(sim_lat*1e7);
+		longitude = (int32_t)(sim_lon*1e7);
+		altitude_cm = (int32_t)(hal.sim->last_sensor_state.alt_met*1e2);
 
-	// Velocities in cm/s from GPS
-	_vel_north = (int32_t)(hal.sim->last_sensor_state.vel_north*1e2);
-	_vel_east = (int32_t)(hal.sim->last_sensor_state.vel_east*1e2);
-	_vel_down = (int32_t)(-1e2*hal.sim->last_sensor_state.vel_up);
-	
-	// Update intermediate variables
-	num_sats = 10;
-	hdop = 200;
-	
-	_last_gps_time = hal.scheduler->millis();
+		// Velocities in cm/s from GPS
+		_vel_north = (int32_t)(hal.sim->last_sensor_state.vel_north*1e2);
+		_vel_east = (int32_t)(hal.sim->last_sensor_state.vel_east*1e2);
+		_vel_down = (int32_t)(-1e2*hal.sim->last_sensor_state.vel_up);
+		
+		// Update intermediate variables
+		num_sats = 10;
+		hdop = 200;
+		
+		_last_gps_time = hal.scheduler->millis();
 
-	/* NOTE Wrong place to to do this but will fix other issues */
-	fix = Fix_Status::FIX_3D; 
+		/* NOTE Wrong place to to do this but will fix other issues */
+		fix = Fix_Status::FIX_3D; 
 
-    _have_raw_velocity = true;
+		_have_raw_velocity = true;
+	}
 
 	return true;
 }

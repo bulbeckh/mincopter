@@ -43,7 +43,7 @@
 
 #define EKF_FUSE_ACC 0
 #define EKF_FUSE_MAG 0
-#define EKF_FUSE_GPS 0
+#define EKF_FUSE_GPS 1
 #define EKF_FUSE_BARO 0
 
 class StateEKF : public MCState {
@@ -54,7 +54,8 @@ class StateEKF : public MCState {
 		/* @brief Prepare correct and predict arguments vectors */
 		void setup_ekf_args(void);
 
-		/* @brief Internal reset method */
+	public:
+		/* @brief Trigger a full reset of the EKF (including states and covariance) */
 		void reset(void);
 
 	private:

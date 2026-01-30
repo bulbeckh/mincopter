@@ -102,6 +102,9 @@ class AP_HAL::Sim
 		int16_t motor_out[4];
 		float control_input[4];
 
+		/* @brief Flag for whether we can consider or data valid yet (i.e. a first read has been done) */
+		bool valid{false};
+
 	public:
 		
 		/* **Simulation Control Methods**

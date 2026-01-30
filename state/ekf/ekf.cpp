@@ -3,6 +3,7 @@
 #include "state_ekf.h"
 
 #include <AP_Math.h>
+#include <AP_GPS.h>
 
 #include "mcinstance.h"
 extern MCInstance mincopter;
@@ -155,7 +156,10 @@ void StateEKF::update(void)
 #endif
 
 #if EKF_FUSE_GPS
-	ekf_fuse_gps();
+	// We only fuse GPS when we have a good fix and we have set our home location.
+	if (home_set && mincopter.g_gps->status() == GPS::GPS_Status::GPS_OK_FIX_3D) {
+		ekf_fuse_gps();
+	}
 #endif
 
 #if EKF_FUSE_BARO
@@ -201,6 +205,9 @@ void StateEKF::update(void)
 			&data.euler.y,
 			&data.euler.z
 			);
+
+	// NOTE Euler rates are taken directly from gyro
+	data.euler_rates = mincopter.ins.get_gyro();
 
 	data.position[0] = state_est[0];
 	data.position[1] = state_est[1];
@@ -286,13 +293,28 @@ void StateEKF::setup_ekf_args(void)
 	var_accel = 0.01*0.01;
 	var_mag = 0.01*0.01;
 
+	// Before we calculate GPS position and velocity, we need to ensure we have set our home position
+	
+	if (!home_set && mincopter.g_gps->status() == GPS::GPS_Status::GPS_OK_FIX_3D) {
+		// Initialise our home position if we have a GPS fix and we have not yet set home
+		home.id         = 0; 							// previously MAV_CMD_NAV_WAYPOINT
+		home.lng        = mincopter.g_gps->longitude;   // Lon * 10**7
+		home.lat        = mincopter.g_gps->latitude;    // Lat * 10**7
+		home.alt        = mincopter.g_gps->altitude_cm; // Home is always 0
+
+		home_set = true;
+
+		mincopter.hal.console->printf("Home location set\r\n");
+	}
+
 	// TODO Check this calculation
 	// GPS delta from home location in centi-degrees (deg*1e7)
 	int32_t lat_offset = mincopter.g_gps->latitude - home.lat;
-	int32_t lon_offset = mincopter.g_gps->latitude - home.lng;
+	int32_t lon_offset = mincopter.g_gps->longitude - home.lng;
 
-	gps_pos[0] = (lat_offset*111320) / (1e7); // North (x)
-	gps_pos[1] = (lon_offset*40075000) * cos(mincopter.g_gps->latitude/1e7) / (1e7); // East (y)
+	gps_pos[0] = (lat_offset*111320) / (1e7f); // North (x)
+	//gps_pos[1] = (lon_offset*40075000) * cos(mincopter.g_gps->latitude/1e7) / (1e7); // East (y)
+	gps_pos[1] = 40075000*(lon_offset/1e7f) * cos(M_PI_F*(mincopter.g_gps->latitude/1e7f)/180.0) / (360.0); // East (y)
 																					 
 	// Update altitude reading NOTE we need this in NED frame so we subtract the altitude_cm from the home alt as these are in ENU frame
 	gps_pos[2] = (home.alt - mincopter.g_gps->altitude_cm) / 100.0f;
@@ -304,8 +326,16 @@ void StateEKF::setup_ekf_args(void)
 	gps_vel[1] = velocity_reading_gps.y;
 	gps_vel[2] = velocity_reading_gps.z;
 
-	var_gps_pos = 100;
-	var_gps_vel = 100;
+	var_gps_pos = 1;
+	var_gps_vel = 1;
+
+	// TODO Debug
+	if (false && home_set) {
+		mincopter.hal.console->printf("GPS pos/vel est: (%f,%f,%f), (%f,%f,%f)\r\n", gps_pos[0], gps_pos[1], gps_pos[2], gps_vel[0], gps_vel[1], gps_vel[2]);
+		mincopter.hal.console->printf("State est      : (%f,%f,%f), (%f,%f,%f)\r\n", data.position[0], data.position[1], data.position[2], data.velocity[0], data.velocity[1], data.velocity[2]);
+		mincopter.hal.console->printf("Home			  : %d, %d, %d\r\n", home.lat, home.lng, home.alt);
+		mincopter.hal.console->printf("lat/lng		  : %d, %d\r\n", mincopter.g_gps->latitude, mincopter.g_gps->longitude);
+	}
 
 	// Update altitude (barometer) reading
 	barometer_altitude = mincopter.barometer.get_altitude();

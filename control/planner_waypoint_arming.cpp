@@ -27,8 +27,9 @@ void WP_Planner::init_arm_motors(void)
     if (mincopter.hal.uartC != NULL) mincopter.hal.uartC->set_blocking_writes(false);
     if (mincopter.hal.uartD != NULL) mincopter.hal.uartD->set_blocking_writes(false);
 
+	// TODO NOTE have moved home initialisation to state
     // Set home position
-    init_home();
+    //init_home();
 
 	// TODO This should be part of a different interface - the one that pushes the 
     //calc_distance_and_bearing();
