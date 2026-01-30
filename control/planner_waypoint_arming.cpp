@@ -39,8 +39,8 @@ void WP_Planner::init_arm_motors(void)
 
 	// TODO Add reset of PID/CSC controller I terms (and any other persistent state) here
 
-	// TODO Maybe we should move this to the **init_home** function
-	// Set the current pressure/temperature as the ground pressure/ground temperature
+	// Set the current pressure/temperature as the ground pressure/ground temperature. Will also mark the barometer
+	// as calibrated and allow for the EKF/state to fuse barometer measurements.
 	mincopter.barometer.update_calibration();
 
 	// TODO We don't even use the motor or rc_* interfaces anymore. The mixer sends the correct control signal directly to the

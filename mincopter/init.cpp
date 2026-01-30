@@ -126,18 +126,12 @@ void init_ardupilot(void)
 	// NOTE TODO Check whether the compass init was successful
     mincopter.compass.init();
 	mincopter.hal.console->printf_P(PSTR("[INIT] Compass initialised\n"));
-	
-    while (!mincopter.barometer.healthy) {
-        // the barometer becomes healthy when we get the first
-        // HIL_STATE message
-        //gcs_send_text_P(SEVERITY_LOW, PSTR("Waiting for first HIL_STATE message"));
-        mincopter.hal.scheduler->delay(1000);
-    }
 
+	// TODO NOTE We have removed the barometer calibration and replaced with the update_calibration method called by the planner upon arming
 	// TODO Part of this function sets the ground pressure/temperature which should really be done upon arming
 	// Also in simulation, this functions hangs as we do not have a reading from gazebo before initialisation
 #ifndef TARGET_ARCH_LINUX
-	mincopter.barometer.calibrate();
+	//mincopter.barometer.calibrate();
 #endif
 
 	// TODO Why is ins initialised after MCState??

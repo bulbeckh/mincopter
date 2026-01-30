@@ -44,7 +44,7 @@
 #define EKF_FUSE_ACC 0
 #define EKF_FUSE_MAG 0
 #define EKF_FUSE_GPS 1
-#define EKF_FUSE_BARO 0
+#define EKF_FUSE_BARO 1
 
 class StateEKF : public MCState {
 	public:

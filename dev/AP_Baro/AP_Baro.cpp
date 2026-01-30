@@ -124,6 +124,10 @@ void AP_Baro::calibrate()
 
     _ground_pressure = ground_pressure;
     _ground_temperature = ground_temperature;
+
+	calibrate_flag = true;
+
+	return;
 }
 
 /**
@@ -131,10 +135,12 @@ void AP_Baro::calibrate()
    this updates the baro ground calibration to the current values. It
    can be used before arming to keep the baro well calibrated
 */
-void AP_Baro::update_calibration()
+void AP_Baro::update_calibration(void)
 {
     _ground_pressure = get_pressure();
     _ground_temperature = get_temperature();
+
+	calibrate_flag = true;
 }
 
 // NOTE TODO This is the calculation used to estimate height from a barometer/pressure reading. Keeping for reference

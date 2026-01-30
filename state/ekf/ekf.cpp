@@ -145,7 +145,12 @@ void StateEKF::update(void)
 	// Prepare the predict and correct variable arrays with sensor readings and previous estimated state from _state
 	setup_ekf_args();
 
-	ekf_predict();
+	// Predict only when we have valid accelerometer and gyrometer readings
+	if (mincopter.ins.get_gyro_health() && mincopter.ins.get_accel_health()) {
+		ekf_predict();
+	} else {
+		return;
+	}
 
 #if EKF_FUSE_ACC
 	ekf_fuse_acc();
@@ -163,7 +168,10 @@ void StateEKF::update(void)
 #endif
 
 #if EKF_FUSE_BARO
-	ekf_fuse_baro();
+	// Fuse barometer measurements if we have a valid barometer reading
+	if (mincopter.barometer.healthy && mincopter.barometer.calibrated()) {
+		ekf_fuse_baro();
+	}
 #endif
 
 	// After zero or more fusion steps, the latest state/covariance will be available in state_est and cov_est and we
@@ -326,6 +334,7 @@ void StateEKF::setup_ekf_args(void)
 	gps_vel[1] = velocity_reading_gps.y;
 	gps_vel[2] = velocity_reading_gps.z;
 
+	// TODO Change to actual GPS variances
 	var_gps_pos = 1;
 	var_gps_vel = 1;
 
@@ -337,9 +346,8 @@ void StateEKF::setup_ekf_args(void)
 		mincopter.hal.console->printf("lat/lng		  : %d, %d\r\n", mincopter.g_gps->latitude, mincopter.g_gps->longitude);
 	}
 
-	// Update altitude (barometer) reading
-	barometer_altitude = mincopter.barometer.get_altitude();
-
+	// Update altitude (barometer) reading. NOTE Our barometer gives a reading in ENU so we need to convert to NED
+	barometer_altitude = -1*mincopter.barometer.get_altitude();
 	var_barometer = 0.1*0.1;
 
 	return;

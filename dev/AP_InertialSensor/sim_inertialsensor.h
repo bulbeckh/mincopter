@@ -45,7 +45,7 @@ class AP_InertialSensor_Sim : public AP_InertialSensor
 		AP_InertialSensor_Sim();
 
 		/* @brief IMU update method. Called at 100Hz */
-		bool update() override;
+		bool update(void) override;
 
 		/* @brief Returns gyro drift rate. Have used the MPU6000 gyro drift rate for reference */
 		float get_gyro_drift_rate() override;
@@ -61,14 +61,15 @@ class AP_InertialSensor_Sim : public AP_InertialSensor
 		/* @brief Retrieve number of errors in INS measurement */
 		uint16_t error_count(void) const { return 0; }
 
+		// TODO Either remove or move into parent class
 		/* @brief Check if IMU readings are accurate */
 		bool healthy(void) const { return true; }
 
 		/* @brief Get Gyro health. Always true for simulation */
-		bool get_gyro_health(void) const { return true; }
+		bool get_gyro_health(void) const override;
 
 		/* @brief Get accel health. Always true for simulation */
-		bool get_accel_health(void) const { return true; }
+		bool get_accel_health(void) const override;
 
 		/* @brief Initialise sensor. Does nothing for simulated IMU */
 		uint16_t _init_sensor( Sample_rate sample_rate ) override;
@@ -76,6 +77,9 @@ class AP_InertialSensor_Sim : public AP_InertialSensor
 		uint32_t _delta_time_usec;
 		uint32_t _last_update_ms;
 
+	private:
+		/* @brief Used to determine if we have received a reading for the first time */
+		bool valid_reading{false};
 
 };
 

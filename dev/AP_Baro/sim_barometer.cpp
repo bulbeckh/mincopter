@@ -10,8 +10,6 @@ extern const AP_HAL::HAL& hal;
 
 bool AP_Baro_Sim::init()
 {
-    healthy = true;
-	
 	/* Non-zero starting pressure so that the calibrate routine doesn't trigger an error.
 	 * This is the simulated pressure as reported by the GZ sensor barometer. */
 	pressure_pa = 101322.6;
@@ -21,34 +19,28 @@ bool AP_Baro_Sim::init()
 
 void AP_Baro_Sim::read(void)
 {
+	if (hal.sim->valid) {
 
-	_last_update = hal.scheduler->millis();
+		_last_update = hal.scheduler->millis();
 
-	// TODO Retrieve from data member directly
-	//hal.sim->get_barometer_pressure(pressure_pa);
+		// NOTE Narrowing conversion from double to float
+		// Get pressure reading from sim
+		pressure_pa = hal.sim->last_sensor_state.pressure;
 
-	// NOTE Narrowing conversion from double to float
-	// Get pressure reading from sim
-	pressure_pa = hal.sim->last_sensor_state.pressure;
+		temperature_degc = 26;
 
-	temperature_degc = 26;
-
-	// Log read value
-	//float baro_alt = mincopter.barometer.get_altitude();
-	// TODO If we want altitude here - then get from mcstate
-	//float baro_alt = 0.0f;
-
-	//simlog.write_barometer_state(temperature_degc, pressure_pa, baro_alt);
+		healthy = true;
+	}
 
     return;
 }
 
-float AP_Baro_Sim::get_pressure()
+float AP_Baro_Sim::get_pressure(void)
 {
     return pressure_pa;
 }
 
-float AP_Baro_Sim::get_temperature()
+float AP_Baro_Sim::get_temperature(void)
 {
     return temperature_degc;
 }

@@ -15,7 +15,7 @@ class AP_Baro
 		{ }
 
 		/* @brief Validity of current barometer readings */
-		bool healthy;
+		bool healthy{false};
 
 		/* @brief Initialisation method of barometer */
 		virtual bool init(void) = 0;
@@ -59,9 +59,14 @@ class AP_Baro
 		/* @brief Calculate current altitude */
 		float get_altitude(void);
 
+		bool calibrated(void) { return calibrate_flag; }
+
 	protected:
 		/* @brief Time of last barometer read (in ms) */
 		uint32_t _last_update;
+
+		/* @brief Flag for whether we have run the barometer calibration */
+		bool calibrate_flag{false};
 
 	private:
 		// Altitude variables
@@ -69,7 +74,6 @@ class AP_Baro
 		uint32_t _last_altitude_t;
 		float _altitude;
 		float _alt_offset;
-
 
 		/* @brief Temperature reading at ground (set during arming) */
 		float _ground_temperature;
