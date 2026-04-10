@@ -152,12 +152,34 @@ void StateEKF::update(void)
 		return;
 	}
 
+	// TODO The accelerometer fusion needs a lot of refining.
+	// 1. Need to use a different accelerometer variance for the fusion.
+	// 2. Ideally we use both the derivative of GPS velocity and the accelerometer measurement norm to determine if we
+	// are accelerating (and hence unable to fuse acc).
+	// 3. A variance of 0.5 away from the acc norm is still too large.
+	//
+	// NOTE Can test these by flying at constant velocity and determining what the accelerometer reading and roll/pitch
+	// are during this mode of flight.
+
+	// We fuse accelerometer data and magnetometer data to correct the orientation, but only when we are not accelerating
+	EKF_DATA_TYPE a_norm = safe_sqrt(sq(a[0]) + sq(a[1]) + sq(a[2]));
+
+	bool do_fuse_acc = true;
+	if (abs(a_norm - 9.81f) >= 0.5) {
+		do_fuse_acc = false;
+	}
+
 #if EKF_FUSE_ACC
-	ekf_fuse_acc();
+	if (do_fuse_acc) {
+		mincopter.hal.console->printf("Fusing acc: anorm=%f\r\n", a_norm);
+		ekf_fuse_acc();
+	}
 #endif
 
 #if EKF_FUSE_MAG
-	ekf_fuse_mag();
+	if (do_fuse_acc && mincopter.compass.healthy()) {
+		ekf_fuse_mag();
+	}
 #endif
 
 #if EKF_FUSE_GPS
@@ -295,6 +317,8 @@ void StateEKF::setup_ekf_args(void)
 	m[0] = field.x;
 	m[1] = field.y;
 	m[2] = field.z;
+
+	if (false && mincopter.compass.healthy()) mincopter.hal.console->printf("After healthy, field reading: %f,%f,%f\r\n", m[0], m[1], m[2]);
 
 	var_gyro = 0.01*0.01;
 	//var_accel = 1000*1000;

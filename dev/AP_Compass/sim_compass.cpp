@@ -8,33 +8,38 @@ extern const AP_HAL::HAL& hal;
 
 void AP_Compass_Sim::accumulate(void)
 {
-	// Called at 50z
-	// TODO This should be calling the gz_interface to retrieve magnetometer values
-	
-	// TODO Check that the units used here are correct - I believe currently GZ is using gauss for magnetic
-	// field readings which is not necessarily the units we chose for compass readings in MinCopter
-	
-	// Read latest field into temporary vector
-	// TODO Downcast from double to float
-	Vector3f temp_field(
-			hal.sim->last_sensor_state.field_x,
-			hal.sim->last_sensor_state.field_y,
-			hal.sim->last_sensor_state.field_z
-			);
 
-	/* Currently, our Gazebo sim is setup so that our compass and imu are rigidly attached to body frame 
-	 * which at the simulation start has x point north, y point left (west) and z up. We negate y and z
-	 * to rotate into NED frame */
+	if (hal.sim->valid) {
+		// Called at 50z
+		// TODO This should be calling the gz_interface to retrieve magnetometer values
+		
+		// TODO Check that the units used here are correct - I believe currently GZ is using gauss for magnetic
+		// field readings which is not necessarily the units we chose for compass readings in MinCopter
+		
+		// Read latest field into temporary vector
+		// TODO Downcast from double to float
+		Vector3f temp_field(
+				hal.sim->last_sensor_state.field_x,
+				hal.sim->last_sensor_state.field_y,
+				hal.sim->last_sensor_state.field_z
+				);
 
-	// Rotate into NED frame
-	/*
-	temp_field.y *= -1;
-	temp_field.z *= -1;
-	*/
+		/* Currently, our Gazebo sim is setup so that our compass and imu are rigidly attached to body frame 
+		 * which at the simulation start has x point north, y point left (west) and z up. We negate y and z
+		 * to rotate into NED frame */
 
-	// Add to the accumulated field
-	acc_field += temp_field;
-	acc_samples += 1;
+		// Rotate into NED frame
+		/*
+		temp_field.y *= -1;
+		temp_field.z *= -1;
+		*/
+
+		// Add to the accumulated field
+		acc_field += temp_field;
+		acc_samples += 1;
+
+		_healthy = true;
+	}
 
 	return;
 }
@@ -42,8 +47,6 @@ void AP_Compass_Sim::accumulate(void)
 bool AP_Compass_Sim::init(void)
 {
 	// perform an initial read
-	_healthy = true;
-
 	read();
 
   	return true;
@@ -76,7 +79,7 @@ bool AP_Compass_Sim::read(void)
 		acc_field.zero();
 		acc_samples = 0;
 	} else {
-		// TODO Report error with compass read/accumulate
+		hal.console->printf("Compass - no samples available. Did not read\r\n");
 		return false;
 	}
 
