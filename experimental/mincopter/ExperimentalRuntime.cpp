@@ -24,6 +24,7 @@ ExperimentalRuntime::ExperimentalRuntime(
       gps_task_context_(nullptr),
       storage_task_context_(nullptr),
       estimator_task_context_{hal_, channels_, config_.estimator, nullptr, {}},
+      heartbeat_task_context_{hal_, config_.heartbeat, nullptr, {}},
       hal_initialized_(false),
       runtime_assembled_(false),
       tasks_created_(false) {}
@@ -41,11 +42,8 @@ SensorChannels &ExperimentalRuntime::channels() {
 }
 
 bool ExperimentalRuntime::init_hal() {
-    // The concrete STM32 backend will eventually apply clock, GPIO, peripheral,
-    // and kernel setup here. For now the runtime just establishes the phase
-    // boundary before device and task creation.
-    hal_initialized_ = true;
-    return true;
+    hal_initialized_ = (hal_.init() == mc_rtos_hal::Status::Ok);
+    return hal_initialized_;
 }
 
 bool ExperimentalRuntime::assemble_runtime() {
@@ -166,6 +164,10 @@ bool ExperimentalRuntime::create_tasks() {
     }
 
     ok = ok && EstimatorTask::create(estimator_task_context_);
+
+    if (config_.heartbeat.enabled) {
+        ok = ok && HeartbeatTask::create(heartbeat_task_context_);
+    }
 
     tasks_created_ = ok;
     return ok;

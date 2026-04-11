@@ -1,11 +1,11 @@
 #include <experimental/mincopter/init.h>
 #include <experimental/mincopter/RuntimeAssembly.h>
 
-#include <arm/stm32/hal.h>
+#include <experimental_platform_hal.h>
 
 namespace {
 
-stm32::Stm32Hal hal;
+experimental_platform::Hal hal;
 experimental_mincopter::RuntimeAssembly assembly =
     experimental_mincopter::assemble_runtime_components(hal);
 experimental_mincopter::ExperimentalRuntime runtime(

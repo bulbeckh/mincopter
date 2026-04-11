@@ -103,6 +103,13 @@ RuntimeConfig make_runtime_config() {
     config.estimator.priority = mc_rtos_hal::TaskPriority::High;
     config.estimator.stack_words = 768;
 
+    config.heartbeat.enabled = experimental_build_config::heartbeat::enabled;
+    config.heartbeat.uart_index = static_cast<size_t>(experimental_build_config::heartbeat::uart_index);
+    config.heartbeat.baud_rate = to_uint32(experimental_build_config::heartbeat::baud);
+    config.heartbeat.period_ms = 1000;
+    config.heartbeat.priority = mc_rtos_hal::TaskPriority::Lowest;
+    config.heartbeat.stack_words = 256;
+
     return config;
 }
 

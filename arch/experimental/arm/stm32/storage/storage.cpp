@@ -1,4 +1,4 @@
-#include <arm/stm32/storage.h>
+#include <arm/stm32/storage/storage.h>
 
 namespace stm32 {
 

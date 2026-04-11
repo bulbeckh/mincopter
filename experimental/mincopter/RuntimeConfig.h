@@ -35,6 +35,15 @@ struct EstimatorTaskSchedule {
     uint16_t stack_words;
 };
 
+struct HeartbeatTaskSchedule {
+    bool enabled;
+    size_t uart_index;
+    uint32_t baud_rate;
+    uint32_t period_ms;
+    mc_rtos_hal::TaskPriority priority;
+    uint16_t stack_words;
+};
+
 struct RuntimeConfig {
     struct ImuRuntimeConfig {
         bool enabled;
@@ -99,6 +108,7 @@ struct RuntimeConfig {
     GpsRuntimeConfig gps;
     StorageRuntimeConfig storage;
     EstimatorTaskSchedule estimator;
+    HeartbeatTaskSchedule heartbeat;
 };
 
 uint16_t parse_pin_name(const char *pin_name);

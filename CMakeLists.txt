@@ -210,6 +210,9 @@ set(MC_ROLE_GPS_UART_INDEX_VALUE 0)
 set(MC_ROLE_GPS_UART_BAUD_VALUE 0)
 set(MC_GPS_EXPECTED_FIX_RATE_HZ_VALUE 5)
 
+set(MC_ROLE_CONSOLE_UART_INDEX_VALUE 0)
+set(MC_ROLE_CONSOLE_UART_BAUD_VALUE 115200)
+
 set(MC_ROLE_STORAGE_SPI_INDEX_VALUE 0)
 set(MC_STORAGE_CS_PIN_VALUE "PZ0")
 set(MC_STORAGE_RESET_PIN_VALUE "PZ0")
@@ -333,6 +336,14 @@ if(MC_GPS_TYPE STREQUAL "UBLOX")
     set(MC_GPS_ENABLED_NUM 1)
     set(MC_ROLE_GPS_UART_INDEX_VALUE ${MC_ROLE_GPS_UART_INDEX})
     set(MC_ROLE_GPS_UART_BAUD_VALUE ${MC_ROLE_GPS_UART_BAUD})
+endif()
+
+if(DEFINED MC_ROLE_CONSOLE_UART_INDEX)
+    set(MC_ROLE_CONSOLE_UART_INDEX_VALUE ${MC_ROLE_CONSOLE_UART_INDEX})
+endif()
+
+if(DEFINED MC_ROLE_CONSOLE_UART_BAUD)
+    set(MC_ROLE_CONSOLE_UART_BAUD_VALUE ${MC_ROLE_CONSOLE_UART_BAUD})
 endif()
 
 if(MC_STORAGE_TYPE STREQUAL "DATAFLASH")
@@ -659,6 +670,11 @@ file(WRITE "${MC_GENERATED_DIR}/experimental_build_config.h"
 "static constexpr unsigned baud = ${MC_ROLE_GPS_UART_BAUD_VALUE};\n"
 "static constexpr unsigned expected_fix_rate_hz = ${MC_GPS_EXPECTED_FIX_RATE_HZ_VALUE};\n"
 "}\n"
+"namespace heartbeat {\n"
+"static constexpr bool enabled = true;\n"
+"static constexpr unsigned uart_index = ${MC_ROLE_CONSOLE_UART_INDEX_VALUE};\n"
+"static constexpr unsigned baud = ${MC_ROLE_CONSOLE_UART_BAUD_VALUE};\n"
+"}\n"
 "namespace storage {\n"
 "static constexpr bool enabled = ${MC_STORAGE_ENABLED_NUM};\n"
 "static constexpr unsigned spi_index = ${MC_ROLE_STORAGE_SPI_INDEX_VALUE};\n"
@@ -760,6 +776,15 @@ file(WRITE "${MC_GENERATED_DIR}/experimental_stm32_board_config.h"
 "};\n"
 "static constexpr size_t gpio_pin_count = sizeof(gpio_pins) / sizeof(gpio_pins[0]);\n"
 "}\n")
+
+if(TARGET_ARCH_FAMILY STREQUAL "stm32")
+    file(WRITE "${MC_GENERATED_DIR}/experimental_platform_hal.h"
+"#pragma once\n"
+"#include <arm/stm32/hal.h>\n"
+"namespace experimental_platform {\n"
+"using Hal = stm32::Stm32Hal;\n"
+"}\n")
+endif()
 
 ##################################################################
 # DEFINES
@@ -962,8 +987,43 @@ if(MC_EXPERIMENTAL_BUILD)
         )
     endif()
 
+    if(TARGET_ARCH_FAMILY STREQUAL "stm32")
+        set(FREERTOS_KERNEL_DIR "${CMAKE_SOURCE_DIR}/arch/experimental/freertos")
+        set(FREERTOS_CONFIG_DIR "${MC_GENERATED_DIR}" CACHE PATH "Directory containing FreeRTOSConfig.h")
+
+        set(FREERTOS_KERNEL_SOURCES
+            "${FREERTOS_KERNEL_DIR}/tasks.c"
+            "${FREERTOS_KERNEL_DIR}/queue.c"
+            "${FREERTOS_KERNEL_DIR}/list.c"
+            "${FREERTOS_KERNEL_DIR}/timers.c"
+            "${FREERTOS_KERNEL_DIR}/event_groups.c"
+            "${FREERTOS_KERNEL_DIR}/stream_buffer.c"
+            "${FREERTOS_KERNEL_DIR}/portable/GCC/ARM_CM4F/port.c"
+            "${FREERTOS_KERNEL_DIR}/portable/MemMang/heap_4.c"
+        )
+
+        add_library(freertos_config INTERFACE)
+        target_include_directories(freertos_config INTERFACE
+            "${FREERTOS_CONFIG_DIR}"
+        )
+
+        add_library(freertos_kernel STATIC ${FREERTOS_KERNEL_SOURCES})
+        target_include_directories(freertos_kernel PUBLIC
+            "${FREERTOS_KERNEL_DIR}/include"
+            "${FREERTOS_KERNEL_DIR}/portable/GCC/ARM_CM4F"
+            "${CMAKE_SOURCE_DIR}/arch/arm"
+            "${CMAKE_SOURCE_DIR}/arch/arm/Drivers/CMSIS/Include"
+            "${CMAKE_SOURCE_DIR}/arch/arm/Drivers/CMSIS/Device/ST/STM32F4xx/Include"
+        )
+        target_link_libraries(freertos_kernel PUBLIC freertos_config)
+    endif()
+
     add_library(mc-experimental-arch STATIC ${MC_EXPERIMENTAL_ARCH_SOURCES})
     target_include_directories(mc-experimental-arch PUBLIC ${MC_INCLUDE_DIRS})
+
+    if(TARGET_ARCH_FAMILY STREQUAL "stm32")
+        target_link_libraries(mc-experimental-arch PUBLIC freertos_kernel)
+    endif()
 
     add_library(mc-experimental-dev STATIC ${MC_EXPERIMENTAL_DEV_SOURCES})
     target_include_directories(mc-experimental-dev PUBLIC ${MC_INCLUDE_DIRS})
@@ -976,6 +1036,7 @@ if(MC_EXPERIMENTAL_BUILD)
         experimental/mincopter/RuntimeConfig.cpp
         experimental/mincopter/RuntimeAssembly.cpp
         experimental/mincopter/EstimatorTask.cpp
+        experimental/mincopter/HeartbeatTask.cpp
     )
 
     target_include_directories(mincopter PUBLIC ${MC_INCLUDE_DIRS})
@@ -1011,6 +1072,9 @@ if(MC_EXPERIMENTAL_BUILD)
 
         target_include_directories(stm32_platform PUBLIC
             ${MC_INCLUDE_DIRS}
+            "${CMAKE_SOURCE_DIR}/arch/experimental/freertos/include"
+            ### TODO This should not be hardcoded - we need to select based on our STM32 board
+            "${CMAKE_SOURCE_DIR}/arch/experimental/freertos/portable/GCC/ARM_CM4F"
             "${CMAKE_SOURCE_DIR}/arch/arm"
             "${CMAKE_SOURCE_DIR}/arch/arm/Drivers/CMSIS/Include"
             "${CMAKE_SOURCE_DIR}/arch/arm/Drivers/CMSIS/Device/ST/STM32F4xx/Include"

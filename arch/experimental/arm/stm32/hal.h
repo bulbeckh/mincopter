@@ -5,7 +5,7 @@
 #include <arm/stm32/i2c/i2c.h>
 #include <arm/stm32/pwm/pwm.h>
 #include <arm/stm32/rtos.h>
-#include <arm/stm32/storage.h>
+#include <arm/stm32/storage/storage.h>
 #include <arm/stm32/time.h>
 #include <arm/stm32/uart/uart.h>
 #include <arm/stm32/spi/spi.h>
@@ -17,6 +17,7 @@ class Stm32Hal final : public mc_rtos_hal::Hal {
 public:
     Stm32Hal();
 
+    mc_rtos_hal::Status init() override;
     mc_rtos_hal::Rtos &rtos() override;
     mc_rtos_hal::Time &time() override;
     mc_rtos_hal::Adc &adc() override;
@@ -36,6 +37,9 @@ private:
     static constexpr size_t kI2cBusCount = 2;
     static constexpr size_t kUartCount = 4;
 
+    mc_rtos_hal::Status configure_platform();
+    mc_rtos_hal::Status configure_peripherals();
+
     Stm32Rtos rtos_;
     Stm32Time time_;
     Stm32Adc adc_;
@@ -45,6 +49,7 @@ private:
     Stm32UartPort uart_ports_[kUartCount];
     Stm32PwmOutput pwm_;
     Stm32Storage storage_;
+    bool initialized_;
 };
 
 }  // namespace stm32

@@ -61,9 +61,6 @@ make -j4
 ## Documentation 
 See `docs/` for more documentation.
 
-## Authors
-MinCopter is forked from [ArduPilot/ArduCopter-3.2.1](https://github.com/ArduPilot/ardupilot/tree/ArduCopter-3.2.1) - see the repository for maintainers/contributors, some of which are used in MinCopter. Unless otherwise specified, all code written by Henry Bulbeck [@bulbeckh](https://github.com/bulbeckh).
-
 ## Structure
 | Directory | Contents | 
 | --- | --- | 

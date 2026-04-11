@@ -13,6 +13,7 @@
 #include <dev/experimental/storage/StorageDevice.h>
 #include <dev/experimental/storage/StorageTask.h>
 #include <experimental/mincopter/EstimatorTask.h>
+#include <experimental/mincopter/HeartbeatTask.h>
 #include <experimental/mincopter/RuntimeConfig.h>
 #include <experimental/mincopter/SensorChannels.h>
 #include <rtos_hal/hal.h>
@@ -58,6 +59,7 @@ private:
     std::unique_ptr<mc_experimental::GpsTaskContext<SensorChannels::kGpsBufferCapacity>> gps_task_context_;
     std::unique_ptr<mc_experimental::StorageTaskContext<SensorChannels::kStorageQueueCapacity>> storage_task_context_;
     EstimatorTaskContext estimator_task_context_;
+    HeartbeatTaskContext heartbeat_task_context_;
 
     bool hal_initialized_;
     bool runtime_assembled_;

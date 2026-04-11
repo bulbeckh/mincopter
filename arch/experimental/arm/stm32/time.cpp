@@ -44,9 +44,7 @@ uint32_t micros_from_cycle_counter() {
 
 }  // namespace
 
-Stm32Time::Stm32Time() {
-    ensure_cycle_counter_ready();
-}
+Stm32Time::Stm32Time() = default;
 
 void Stm32Time::ensure_cycle_counter_ready() {
     CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;

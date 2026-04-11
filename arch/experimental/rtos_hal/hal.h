@@ -19,6 +19,8 @@ class Hal {
 public:
     virtual ~Hal() = default;
 
+    virtual Status init() = 0;
+
     virtual Rtos &rtos() = 0;
     virtual Time &time() = 0;
     virtual Adc &adc() = 0;
