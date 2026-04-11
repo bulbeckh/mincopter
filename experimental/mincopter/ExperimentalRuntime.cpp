@@ -9,7 +9,8 @@ ExperimentalRuntime::ExperimentalRuntime(
     std::unique_ptr<mc_experimental::CompassDevice> compass_device,
     std::unique_ptr<mc_experimental::BarometerDevice> barometer_device,
     std::unique_ptr<mc_experimental::GpsDevice> gps_device,
-    std::unique_ptr<mc_experimental::StorageDevice> storage_device)
+    std::unique_ptr<mc_experimental::StorageDevice> storage_device,
+    std::unique_ptr<mc_experimental::LedDevice> status_leds[RuntimeConfig::kStatusLedCount])
     : hal_(hal),
       config_(config),
       channels_(),
@@ -18,16 +19,21 @@ ExperimentalRuntime::ExperimentalRuntime(
       barometer_device_(std::move(barometer_device)),
       gps_device_(std::move(gps_device)),
       storage_device_(std::move(storage_device)),
+      status_leds_{},
       imu_task_context_(nullptr),
       compass_task_context_(nullptr),
       barometer_task_context_(nullptr),
       gps_task_context_(nullptr),
       storage_task_context_(nullptr),
       estimator_task_context_{hal_, channels_, config_.estimator, nullptr, {}},
-      heartbeat_task_context_{hal_, config_.heartbeat, nullptr, {}},
+      heartbeat_task_context_{hal_, config_.heartbeat, nullptr, nullptr, {}},
       hal_initialized_(false),
       runtime_assembled_(false),
-      tasks_created_(false) {}
+      tasks_created_(false) {
+    for (size_t i = 0; i < RuntimeConfig::kStatusLedCount; ++i) {
+        status_leds_[i] = std::move(status_leds[i]);
+    }
+}
 
 mc_rtos_hal::Hal &ExperimentalRuntime::hal() {
     return hal_;
@@ -112,6 +118,14 @@ bool ExperimentalRuntime::assemble_runtime() {
             });
     }
 
+    if (config_.leds.enabled) {
+        for (size_t i = 0; i < RuntimeConfig::kStatusLedCount; ++i) {
+            if (status_leds_[i] != nullptr) {
+                status_leds_[i]->init();
+            }
+        }
+    }
+
     runtime_assembled_ = true;
     return true;
 }
@@ -166,6 +180,7 @@ bool ExperimentalRuntime::create_tasks() {
     ok = ok && EstimatorTask::create(estimator_task_context_);
 
     if (config_.heartbeat.enabled) {
+        heartbeat_task_context_.led = status_leds_[0].get();
         ok = ok && HeartbeatTask::create(heartbeat_task_context_);
     }
 

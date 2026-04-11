@@ -2,6 +2,7 @@
 
 #include <memory>
 
+#include <dev/experimental/led/LedDevice.h>
 #include <experimental/mincopter/ExperimentalRuntime.h>
 #include <experimental/mincopter/RuntimeConfig.h>
 #include <rtos_hal/hal.h>
@@ -15,6 +16,7 @@ struct RuntimeAssembly {
     std::unique_ptr<mc_experimental::BarometerDevice> barometer_device;
     std::unique_ptr<mc_experimental::GpsDevice> gps_device;
     std::unique_ptr<mc_experimental::StorageDevice> storage_device;
+    std::unique_ptr<mc_experimental::LedDevice> status_leds[RuntimeConfig::kStatusLedCount];
 };
 
 RuntimeAssembly assemble_runtime_components(mc_rtos_hal::Hal &hal);

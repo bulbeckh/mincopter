@@ -2,6 +2,7 @@
 
 #include <stdint.h>
 
+#include <dev/experimental/led/LedDevice.h>
 #include <experimental/mincopter/RuntimeConfig.h>
 #include <rtos_hal/hal.h>
 #include <rtos_hal/rtos.h>
@@ -18,6 +19,7 @@ struct HeartbeatTaskStats {
 struct HeartbeatTaskContext {
     mc_rtos_hal::Hal &hal;
     HeartbeatTaskSchedule config;
+    mc_experimental::LedDevice *led;
     void *task_handle;
     HeartbeatTaskStats stats;
 };

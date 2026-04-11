@@ -675,6 +675,14 @@ file(WRITE "${MC_GENERATED_DIR}/experimental_build_config.h"
 "static constexpr unsigned uart_index = ${MC_ROLE_CONSOLE_UART_INDEX_VALUE};\n"
 "static constexpr unsigned baud = ${MC_ROLE_CONSOLE_UART_BAUD_VALUE};\n"
 "}\n"
+"namespace leds {\n"
+"static constexpr bool enabled = true;\n"
+"static constexpr const char* status_led0_pin = \"${MC_STATUS_LED0_PIN}\";\n"
+"static constexpr const char* status_led1_pin = \"${MC_STATUS_LED1_PIN}\";\n"
+"static constexpr const char* status_led2_pin = \"${MC_STATUS_LED2_PIN}\";\n"
+"static constexpr const char* status_led3_pin = \"${MC_STATUS_LED3_PIN}\";\n"
+"static constexpr bool active_high = true;\n"
+"}\n"
 "namespace storage {\n"
 "static constexpr bool enabled = ${MC_STORAGE_ENABLED_NUM};\n"
 "static constexpr unsigned spi_index = ${MC_ROLE_STORAGE_SPI_INDEX_VALUE};\n"
@@ -1037,6 +1045,7 @@ if(MC_EXPERIMENTAL_BUILD)
         experimental/mincopter/RuntimeAssembly.cpp
         experimental/mincopter/EstimatorTask.cpp
         experimental/mincopter/HeartbeatTask.cpp
+        dev/experimental/led/LedDevice.cpp
     )
 
     target_include_directories(mincopter PUBLIC ${MC_INCLUDE_DIRS})

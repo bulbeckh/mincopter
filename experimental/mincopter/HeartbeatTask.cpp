@@ -55,7 +55,17 @@ void HeartbeatTask::run(HeartbeatTaskContext &context) {
             ++context.stats.write_failures;
         }
 
-        context.hal.time().delay_until_ms(last_wake_ms, context.config.period_ms);
+        if (context.led != nullptr) {
+            context.led->toggle();
+        }
+
+        context.hal.time().delay_until_ms(last_wake_ms, context.config.period_ms / 2U);
+
+        if (context.led != nullptr) {
+            context.led->toggle();
+        }
+
+        context.hal.time().delay_until_ms(last_wake_ms, context.config.period_ms / 2U);
     }
 }
 

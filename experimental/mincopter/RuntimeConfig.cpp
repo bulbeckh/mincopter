@@ -110,6 +110,17 @@ RuntimeConfig make_runtime_config() {
     config.heartbeat.priority = mc_rtos_hal::TaskPriority::Lowest;
     config.heartbeat.stack_words = 256;
 
+    config.leds.enabled = experimental_build_config::leds::enabled;
+    config.leds.count = static_cast<uint8_t>(RuntimeConfig::kStatusLedCount);
+    config.leds.pins[0] = parse_pin_name(experimental_build_config::leds::status_led0_pin);
+    config.leds.pins[1] = parse_pin_name(experimental_build_config::leds::status_led1_pin);
+    config.leds.pins[2] = parse_pin_name(experimental_build_config::leds::status_led2_pin);
+    config.leds.pins[3] = parse_pin_name(experimental_build_config::leds::status_led3_pin);
+    config.leds.active_high[0] = experimental_build_config::leds::active_high;
+    config.leds.active_high[1] = experimental_build_config::leds::active_high;
+    config.leds.active_high[2] = experimental_build_config::leds::active_high;
+    config.leds.active_high[3] = experimental_build_config::leds::active_high;
+
     return config;
 }
 

@@ -4,6 +4,7 @@
 #include <dev/experimental/compass/hmc5843/Hmc5843CompassDevice.h>
 #include <dev/experimental/gps/ublox_neo/UbxNeoGpsDevice.h>
 #include <dev/experimental/imu/mpu6050/Mpu6050ImuDevice.h>
+#include <dev/experimental/led/LedDevice.h>
 #include <dev/experimental/storage/at45db321d/At45Db321dStorageDevice.h>
 #include <experimental_build_config.h>
 #include <experimental/mincopter/RuntimeAssembly.h>
@@ -86,6 +87,16 @@ RuntimeAssembly assemble_runtime_components(mc_rtos_hal::Hal &hal) {
             device_config);
     }
 #endif
+
+    if (assembly.config.leds.enabled) {
+        for (uint8_t i = 0; i < assembly.config.leds.count && i < RuntimeConfig::kStatusLedCount; ++i) {
+            mc_experimental::LedConfig led_config{};
+            led_config.pin = assembly.config.leds.pins[i];
+            led_config.active_high = assembly.config.leds.active_high[i];
+            led_config.initially_on = false;
+            assembly.status_leds[i] = std::make_unique<mc_experimental::LedDevice>(hal.gpio(), led_config);
+        }
+    }
 
     return assembly;
 }

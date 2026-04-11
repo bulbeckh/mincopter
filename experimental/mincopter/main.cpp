@@ -15,7 +15,8 @@ experimental_mincopter::ExperimentalRuntime runtime(
     std::move(assembly.compass_device),
     std::move(assembly.barometer_device),
     std::move(assembly.gps_device),
-    std::move(assembly.storage_device));
+    std::move(assembly.storage_device),
+    assembly.status_leds);
 
 }  // namespace
 

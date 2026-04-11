@@ -29,7 +29,8 @@ public:
         std::unique_ptr<mc_experimental::CompassDevice> compass_device,
         std::unique_ptr<mc_experimental::BarometerDevice> barometer_device,
         std::unique_ptr<mc_experimental::GpsDevice> gps_device,
-        std::unique_ptr<mc_experimental::StorageDevice> storage_device);
+        std::unique_ptr<mc_experimental::StorageDevice> storage_device,
+        std::unique_ptr<mc_experimental::LedDevice> status_leds[RuntimeConfig::kStatusLedCount]);
 
     mc_rtos_hal::Hal &hal();
     const RuntimeConfig &config() const;
@@ -52,6 +53,7 @@ private:
     std::unique_ptr<mc_experimental::BarometerDevice> barometer_device_;
     std::unique_ptr<mc_experimental::GpsDevice> gps_device_;
     std::unique_ptr<mc_experimental::StorageDevice> storage_device_;
+    std::unique_ptr<mc_experimental::LedDevice> status_leds_[RuntimeConfig::kStatusLedCount];
 
     std::unique_ptr<mc_experimental::ImuTaskContext<SensorChannels::kImuBufferCapacity>> imu_task_context_;
     std::unique_ptr<mc_experimental::CompassTaskContext<SensorChannels::kCompassBufferCapacity>> compass_task_context_;

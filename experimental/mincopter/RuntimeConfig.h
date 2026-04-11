@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stddef.h>
 #include <stdint.h>
 
 #include <experimental_build_config.h>
@@ -45,6 +46,8 @@ struct HeartbeatTaskSchedule {
 };
 
 struct RuntimeConfig {
+    static constexpr size_t kStatusLedCount = 4;
+
     struct ImuRuntimeConfig {
         bool enabled;
         DeviceTransport transport;
@@ -102,6 +105,13 @@ struct RuntimeConfig {
         StorageTaskSchedule task;
     };
 
+    struct LedRuntimeConfig {
+        bool enabled;
+        uint8_t count;
+        uint16_t pins[kStatusLedCount];
+        bool active_high[kStatusLedCount];
+    };
+
     ImuRuntimeConfig imu;
     CompassRuntimeConfig compass;
     BarometerRuntimeConfig barometer;
@@ -109,6 +119,7 @@ struct RuntimeConfig {
     StorageRuntimeConfig storage;
     EstimatorTaskSchedule estimator;
     HeartbeatTaskSchedule heartbeat;
+    LedRuntimeConfig leds;
 };
 
 uint16_t parse_pin_name(const char *pin_name);
