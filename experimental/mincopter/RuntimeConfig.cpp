@@ -50,6 +50,9 @@ RuntimeConfig make_runtime_config() {
     config.imu.sample_rate_hz = to_uint32(experimental_build_config::imu::sample_rate_hz);
     config.imu.task.notification_timeout_ms = 20;
     config.imu.task.polling_period_ms = 1;
+    config.imu.task.recovery_failure_threshold = 5;
+    config.imu.task.recovery_wake_timeout_threshold = 50;
+    config.imu.task.recovery_backoff_ms = 100;
     config.imu.task.priority = default_sensor_priority();
     config.imu.task.stack_words = 512;
 
@@ -63,6 +66,9 @@ RuntimeConfig make_runtime_config() {
     config.compass.sample_rate_hz = to_uint32(experimental_build_config::compass::sample_rate_hz);
     config.compass.task.notification_timeout_ms = 50;
     config.compass.task.polling_period_ms = 20;
+    config.compass.task.recovery_failure_threshold = 0;
+    config.compass.task.recovery_wake_timeout_threshold = 0;
+    config.compass.task.recovery_backoff_ms = 0;
     config.compass.task.priority = mc_rtos_hal::TaskPriority::Medium;
     config.compass.task.stack_words = 384;
 
@@ -76,6 +82,9 @@ RuntimeConfig make_runtime_config() {
     config.barometer.sample_rate_hz = to_uint32(experimental_build_config::barometer::sample_rate_hz);
     config.barometer.task.notification_timeout_ms = 100;
     config.barometer.task.polling_period_ms = 20;
+    config.barometer.task.recovery_failure_threshold = 0;
+    config.barometer.task.recovery_wake_timeout_threshold = 0;
+    config.barometer.task.recovery_backoff_ms = 0;
     config.barometer.task.priority = mc_rtos_hal::TaskPriority::Medium;
     config.barometer.task.stack_words = 384;
 
@@ -108,7 +117,7 @@ RuntimeConfig make_runtime_config() {
     config.heartbeat.baud_rate = to_uint32(experimental_build_config::heartbeat::baud);
     config.heartbeat.period_ms = 1000;
     config.heartbeat.priority = mc_rtos_hal::TaskPriority::Lowest;
-    config.heartbeat.stack_words = 256;
+    config.heartbeat.stack_words = 1536;
 
     config.leds.enabled = experimental_build_config::leds::enabled;
     config.leds.count = static_cast<uint8_t>(RuntimeConfig::kStatusLedCount);

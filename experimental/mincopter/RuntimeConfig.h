@@ -19,6 +19,9 @@ enum class DeviceTransport : uint8_t {
 struct SensorTaskSchedule {
     uint32_t polling_period_ms;
     uint32_t notification_timeout_ms;
+    uint32_t recovery_failure_threshold;
+    uint32_t recovery_wake_timeout_threshold;
+    uint32_t recovery_backoff_ms;
     mc_rtos_hal::TaskPriority priority;
     uint16_t stack_words;
 };

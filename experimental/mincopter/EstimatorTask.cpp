@@ -25,6 +25,9 @@ void EstimatorTask::run(EstimatorTaskContext &context) {
 
         mc_experimental::ImuSample imu_sample{};
         while (context.channels.imu_samples.pop(imu_sample)) {
+            context.channels.latest_imu.sample = imu_sample;
+            context.channels.latest_imu.sequence = imu_sample.sequence;
+            context.channels.latest_imu.valid = imu_sample.valid;
             ++context.stats.imu_samples_consumed;
         }
 

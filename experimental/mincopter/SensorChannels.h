@@ -31,6 +31,7 @@ struct SensorChannels {
     mc_experimental::GpsFixRingBuffer<kGpsBufferCapacity> gps_fixes;
     mc_experimental::StorageRequestQueue<kStorageQueueCapacity> storage_requests;
 
+    LatestSample<mc_experimental::ImuSample> latest_imu{};
     LatestSample<mc_experimental::CompassSample> latest_compass{};
     LatestSample<mc_experimental::BarometerSample> latest_barometer{};
     LatestSample<mc_experimental::GpsFix> latest_gps{};

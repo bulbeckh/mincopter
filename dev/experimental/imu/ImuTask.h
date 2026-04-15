@@ -18,6 +18,9 @@ struct ImuTaskStats {
     uint32_t wake_timeouts;
     uint32_t overruns;
     uint32_t last_sample_timestamp_us;
+    uint32_t recovery_attempts;
+    uint32_t recovery_failures;
+    uint32_t loop_runs;
     bool healthy;
 };
 
@@ -60,6 +63,9 @@ private:
 struct ImuTaskConfig {
     uint32_t notification_timeout_ms;
     uint32_t polling_period_ms;
+    uint32_t recovery_failure_threshold;
+    uint32_t recovery_wake_timeout_threshold;
+    uint32_t recovery_backoff_ms;
 };
 
 template <size_t BufferCapacity>
@@ -104,15 +110,17 @@ public:
 private:
     template <size_t BufferCapacity>
     static void run(ImuTaskContext<BufferCapacity> &context) {
-        context.stats = {0, 0, 0, 0, 0, false};
+        context.stats = {0, 0, 0, 0, 0, 0, 0, 0, false};
 
+        // Initialise device
         if (!context.device.init()) {
             context.stats.healthy = false;
-            for (;;) {
-                context.hal.time().delay_ms(1000);
-            }
+
+            // Retry device init every 1s
+            context.hal.time().delay_ms(1000);
         }
 
+        // If we are using DRDY then attach the pin interrupt to the above data-ready-isr (which triggers the task notification)
         if (context.device.has_data_ready_irq()) {
             mc_rtos_hal::GpioPin *pin = context.hal.gpio().pin(context.device.data_ready_pin());
             if (pin != nullptr) {
@@ -127,11 +135,31 @@ private:
         context.stats.healthy = true;
 
         uint32_t last_wake_ms = context.hal.time().millis();
+        uint32_t consecutive_read_failures = 0;
+        uint32_t consecutive_wake_timeouts = 0;
         for (;;) {
+            // Increment loop run counter
+            ++context.stats.loop_runs;
+            
             if (context.device.has_data_ready_irq()) {
                 const uint32_t notified = context.hal.rtos().wait_for_notification(context.config.notification_timeout_ms);
                 if (notified == 0U) {
                     ++context.stats.wake_timeouts;
+                    ++consecutive_wake_timeouts;
+                    if (context.config.recovery_wake_timeout_threshold > 0U &&
+                        consecutive_wake_timeouts >= context.config.recovery_wake_timeout_threshold) {
+                        ++context.stats.recovery_attempts;
+                        if (context.device.init()) {
+                            consecutive_read_failures = 0;
+                            consecutive_wake_timeouts = 0;
+                        } else {
+                            ++context.stats.recovery_failures;
+                        }
+                        context.hal.time().delay_ms(context.config.recovery_backoff_ms);
+                        continue;
+                    }
+                } else {
+                    consecutive_wake_timeouts = 0;
                 }
             } else {
                 context.hal.time().delay_until_ms(last_wake_ms, context.config.polling_period_ms);
@@ -140,9 +168,27 @@ private:
             ImuSample sample{};
             if (!context.device.read_sample(sample) || !sample.valid) {
                 ++context.stats.read_failures;
+                ++consecutive_read_failures;
                 context.stats.healthy = false;
+
+                if (context.config.recovery_failure_threshold > 0U &&
+                    consecutive_read_failures >= context.config.recovery_failure_threshold) {
+                    ++context.stats.recovery_attempts;
+                    if (context.device.init()) {
+                        consecutive_read_failures = 0;
+                        consecutive_wake_timeouts = 0;
+                    } else {
+                        ++context.stats.recovery_failures;
+                    }
+                    context.hal.time().delay_ms(context.config.recovery_backoff_ms);
+                } else {
+                    context.hal.time().delay_ms(20);
+                }
                 continue;
             }
+
+            consecutive_read_failures = 0;
+            consecutive_wake_timeouts = 0;
 
             if (!context.ring->push(sample)) {
                 ++context.stats.overruns;

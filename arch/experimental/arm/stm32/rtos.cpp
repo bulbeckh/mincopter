@@ -102,6 +102,13 @@ uint32_t Stm32Rtos::wait_for_notification(uint32_t timeout_ms) {
     return static_cast<uint32_t>(ulTaskNotifyTake(pdTRUE, timeout_ms_to_ticks(timeout_ms)));
 }
 
+uint32_t Stm32Rtos::stack_high_water_mark_words(void *task_handle) {
+    if (task_handle == nullptr) {
+        return 0U;
+    }
+    return static_cast<uint32_t>(uxTaskGetStackHighWaterMark(static_cast<TaskHandle_t>(task_handle)));
+}
+
 bool Stm32Rtos::in_isr() const {
     return __get_IPSR() != 0U;
 }

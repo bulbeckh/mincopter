@@ -136,6 +136,7 @@ private:
             if (!context.device.read_sample(sample) || !sample.valid) {
                 ++context.stats.read_failures;
                 context.stats.healthy = false;
+                context.hal.time().delay_ms(20);
                 continue;
             }
 

@@ -93,9 +93,8 @@ private:
         context.stats = {0, 0, 0, 0, 0, false};
 
         if (!context.device.init()) {
-            for (;;) {
-                context.hal.time().delay_ms(1000);
-            }
+            // Try to re-init in 1s
+            context.hal.time().delay_ms(1000);
         }
 
         context.stats.healthy = true;
@@ -110,6 +109,8 @@ private:
             if (!context.device.service(fix, fix_updated)) {
                 ++context.stats.service_failures;
                 context.stats.healthy = false;
+                // GPS is already a polling call so is unlikely to starve CPU
+                //context.hal.time().delay_ms(20);
                 continue;
             }
 

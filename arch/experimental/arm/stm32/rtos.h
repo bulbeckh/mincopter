@@ -18,6 +18,7 @@ public:
     void notify_task(void *task_handle) override;
     void notify_task_from_isr(void *task_handle, bool &should_yield) override;
     uint32_t wait_for_notification(uint32_t timeout_ms) override;
+    uint32_t stack_high_water_mark_words(void *task_handle) override;
     bool in_isr() const override;
 
 private:
