@@ -26,7 +26,7 @@ set(MC_STATE_TYPE "NONE")
 
 ## Experimental device selection
 set(MC_IMU_TYPE "MPU6050")
-set(MC_COMP_TYPE "HMC5843")
+set(MC_COMP_TYPE "ICM20948")
 set(MC_BARO_TYPE "BME280")
 set(MC_GPS_TYPE "UBLOX")
 set(MC_STORAGE_TYPE "DATAFLASH")

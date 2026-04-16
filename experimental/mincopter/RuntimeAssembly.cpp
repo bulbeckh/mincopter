@@ -2,6 +2,7 @@
 
 #include <dev/experimental/barometer/bme280/Bme280BarometerDevice.h>
 #include <dev/experimental/compass/hmc5843/Hmc5843CompassDevice.h>
+#include <dev/experimental/compass/icm20948/Icm20948CompassDevice.h>
 #include <dev/experimental/gps/ublox_neo/UbxNeoGpsDevice.h>
 #include <dev/experimental/imu/mpu6050/Mpu6050ImuDevice.h>
 #include <dev/experimental/led/LedDevice.h>
@@ -38,6 +39,21 @@ RuntimeAssembly assemble_runtime_components(mc_rtos_hal::Hal &hal) {
         device_config.has_data_ready_irq = assembly.config.compass.has_data_ready_irq;
         device_config.sample_rate_hz = assembly.config.compass.sample_rate_hz;
         assembly.compass_device = std::make_unique<mc_experimental::Hmc5843CompassDevice>(
+            hal.i2c(assembly.config.compass.bus_index),
+            hal.time(),
+            hal.gpio(),
+            device_config);
+    }
+#endif
+
+#if defined(MC_COMP_ICM20948)
+    if (assembly.config.compass.enabled) {
+        mc_experimental::Icm20948CompassConfig device_config{};
+        device_config.i2c_address = assembly.config.compass.i2c_address;
+        device_config.data_ready_pin = assembly.config.compass.data_ready_pin;
+        device_config.has_data_ready_irq = assembly.config.compass.has_data_ready_irq;
+        device_config.sample_rate_hz = assembly.config.compass.sample_rate_hz;
+        assembly.compass_device = std::make_unique<mc_experimental::Icm20948CompassDevice>(
             hal.i2c(assembly.config.compass.bus_index),
             hal.time(),
             hal.gpio(),

@@ -145,10 +145,10 @@ if(MC_EXPERIMENTAL_BUILD)
         endforeach()
     endif()
 
-    if(MC_COMP_TYPE STREQUAL "HMC5843")
+    if(MC_COMP_TYPE STREQUAL "HMC5843" OR MC_COMP_TYPE STREQUAL "ICM20948")
         foreach(required_var MC_ROLE_COMPASS_I2C_INDEX MC_COMPASS_I2C_ADDRESS)
             if(NOT DEFINED ${required_var})
-                message(FATAL_ERROR "Experimental HMC5843 configuration requires ${required_var}")
+                message(FATAL_ERROR "Experimental compass configuration requires ${required_var}")
             endif()
         endforeach()
     endif()
@@ -198,7 +198,7 @@ set(MC_ROLE_COMPASS_I2C_INDEX_VALUE 0)
 set(MC_COMPASS_I2C_ADDRESS_VALUE 0)
 set(MC_COMPASS_DRDY_PIN_VALUE "PZ0")
 set(MC_COMPASS_HAS_DRDY_IRQ_NUM 0)
-set(MC_COMPASS_SAMPLE_RATE_HZ_VALUE 50)
+set(MC_COMPASS_SAMPLE_RATE_HZ_VALUE 20)
 
 set(MC_ROLE_BARO_I2C_INDEX_VALUE 0)
 set(MC_BARO_I2C_ADDRESS_VALUE 0)
@@ -312,7 +312,7 @@ if(MC_IMU_TYPE STREQUAL "MPU6050")
     endif()
 endif()
 
-if(MC_COMP_TYPE STREQUAL "HMC5843")
+if(MC_COMP_TYPE STREQUAL "HMC5843" OR MC_COMP_TYPE STREQUAL "ICM20948")
     set(MC_COMPASS_ENABLED_NUM 1)
     set(MC_ROLE_COMPASS_I2C_INDEX_VALUE ${MC_ROLE_COMPASS_I2C_INDEX})
     set(MC_COMPASS_I2C_ADDRESS_VALUE ${MC_COMPASS_I2C_ADDRESS})
@@ -974,6 +974,10 @@ if(MC_EXPERIMENTAL_BUILD)
     if(MC_COMP_TYPE STREQUAL "HMC5843")
         list(APPEND MC_EXPERIMENTAL_DEV_SOURCES
             ${CMAKE_SOURCE_DIR}/dev/experimental/compass/hmc5843/Hmc5843CompassDevice.cpp
+        )
+    elseif(MC_COMP_TYPE STREQUAL "ICM20948")
+        list(APPEND MC_EXPERIMENTAL_DEV_SOURCES
+            ${CMAKE_SOURCE_DIR}/dev/experimental/compass/icm20948/Icm20948CompassDevice.cpp
         )
     endif()
 
