@@ -75,17 +75,6 @@ bool HeartbeatTask::create(HeartbeatTaskContext &context) {
 void HeartbeatTask::run(HeartbeatTaskContext &context) {
     context.stats = {};
 
-    mc_rtos_hal::UartConfig uart_config{};
-    uart_config.baud_rate = context.config.baud_rate;
-    uart_config.rx_buffer_size = 64;
-    uart_config.tx_buffer_size = 384;
-    mc_rtos_hal::UartPort &uart = context.hal.uart(context.config.uart_index);
-    if (uart.configure(uart_config) != mc_rtos_hal::Status::Ok) {
-        for (;;) {
-            context.hal.time().delay_ms(1000);
-        }
-    }
-
     uint32_t last_wake_ms = context.hal.time().millis();
     for (;;) {
         char message[384] = {};
@@ -93,10 +82,10 @@ void HeartbeatTask::run(HeartbeatTaskContext &context) {
 
         size_t written = 0;
         const mc_rtos_hal::Status status =
-            uart.write(reinterpret_cast<const uint8_t *>(message),
-                       message_len,
-                       kWriteTimeout,
-                       &written);
+            context.hal.console().write(reinterpret_cast<const uint8_t *>(message),
+                                        message_len,
+                                        kWriteTimeout,
+                                        &written);
 
         if (status == mc_rtos_hal::Status::Ok && written == message_len) {
             ++context.stats.messages_sent;

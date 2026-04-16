@@ -3,6 +3,7 @@
 #include <stddef.h>
 
 #include <rtos_hal/adc.h>
+#include <rtos_hal/console.h>
 #include <rtos_hal/gpio.h>
 #include <rtos_hal/i2c.h>
 #include <rtos_hal/pwm.h>
@@ -28,6 +29,8 @@ public:
     virtual SpiBus &spi(size_t index) = 0;
     virtual I2cBus &i2c(size_t index) = 0;
     virtual UartPort &uart(size_t index) = 0;
+    virtual UartPort &console_uart() = 0;
+    virtual Console &console() = 0;
     virtual PwmOutput &pwm() = 0;
     virtual Storage &storage() = 0;
 

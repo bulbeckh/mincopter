@@ -1107,6 +1107,8 @@ if(MC_EXPERIMENTAL_BUILD)
         )
     endif()
 
+    add_subdirectory(test)
+
 else()
     ##################################################################
     # LEGACY BUILD

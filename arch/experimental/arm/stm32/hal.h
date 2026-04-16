@@ -1,6 +1,7 @@
 #pragma once
 
 #include <arm/stm32/adc/adc.h>
+#include <arm/stm32/console.h>
 #include <arm/stm32/gpio/gpio.h>
 #include <arm/stm32/i2c/i2c.h>
 #include <arm/stm32/pwm/pwm.h>
@@ -25,6 +26,8 @@ public:
     mc_rtos_hal::SpiBus &spi(size_t index) override;
     mc_rtos_hal::I2cBus &i2c(size_t index) override;
     mc_rtos_hal::UartPort &uart(size_t index) override;
+    mc_rtos_hal::UartPort &console_uart() override;
+    mc_rtos_hal::Console &console() override;
     mc_rtos_hal::PwmOutput &pwm() override;
     mc_rtos_hal::Storage &storage() override;
 
@@ -47,6 +50,7 @@ private:
     Stm32SpiBus spi_buses_[kSpiBusCount];
     Stm32I2cBus i2c_buses_[kI2cBusCount];
     Stm32UartPort uart_ports_[kUartCount];
+    Stm32Console console_;
     Stm32PwmOutput pwm_;
     Stm32Storage storage_;
     bool initialized_;

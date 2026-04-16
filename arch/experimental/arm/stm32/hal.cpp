@@ -1,5 +1,6 @@
 #include <arm/stm32/hal.h>
 
+#include <experimental_build_config.h>
 #include <experimental_stm32_board_config.h>
 #include <stm32f4xx_hal.h>
 
@@ -56,6 +57,7 @@ Stm32Hal::Stm32Hal()
       spi_buses_{},
       i2c_buses_{},
       uart_ports_{},
+      console_(),
       pwm_(),
       storage_(),
       initialized_(false) {}
@@ -162,6 +164,12 @@ mc_rtos_hal::Status Stm32Hal::configure_peripherals() {
         }
     }
 
+    console_.attach(console_uart());
+    status = console_.configure(experimental_build_config::heartbeat::baud, 64, 384);
+    if (status != mc_rtos_hal::Status::Ok) {
+        return status;
+    }
+
     if (experimental_stm32_board_config::pwm_enabled) {
         status = pwm_.configure(experimental_stm32_board_config::pwm);
         if (status != mc_rtos_hal::Status::Ok) {
@@ -198,6 +206,14 @@ mc_rtos_hal::I2cBus &Stm32Hal::i2c(size_t index) {
 
 mc_rtos_hal::UartPort &Stm32Hal::uart(size_t index) {
     return uart_ports_[index];
+}
+
+mc_rtos_hal::UartPort &Stm32Hal::console_uart() {
+    return uart(experimental_build_config::heartbeat::uart_index);
+}
+
+mc_rtos_hal::Console &Stm32Hal::console() {
+    return console_;
 }
 
 mc_rtos_hal::PwmOutput &Stm32Hal::pwm() {

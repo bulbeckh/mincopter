@@ -6,10 +6,28 @@ namespace {
 
 constexpr uint8_t kCfgRateClass = 0x06;
 constexpr uint8_t kCfgRateId = 0x08;
+constexpr uint8_t kCfgMsgClass = 0x06;
+constexpr uint8_t kCfgMsgId = 0x01;
+constexpr uint8_t kNavClass = 0x01;
+constexpr uint8_t kNavPosllhId = 0x02;
+constexpr uint8_t kNavStatusId = 0x03;
+constexpr uint8_t kNavVelnedId = 0x12;
+constexpr char kSetUbxOnly9600[] = "$PUBX,41,1,0003,0001,9600,0*16\r\n";
 
 void store_u16_le(uint8_t *dst, uint16_t value) {
     dst[0] = static_cast<uint8_t>(value & 0xFFU);
     dst[1] = static_cast<uint8_t>((value >> 8) & 0xFFU);
+}
+
+void append_checksum(uint8_t *packet, size_t payload_len) {
+    uint8_t cka = 0;
+    uint8_t ckb = 0;
+    for (size_t i = 2; i < 6 + payload_len; ++i) {
+        cka = static_cast<uint8_t>(cka + packet[i]);
+        ckb = static_cast<uint8_t>(ckb + cka);
+    }
+    packet[6 + payload_len] = cka;
+    packet[7 + payload_len] = ckb;
 }
 
 }  // namespace
@@ -46,6 +64,40 @@ bool UbxNeoGpsDevice::init() {
 }
 
 bool UbxNeoGpsDevice::configure() {
+    size_t written = 0;
+    if (uart_.write(reinterpret_cast<const uint8_t *>(kSetUbxOnly9600),
+                    sizeof(kSetUbxOnly9600) - 1U,
+                    {50},
+                    &written) != mc_rtos_hal::Status::Ok ||
+        written != sizeof(kSetUbxOnly9600) - 1U) {
+        return false;
+    }
+    time_.delay_ms(100);
+
+    const auto configure_message_rate = [this](uint8_t msg_class, uint8_t msg_id, uint8_t rate) {
+        uint8_t payload[3] = {msg_class, msg_id, rate};
+        uint8_t packet[6 + sizeof(payload) + 2] = {};
+        packet[0] = PREAMBLE1;
+        packet[1] = PREAMBLE2;
+        packet[2] = kCfgMsgClass;
+        packet[3] = kCfgMsgId;
+        store_u16_le(&packet[4], sizeof(payload));
+        for (size_t i = 0; i < sizeof(payload); ++i) {
+            packet[6 + i] = payload[i];
+        }
+        append_checksum(packet, sizeof(payload));
+
+        size_t message_written = 0;
+        return uart_.write(packet, sizeof(packet), {50}, &message_written) == mc_rtos_hal::Status::Ok &&
+               message_written == sizeof(packet);
+    };
+
+    if (!configure_message_rate(kNavClass, kNavStatusId, 1) ||
+        !configure_message_rate(kNavClass, kNavPosllhId, 1) ||
+        !configure_message_rate(kNavClass, kNavVelnedId, 1)) {
+        return false;
+    }
+
     // Configure navigation rate to approximately expected_fix_rate_hz.
     const uint16_t rate_ms = static_cast<uint16_t>(1000U / (config_.expected_fix_rate_hz == 0 ? 1U : config_.expected_fix_rate_hz));
     uint8_t payload[6] = {};
@@ -63,17 +115,11 @@ bool UbxNeoGpsDevice::configure() {
         packet[6 + i] = payload[i];
     }
 
-    uint8_t cka = 0;
-    uint8_t ckb = 0;
-    for (size_t i = 2; i < 6 + sizeof(payload); ++i) {
-        cka = static_cast<uint8_t>(cka + packet[i]);
-        ckb = static_cast<uint8_t>(ckb + cka);
-    }
-    packet[6 + sizeof(payload)] = cka;
-    packet[7 + sizeof(payload)] = ckb;
+    append_checksum(packet, sizeof(payload));
 
-    size_t written = 0;
-    return uart_.write(packet, sizeof(packet), {50}, &written) == mc_rtos_hal::Status::Ok;
+    written = 0;
+    return uart_.write(packet, sizeof(packet), {50}, &written) == mc_rtos_hal::Status::Ok &&
+           written == sizeof(packet);
 }
 
 uint32_t UbxNeoGpsDevice::expected_fix_rate_hz() const {

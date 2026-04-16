@@ -1,30 +1,24 @@
+if(MC_EXPERIMENTAL_BUILD AND MC_GPS_TYPE STREQUAL "UBLOX")
+    add_executable(test-gps-task
+        test_gps_task.cpp
+        ${CMAKE_SOURCE_DIR}/dev/experimental/led/LedDevice.cpp
+        ${CMAKE_SOURCE_DIR}/experimental/mincopter/RuntimeConfig.cpp
+    )
 
-## This will be included from the source CMakeLists.txt file
+    target_include_directories(test-gps-task PUBLIC
+        ${MC_INCLUDE_DIRS}
+    )
 
-## Create test executable
-add_executable(test-gps
-	test_gps_core.cpp
-	${CMAKE_SOURCE_DIR}/lib/AP_Math/AP_Math.cpp
-)
+    target_link_libraries(test-gps-task
+        mc-experimental-arch
+        mc-experimental-dev
+    )
 
-## Link
-target_link_libraries(test-gps PUBLIC
-	mc-dev
-	mc-arch
-	## gtest libs
-)
-
-target_include_directories(test-gps PUBLIC
-	${MC_INCLUDE_DIRS}
-)
-
-if(${TARGET_ARCH_FAMILY} STREQUAL "stm32")
-	target_link_libraries(test-gps PUBLIC
-		-Wl,--whole-archive
-		stm32_static
-		-Wl,--no-whole-archive
-	)
+    if(TARGET_ARCH_FAMILY STREQUAL "stm32")
+        target_link_libraries(test-gps-task
+            -Wl,--whole-archive
+            stm32_platform
+            -Wl,--no-whole-archive
+        )
+    endif()
 endif()
-
-
-
