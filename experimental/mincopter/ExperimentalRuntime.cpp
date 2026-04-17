@@ -26,7 +26,7 @@ ExperimentalRuntime::ExperimentalRuntime(
       gps_task_context_(nullptr),
       storage_task_context_(nullptr),
       estimator_task_context_{hal_, channels_, config_.estimator, nullptr, {}},
-      heartbeat_task_context_{hal_, config_.heartbeat, nullptr, &channels_, nullptr, nullptr, nullptr, {}},
+      heartbeat_task_context_{hal_, config_.heartbeat, nullptr, &channels_, nullptr, nullptr, nullptr, nullptr, {}},
       hal_initialized_(false),
       runtime_assembled_(false),
       tasks_created_(false) {
@@ -149,7 +149,6 @@ bool ExperimentalRuntime::create_tasks() {
             config_.imu.task.priority);
     }
 
-    /*
     if (config_.compass.enabled && compass_task_context_ != nullptr) {
         ok = ok && mc_experimental::CompassTask::create(
             *compass_task_context_,
@@ -165,7 +164,6 @@ bool ExperimentalRuntime::create_tasks() {
             config_.barometer.task.stack_words,
             config_.barometer.task.priority);
     }
-    */
 
     if (config_.gps.enabled && gps_task_context_ != nullptr) {
         ok = ok && mc_experimental::GpsTask::create(
@@ -191,6 +189,10 @@ bool ExperimentalRuntime::create_tasks() {
         heartbeat_task_context_.led = status_leds_[0].get();
         heartbeat_task_context_.imu_stats =
             imu_task_context_ != nullptr ? &imu_task_context_->stats : nullptr;
+        heartbeat_task_context_.compass_stats =
+            compass_task_context_ != nullptr ? &compass_task_context_->stats : nullptr;
+        heartbeat_task_context_.barometer_stats =
+            barometer_task_context_ != nullptr ? &barometer_task_context_->stats : nullptr;
         heartbeat_task_context_.gps_stats =
             gps_task_context_ != nullptr ? &gps_task_context_->stats : nullptr;
         ok = ok && HeartbeatTask::create(heartbeat_task_context_);

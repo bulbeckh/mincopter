@@ -117,7 +117,7 @@ RuntimeConfig make_runtime_config() {
     config.heartbeat.baud_rate = to_uint32(experimental_build_config::heartbeat::baud);
     config.heartbeat.period_ms = 1000;
     config.heartbeat.priority = mc_rtos_hal::TaskPriority::Lowest;
-    config.heartbeat.stack_words = 1536;
+    config.heartbeat.stack_words = 4096;
 
     config.leds.enabled = experimental_build_config::leds::enabled;
     config.leds.count = static_cast<uint8_t>(RuntimeConfig::kStatusLedCount);

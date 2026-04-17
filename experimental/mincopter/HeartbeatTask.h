@@ -24,6 +24,8 @@ struct HeartbeatTaskContext {
     mc_experimental::LedDevice *led;
     SensorChannels *channels;
     const mc_experimental::ImuTaskStats *imu_stats;
+    const mc_experimental::CompassTaskStats *compass_stats;
+    const mc_experimental::BarometerTaskStats *barometer_stats;
     const mc_experimental::GpsTaskStats *gps_stats;
     void *task_handle;
     HeartbeatTaskStats stats;

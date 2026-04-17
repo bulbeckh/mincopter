@@ -102,10 +102,11 @@ private:
     static void run(BarometerTaskContext<BufferCapacity> &context) {
         context.stats = {0, 0, 0, 0, 0, false};
 
-        if (!context.device.init()) {
-            for (;;) {
-                context.hal.time().delay_ms(1000);
-            }
+        while (!context.device.init()) {
+            ++context.stats.read_failures;
+            context.stats.healthy = false;
+            context.stats.last_sample_timestamp_us = context.hal.time().micros();
+            context.hal.time().delay_ms(1000);
         }
 
         if (context.device.has_data_ready_irq()) {
@@ -136,6 +137,7 @@ private:
             if (!context.device.read_sample(sample) || !sample.valid) {
                 ++context.stats.read_failures;
                 context.stats.healthy = false;
+                context.hal.time().delay_ms(20);
                 continue;
             }
 
