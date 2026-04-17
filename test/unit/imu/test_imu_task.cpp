@@ -15,7 +15,7 @@ namespace {
 
 constexpr size_t kImuBufferCapacity = 32;
 constexpr uint32_t kPrinterPeriodMs = 1000;
-constexpr uint16_t kImuStackWords = 512;
+constexpr uint16_t kImuStackWords = 1024;
 constexpr uint16_t kPrinterStackWords = 768;
 constexpr mc_rtos_hal::Timeout kPrintTimeout{50};
 
