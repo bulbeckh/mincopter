@@ -4,6 +4,7 @@
 #include <dev/experimental/compass/hmc5843/Hmc5843CompassDevice.h>
 #include <dev/experimental/compass/icm20948/Icm20948CompassDevice.h>
 #include <dev/experimental/gps/ublox_neo/UbxNeoGpsDevice.h>
+#include <dev/experimental/imu/bmi270/Bmi270ImuDevice.h>
 #include <dev/experimental/imu/mpu6050/Mpu6050ImuDevice.h>
 #include <dev/experimental/led/LedDevice.h>
 #include <dev/experimental/storage/at45db321d/At45Db321dStorageDevice.h>
@@ -24,6 +25,21 @@ RuntimeAssembly assemble_runtime_components(mc_rtos_hal::Hal &hal) {
         device_config.has_data_ready_irq = assembly.config.imu.has_data_ready_irq;
         device_config.sample_rate_hz = assembly.config.imu.sample_rate_hz;
         assembly.imu_device = std::make_unique<mc_experimental::Mpu6050ImuDevice>(
+            hal.i2c(assembly.config.imu.bus_index),
+            hal.time(),
+            hal.gpio(),
+            device_config);
+    }
+#endif
+
+#if defined(MC_IMU_BMI270)
+    if (assembly.config.imu.enabled) {
+        mc_experimental::Bmi270Config device_config{};
+        device_config.i2c_address = assembly.config.imu.i2c_address;
+        device_config.data_ready_pin = assembly.config.imu.data_ready_pin;
+        device_config.has_data_ready_irq = assembly.config.imu.has_data_ready_irq;
+        device_config.sample_rate_hz = assembly.config.imu.sample_rate_hz;
+        assembly.imu_device = std::make_unique<mc_experimental::Bmi270ImuDevice>(
             hal.i2c(assembly.config.imu.bus_index),
             hal.time(),
             hal.gpio(),

@@ -1,4 +1,4 @@
-if(MC_EXPERIMENTAL_BUILD AND MC_IMU_TYPE STREQUAL "MPU6050")
+if(MC_EXPERIMENTAL_BUILD AND (MC_IMU_TYPE STREQUAL "MPU6050" OR MC_IMU_TYPE STREQUAL "BMI270"))
     add_executable(test-imu-task
         test_imu_task.cpp
         ${CMAKE_SOURCE_DIR}/dev/experimental/led/LedDevice.cpp

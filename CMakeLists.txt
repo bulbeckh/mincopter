@@ -137,10 +137,10 @@ if(MC_EXPERIMENTAL_BUILD)
         message(FATAL_ERROR "The current experimental RTOS runtime is only wired for STM32 targets.")
     endif()
 
-    if(MC_IMU_TYPE STREQUAL "MPU6050")
+    if(MC_IMU_TYPE STREQUAL "MPU6050" OR MC_IMU_TYPE STREQUAL "BMI270")
         foreach(required_var MC_ROLE_IMU_I2C_INDEX MC_IMU_I2C_ADDRESS)
             if(NOT DEFINED ${required_var})
-                message(FATAL_ERROR "Experimental MPU6050 configuration requires ${required_var}")
+                message(FATAL_ERROR "Experimental ${MC_IMU_TYPE} configuration requires ${required_var}")
             endif()
         endforeach()
     endif()
@@ -302,7 +302,7 @@ set(MC_STM32_PWM_CHANNEL_CONFIG_ENTRIES "")
 
 set(MC_STM32_GPIO_CONFIG_ENTRIES "")
 
-if(MC_IMU_TYPE STREQUAL "MPU6050")
+if(MC_IMU_TYPE STREQUAL "MPU6050" OR MC_IMU_TYPE STREQUAL "BMI270")
     set(MC_IMU_ENABLED_NUM 1)
     set(MC_ROLE_IMU_I2C_INDEX_VALUE ${MC_ROLE_IMU_I2C_INDEX})
     set(MC_IMU_I2C_ADDRESS_VALUE ${MC_IMU_I2C_ADDRESS})
@@ -829,6 +829,8 @@ endif()
 
 if(MC_IMU_TYPE STREQUAL "MPU6000")
     add_compile_definitions(MC_IMU_MPU6000)
+elseif(MC_IMU_TYPE STREQUAL "BMI270")
+    add_compile_definitions(MC_IMU_BMI270)
 elseif(MC_IMU_TYPE STREQUAL "MPU6050")
     add_compile_definitions(MC_IMU_MPU6050)
 elseif(MC_IMU_TYPE STREQUAL "ICM20948")
@@ -968,6 +970,11 @@ if(MC_EXPERIMENTAL_BUILD)
     if(MC_IMU_TYPE STREQUAL "MPU6050")
         list(APPEND MC_EXPERIMENTAL_DEV_SOURCES
             ${CMAKE_SOURCE_DIR}/dev/experimental/imu/mpu6050/Mpu6050ImuDevice.cpp
+        )
+    elseif(MC_IMU_TYPE STREQUAL "BMI270")
+        list(APPEND MC_EXPERIMENTAL_DEV_SOURCES
+            ${CMAKE_SOURCE_DIR}/dev/experimental/imu/bmi270/Bmi270ImuDevice.cpp
+            ${CMAKE_SOURCE_DIR}/dev/experimental/imu/bmi270/Bmi270ConfigBlob.cpp
         )
     endif()
 

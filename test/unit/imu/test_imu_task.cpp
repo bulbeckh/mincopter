@@ -4,6 +4,7 @@
 
 #include <arm/stm32/hal.h>
 #include <dev/experimental/imu/ImuTask.h>
+#include <dev/experimental/imu/bmi270/Bmi270ImuDevice.h>
 #include <dev/experimental/imu/mpu6050/Mpu6050ImuDevice.h>
 #include <dev/experimental/led/LedDevice.h>
 #include <experimental/mincopter/RuntimeConfig.h>
@@ -29,7 +30,7 @@ struct PrinterTaskContext {
 
 stm32::Stm32Hal g_hal;
 mc_experimental::ImuSampleRingBuffer<kImuBufferCapacity> g_imu_ring;
-std::unique_ptr<mc_experimental::Mpu6050ImuDevice> g_imu_device;
+std::unique_ptr<mc_experimental::ImuDevice> g_imu_device;
 std::unique_ptr<mc_experimental::LedDevice> g_status_led;
 std::unique_ptr<mc_experimental::ImuTaskContext<kImuBufferCapacity>> g_imu_context;
 PrinterTaskContext g_printer_context{};
@@ -131,6 +132,7 @@ int main() {
         }
     }
 
+#if defined(MC_IMU_MPU6050)
     mc_experimental::Mpu6050Config imu_device_config{};
     imu_device_config.i2c_address = runtime_config.imu.i2c_address;
     imu_device_config.data_ready_pin = runtime_config.imu.data_ready_pin;
@@ -142,6 +144,21 @@ int main() {
         g_hal.time(),
         g_hal.gpio(),
         imu_device_config);
+#elif defined(MC_IMU_BMI270)
+    mc_experimental::Bmi270Config imu_device_config{};
+    imu_device_config.i2c_address = runtime_config.imu.i2c_address;
+    imu_device_config.data_ready_pin = runtime_config.imu.data_ready_pin;
+    imu_device_config.has_data_ready_irq = runtime_config.imu.has_data_ready_irq;
+    imu_device_config.sample_rate_hz = runtime_config.imu.sample_rate_hz;
+
+    g_imu_device = std::make_unique<mc_experimental::Bmi270ImuDevice>(
+        g_hal.i2c(runtime_config.imu.bus_index),
+        g_hal.time(),
+        g_hal.gpio(),
+        imu_device_config);
+#else
+    panic("unsupported imu test target");
+#endif
 
     g_imu_context = std::make_unique<mc_experimental::ImuTaskContext<kImuBufferCapacity>>(
         mc_experimental::ImuTaskContext<kImuBufferCapacity>{
