@@ -12,20 +12,12 @@
 	extern SimulationLogger simlog;
 #endif
 
-#include "mcstate.h"
-
-#include "mcinstance.h"
-extern MCInstance mincopter;
-
 #include "AP_Math.h"
 
 // NOTE The solver is defined in the generated **workspace.c** file
 extern "C" {
 	extern OSQPSolver solver;
 }
-
-/* Instantiate MPC_Controller here */
-MPC_Controller controller;
 
 void MPC_Controller::run()
 {

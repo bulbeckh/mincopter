@@ -5,16 +5,8 @@
 
 #define CSC_PID_IMAX 100
 
-#include "mcinstance.h"
-extern MCInstance mincopter;
-
-#include "mcstate.h"
-
-// Instance
-CSC_Controller controller;
-
-CSC_Controller::CSC_Controller()
-	: MC_Controller(),
+CSC_Controller::CSC_Controller(MCInstance& mc, MCState& mcs)
+	: MC_Controller(mc, mcs),
 
 	csc_counter(0),
 

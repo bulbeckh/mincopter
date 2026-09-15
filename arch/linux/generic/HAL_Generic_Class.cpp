@@ -1,6 +1,4 @@
 
-#include <AP_HAL/AP_HAL.h>
-
 #include <arch/linux/generic/HAL_Generic_Class.h>
 #include <arch/linux/generic/AP_HAL_Generic_Private.h>
 
@@ -38,6 +36,9 @@ static generic::GenericRCOutput rcoutDriver;
 
 static generic::GenericGZInterface simDriver;
 
+// TODO Is this a good design? All HAL_Generic objects point to the same set of generic components
+// This is the intended effect, but why not inject them at construction of HAL_Generic object below
+// rather than here
 HAL_Generic::HAL_Generic() :
     AP_HAL::HAL(
         &uartADriver,

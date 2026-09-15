@@ -18,7 +18,7 @@
 class CSC_Controller : public MC_Controller
 {
 	public:
-		CSC_Controller();
+		CSC_Controller(MCInstance&, MCState&);
 
 	public:
 		// Implemented controller run methods

@@ -1,13 +1,7 @@
 
 #include "controller_none.h"
 
-#include "mcinstance.h"
-extern MCInstance mincopter;
-
-// Instance
-None_Controller controller;
-
-None_Controller::None_Controller() : MC_Controller()
+None_Controller::None_Controller(MCInstance& mc, MCState& mcs) : MC_Controller(mc, mcs)
 {
 
 }

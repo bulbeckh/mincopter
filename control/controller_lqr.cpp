@@ -3,14 +3,6 @@
 
 #include <AP_Math.h>
 
-#include "mcstate.h"
-
-#include "mcinstance.h"
-extern MCInstance mincopter;
-
-// Instance
-LQR_Controller controller;
-
 void LQR_Controller::run(void)
 {
 	// Retrieve values from state matrix and then calculate gain U = -k*x

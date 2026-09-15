@@ -1,7 +1,10 @@
 
 #pragma once
 
-#include <arch/linux/generic/AP_HAL_Generic.h>
+#include <arch/linux/generic/AP_HAL_Generic_Namespace.h>
+#include <AP_HAL/GPIO.h>
+
+// AP_HAL/GPIO.h contains declaration for both AP_HAL::GPIO and AP_HAL::DigitalSource
 
 class generic::GenericGPIO : public AP_HAL::GPIO {
 	public:

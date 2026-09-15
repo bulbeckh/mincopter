@@ -8,19 +8,14 @@
 
 #ifdef CONTROLLER_MPC
 	#include "controller_mpc.h"
-	extern MPC_Controller controller;
 #elif CONTROLLER_PID
 	#include "controller_pid.h"
-	extern PID_Controller controller;
 #elif CONTROLLER_LQR
 	#include "controller_lqr.h"
-	extern LQR_Controller controller;
 #elif CONTROLLER_CSC
 	#include "controller_csc.h"
-	extern CSC_Controller controller;
 #elif CONTROLLER_NONE
 	#include "controller_none.h"
-	extern None_Controller controller;
 /* 
  * Add remaining controller implementations here..
  */

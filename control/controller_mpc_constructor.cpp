@@ -1,8 +1,8 @@
 #include "controller_mpc.h"
 /* Last generated using fulltest.ipynb at 2025-07-06 09:06:16.781419+00:00 */
 
-MPC_Controller::MPC_Controller()
-    : MC_Controller(),
+MPC_Controller::MPC_Controller(MCInstance& mc, MCState& mcs)
+    : MC_Controller(mc, mcs),
     linearised_A{
         1.0f, // (0,0)
         0.0f, // (0,1)

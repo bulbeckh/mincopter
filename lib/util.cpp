@@ -5,18 +5,13 @@
 #include "mcstate.h"
 #include "config.h"
 
-#include "AP_Math.h"
+#include <AP_Math.h>
 #include "log.h"
 
 // To enable logging over named pipe
 #ifdef TARGET_ARCH_LINUX
 	#include <cstring>
 #endif
-
-extern MCInstance mincopter;
-
-#include "planner.h"
-#include "control.h"
 
 /* @brief Periodically log output to a mix of the console and external storage. In simulation, we log
  * directly to a file. Currently, this function only runs during simulation (i.e. TARGET_ARCH_LINUX)
@@ -48,9 +43,11 @@ extern MCInstance mincopter;
  *
  *
  */
+// TODO This should be moved to a loggin unit
 void dump_state(uint32_t _counter) 
 {
 #ifdef TARGET_ARCH_LINUX
+	/*
 	// Sensor readings
 	Vector3f _gyr_meas = mincopter.ins.get_gyro();
 	Vector3f _acc_meas = mincopter.ins.get_accel();
@@ -79,22 +76,21 @@ void dump_state(uint32_t _counter)
 
 	uint32_t iterations = (uint32_t)mincopter.hal.sim->last_sensor_state.iterations;
 
-	/* In place of an enum, we use the following type IDs for log messages
-	 * 0x01 RPY (euler)
-	 * 0x02 Position
-	 * 0x03 Velocity
-	 * 0x04 Euler Rates
-	 *
-	 * 0x05 Control Input
-	 * 0x06 Motor velocities
-	 *
-	 * 0x07 Full sensor state (3x imu accel, 3x imu gyro, 3x compass)
-	 * 0x08 Actual state (from gazebo)
-	 *
-	 * 0x09 GPS position and velocity
-	 *
-	 * 0x0A Barometer readings and inferred altitude
-	 */
+	// In place of an enum, we use the following type IDs for log messages
+	// 0x01 RPY (euler)
+	// 0x02 Position
+	// 0x03 Velocity
+	// 0x04 Euler Rates
+	//
+	// 0x05 Control Input
+	// 0x06 Motor velocities
+	//
+	// 0x07 Full sensor state (3x imu accel, 3x imu gyro, 3x compass)
+	// 0x08 Actual state (from gazebo)
+	//
+	// 0x09 GPS position and velocity
+	//
+	// 0x0A Barometer readings and inferred altitude
 
 	// RPY
 	std::memcpy(log_packet, &iterations, 4);
@@ -235,6 +231,7 @@ void dump_state(uint32_t _counter)
 	std::memcpy(log_packet+12, &alt_inferred, 4);
 
 	mincopter.hal.sim->log_state(log_packet, 16, 0x10);
+	*/
 
 
 	// Update position directly as a test every second
@@ -323,19 +320,21 @@ void dump_state(uint32_t _counter)
  # define CRASH_CHECK_ALT_CHANGE_LIMIT_CM   50      // baro altitude must not change by more than 50cm
 #endif
 
+
+// TODO Implementation requires mcstate, mincopter, and planner - need to rewrite
 void crash_checks(void)
 {
 	// TODO Re-write. For now, just checks if we are upside down or >60deg tilt
 	
-	Vector3f eul = mcstate.get_euler_angles();
+	//Vector3f eul = mcstate.get_euler_angles();
 	
 	// Check if we have roll/tilt greater than 60 degrees
-	if (fabs(eul.x) >= 1.05f || fabs(eul.y) >= 1.05f) {
-		mincopter.hal.console->printf("Crash flagged during crash check - tilt>=60degc\r\n");
+	//if (fabs(eul.x) >= 1.05f || fabs(eul.y) >= 1.05f) {
+		//mincopter.hal.console->printf("Crash flagged during crash check - tilt>=60degc\r\n");
 		
 		// Disarm
-		planner.ap.arm_active = 0;
-	}
+		//planner.ap.arm_active = 0;
+	//}
 
 	/*
     static uint8_t inverted_count;  // number of iterations we have been inverted
@@ -437,22 +436,11 @@ float pv_get_bearing_cd(const Vector3f &origin, const Vector3f &destination)
 }
 */
 
-// read the receiver RSSI as an 8 bit number for MAVLink
-// RC_CHANNELS_SCALED message
-void read_receiver_rssi(void)
-{
-    // avoid divide by zero
-    if (mincopter.rssi_range <= 0) {
-        mincopter.receiver_rssi = 0;
-    }else{
-        mincopter.rssi_analog_source->set_pin(mincopter.rssi_pin);
-        float ret = mincopter.rssi_analog_source->voltage_average() * 255 / mincopter.rssi_range;
-        mincopter.receiver_rssi = constrain_int16(ret, 0, 255);
-    }
-}
 
+// TODO Move this to a logical place
 void init_home(void)
 {
+/*
 	// TODO Change this to update the **flight_state** parameter directly
     //set_home_is_set(true);
     mcstate.home.id         = 0; //previously MAV_CMD_NAV_WAYPOINT
@@ -474,7 +462,7 @@ void init_home(void)
     // update navigation scalers.  used to offset the shrinking longitude as we go towards the poles
     //planner.scaleLongDown = longitude_scale(mcstate.home);
     //planner.scaleLongUp   = 1.0f/planner.scaleLongDown;
-	
+	*/
 	return;
 }
 
@@ -482,6 +470,7 @@ void init_home(void)
 // returns true if the GPS is ok and home position is set
 bool GPS_ok(void)
 {
+	/*
     if (mincopter.g_gps != NULL
 			&& planner.ap.home_is_set
 			&& mincopter.g_gps->status() == GPS::GPS_OK_FIX_3D
@@ -490,5 +479,6 @@ bool GPS_ok(void)
     }else{
         return false;
     }
+    */
 }
 

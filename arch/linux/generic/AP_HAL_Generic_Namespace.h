@@ -3,6 +3,7 @@
 
 /* Namespace for Generic interface which contains each peripheral driver or abstraction. */
 
+// TODO This should probably be namespaced under linux::generic
 namespace generic {
     class GenericUARTDriver;
     class GenericI2CDriver;

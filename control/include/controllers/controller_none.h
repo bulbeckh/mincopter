@@ -6,7 +6,7 @@
 class None_Controller : public MC_Controller
 {
 	public:
-		None_Controller();
+		None_Controller(MCInstance&, MCState&);
 
 		void run_position(void) override { run_none_controller(); }
 

@@ -13,7 +13,7 @@
 class MPC_Controller : public MC_Controller
 {
 	public:
-		MPC_Controller();
+		MPC_Controller(MCInstance&, MCState&);
 
 	/* **MPC Controller Implementation**
 	 *

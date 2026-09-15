@@ -103,7 +103,8 @@ void AP_Scheduler::run(uint16_t time_available)
                 _task_time_started = hal.scheduler->micros();
 
                 task_fn_t func = (task_fn_t)pgm_read_pointer(&_tasks[i].function);
-                func();
+                //func();
+                func(scheduler_mc);
                 
                 // record the tick counter when we ran. This drives
                 // when we next run the event

@@ -1,8 +1,8 @@
 
 #pragma once
 
-#include <AP_HAL/AP_HAL.h>
-#include <arch/linux/generic/AP_HAL_Generic.h>
+#include <arch/linux/generic/AP_HAL_Generic_Namespace.h>
+#include <AP_HAL/Scheduler.h>
 
 /* Scheduler class for simulation target
  *

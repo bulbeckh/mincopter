@@ -58,28 +58,22 @@
 
 #include <AP_Math.h>
 #include <AP_GPS.h>
+#include <AP_GPS_Glitch.h>      // GPS glitch protection library
+#include <AP_Baro.h>
+#include <AP_Compass.h>         // ArduPilot Mega Magnetometer Library
+#include <AP_InertialSensor.h>  // ArduPilot Mega Inertial Sensor (accel & gyro) Library
+#include <DataFlash.h>          // ArduPilot Mega Flash Memory Library
+#include <AP_ADC.h>             // ArduPilot Mega Analog to Digital Converter Library
+#include <AP_ADC_AnalogSource.h>
+#include <AP_BattMonitor.h>
 
 /* @brief Interface to the object storing each sensor and other hardware abstraction (DataFlash, Battery, ..) */
-MCInstance mincopter;
+//MCInstance mincopter;
 
-/* @brief Interface to the scheduler which runs sensor updates and other non-HAL, non-interrupt functions */
-AP_Scheduler scheduler;
 
-// TODO Change this to the same model that we use for planner and control (i.e. generic header file and interface
-/* @brief Interface to the state estimation module */
-#ifdef MC_STATE_NONE
-	StateNone mcstate;
-#elif MC_STATE_COMPLEMENTARY
-	StateComplementary mcstate;
-#elif MC_STATE_MADGWICK
-	StateMadgwick mcstate;
-#elif MC_STATE_EKF
-	// TODO Add implementation
-	StateEKF mcstate;
-#elif MC_STATE_SIM
-	// TODO Add implementation
-	StateSim mcstate;
-#endif
+
+// TODO Unfortunately, the planner and controller follow the same pattern as the HAL, but not thes
+// same pattern as the state or drivers
 
 /* ### CONTROLLER & PLANNER ###
  * We instantiate our chosen controller here so that it can be referenced in other translation units with
@@ -88,22 +82,21 @@ AP_Scheduler scheduler;
  * not by MC_Controller). This is the trade-off we make to avoid using a virtual table and extra cycle/cycles
  * for dereferencing the pointer.
  */
+
 #include "control.h"
-#include "planner.h"
+//#include "planner.h"
+
 
 // TODO Removed simulation logger - use another logging class
 
 // NOTE Bad hack to resolve linking errors as AP_Scheduler library uses an extern hal reference as original HAL was defined globally
 // TODO Remove all direct references to hal and just keep mincopter.hal
-const AP_HAL::HAL& hal = mincopter.hal;
-
-/* @brief Forward declaration of ardupilot initialisation. Defined in init.cpp */
-void init_ardupilot(void);
+const AP_HAL::HAL& hal = AP_HAL_BOARD_DRIVER;
 
 uint32_t _counter=0;
 
 /* Core Loop - Meant to run every 10ms (10,000 microseconds) */
-void loop(void)
+bool loop(AP_Scheduler& scheduler, MCInstance& mincopter, MCState& mcstate /*, MC_Planner& planner, MC_Controller& controller */ )
 {
 	// Record loop start time
     uint32_t timer = hal.scheduler->micros();
@@ -111,7 +104,7 @@ void loop(void)
     // wait for an INS sample
     if (!mincopter.ins.wait_for_sample(1000)) {
         //Log_Write_Error(ERROR_SUBSYSTEM_MAIN, ERROR_CODE_MAIN_INS_DELAY);
-		return;
+		return true;
     }
 
 	// We accumulate the INS readings with a timer process (@ 1kHz) but we actually update the
@@ -147,6 +140,9 @@ void loop(void)
 	
 	uint32_t st = hal.scheduler->micros();
 	
+	// If we lose connection to the simulation, then we should exit the simulation loop
+	if (!hal.sim->connected()) return false;
+
 	// Step the simulation by the desired microseconds (us)
 	hal.sim->tick(10000);
 
@@ -163,6 +159,7 @@ void loop(void)
 	mcstate.update();
 
 	// Print some basic state information to console
+	/*
 	if (_counter%100==0) {
 		hal.console->printf("[%u, armed=%d]State (r,p,y): (% 6.2fr,% 6.2fr,% 6.2fr), (% 8.2fd, % 8.2fd, % 8.2fd) height (% 6.3f) %s, [%u,%u,%u,%u]\r\n",
 				hal.scheduler->millis(),
@@ -180,10 +177,11 @@ void loop(void)
 				controller.mixer.get_motor_pwm(2),
 				controller.mixer.get_motor_pwm(3));
 	}
+	*/
 
 
 	// 2. Run controller & planner
-	if (planner.failsafe.telemetry_active) {
+	//if (planner.failsafe.telemetry_active) {
 
 		/* Our planner algorithm updates the desired roll and pitch based on our position from desired
 		 * waypoint as well as our velocity.
@@ -224,11 +222,13 @@ void loop(void)
 		 *
 		 */
 
+		// TODO Stopped until we discuss planner loop
 		// Run the planner. The controller is called from within the planner
-		planner.run();
-	}
+		//planner.run();
+	//}
 
 	// Set motor PWM to minimum each iteration if we are not armed
+	/*
 	if (!planner.ap.arm_active) {
 		// TODO We should use an rcoutput interface function like '::zero' instead
 		// Otherwise, make sure to zero all PWM output
@@ -237,17 +237,21 @@ void loop(void)
 		hal.rcout->write(2,1000);
 		hal.rcout->write(3,1000);
 	}
+	*/
 
     // Tell the scheduler one tick has passed
     scheduler.tick();
 
+    // TODO This is such a strange design pattern to pass mincopter object like this
 	// Read telemetry for incoming commands
-	read_telemetry();
+	read_telemetry(mincopter);
 
 	// Update state LEDs
+	/*
 	if (planner.ap.arm_active) {
 		hal.gpio->write(27, 0);
 	}
+	*/
 
 #ifdef TARGET_ARCH_LINUX
 	// Log state to the simulation debug file
@@ -281,7 +285,7 @@ void loop(void)
 	// Increment loop counter;
 	_counter++;
 
-	return;
+	return true;
 }
 
 
@@ -304,6 +308,33 @@ void loop(void)
  * In simulation, we also reduce the maximum runtime for each function to 1us in order to ensure that they all run within
  * a single call to scheduler.run . */
 
+/* Short discussion of where each func is located
+ *
+ *
+ * mcinstance.cpp:
+ * 	read_telemetry 			(called during tick loop)  	Simple - depends on mincopter
+ * 	send_telemetry_heartbeat 	(scheduled)			Depends on planner and mincopter
+ * 	failsafe_checks 		(scheduled)			Depends on planner and mincopter
+ * 	accumulate_compass 		(scheduled)			Simple - depends on mincopter
+ * 	accumulate_barometer 		(scheduled)			Simple - depends on mincopter
+ * 	read_barometer 			(scheduled)			Simple - depends on mincopter
+ * 	read_batt_compass 		(scheduled)			Complex - depends on mincopter
+ * 	update_GPS 			(scheduled)			Complex - depends on mincopter
+ *	read_receiver_rssi 		(scheduled)			Simple - depends on mincopter
+ *
+ * lib/util.cpp:
+ *	crash_checks (scheduled)		Depends mincopter, planner, and state
+ *	init_home (??)				Depends on mincopter and state
+ *	GPS_ok (??)				Depends on planner and mincopter
+ *	dump_state (called during tick loop)	Depends on mincopter
+ * 	
+ *
+ * Important - IMU accumulations happen as part of timer process but their
+ * read is done once per loop tick.
+ *
+ *
+ */
+
 const AP_Scheduler::Task scheduler_tasks[] PROGMEM = {
 
 #ifdef TARGET_ARCH_LINUX
@@ -312,9 +343,9 @@ const AP_Scheduler::Task scheduler_tasks[] PROGMEM = {
     { read_barometer, 2, 1},
     { accumulate_compass, 2, 1},
     { accumulate_barometer, 2,   1 },
-	{ send_telemetry_heartbeat, 10, 1 },
-	{ failsafe_checks, 10, 1 },
-	{ crash_checks, 10, 1}
+    //{ send_telemetry_heartbeat, 10, 1 },
+    //{ failsafe_checks, 10, 1 },
+    //{ crash_checks, 10, 1}
 #else
     { update_GPS, 	      	     2,  900 }, /* Sensor Update - GPS */
     { read_batt_compass,  	    10,  720 }, /* Sensor Update - Battery */
@@ -348,27 +379,180 @@ const AP_Scheduler::Task scheduler_tasks[] PROGMEM = {
 
 };
 
-extern "C" {
-	int main (void) {
+//extern "C" {
+int main (void) {
 
-		mincopter.hal.init(0, NULL);
+	// TODO We won't be able to use mincopter here - need access to a separate HAL object somewhere else
+	// HAL global already created at this point
+	hal.init(0, NULL);
 
-		/* Print initial RAM available after HAL initialisation */
-		uint16_t _mem_left = mincopter.hal.util->available_memory();
-		mincopter.hal.console->printf_P(PSTR("[INIT] Pre-init RAM:%u\n"), _mem_left);
+	// Create objects
+	AP_BattMonitor battery;
 
-		// Initialise MinCopter
-		init_ardupilot();
+	Telemetry telemetry;
 
-		// Initialise & start the main loop scheduler
-		scheduler.init(&scheduler_tasks[0], sizeof(scheduler_tasks)/sizeof(scheduler_tasks[0]));
+#ifdef MC_STORAGE_FILE
+	// TODO Remove hardcoded filepath
+	DataFlash_File DataFlash("/home/henry/Documents/mc-dev/logs");
+#elif  MC_STORAGE_DATAFLASH
+	DataFlash_APM2 DataFlash;
+#elif  MC_STORAGE_EMPTY
+	DataFlash_Empty DataFlash;
+#endif
 
-		mincopter.hal.scheduler->system_initialized();
+#ifdef MC_ADC_ADS7844
+	AP_ADC_ADS7844 adc;
+#elif  MC_ADC_NONE
+	AP_ADC_None adc;
+#elif  MC_ADC_SIM
+	AP_ADC_Sim adc;
+#endif
 
-		for(;;) loop();
+#ifdef MC_IMU_MPU6000
+	AP_InertialSensor_MPU6000 ins;
+#elif  MC_IMU_MPU6050
+	AP_InertialSensor_MPU6050 ins;
+#elif  MC_IMU_ICM20948
+	AP_InertialSensor_ICM20948 ins;
+#elif  MC_IMU_SIM
+	AP_InertialSensor_Sim ins;
+#elif  MC_IMU_NONE
+	AP_InertialSensor_None ins;
+#endif
 
-		return 0;
+#ifdef MC_BARO_MS5611
+	// TODO Whether to use I2C or SPI should be a separate configuration, where the wiring is also specified
+	// HASH if CONFIG_MS5611_SERIAL == AP_BARO_MS5611_SPI
+	AP_Baro_MS5611 barometer(&AP_Baro_MS5611::spi);
+	// HASH elif CONFIG_MS5611_SERIAL == AP_BARO_MS5611_I2C
+	// TODO Remove this - I2C is not used for Baro
+	// Confirmed this is the baro (the I2C version)
+	// AP_Baro_MS5611 barometer(&AP_Baro_MS5611::i2c);
+	// HASH endif
+#elif  MC_BARO_BME280
+	AP_Baro_BME280 barometer;
+#elif  MC_BARO_SIM
+	AP_Baro_Sim barometer;
+#elif  MC_BARO_NONE
+	AP_Baro_None barometer;
+#endif
+
+#ifdef MC_COMP_HMC5843
+	AP_Compass_HMC5843 compass;
+#elif  MC_COMP_ICM20948
+	AP_Compass_ICM20948 compass;
+#elif  MC_COMP_SIM
+	AP_Compass_Sim compass;
+#elif  MC_COMP_NONE
+	AP_Compass_None compass;
+#endif
+
+	// TODO How is this GPS organised/managed - very confusing
+	GPS* g_gps;
+
+	GPS_Glitch gps_glitch(g_gps);
+
+#ifdef MC_GPS_AUTO
+	// NOTE Almost certain ours is ublox
+	// TODO I'm pretty sure AP_GPS_Auto will include code for
+	// all GPS backends into final executable and determine at
+	// runtime. This clogs executable. Change this to a specific
+	// GPS backend. I think ublox is correct for APM2.5
+	#if   GPS_PROTOCOL == GPS_PROTOCOL_AUTO
+	AP_GPS_Auto     g_gps_driver(&g_gps);
+	// TODO Remove the remaining GPS objects
+	 #elif GPS_PROTOCOL == GPS_PROTOCOL_NMEA
+	AP_GPS_NMEA     g_gps_driver(&g_gps);
+	 #elif GPS_PROTOCOL == GPS_PROTOCOL_SIRF
+	AP_GPS_SIRF     g_gps_driver(&g_gps);
+	 #elif GPS_PROTOCOL == GPS_PROTOCOL_UBLOX
+	AP_GPS_UBLOX    g_gps_driver(&g_gps);
+	 #elif GPS_PROTOCOL == GPS_PROTOCOL_MTK
+	AP_GPS_MTK      g_gps_driver(&g_gps);
+	 #elif GPS_PROTOCOL == GPS_PROTOCOL_MTK19
+	AP_GPS_MTK19    g_gps_driver(&g_gps);
+	 #elif GPS_PROTOCOL == GPS_PROTOCOL_NONE
+	AP_GPS_None     g_gps_driver(&g_gps);
+	 #else
+		#error Unrecognised GPS_PROTOCOL setting.
+	#endif // GPS PROTOCOL
+#elif MC_GPS_SIM
+	AP_GPS_Sim   g_gps_driver;
+#elif MC_GPS_UBLOX
+	AP_GPS_UBLOX g_gps_driver;
+#elif MC_GPS_NONE
+	AP_GPS_None  g_gps_driver;
+#endif
+
+    	g_gps = &g_gps_driver;
+
+	// TODO As above, change this to a hal reference, not a mincopter reference
+	/* Print initial RAM available after HAL initialisation */
+	uint16_t _mem_left = hal.util->available_memory();
+	hal.console->printf_P(PSTR("[INIT] Pre-init RAM:%u\n"), _mem_left);
+
+	// Create MinCopter object
+	MCInstance mincopter(
+			DataFlash,
+			barometer,
+			compass,
+			g_gps,
+			gps_glitch,
+			battery,
+			telemetry,
+			ins,
+			adc);
+	
+	// Initialise MinCopter
+	mincopter.init_ardupilot();
+
+	// State estimation library
+#ifdef MC_STATE_NONE
+	StateNone mcstate;
+#elif MC_STATE_COMPLEMENTARY
+	StateComplementary mcstate;
+#elif MC_STATE_MADGWICK
+	StateMadgwick mcstate;
+#elif MC_STATE_EKF
+	// TODO Add implementation
+	StateEKF mcstate;
+#elif MC_STATE_SIM
+	// TODO Add implementation
+	StateSim mcstate;
+#endif
+
+	// TODO Add creation/initialisation of state, planner, and controller
+	// Initialise our mcstate algorithms. This will call the class-specific **init_derived** method
+    	mcstate.init();
+	hal.console->printf_P(PSTR("[INIT] MCState initialised\n"));
+
+#ifdef CONTROLLER_MPC
+	MPC_Controller controller(mincopter, mcstate);
+#elif CONTROLLER_PID
+	// TODO We don't have a PID controller implementation any more. Moved to CSC controller
+#elif CONTROLLER_LQR
+	LQR_Controller controller(mincopter, mcstate);
+#elif CONTROLLER_CSC
+	CSC_Controller controller(mincopter, mcstate);
+#elif CONTROLLER_NONE
+	None_Controller controller(mincopter, mcstate);
+#endif
+
+	/* @brief Interface to the scheduler which runs sensor updates and other non-HAL, non-interrupt functions */
+	AP_Scheduler scheduler(mincopter);
+	
+	// Initialise & start the main loop scheduler
+	scheduler.init(&scheduler_tasks[0], sizeof(scheduler_tasks)/sizeof(scheduler_tasks[0]));
+
+	hal.scheduler->system_initialized();
+
+	// TODO The loop should typically not return true, but we need to include here for when we lose
+	// connection to the simulation plugin and need to exit early
+	for(;;) {
+		if (!loop(scheduler, mincopter, mcstate/*, planner, controller */)) break;
 	}
-}
 
+	return 0;
+}
+// } // EXTERN C
 

@@ -1,9 +1,6 @@
 
 #pragma once
 
-/* Your layer exports should depend on AP_HAL.h ONLY. */
-#include <AP_HAL/AP_HAL.h>
-
 /*
  * AP_HAL_Generic is the target HAL for use during SITL (simulation) at any level (level 0,1,3).
  *

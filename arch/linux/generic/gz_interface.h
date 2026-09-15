@@ -1,12 +1,14 @@
 
 #pragma once
 
-#include <arch/linux/generic/AP_HAL_Generic.h>
+#include <arch/linux/generic/AP_HAL_Generic_Namespace.h>
+#include <AP_HAL/Sim.h>
 
-#include <stdint.h>
 #include <netinet/in.h>
 
 #include <AP_Math.h>
+
+#include <cstdint>
 
 /* @brief The buffer length used to buffer readings from the simulation */
 
@@ -80,6 +82,10 @@ class generic::GenericGZInterface : public AP_HAL::Sim {
 		Vector3f sim_new_attitude;
 		Vector3f sim_new_angvel;
 
+		/* @brief Counter for how many times we have failed to receive a state packet */
+		uint8_t receive_packet_retries{0};
+
+
     public:
 		/* @brief Set up UDP socket between this and GZ server process */
 		bool setup_sim_socket(void) override;
@@ -89,7 +95,8 @@ class generic::GenericGZInterface : public AP_HAL::Sim {
 		void log_state(uint8_t* data, uint8_t len, uint8_t type) override;
 
 		/* @brief Send a motor control output PWM */
-		bool send_control_output(void) override;
+		bool send_control_output(bool retry) override;
+
 
 		/* @brief Receive, parse, and store a GZ simulation state packet */
 		bool recv_state_input(void) override;
@@ -106,6 +113,8 @@ class generic::GenericGZInterface : public AP_HAL::Sim {
 		void set_mincopter_linvelocity(float dx_ned_ms, float dy_ned_ms, float dz_ned_ms) override;
 		void set_mincopter_angvelocity(float droll_rads, float dpitch_rads, float dyaw_rads) override;
 
+    private:
+		void prepare_control_packet(servo_packet_16& control_pkt);
 
 };
 

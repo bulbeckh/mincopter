@@ -7,6 +7,9 @@
 
 #include <arch/linux/generic/gz_interface.h>
 
+// TODO yet another hack to get access to hal object from with a hal component implementation
+#include <AP_HAL/AP_HAL.h>
+
 #include <iostream>
 #include <fstream>
 #include <cstring>
@@ -30,10 +33,16 @@ extern const AP_HAL::HAL& hal;
 
 void GenericGZInterface::tick(uint32_t /* unused */)
 {
+	static uint16_t iterations{0};
+	if (iterations>=1000) {
+		std::cout << "Tick 1000" << std::endl;
+		iterations = 0;
+	}
+
 	// TODO This is where we all **send_control_output** and **recv_state_input**
 	// TODO Use the tick_us param to drive the simulation step
 	
-	send_control_output();
+	send_control_output(false);
 
 	// After we (possibly) send a state to the gazebo driver, we clear the flags for each state update
 	position_update = false;
@@ -86,19 +95,8 @@ bool GenericGZInterface::setup_sim_socket(void)
     return true;
 }
 
-bool GenericGZInterface::send_control_output(void)
+void GenericGZInterface::prepare_control_packet(servo_packet_16& control_pkt)
 {
-    /* These hold the roll, pitch, and yaw outputs but these are interpreted by the
-     * motors class into actual motor values.
-     *
-     * mincopter.rc_1.servo_out;
-     * mincopter.rc_2.servo_out;
-     * mincopter.rc_4.servo_out;
-     *
-     */
-    
-    servo_packet_16 control_pkt;
-
     control_pkt.frame_count = frame_counter;
     control_pkt.frame_rate  = 1001;
 
@@ -175,6 +173,32 @@ bool GenericGZInterface::send_control_output(void)
 	// Add the update flag bitfield to the control packet
 	control_pkt.update_flag = update_flag;
 
+
+	return;
+}
+
+
+bool GenericGZInterface::send_control_output(bool retry)
+{
+	// In the new formulation of the lightweight messaging system, this will instead create
+	// and serialize a control message and then send via the socket
+
+
+
+    /* These hold the roll, pitch, and yaw outputs but these are interpreted by the
+     * motors class into actual motor values.
+     *
+     * mincopter.rc_1.servo_out;
+     * mincopter.rc_2.servo_out;
+     * mincopter.rc_4.servo_out;
+     *
+     */
+    
+    servo_packet_16 control_pkt;
+
+    // If we are not re-sending an existing control output, then update the packet
+    if (!retry) prepare_control_packet(control_pkt);
+
     // Send packet
     struct sockaddr_in cliaddr;
     memset(&cliaddr, 0, sizeof(cliaddr));
@@ -184,25 +208,46 @@ bool GenericGZInterface::send_control_output(void)
     cliaddr.sin_port = htons(9002);
 
     socklen_t len = sizeof(cliaddr);
-    sendto(sockfd, &control_pkt, sizeof(servo_packet_16), 0, (const struct sockaddr*)&cliaddr, len);
+
+    ssize_t sent_bytes = sendto(sockfd, &control_pkt, sizeof(servo_packet_16), 0, (const struct sockaddr*)&cliaddr, len);
+
+    if (static_cast<int>(sent_bytes) == -1) std::cout << "Failed to send packet during send control output\n";
     
     return false;
 }
 
+// TODO I still think this interface needs work, perhaps even an asynchronous callback,
+// checks that iteration count/timing is in sync, checks for missed packets, and re-try functionality
 bool GenericGZInterface::recv_state_input(void)
 {
     socklen_t len = sizeof(servaddr);
 
-    ssize_t n_received = recvfrom(sockfd, buffer, 1024, 0,
-	    (struct sockaddr*)&servaddr, &len);
+    while (true) {
+	ssize_t n_received = recvfrom(sockfd, buffer, 1024, 0,
+		    (struct sockaddr*)&servaddr, &len);
 
 	// NOTE TODO This works but may skip calls to update state during the loop as a call to ::tick
 	// won't increment the frame_counter but will reset the direct state update flags
-	
-	// If we timeout (1second) then we just continue the tick loop and send the control packet again
+		
+	// If we timeout (1second) then we try to receive again
 	if (n_received<0) {
-		return false;
+		++receive_packet_retries;
+
+		std::cout << "Failed to receive packet during recv_state_input " << 
+			static_cast<int>(receive_packet_retries) << " times\n";
+
+		if (receive_packet_retries>4) {
+			std::cout << "Lost connection to gazebo simulator... closing MinCopter\n";
+			
+			connection_lost = true;
+			break;
+		}
+	} else {
+		// Reset retry counter
+		receive_packet_retries = 0;
+		break;
 	}
+    }
 
     // Iterate frame counter
     frame_counter += 1;

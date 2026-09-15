@@ -1,7 +1,10 @@
 
 #pragma once
 
-#include <arch/linux/generic/AP_HAL_Generic.h>
+#include <arch/linux/generic/AP_HAL_Generic_Namespace.h>
+#include <AP_HAL/I2CDriver.h>
+
+#include <cstdint>
 
 class generic::GenericI2CDriver : public AP_HAL::I2CDriver {
 	public:

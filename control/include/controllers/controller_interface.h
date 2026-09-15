@@ -16,7 +16,9 @@ class MC_Controller {
 		 * @param mcstate
 		 * @param mcinstance
 		 */
-		MC_Controller() :
+		MC_Controller(MCInstance& mc, MCState& mcs) :
+			mincopter(mc),
+			mcstate(mcs),
 			angle_rate_max(18000),
 			max_climb_rate(10000),
 			min_climb_rate(10000)
@@ -26,8 +28,14 @@ class MC_Controller {
 
 		// TODO Add destructor
 
-	public:
+	protected:
+		/* @brief Reference to MinCopter object */
+		MCInstance& mincopter;
 
+		/* @brief Reference to state estimation library */
+		MCState& mcstate;
+
+	public:
 		/* @brief Mixer Instance */
 		Mixer mixer;
 

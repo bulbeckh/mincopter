@@ -1,9 +1,10 @@
 
 #include "telemetry.h"
 
+// TODO Remove this planner dependency or specify explicitly via reference
 #include "planner.h"
-#include "mcinstance.h"
-extern MCInstance mincopter;
+
+#include <AP_HAL/AP_HAL.h>
 
 /* The mincopter telemetry standard currently defines four functions
  *
@@ -18,15 +19,18 @@ extern MCInstance mincopter;
 // Stub functions for telemetry callbacks. NOTE: By default we use these functions but in things like test modules, we overwrite them
 // with our custom behaviour
 
+// TODO This is also bad design but this is defined in the mincopter.cpp
+extern const AP_HAL::HAL& hal;
+
 __attribute__((weak)) void mincopter_telemetry_command_landrequest(void* argptr)
 {
 	// Flag that a switch to land mode was requested
 	planner.ap.land_requested_telem = 1;
-	mincopter.hal.console->printf("Land requested from telem\r\n");
+	hal.console->printf("Land requested from telem\r\n");
 							
 	// Acknowledge land request
 	uint8_t telem_tx_buffer[] = {0x24, 0x0F};
-	mincopter.hal.uartC->write(telem_tx_buffer, 2);
+	hal.uartC->write(telem_tx_buffer, 2);
 
 	return;
 }
@@ -41,12 +45,12 @@ __attribute__((weak)) void mincopter_telemetry_command_heartbeatrequest(void* ar
 		if (!planner.failsafe.telemetry_first_connect) {
 			// Flag that we have connected to telemetry. This will trigger the planner/controller logic
 			planner.failsafe.telemetry_first_connect = 1;
-			mincopter.hal.console->printf("[TELE] Connected to telemetry\r\n");
+			hal.console->printf("[TELE] Connected to telemetry\r\n");
 		}
 		planner.failsafe.telemetry_active = 1;
 
 		// Reset the heartbeat timestamp
-		planner.failsafe.telemetry_last_heartbeat_ms = mincopter.hal.scheduler->millis();
+		planner.failsafe.telemetry_last_heartbeat_ms = hal.scheduler->millis();
 	} else {
 		// TODO 
 		// We have found a heartbeat message in the wrong order.
@@ -59,11 +63,11 @@ __attribute__((weak)) void mincopter_telemetry_command_armrequest(void* argptr)
 {
 	// Set arm request flag
 	planner.ap.arm_requested_telem = 1;
-	mincopter.hal.console->printf("Arm requested from telem\r\n");
+	hal.console->printf("Arm requested from telem\r\n");
 
 	// Acknowledge the arm request
 	uint8_t telem_tx_buffer[] = {0x24, 0x0B};
-	mincopter.hal.uartC->write(telem_tx_buffer, 2);
+	hal.uartC->write(telem_tx_buffer, 2);
 
 	return;
 }
@@ -72,11 +76,11 @@ __attribute__((weak)) void mincopter_telemetry_command_disarmrequest(void* argpt
 {
 	// Flag that an immediate disarm was requested
 	planner.ap.disarm_requested_telem = 1;
-	mincopter.hal.console->printf("Disarm requested from telem\r\n");
+	hal.console->printf("Disarm requested from telem\r\n");
 							
 	// Acknowledge disarm request
 	uint8_t telem_tx_buffer[] = {0x24, 0x0E};
-	mincopter.hal.uartC->write(telem_tx_buffer, 2);
+	hal.uartC->write(telem_tx_buffer, 2);
 
 	return;
 }

@@ -25,6 +25,8 @@
 
 #include <stdint.h>
 
+#include "mcinstance.h"
+
 #define AP_SCHEDULER_MAX_TASKS 32
 
 /*
@@ -40,7 +42,11 @@
 class AP_Scheduler
 {
 public:
-	typedef void (*task_fn_t)(void);
+
+	AP_Scheduler(MCInstance& mincopter) : scheduler_mc(mincopter) {}
+
+	//typedef void (*task_fn_t)(void);
+	typedef void (*task_fn_t)(MCInstance&);
 	//typedef Delegate<void(void)> task_fn_t;
 
 	struct Task {
@@ -101,6 +107,9 @@ private:
 
     // number of ticks that _spare_micros is counted over
     uint8_t _spare_ticks;
+
+    /* @brief Reference to the MinCopter object for scheduler callbacks */
+    MCInstance& scheduler_mc;
 };
 
 #endif // AP_SCHEDULER_H

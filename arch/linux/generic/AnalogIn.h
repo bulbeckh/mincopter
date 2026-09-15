@@ -1,7 +1,8 @@
 
 #pragma once
 
-#include <arch/linux/generic/AP_HAL_Generic.h>
+#include <arch/linux/generic/AP_HAL_Generic_Namespace.h>
+#include <AP_HAL/AnalogIn.h>
 
 class generic::GenericAnalogSource : public AP_HAL::AnalogSource {
 public:

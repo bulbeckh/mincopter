@@ -24,7 +24,8 @@
 class LQR_Controller : public MC_Controller
 {
 	public:
-		LQR_Controller() : MC_Controller() { }
+		LQR_Controller(MCInstance& mc, MCState& mcs) :
+			MC_Controller(mc, mcs) { }
 
 	public:
 		/* @brief Run controller (including call to mixer) */

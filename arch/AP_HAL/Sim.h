@@ -3,6 +3,8 @@
 
 #include <AP_HAL/AP_HAL_Namespace.h>
 
+#include <cstdint>
+
 // TODO Fix this as soon as possible - we should not be including AP_Math here and 
 // we should also not have specific methods for retrieving readings as below.
 //
@@ -30,7 +32,7 @@ class AP_HAL::Sim
 		virtual bool setup_log_source(const char* addr, LogSource source) = 0;
 
 		/* @brief Send a motor control output PWM */
-		virtual bool send_control_output(void) = 0;
+		virtual bool send_control_output(bool) = 0;
 
 		/* @brief Receive, parse, and store a GZ simulation state packet */
 		virtual bool recv_state_input(void) = 0;
@@ -138,6 +140,14 @@ class AP_HAL::Sim
 		/* @brief Update the angular velocity of the copter in the Gazebo simulation. Pose is specified in the MinCopter frame (NED,
 		 * extrinsic X-Y-Z orientation) with position in metres and orientation in radians */
 		virtual void set_mincopter_angvelocity(float droll_rads, float dpitch_rads, float dyaw_rads) = 0;
+
+	protected:
+		/* @brief Flag that we have lost connection to the gazebo simulation plugin */
+		bool connection_lost{false};
+
+	public:
+		/* @brief Return true if we are still connected */
+		bool connected(void) { return !connection_lost; }
 
 	public:
 

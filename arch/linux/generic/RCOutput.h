@@ -1,7 +1,8 @@
 
 #pragma once
 
-#include <arch/linux/generic/AP_HAL_Generic.h>
+#include <arch/linux/generic/AP_HAL_Generic_Namespace.h>
+#include <AP_HAL/RCOutput.h>
 
 class generic::GenericRCOutput : public AP_HAL::RCOutput {
     void     init(void* machtnichts);

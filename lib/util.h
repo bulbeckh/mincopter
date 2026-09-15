@@ -2,8 +2,6 @@
 
 #include <stdint.h>
 
-#include <AP_Math.h>
-
 
 void dump_state(uint32_t _counter);
 
@@ -13,7 +11,6 @@ void init_home(void);
 
 bool GPS_ok(void);
 
-void read_receiver_rssi(void);
 
 
 // TODO Removed for now but kept here for reference

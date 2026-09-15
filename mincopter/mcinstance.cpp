@@ -4,12 +4,6 @@
 #include "mcinstance.h"
 #include "mcstate.h"
 
-/* NOTE The reason why there is a mincopter instance here is because these are not class methods */
-extern MCInstance mincopter;
-
-#include "planner.h"
-#include "control.h"
-
 #include "defines.h"
 #include "util.h"
 #include "log.h"
@@ -19,9 +13,22 @@ extern MCInstance mincopter;
 // TODO Move telem into it's own file or even class
 // TODO Check how much util the read_telemetry function is using and maybe decrease frequency
 
+void read_receiver_rssi(MCInstance& mincopter)
+{
+    // avoid divide by zero
+    if (mincopter.rssi_range <= 0) {
+        mincopter.receiver_rssi = 0;
+    }else{
+        mincopter.rssi_analog_source->set_pin(mincopter.rssi_pin);
+        float ret = mincopter.rssi_analog_source->voltage_average() * 255 / mincopter.rssi_range;
+        mincopter.receiver_rssi = constrain_int16(ret, 0, 255);
+    }
+    return;
+}
+
 /* @brief Read incoming telemetry messages. We call this at every iteration an process no more than 8 bytes of
  * a telemetry message */
-void read_telemetry(void)
+void read_telemetry(MCInstance& mincopter)
 {
 	/* Design of simple console to read incoming telemetry commands
 	 *
@@ -52,6 +59,8 @@ void read_telemetry(void)
 
 }
 
+// TODO Same issue with dependency on planner as we have in failsafe_checks function
+/*
 void send_telemetry_heartbeat(void)
 {
 	// TODO What do to when we receive a message from an old packet (i.e. identifier number less than what we are expecting
@@ -59,8 +68,8 @@ void send_telemetry_heartbeat(void)
 	uint8_t _telem_tx_buffer[] = {0x24, 0x0A, 0x00};
 
 	if (!planner.failsafe.telemetry_first_connect) {
-		/* If we have not yet connected to our telemetry, we keep sending heartbeat messages with
-		 * a sequence ID of 0x5A */
+		// If we have not yet connected to our telemetry, we keep sending heartbeat messages with
+		// a sequence ID of 0x5A
 		_telem_tx_buffer[2] = 0x5A;
 
 		// Set heartbeat id
@@ -75,16 +84,19 @@ void send_telemetry_heartbeat(void)
 
 	return;
 }
+*/
 
+/* TODO I think this is bad design - having a scheduled function (failsafe checks) be dependent
+ * on the planner object. I think instead we need a error state handling which is scheduled when
+ * something goes wrong, like we breach the geofence or we fail to plan a valid path. Temporarily
+ * disable this scheduled function. */
+/*
 void failsafe_checks(void)
 {
-	/* This failsafe function runs at 10Hz and checks for breaches of failsafe conditions like low
-	 * battery, position outside of geo-fence and a telemetry heartbeat miss.
-	 *
-	 * TODO We either have a crash check here or do crash checks in it's own scheduled function
-	 *
-	 *
-	 */
+	// This failsafe function runs at 10Hz and checks for breaches of failsafe conditions like low
+	// battery, position outside of geo-fence and a telemetry heartbeat miss.
+	//
+	// TODO We either have a crash check here or do crash checks in it's own scheduled function
 
 	// TODO Add remaining failsafe checks
 	// TODO It is strange that we have a flag to run the telemetry failsafe and other failsafe
@@ -128,8 +140,9 @@ void failsafe_checks(void)
 
 	return;
 }
+*/
 
-void accumulate_compass(void)
+void accumulate_compass(MCInstance& mincopter)
 {
 	// Accumulate compass readings
 	mincopter.compass.accumulate();
@@ -137,7 +150,7 @@ void accumulate_compass(void)
 	return;
 }
 
-void accumulate_barometer(void)
+void accumulate_barometer(MCInstance& mincopter)
 {
 	// Accumulate barometer readings
 	mincopter.barometer.accumulate();
@@ -145,7 +158,7 @@ void accumulate_barometer(void)
 	return;
 }
 
-void read_barometer(void)
+void read_barometer(MCInstance& mincopter)
 {
 	// Update barometer
 	mincopter.barometer.read();
@@ -153,7 +166,7 @@ void read_barometer(void)
 	return;
 }
 
-void read_batt_compass(void)
+void read_batt_compass(MCInstance& mincopter)
 {
 	// Update battery monitor
     mincopter.battery.read();
@@ -173,7 +186,7 @@ void read_batt_compass(void)
 }
 
 // called at 50hz
-void update_GPS(void)
+void update_GPS(MCInstance& mincopter)
 {
 	// TODO Unused - remove
 	static uint32_t last_gps_reading;           // time of last gps message
@@ -230,3 +243,148 @@ void update_GPS(void)
 	}
 	*/
 }
+
+void MCInstance::init_ardupilot(void)
+{
+	hal.console->printf_P(PSTR("[INIT] Initialisation started..\n"));
+
+	// Set all board LEDs as outputs
+	/*
+	hal.gpio->pinMode(27, 1);
+	hal.gpio->pinMode(26, 1);
+	hal.gpio->pinMode(25, 1);
+	*/ 
+	
+	// Switch all board LEDs on
+	/*
+	hal.gpio->write(27, 0);
+	hal.gpio->write(26, 0);
+	hal.gpio->write(25, 0);
+	*/
+
+	// GPS UART/Serial port initialisation
+#if GPS_PROTOCOL != GPS_PROTOCOL_IMU
+	// NOTE We use uartB for GPS on AVR, otherwise, for boards like RPI we
+	// re-use uartA for GPS
+#if defined(TARGET_ARCH_AVR) || defined(TARGET_ARCH_STM32)
+	if (hal.uartB != NULL) hal.uartB->begin(38400, 256, 16);
+	hal.console->printf_P(PSTR("[INIT] uartB initialised\n"));
+#else
+	if (hal.uartA != NULL) hal.uartA->begin(38400, 256, 16);
+	hal.console->printf_P(PSTR("[INIT] uartA initialised\n"));
+#endif
+
+#endif
+
+#ifdef HAL_BOARD_APM2
+	// Run the timer a bit slower on APM2 to reduce the interrupt load on the CPU
+	hal.scheduler->set_timer_speed(500);
+#endif
+
+	// Initialise battery monitor
+	battery.init();
+	hal.console->printf_P(PSTR("[INIT] Battery monitor initialised\n"));
+
+    	rssi_analog_source      = hal.analogin->channel(rssi_pin);
+    	board_vcc_analog_source = hal.analogin->channel(ANALOG_INPUT_BOARD_VCC);
+
+	// Initialise barometer
+    	barometer.init();
+	hal.console->printf_P(PSTR("[INIT] Barometer initialised\n"));
+
+	// TODO What is this doing - remove
+	// we start by assuming USB connected, as we initialed the serial
+	// port with SERIAL0_BAUD. check_usb_mux() fixes this if need be.
+	//planner.ap.usb_connected = true;
+
+    	//check_usb_mux();
+
+#if CONFIG_HAL_BOARD != HAL_BOARD_AVR
+	// we have a 2nd serial port for telemetry on all boards except
+	// APM2. We actually do have one on APM2 but it isn't necessary as
+	// a MUX is used
+	
+	// TODO Replace this with the board configuration that checks how many UARTs are enabled 
+	if (hal.uartB != NULL) {
+		//hal.uartB->begin(SERIAL1_BAUD, 128, 128);
+		//hal.console->printf_P(PSTR("[INIT] uartB initialised\n"));
+	}
+#endif
+
+	// Telemetry
+    	if (hal.uartC != NULL) {
+        	hal.uartC->begin(57600, 128, 128);
+		hal.console->printf_P(PSTR("[INIT] uartC initialised\n"));
+        	//gcs[2].init(hal.uartD);
+		hal.uartC->printf("Telem Test\r\n");
+	}
+
+#if defined(LOGGING_ENABLED)
+	/* NOTE The log_structure variable is an array of LogStructure objects. It is referenced in the log.h header
+	 * file but here we are getting the sizeof(log_structure) */
+
+    	//DataFlash.Init(log_structure, sizeof(log_structure)/sizeof(log_structure[0]));
+	/* NOTE: Using 23 different structures instead of counting due to issue in separation of log_structure object */
+	// TODO Remove this camel case
+    	DataFlash.Init(log_structure, 22);
+	hal.console->printf_P(PSTR("[INIT] DataFlash initialised\n"));
+
+#endif
+
+	/* NOTE no RC input in auto modes */
+    	//init_rc_in();               // sets up rc channels from radio
+    	//init_rc_out();              // sets up motors and output to escs
+
+    	//hal.scheduler->register_timer_failsafe(failsafe_check, 1000);
+
+	// ADC Initialisation
+	// NOTE This initialises the external ADCs (as opposed to the hal adc) if present
+	// We still include because we specify our ADC as AP_ADC_None usually
+    	adc.Init();
+	hal.console->printf_P(PSTR("[INIT] ADC initialised\n"));
+
+	// GPS Initialisation
+
+    	// GPS Initialization with correct UART
+#if defined(TARGET_ARCH_AVR) || defined(TARGET_ARCH_STM32)
+	if (hal.uartB != NULL) {
+    		g_gps->init(hal.uartB, GPS::GPS_ENGINE_AIRBORNE_1G);
+#else
+	if (hal.uartA != NULL) {
+    		g_gps->init(hal.uartA, GPS::GPS_ENGINE_AIRBORNE_1G);
+#endif
+		hal.console->printf_P(PSTR("[INIT] GPS initialised\n"));
+	}
+
+	// Compass Initialisation
+    	compass.init();
+	hal.console->printf_P(PSTR("[INIT] Compass initialised\n"));
+
+	// TODO NOTE We have removed the barometer calibration and replaced with the update_calibration method called by the planner upon arming
+	// TODO Part of this function sets the ground pressure/temperature which should really be done upon arming
+	// Also in simulation, this functions hangs as we do not have a reading from gazebo before initialisation
+#ifndef TARGET_ARCH_LINUX
+	//barometer.calibrate();
+#endif
+
+	// IMU Initialisation
+    	// Warm up and read Gyro offsets
+    	ins.init(AP_InertialSensor::COLD_START, AP_InertialSensor::RATE_100HZ);
+	hal.console->printf_P(PSTR("[INIT] IMU initialised\n"));
+
+	// Set state as landed
+	//planner.ap.land_complete = 1;
+
+#if defined(LOGGING_ENABLED)
+    	Log_Write_Startup();
+#endif
+
+#ifdef TARGET_ARCH_LINUX
+	// Delay 1s
+	hal.scheduler->delay(1000);
+#endif
+
+	hal.console->printf_P(PSTR("[INIT] Initialisation complete, post-init RAM:%u\n"), hal.util->available_memory());
+	return;
+}
+
