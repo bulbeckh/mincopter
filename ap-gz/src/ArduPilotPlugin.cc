@@ -67,6 +67,9 @@
 #include <gz/plugin/Register.hh>
 #include <gz/transport/Node.hh>
 
+#include <gz/sim/Events.hh>
+#include <gz/sim/System.hh>
+
 #include <sdf/sdf.hh>
 
 #include "SocketUDP.hh"
@@ -434,8 +437,11 @@ void gz::sim::systems::ArduPilotPlugin::Configure(
     const gz::sim::Entity &_entity,
     const std::shared_ptr<const sdf::Element> &_sdf,
     gz::sim::EntityComponentManager &_ecm,
-    gz::sim::EventManager &/*&_eventMgr*/)
+    gz::sim::EventManager &_eventMgr)
 {
+  // Store event manager
+  this->eventMgr = &_eventMgr;
+
   // Make a clone so that we can call non-const methods
   sdf::ElementPtr sdfClone = _sdf->Clone();
 
@@ -806,7 +812,6 @@ void gz::sim::systems::ArduPilotPlugin::PreUpdate(
     const gz::sim::UpdateInfo &_info,
     gz::sim::EntityComponentManager &_ecm)
 {
-
 	// Enable velocity checks for base link
 	auto coptermodelentity = _ecm.EntityByName(std::string("iris_with_standoffs"));
 
@@ -1045,7 +1050,12 @@ void gz::sim::systems::ArduPilotPlugin::PreUpdate(
 		if (this->dataPtr->udp_freq_count%10==0) {
 			while (!this->ReceiveServoPacket()) {
 				// SIGNINT should interrupt this loop.
-				if (this->dataPtr->signal != 0) break;
+				if (this->dataPtr->signal != 0) {
+					// Tell server to stop and then return
+					this->eventMgr->Emit<gz::sim::events::Stop>();
+					gzwarn << "Received signal. Stopping server...\n";
+					return;
+				}
 			}
 
 			this->dataPtr->lastServoPacketRecvTime = _info.simTime;
@@ -1059,35 +1069,40 @@ void gz::sim::systems::ArduPilotPlugin::PreUpdate(
 		// keep this function running every iteration (1000Hz) even though the motor
 		// commands will be updated at 100Hz
 
+		// NOTE For both the imu and the compass, we never explicitly clear the valid flag
+		
 		// At 1kHz, we read, store, and filter the accelerometer signals
-		gz::msgs::IMU imuMsg;
+		gz::msgs::IMU imuMsg{};
 		{
 			std::lock_guard<std::mutex> lock(this->dataPtr->imuMsgMutex);
-			// Wait until we've received a valid message.
-			if (!this->dataPtr->imuMsgValid)
+
+			// Copy the IMU data only if we have a valid msg.
+			if (this->dataPtr->imuMsgValid)
 			{
-				return;
+				imuMsg = this->dataPtr->imuMsg;
 			}
-			imuMsg = this->dataPtr->imuMsg;
 		}
 
-		this->dataPtr->accel_xyz_10[0+this->dataPtr->imu_filtered_counter%10] = imuMsg.linear_acceleration().x();
-		this->dataPtr->accel_xyz_10[10+this->dataPtr->imu_filtered_counter%10] = imuMsg.linear_acceleration().y();
-		this->dataPtr->accel_xyz_10[20+this->dataPtr->imu_filtered_counter%10] = imuMsg.linear_acceleration().z();
+		if (this->dataPtr->imuMsgValid) {
+			this->dataPtr->accel_xyz_10[0+this->dataPtr->imu_filtered_counter%10] = imuMsg.linear_acceleration().x();
+			this->dataPtr->accel_xyz_10[10+this->dataPtr->imu_filtered_counter%10] = imuMsg.linear_acceleration().y();
+			this->dataPtr->accel_xyz_10[20+this->dataPtr->imu_filtered_counter%10] = imuMsg.linear_acceleration().z();
 
-		this->dataPtr->gyro_xyz_10[0+this->dataPtr->imu_filtered_counter%10] = imuMsg.angular_velocity().x();
-		this->dataPtr->gyro_xyz_10[10+this->dataPtr->imu_filtered_counter%10] = imuMsg.angular_velocity().y();
-		this->dataPtr->gyro_xyz_10[20+this->dataPtr->imu_filtered_counter%10] = imuMsg.angular_velocity().z();
+			this->dataPtr->gyro_xyz_10[0+this->dataPtr->imu_filtered_counter%10] = imuMsg.angular_velocity().x();
+			this->dataPtr->gyro_xyz_10[10+this->dataPtr->imu_filtered_counter%10] = imuMsg.angular_velocity().y();
+			this->dataPtr->gyro_xyz_10[20+this->dataPtr->imu_filtered_counter%10] = imuMsg.angular_velocity().z();
 
-		gz::msgs::Magnetometer compassMsg;
+			++(this->dataPtr->imu_filtered_counter);
+		}
+
+		gz::msgs::Magnetometer compassMsg{};
 		{
 			std::lock_guard<std::mutex> lock(this->dataPtr->compassMsgMutex);
-			// Wait until we've received a valid message.
-			if (!this->dataPtr->compassMsgValid)
+			// Copy the compass data only if we have a valid compass msg.
+			if (this->dataPtr->compassMsgValid)
 			{
-				return;
+				compassMsg = this->dataPtr->compassMsg;
 			}
-			compassMsg = this->dataPtr->compassMsg;
 		}
 
 		// Log the 1kHz signal to a file
@@ -1186,6 +1201,8 @@ void gz::sim::systems::ArduPilotPlugin::PreUpdate(
 
 		// Clear flag always regardless of whether we had to update
 		this->dataPtr->state_update_flag = 0;
+	} else {
+		gzwarn << "Paused: skipping PreUpdate\n";
 	}
 }
 
@@ -1209,6 +1226,8 @@ void gz::sim::systems::ArduPilotPlugin::PostUpdate(
 
 		this->dataPtr->udp_freq_count+=1;
         this->dataPtr->lastControllerUpdateTime = _info.simTime;
+    } else {
+	    gzwarn << "Paused: skipping PostUpdate\n";
     }
 }
 
@@ -1503,6 +1522,7 @@ bool gz::sim::systems::ArduPilotPlugin::ReceiveServoPacket()
 			this->dataPtr->connectionTimeoutCount = 0;
 			this->SendState();
 		}
+	gzwarn << "MinCopter packet receival time-out, skipping PreUpdate\n";
         return false;
     }
 
@@ -1512,9 +1532,7 @@ bool gz::sim::systems::ArduPilotPlugin::ReceiveServoPacket()
     uint16_t magic = this->dataPtr->have32Channels ? magic_32 : magic_16;
     if (magic != pkt_magic)
     {
-        gzwarn << "Incorrect protocol magic "
-            << pkt_magic << " should be "
-            << magic << "\n";
+        gzwarn << "Incorrect protocol magic " << pkt_magic << " should be " << magic << "\n";
         return false;
     }
 
@@ -2022,11 +2040,16 @@ void gz::sim::systems::ArduPilotPlugin::CreateStateJSON(
 /////////////////////////////////////////////////
 void gz::sim::systems::ArduPilotPlugin::SendState() const
 {
-    this->dataPtr->sock.sendto(
-        &this->dataPtr->sim_pkt,
-        sizeof(mc_sim_state_packet),
-        this->dataPtr->fcu_address,
-        this->dataPtr->fcu_port_out);
+	while (true) {
+	    ssize_t bytes_sent = this->dataPtr->sock.sendto(
+		&this->dataPtr->sim_pkt,
+		sizeof(mc_sim_state_packet),
+		this->dataPtr->fcu_address,
+		this->dataPtr->fcu_port_out);
+
+		if (bytes_sent>=0) break;
+	}
+
 
 }
 

@@ -58,6 +58,19 @@ cmake .. -DTARGET_ARCH=<target_architecture>
 make -j4
 ```
 
+#### Simulation
+If we are running on a simulated environment (using linux/generic HAL and Gazebo simulator), we need to source the generated setup script, which adds the gazebo plugin to the Gazebo environment variables.
+```bash
+source <build directory>/setup_gz.sh
+```
+
+To run tests:
+```bash
+## In build directory
+./bin/test-gzinterface
+./bin/test-imu
+```
+
 ## Documentation 
 See `docs/` for more documentation.
 

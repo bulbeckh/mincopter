@@ -54,7 +54,7 @@ struct servo_packet_32 {
 /* State packet that is transmitted over UDP to flight software */
 struct mc_sim_state_packet {
     double timestamp;
-	uint64_t iterations;
+    uint64_t iterations;
 
     double imu_gyro_x;
     double imu_gyro_y;
@@ -213,6 +213,8 @@ class GZ_SIM_VISIBLE ArduPilotPlugin:
 
   /// \brief Initialise flight dynamics model socket
   private: bool InitSockets(sdf::ElementPtr _sdf) const;
+
+  private: gz::sim::EventManager* eventMgr{nullptr};
 
   /// \brief Private data pointer.
   private: std::unique_ptr<ArduPilotPluginPrivate> dataPtr;

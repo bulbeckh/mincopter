@@ -76,7 +76,7 @@ if(NOT DEFINED TARGET_ARCH)
 endif()
 
 if(NOT DEFINED MC_BOARD)
-    message(FATAL_ERROR "Board configuration not supplied. Use -DMC_BOARD=<board-file-without-extension>.")
+	message(FATAL_ERROR "Board configuration not supplied. Use -DMC_BOARD=<board-file-without-extension>.")
 endif()
 
 if(NOT DEFINED MC_FEATURE_SET)
@@ -1232,6 +1232,11 @@ else()
     add_subdirectory(${CMAKE_SOURCE_DIR}/state)
     add_subdirectory(${CMAKE_SOURCE_DIR}/dev)
     add_subdirectory(${CMAKE_SOURCE_DIR}/lib)
+
+    ## Build Gazebo plugin if we are using simulation
+    if (TARGET_ARCH STREQUAL "generic")
+	    add_subdirectory(${CMAKE_SOURCE_DIR}/ap-gz)
+    endif()
 
     add_executable(mincopter
         mincopter/mincopter.cpp
