@@ -1,0 +1,107 @@
+
+#include <filesystem>
+
+#include <gz/sim/Server.hh>
+#include <gz/sim/ServerConfig.hh>
+#include <gz/common/Console.hh>
+
+#include <thread>
+#include <cassert>
+
+#include <AP_HAL/AP_HAL.h>
+#include <arch/AP_HAL/HAL_Interface.h>
+
+/* This test suite is responsible for ensuring that our gazebo interface is created successfully
+ * and we are able to communicate1 with the gazebo simulation.
+ *
+ * NOTE Before running test executable, we need to source both a valid gz distribution (i.e. via
+ * /opt/ros/jazzy/setup.bash and also the mincopter-specific gz setup via ${PROJECT_ROOT}/setup.bash */
+
+using namespace gz;
+using namespace sim;
+
+// TODO This is a bad hack which permeates different layers, and breaks the isolation the mc-arch is supposed
+// to have because mc-arch now depends on this HAL object
+const AP_HAL::HAL& hal = AP_HAL_BOARD_DRIVER;
+
+// TODO Convert to gtest fixture
+int main(void) {
+
+	hal.init(0,NULL);
+
+	// Filepath for world file
+	const std::filesystem::path world_file = 
+		std::filesystem::path(PROJECT_SOURCE_DIR) /
+		"ap-gz" /
+		"worlds" /
+		"iris_runway.sdf";
+
+	// Set logging verbosity to 2 (warn)
+	common::Console::SetVerbosity(2);
+
+	ServerConfig serverConfig{};
+	serverConfig.SetSdfFile(world_file.string());
+
+	// Create server
+	Server server(serverConfig);
+
+	/* The MinCopter <-> Gazebo interface works as follows:
+	 *
+	 * Gazebo					MinCopter
+	 * -----------------------------------------------------------------
+	 *
+	 * PreUpdate: 					tick:
+	 * 	receive_servo_packet < ----------------  send_control_input
+	 *		|
+	 *	apply_motor_forces
+	 * PostUpdate:
+	 * 	create_state_json
+	 * 		|
+	 * 	send_state           ----------------->  recv_state_input
+	 *
+	 * -----------------------------------------------------------------
+	 *
+	 * This is one iteration, and corresponds to a single MinCopter tick, but 10 simulation
+	 * iterations. This is because the MinCopter loop runs at 100Hz (10ms) but Gazebo runs
+	 * at 1000Hz (1ms).
+	 *
+	 * Both processes will block until they receive their required messages. MinCopter will
+	 * block at recv_state_input and Gazebo at receive_state_packet. */
+
+	// Run 100 iterations in new thread - will block until MinCopter GZ Interface connects
+	std::thread serverThread([&server]() {
+		// NOTE There is a nuance in gazebo whereby the first run/iteration of system plugins (like the ardupilot plugin)
+		// will not be called, so we add 1 to our desired number of simulation steps
+		server.Run(true, 1 + 990, false);
+	});
+
+	std::cout << "Server setup complete" << std::endl;
+
+	// TODO Issue: how do we package the MinCopter object and all dependent sensors/libs/components
+	// so that we can run it in a separate thread, but still run tests on it.
+	
+	// Initialise MinCopter objects
+	//const AP_HAL::HAL& hal = AP_HAL_BOARD_DRIVER;
+
+	// Loop the simulation by 10us. Note that here, the simulation loop real-time step is driven by
+	// Gazebo and is not limited here to a tightly 10ms loop as it is in the full executable.
+	for (int i=0;i<100;i++) {
+		hal.sim->tick(10000);
+		std::cout << "Tick " << i << std::endl;
+	}
+
+	serverThread.join();
+
+	// Run tests
+	//
+	// 1. Iterations is as expected
+	assert(server.IterationCount() == 991);
+
+	// 2. Server is stopped at end of our desired number of iterations
+	assert(server.Running() == false);
+
+	std::cout << "Finished sucessfully\n";
+
+	return 0;
+}
+
