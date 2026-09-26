@@ -3,16 +3,21 @@
 
 #include <stdint.h>
 
+#include <AP_HAL/HAL.h>
+
 class Telemetry {
 
 	public:
-		Telemetry() { }
+		Telemetry(const AP_HAL::HAL& t_hal) : hal(t_hal) { }
 
 	public:
 		/* @brief Reads up to n bytes of the telemetry input stream */
 		void read(uint8_t max_bytes);
 
 	private:
+		/* @brief Reference to our HAL instance */
+		const AP_HAL::HAL& hal;
+
 		/* @brief The next byte in the telemetry stream */
 		int16_t nb;
 

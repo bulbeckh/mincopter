@@ -389,7 +389,7 @@ int main (void) {
 	// Create objects
 	AP_BattMonitor battery;
 
-	Telemetry telemetry;
+	Telemetry telemetry(hal);
 
 #ifdef MC_STORAGE_FILE
 	// TODO Remove hardcoded filepath

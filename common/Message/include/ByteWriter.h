@@ -4,8 +4,18 @@
 #include <stdexcept>
 #include <vector>
 
+#include <cstring>
+
+/* Lightweight Message serialization for simulation control and state */
+
 class ByteWriter {
 public:
+
+    void write_u8(std::uint8_t value)
+    {
+	buffer_.push_back(static_cast<std::byte>(value & 0xff));
+    }
+
     void write_u16(std::uint16_t value)
     {
         buffer_.push_back(static_cast<std::byte>((value >> 8) & 0xff));
@@ -44,12 +54,12 @@ public:
         write_u32(bits);
     }
 
-    void write_d64(double value)
+    void write_d(double value)
     {
         static_assert(sizeof(double) == sizeof(std::uint64_t));
 
 	std::uint64_t bits;
-	std::memcpy(&bits, &value, sizeof(double);
+	std::memcpy(&bits, &value, sizeof(double));
 
         write_u64(bits);
     }

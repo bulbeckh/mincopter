@@ -1,4 +1,5 @@
 
+#include <iostream>
 #include <filesystem>
 #include <memory>
 #include <csignal>
@@ -7,9 +8,6 @@
 #include <gz/sim/Server.hh>
 #include <gz/sim/ServerConfig.hh>
 #include <gz/common/Console.hh>
-
-#include <AP_HAL/AP_HAL.h>
-#include <arch/AP_HAL/HAL_Interface.h>
 
 #include <gtest/gtest.h>
 
@@ -21,12 +19,6 @@
 
 using namespace gz;
 using namespace sim;
-
-// TODO This is causing all sort of linking issues
-
-// TODO This is a bad hack which permeates different layers, and breaks the isolation the mc-arch is supposed
-// to have because mc-arch now depends on this HAL object
-const AP_HAL::HAL& hal = AP_HAL_BOARD_DRIVER;
 
 /* The MinCopter <-> Gazebo interface works as follows:
  *
@@ -56,10 +48,9 @@ class GazeboSimulationTestBase : public testing::Test {
 		GazeboSimulationTestBase() {}
 
 		void SetUp(void) override {
-			// TODO Make sure that our simulation hal interface has a guard to check
-			// if we have already initialised. Alternatively, we can do a full 'reset'
-			// when the hal.init function is called
-			hal.init(0,NULL);
+
+			// We setup our server first before we call hal.init because hal.init requires us to
+			// connect to the SocketUnix in the ArduPilot plugin
 
 			// Setup signal trapping
 			sigemptyset(&_signals);
@@ -77,12 +68,32 @@ class GazeboSimulationTestBase : public testing::Test {
 				"iris_runway.sdf";
 
 			// Set logging verbosity to 2 (warn)
-			common::Console::SetVerbosity(2);
-
+			common::Console::SetVerbosity(4);
 			serverConfig.SetSdfFile(world_file.string());
+
+			// Direct logging to folder under XDG_RUNTIME_DIR
+			serverConfig.SetUseLogRecord(true);
+			const char* runtime_dir = std::getenv("XDG_RUNTIME_DIR");
+
+			if (!runtime_dir) {
+				std::cout << "Failed to get XDG_RUNTIME_DIR\n";
+				return;
+			}
+
+			std::filesystem::path log_path = std::filesystem::path(runtime_dir) / "mincopter" / "logs" / "latest";
+			std::filesystem::create_directories(log_path);
+
+			serverConfig.SetLogRecordPath(log_path.c_str());
+
+			// Redirect console logs to file
 			
-			// Create server object
+			gzLogInit(log_path.c_str(), "console");
+			
+			// Create server object. Construction of the Server object will load plugins (including ArduPilotPlugin)
+			// and run the configure method
 			server = std::make_shared<Server>(serverConfig);
+
+			return;
 		}
 
 		void TearDown(void) override {}

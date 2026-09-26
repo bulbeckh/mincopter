@@ -43,14 +43,15 @@ endif()
 add_library(ArduPilotPlugin
     SHARED
     src/ArduPilotPlugin.cc
-    src/SocketUDP.cc
     src/Util.cc
 )
+
 target_include_directories(ArduPilotPlugin PRIVATE
-  include
+	${MC_INCLUDE_DIRS}
 )
 target_link_libraries(ArduPilotPlugin PRIVATE
   gz-sim${GZ_SIM_VER}::gz-sim${GZ_SIM_VER}
+  mc-common
 )
 
 ## Generate a configuration file that exports Gazebo env variables

@@ -1,9 +1,6 @@
 
 #include "telemetry.h"
 
-#include "AP_HAL/AP_HAL.h"
-extern const AP_HAL::HAL& hal;
-
 void Telemetry::read(uint8_t max_bytes)
 {
 	/* Design of simple console to read incoming telemetry commands

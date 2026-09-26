@@ -23,81 +23,14 @@
 #include <gz/sim/System.hh>
 #include <sdf/sdf.hh>
 
+#include "SimulationMessage.h"
+
 namespace gz
 {
 namespace sim
 {
 namespace systems
 {
-/// \todo(srmainwaring) handle 16 or 32 based on magic
-
-// The servo packet received from ArduPilot SITL. Defined in SIM_JSON.h.
-struct servo_packet_16 {
-    uint16_t magic;         // 18458 expected magic value
-    uint16_t frame_rate;
-    uint32_t frame_count;
-    uint16_t pwm[4];
-	uint8_t  update_flag;
-	float    update_position[3];
-	float    update_velocity[3];
-	float    update_attitude[3];
-	float    update_angvel[3];
-};
-
-struct servo_packet_32 {
-    uint16_t magic;         // 29569 expected magic value
-    uint16_t frame_rate;
-    uint32_t frame_count;
-    uint16_t pwm[32];
-};
-
-/* State packet that is transmitted over UDP to flight software */
-struct mc_sim_state_packet {
-    double timestamp;
-    uint64_t iterations;
-
-    double imu_gyro_x;
-    double imu_gyro_y;
-    double imu_gyro_z;
-
-    double imu_accel_x;
-    double imu_accel_y;
-    double imu_accel_z;
-
-    double pos_x;
-    double pos_y;
-    double pos_z;
-
-	double wldAToBdyA_euler_x;
-	double wldAToBdyA_euler_y;
-	double wldAToBdyA_euler_z;
-
-	// Angular velocities
-	double euler_rate_x;
-	double euler_rate_y;
-	double euler_rate_z;
-
-    double vel_x;
-    double vel_y;
-    double vel_z;
-
-    // Compass
-    double field_x;
-    double field_y;
-    double field_z;
-
-    // Barometer
-    double pressure;
-
-	// NavSat (ENU form)
-	double lat_deg;
-	double lng_deg;
-	double alt_met;
-	double vel_east;
-	double vel_north;
-	double vel_up;
-	
-};
 
 // Forward declare private data class
 class ArduPilotSocketPrivate;
@@ -194,22 +127,20 @@ class GZ_SIM_VISIBLE ArduPilotPlugin:
   /// \brief Reset PID Joint controllers.
   private: void ResetPIDs();
 
-  /// \brief Receive a servo packet from ArduPilot
-  ///
-  /// Returns true if a servo packet was received, otherwise false.
-  private: bool ReceiveServoPacket();
+  private: bool ReceiveMessage();
 
   /// \brief Update the motor commands given servo PWM values
   private: void UpdateMotorCommands(const std::array<uint16_t, 4> &_pwm);
 
   /// \brief Create the state JSON
   private: void CreateStateJSON(
+			   mc::StateMessage& _msg,
       double _simTime,
 	  uint64_t _iterations,
       const gz::sim::EntityComponentManager &_ecm) const;
 
   /// \brief Send state to ArduPilot
-  private: void SendState() const;
+  private: void SendState(mc::StateMessage& _msg) const;
 
   /// \brief Initialise flight dynamics model socket
   private: bool InitSockets(sdf::ElementPtr _sdf) const;

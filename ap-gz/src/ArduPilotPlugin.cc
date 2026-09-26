@@ -72,7 +72,9 @@
 
 #include <sdf/sdf.hh>
 
-#include "SocketUDP.hh"
+//#include "SocketUDP.hh"
+#include "SocketUnix.hh"
+
 #include "Util.hh"
 
 
@@ -209,20 +211,23 @@ class gz::sim::systems::ArduPilotPluginPrivate
   public: std::mutex mutex;
 
   /// \brief Socket manager
-  public: SocketUDP sock = SocketUDP(true, true);
+  //public: SocketUDP sock = SocketUDP(true, true);
+  public: SocketUnix sock{};
 
+	  // TODO Remove all this
   /// \brief The address for the flight dynamics model (i.e. this plugin)
-  public: std::string fdm_address{"127.0.0.1"};
+  //public: std::string fdm_address{"127.0.0.1"};
 
   /// \brief The address for the SITL flight controller - auto detected
-  public: const char* fcu_address{nullptr};
+  //public: const char* fcu_address{nullptr};
 
   /// \brief The port for the flight dynamics model
-  public: uint16_t fdm_port_in{9002};
+  //public: uint16_t fdm_port_in{9002};
 
   /// \brief The port for the SITL flight controller - auto detected
-  public: uint16_t fcu_port_out;
+  //public: uint16_t fcu_port_out;
 
+		  // TODO Change name of this
   /// NEW Changes UDP call to 100Hz
   public: uint32_t udp_freq_count{0};
 
@@ -338,10 +343,10 @@ class gz::sim::systems::ArduPilotPluginPrivate
   public: gz::math::Pose3d gazeboXYZToNED;
 
   /// \brief Last received frame rate from the ArduPilot controller
-  public: uint16_t fcu_frame_rate;
+  //public: uint16_t fcu_frame_rate;
 
   /// \brief Last received frame count from the ArduPilot controller
-  public: uint32_t fcu_frame_count = -1;
+  //public: uint32_t fcu_frame_count = -1;
 
   /// \brief Last sent JSON string, so we can resend if needed.
   public: std::string json_str;
@@ -359,8 +364,7 @@ class gz::sim::systems::ArduPilotPluginPrivate
       this->signal = _sig;
   }
 
-  // MinCopter
-  public: mc_sim_state_packet sim_pkt;
+  public: bool socket_initialised{false};
 
   public:
 		  /* @brief Flag to mark whether we have should update state directly in this iteration */
@@ -498,11 +502,12 @@ void gz::sim::systems::ArduPilotPlugin::Configure(
   // Load sensor params
   this->LoadImuSensors(sdfClone, _ecm);
 
+  // TODO Remove this InitSockets function - socket initialisation is moved to PreUpdate
   // Initialise sockets
-  if (!InitSockets(sdfClone))
-  {
-    return;
-  }
+  //if (!InitSockets(sdfClone))
+  //{
+    //return;
+  //}
 
   // Missed update count before we declare arduPilotOnline status false
   this->dataPtr->connectionTimeoutMaxCount =
@@ -812,6 +817,18 @@ void gz::sim::systems::ArduPilotPlugin::PreUpdate(
     const gz::sim::UpdateInfo &_info,
     gz::sim::EntityComponentManager &_ecm)
 {
+	if (!this->dataPtr->socket_initialised) {
+		// Initialise socket on first connect
+		gzmsg << "Attempting to connect to MinCopter process\n";
+
+		// Initialise this socket as the server-side. This will block until we connect.
+		this->dataPtr->sock.init_server();
+
+		gzmsg << "Successfully connected to MinCopter process\n";
+
+		this->dataPtr->socket_initialised = true;
+	}
+
 	// Enable velocity checks for base link
 	auto coptermodelentity = _ecm.EntityByName(std::string("iris_with_standoffs"));
 
@@ -1048,7 +1065,7 @@ void gz::sim::systems::ArduPilotPlugin::PreUpdate(
 	{
 		// At 100Hz, receive a packet from the mincopter simulator
 		if (this->dataPtr->udp_freq_count%10==0) {
-			while (!this->ReceiveServoPacket()) {
+			while (!this->ReceiveMessage()) {
 				// SIGNINT should interrupt this loop.
 				if (this->dataPtr->signal != 0) {
 					// Tell server to stop and then return
@@ -1065,7 +1082,7 @@ void gz::sim::systems::ArduPilotPlugin::PreUpdate(
 		double dt = std::chrono::duration_cast<std::chrono::duration<double> >(_info.simTime - this->dataPtr->lastControllerUpdateTime).count();
 
 		// NOTE This will read the current setpoint of the motor velocities which are
-		// updates during the call to ReceiveServoPacket via UpdateMotorCommands. We
+		// updates during the call to ReceiveMessage via UpdateMotorCommands. We
 		// keep this function running every iteration (1000Hz) even though the motor
 		// commands will be updated at 100Hz
 
@@ -1220,8 +1237,10 @@ void gz::sim::systems::ArduPilotPlugin::PostUpdate(
 
 		// Send the state packet every 10 iterations of the simulation (sim is at 1000Hz, so every 100Hz)
 		if (dataPtr->udp_freq_count%10==0) {
-			this->CreateStateJSON(t, _info.iterations, _ecm);
-			this->SendState();
+
+			mc::StateMessage msg{};
+			this->CreateStateJSON(msg, t, _info.iterations, _ecm);
+			this->SendState(msg);
 		}
 
 		this->dataPtr->udp_freq_count+=1;
@@ -1242,16 +1261,12 @@ void gz::sim::systems::ArduPilotPlugin::ResetPIDs()
   }
 }
 
+// TODO Remove
 /////////////////////////////////////////////////
 bool gz::sim::systems::ArduPilotPlugin::InitSockets(sdf::ElementPtr _sdf) const
 {
-    // get the fdm address if provided, otherwise default to localhost
-    this->dataPtr->fdm_address =
-        _sdf->Get("fdm_addr", static_cast<std::string>("127.0.0.1")).first;
 
-    this->dataPtr->fdm_port_in =
-        _sdf->Get("fdm_port_in", static_cast<uint32_t>(9002)).first;
-
+// TODO Remove these fdm parametes from the plugin sdf configuration
     // output port configuration is automatic
     if (_sdf->HasElement("listen_addr")) {
         gzwarn << "Param <listen_addr> is deprecated,"
@@ -1262,20 +1277,8 @@ bool gz::sim::systems::ArduPilotPlugin::InitSockets(sdf::ElementPtr _sdf) const
             << " connection is auto detected\n";
     }
 
-    // bind the socket
-    if (!this->dataPtr->sock.bind(this->dataPtr->fdm_address.c_str(),
-        this->dataPtr->fdm_port_in))
-    {
-        gzerr << "[" << this->dataPtr->modelName << "] "
-            << "failed to bind with "
-            << this->dataPtr->fdm_address << ":" << this->dataPtr->fdm_port_in
-            << " aborting plugin.\n";
-        return false;
-    }
-    gzlog << "[" << this->dataPtr->modelName << "] "
-        << "flight dynamics model @ "
-        << this->dataPtr->fdm_address << ":" << this->dataPtr->fdm_port_in
-        << "\n";
+
+
     return true;
 }
 
@@ -1393,189 +1396,25 @@ void gz::sim::systems::ArduPilotPlugin::ApplyMotorForces(
   }
 }
 
-/////////////////////////////////////////////////
-namespace
-{
-/// \brief Get a servo packet. Templated for 16 or 32 channel packets.
-template<typename TServoPacket>
-ssize_t getServoPacket(
-  SocketUDP &_sock,
-  const char *&_fcu_address,
-  uint16_t &_fcu_port_out,
-  uint32_t _waitMs,
-  const std::string &_modelName,
-  TServoPacket &_pkt
-)
-{
-    ssize_t recvSize = _sock.recv(&_pkt, sizeof(TServoPacket), _waitMs);
 
-    _sock.get_client_address(_fcu_address, _fcu_port_out);
 
-    // drain the socket in the case we're backed up
-    int counter = 0;
-    while (true)
-    {
-        TServoPacket last_pkt;
-        auto recvSize_last = _sock.recv(&last_pkt, sizeof(TServoPacket), 0ul);
-        if (recvSize_last == -1) break;
-
-        counter++;
-        _pkt = last_pkt;
-        recvSize = recvSize_last;
-    }
-
-    if (counter > 0) gzwarn << "[" << _modelName << "] " << "Drained n packets: " << counter << "\n";
-
-    return recvSize;
-}
-}  // namespace
 
 /////////////////////////////////////////////////
-bool gz::sim::systems::ArduPilotPlugin::ReceiveServoPacket()
+bool gz::sim::systems::ArduPilotPlugin::ReceiveMessage()
 {
-    // Added detection for whether ArduPilot is online or not.
-    // If ArduPilot is detected (receive of fdm packet from someone),
-    // then socket receive wait time is increased from 1ms to 1 sec
-    // to accomodate network jitter.
-    // If ArduPilot is not detected, receive call blocks for 1ms
-    // on each call.
-    // Once ArduPilot presence is detected, it takes this many
-    // missed receives before declaring the FCS offline.
 
-    uint32_t waitMs = 10;
-
-    // 16 / 32 channel compatibility
-    uint16_t pkt_magic{0};
-    uint16_t pkt_frame_rate{0};
-    uint16_t pkt_frame_count{0};
-
-	/* Packet Structure
-	 * 8b PWM payload (x4 uint16_t)
-	 * 1b State update flag
-	 * 48 (4b*3 position, velocity, attitude, angvel) 
-	 */
-    std::array<uint16_t, 4> pkt_pwm;
-    ssize_t recvSize{-1};
-
-	/*
-    if (this->dataPtr->have32Channels)
-    {
-      servo_packet_32 pkt;
-      recvSize = getServoPacket(
-          this->dataPtr->sock,
-          this->dataPtr->fcu_address,
-          this->dataPtr->fcu_port_out,
-          waitMs,
-          this->dataPtr->modelName,
-          pkt);
-
-      if (recvSize != -1) {
-	gzdbg << "PKT Header " << pkt.frame_rate << " " << pkt.frame_count << "\n";
-	for (int i=0;i<32;i++) {
-		gzdbg << pkt.pwm[i] << " ";
-      	}
-      	gzdbg << "\n";
-      }
-
-      pkt_magic = pkt.magic;
-      pkt_frame_rate = pkt.frame_rate;
-      pkt_frame_count = pkt.frame_count;
-      std::copy(std::begin(pkt.pwm), std::end(pkt.pwm), std::begin(pkt_pwm));
-    } else {
-	*/
-
-	// This is full 57b payload
-      servo_packet_16 pkt;
-      recvSize = getServoPacket(
-          this->dataPtr->sock,
-          this->dataPtr->fcu_address,
-          this->dataPtr->fcu_port_out,
-          waitMs,
-          this->dataPtr->modelName,
-          pkt);
-
-	  /*
-      if (recvSize != -1) {
-		//gzdbg << "PKT Header " << pkt.frame_rate << " " << pkt.frame_count << "\n";
-
-		for (int i=0;i<4;i++) {
-			gzdbg << pkt.pwm[i] << " ";
-      	}
-      	gzdbg << "\n";
-      }
-	  */
-
-      pkt_magic = pkt.magic;
-      pkt_frame_rate = pkt.frame_rate;
-      pkt_frame_count = pkt.frame_count;
-
-      std::copy(std::begin(pkt.pwm), std::end(pkt.pwm), std::begin(pkt_pwm));
-
-    //}
-
-    // didn't receive a packet, increment timeout count if online, then return
-    if (recvSize == -1)
-    {
-		if (++this->dataPtr->connectionTimeoutCount >
-		this->dataPtr->connectionTimeoutMaxCount)
-		{
-			this->dataPtr->connectionTimeoutCount = 0;
-			this->SendState();
-		}
-	gzwarn << "MinCopter packet receival time-out, skipping PreUpdate\n";
-        return false;
-    }
-
-    // check magic, return if invalid
-    constexpr uint16_t magic_16 = 18458;
-    constexpr uint16_t magic_32 = 29569;
-    uint16_t magic = this->dataPtr->have32Channels ? magic_32 : magic_16;
-    if (magic != pkt_magic)
-    {
-        gzwarn << "Incorrect protocol magic " << pkt_magic << " should be " << magic << "\n";
-        return false;
-    }
-
-	// Emit message on first connection
-    //gzlog << "[" << this->dataPtr->modelName << "] " << "Connected to ArduPilot controller @ " << this->dataPtr->fcu_address << ":" << this->dataPtr->fcu_port_out << "\n";
-
-    // update frame rate
-    this->dataPtr->fcu_frame_rate = pkt_frame_rate;
-
-    // check for controller reset
-    if (pkt_frame_count < this->dataPtr->fcu_frame_count)
-    {
-        /// \todo(anyone) implement re-initialisation
-        gzwarn << "ArduPilot controller has reset\n";
-    }
-
-    // check for duplicate frame
-    else if (pkt_frame_count == this->dataPtr->fcu_frame_count)
-    {
-        gzwarn << "Duplicate input frame\n";
-
-        this->SendState();
-
-        return false;
-    }
-
-    // check for skipped frames
-    else if (pkt_frame_count != this->dataPtr->fcu_frame_count + 1 /* && this->dataPtr->arduPilotOnline */)
-    {
-        gzwarn << "Missed "
-            << pkt_frame_count - this->dataPtr->fcu_frame_count
-            << " input frames\n";
-    }
-
-    // update frame count
-    this->dataPtr->fcu_frame_count = pkt_frame_count;
+	// TODO Add receive code
 
     // reset the connection timeout so we don't accumulate
     this->dataPtr->connectionTimeoutCount = 0;
 
-    this->UpdateMotorCommands(pkt_pwm);
+
+	// TODO This is where we parse the type of message received
+
+    //this->UpdateMotorCommands(pkt_pwm);
 
 	// Check for request to update simulation
+	/*
 	if (pkt.update_flag & (0x01<<4)) {
 
 		// TODO Setup socket and send message to worldcontrol
@@ -1599,17 +1438,17 @@ bool gz::sim::systems::ArduPilotPlugin::ReceiveServoPacket()
 		}
 
 	}
+	*/
 
 	// Check for request to update state and update if so
+	/*
 	if (pkt.update_flag) {
 
-		/*
-		gzwarn << "[StateUpdate CMD] " << (int)pkt.update_flag << "\n";
-		gzdbg << "[StateUpdate CMD - pos] " << pkt.update_position[0] << " " << pkt.update_position[1] << " " << pkt.update_position[2] << "\n";
-		gzdbg << "[StateUpdate CMD - vel] " << pkt.update_velocity[0] << " " << pkt.update_velocity[1] << " " << pkt.update_velocity[2] << "\n";
-		gzdbg << "[StateUpdate CMD - att] " << pkt.update_attitude[0] << " " << pkt.update_attitude[1] << " " << pkt.update_attitude[2] << "\n";
-		gzdbg << "[StateUpdate CMD - avl] " << pkt.update_angvel[0] << " " << pkt.update_angvel[1] << " " << pkt.update_angvel[2] << "\n";
-		*/
+		//gzwarn << "[StateUpdate CMD] " << (int)pkt.update_flag << "\n";
+		//gzdbg << "[StateUpdate CMD - pos] " << pkt.update_position[0] << " " << pkt.update_position[1] << " " << pkt.update_position[2] << "\n";
+		//gzdbg << "[StateUpdate CMD - vel] " << pkt.update_velocity[0] << " " << pkt.update_velocity[1] << " " << pkt.update_velocity[2] << "\n";
+		//gzdbg << "[StateUpdate CMD - att] " << pkt.update_attitude[0] << " " << pkt.update_attitude[1] << " " << pkt.update_attitude[2] << "\n";
+		//gzdbg << "[StateUpdate CMD - avl] " << pkt.update_angvel[0] << " " << pkt.update_angvel[1] << " " << pkt.update_angvel[2] << "\n";
 
 		this->dataPtr->state_update_flag = pkt.update_flag; // Bitfield of what fields to update
 		
@@ -1637,6 +1476,7 @@ bool gz::sim::systems::ArduPilotPlugin::ReceiveServoPacket()
 			this->dataPtr->state_update_angvel[2] = pkt.update_angvel[2];
 		}
 	}
+	*/
 
     return true;
 }
@@ -1701,9 +1541,7 @@ void gz::sim::systems::ArduPilotPlugin::UpdateMotorCommands(const std::array<uin
 }
 
 /////////////////////////////////////////////////
-void gz::sim::systems::ArduPilotPlugin::CreateStateJSON(
-    double _simTime,
-	uint64_t _iterations,
+void gz::sim::systems::ArduPilotPlugin::CreateStateJSON(mc::StateMessage& _msg, double _simTime, uint64_t _iterations,
     const gz::sim::EntityComponentManager &_ecm) const
 {
     // Make a local copy of the latest IMU data (it's filled in
@@ -1951,9 +1789,9 @@ void gz::sim::systems::ArduPilotPlugin::CreateStateJSON(
 			// Convert from GZ World to MinCopter World
 			bl_ang_vel = wldAToWldG.Rot() * bl_ang_vel;
 
-			this->dataPtr->sim_pkt.euler_rate_x = bl_ang_vel.X();
-			this->dataPtr->sim_pkt.euler_rate_y = bl_ang_vel.Y();
-			this->dataPtr->sim_pkt.euler_rate_z = bl_ang_vel.Z();
+			_msg.euler_rate_x = bl_ang_vel.X();
+			_msg.euler_rate_y = bl_ang_vel.Y();
+			_msg.euler_rate_z = bl_ang_vel.Z();
 		}
 
 		/*
@@ -1968,13 +1806,13 @@ void gz::sim::systems::ArduPilotPlugin::CreateStateJSON(
     double timestamp = _simTime;
 
     // MinCopter - update state struct
-    this->dataPtr->sim_pkt.timestamp = timestamp;
-	this->dataPtr->sim_pkt.iterations = _iterations;
+    _msg.timestamp = timestamp;
+	_msg.iterations = _iterations;
 
 	angularVel = bdyAToBdyG.Rot()*angularVel;
-    this->dataPtr->sim_pkt.imu_gyro_x = angularVel.X();
-    this->dataPtr->sim_pkt.imu_gyro_y = angularVel.Y();
-    this->dataPtr->sim_pkt.imu_gyro_z = angularVel.Z();
+    _msg.imu_gyro_x = angularVel.X();
+    _msg.imu_gyro_y = angularVel.Y();
+    _msg.imu_gyro_z = angularVel.Z();
 
 
 	/* NOTE The IMU is in a strange reference frame where each axis has the negative
@@ -1991,23 +1829,25 @@ void gz::sim::systems::ArduPilotPlugin::CreateStateJSON(
 		<< linearAccel.Z() << "\n";
 	*/
 
-    this->dataPtr->sim_pkt.imu_accel_x = linearAccel.X();
-    this->dataPtr->sim_pkt.imu_accel_y = linearAccel.Y();
-    this->dataPtr->sim_pkt.imu_accel_z = linearAccel.Z();
+    _msg.imu_accel_x = linearAccel.X();
+    _msg.imu_accel_y = linearAccel.Y();
+    _msg.imu_accel_z = linearAccel.Z();
+
+	gzwarn << "imu accel z: " << linearAccel.Z() << "\n";
 
 	// Body and vel should already be expressed in ardupilot world frames
-    this->dataPtr->sim_pkt.pos_x = wldAToBdyA.Pos().X();
-    this->dataPtr->sim_pkt.pos_y = wldAToBdyA.Pos().Y();
-    this->dataPtr->sim_pkt.pos_z = wldAToBdyA.Pos().Z();
+    _msg.pos_x = wldAToBdyA.Pos().X();
+    _msg.pos_y = wldAToBdyA.Pos().Y();
+    _msg.pos_z = wldAToBdyA.Pos().Z();
 
 	// Add in body frame pose (radians)
-	this->dataPtr->sim_pkt.wldAToBdyA_euler_x = wldAToBdyA.Rot().Euler().X();
-	this->dataPtr->sim_pkt.wldAToBdyA_euler_y = wldAToBdyA.Rot().Euler().Y();
-	this->dataPtr->sim_pkt.wldAToBdyA_euler_z = wldAToBdyA.Rot().Euler().Z();
+	_msg.wldAToBdyA_euler_x = wldAToBdyA.Rot().Euler().X();
+	_msg.wldAToBdyA_euler_y = wldAToBdyA.Rot().Euler().Y();
+	_msg.wldAToBdyA_euler_z = wldAToBdyA.Rot().Euler().Z();
 
-    this->dataPtr->sim_pkt.vel_x = velWldA.X();
-    this->dataPtr->sim_pkt.vel_y = velWldA.Y();
-    this->dataPtr->sim_pkt.vel_z = velWldA.Z();
+    _msg.vel_x = velWldA.X();
+    _msg.vel_y = velWldA.Y();
+    _msg.vel_z = velWldA.Z();
 
     /* Compass Sensor Readings */
 	// Compass is in bodyG so need to convert
@@ -2020,36 +1860,28 @@ void gz::sim::systems::ArduPilotPlugin::CreateStateJSON(
 
 	compass_field = bdyAToBdyG.Rot() * compass_field;
 
-    this->dataPtr->sim_pkt.field_x = compass_field.X();
-    this->dataPtr->sim_pkt.field_y = compass_field.Y();
-    this->dataPtr->sim_pkt.field_z = compass_field.Z();
+    _msg.field_x = compass_field.X();
+    _msg.field_y = compass_field.Y();
+    _msg.field_z = compass_field.Z();
 
     /* Barometer Sensor Readings */
-    this->dataPtr->sim_pkt.pressure = baroMsg.pressure();
+    _msg.pressure = baroMsg.pressure();
 
 	/* NavSat (GPS) Sensor Readings */
-	this->dataPtr->sim_pkt.lat_deg = navsatMsg.latitude_deg();
-	this->dataPtr->sim_pkt.lng_deg = navsatMsg.longitude_deg();
-	this->dataPtr->sim_pkt.alt_met = navsatMsg.altitude()-alt_off;
-	this->dataPtr->sim_pkt.vel_east = navsatMsg.velocity_east();
-	this->dataPtr->sim_pkt.vel_north = navsatMsg.velocity_north();
-	this->dataPtr->sim_pkt.vel_up = navsatMsg.velocity_up();
+	_msg.lat_deg = navsatMsg.latitude_deg();
+	_msg.lng_deg = navsatMsg.longitude_deg();
+	_msg.alt_met = navsatMsg.altitude()-alt_off;
+	_msg.vel_east = navsatMsg.velocity_east();
+	_msg.vel_north = navsatMsg.velocity_north();
+	_msg.vel_up = navsatMsg.velocity_up();
 
+	return;
 }
 
 /////////////////////////////////////////////////
-void gz::sim::systems::ArduPilotPlugin::SendState() const
+void gz::sim::systems::ArduPilotPlugin::SendState(mc::StateMessage& _msg) const
 {
-	while (true) {
-	    ssize_t bytes_sent = this->dataPtr->sock.sendto(
-		&this->dataPtr->sim_pkt,
-		sizeof(mc_sim_state_packet),
-		this->dataPtr->fcu_address,
-		this->dataPtr->fcu_port_out);
-
-		if (bytes_sent>=0) break;
-	}
-
-
+	if (!this->dataPtr->sock.send_message<mc::StateMessage>(_msg)) gzwarn << "Failed to send StateMessage message over socket\n";
+	return;
 }
 

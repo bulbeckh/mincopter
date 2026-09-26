@@ -4,7 +4,6 @@
 // TODO Remove this planner dependency or specify explicitly via reference
 #include "planner.h"
 
-#include <AP_HAL/AP_HAL.h>
 
 /* The mincopter telemetry standard currently defines four functions
  *
@@ -20,10 +19,10 @@
 // with our custom behaviour
 
 // TODO This is also bad design but this is defined in the mincopter.cpp
-extern const AP_HAL::HAL& hal;
 
 __attribute__((weak)) void mincopter_telemetry_command_landrequest(void* argptr)
 {
+	/*
 	// Flag that a switch to land mode was requested
 	planner.ap.land_requested_telem = 1;
 	hal.console->printf("Land requested from telem\r\n");
@@ -33,13 +32,14 @@ __attribute__((weak)) void mincopter_telemetry_command_landrequest(void* argptr)
 	hal.uartC->write(telem_tx_buffer, 2);
 
 	return;
+	*/
 }
 
 __attribute__((weak)) void mincopter_telemetry_command_heartbeatrequest(void* argptr)
 {
-	/* Arguments:
-	 *
-	 * argptr[0]: last heartbeat sequence ID */
+	/*
+	// Arguments:
+	// argptr[0]: last heartbeat sequence ID
 	if (((uint8_t*)argptr)[0] == planner.failsafe.telemetry_last_heartbeat_seq_id) {
 
 		if (!planner.failsafe.telemetry_first_connect) {
@@ -57,10 +57,12 @@ __attribute__((weak)) void mincopter_telemetry_command_heartbeatrequest(void* ar
 	}
 
 	return;
+	*/
 }
 
 __attribute__((weak)) void mincopter_telemetry_command_armrequest(void* argptr)
 {
+	/*
 	// Set arm request flag
 	planner.ap.arm_requested_telem = 1;
 	hal.console->printf("Arm requested from telem\r\n");
@@ -70,10 +72,12 @@ __attribute__((weak)) void mincopter_telemetry_command_armrequest(void* argptr)
 	hal.uartC->write(telem_tx_buffer, 2);
 
 	return;
+	*/
 }
 
 __attribute__((weak)) void mincopter_telemetry_command_disarmrequest(void* argptr)
 {
+	/*
 	// Flag that an immediate disarm was requested
 	planner.ap.disarm_requested_telem = 1;
 	hal.console->printf("Disarm requested from telem\r\n");
@@ -83,6 +87,7 @@ __attribute__((weak)) void mincopter_telemetry_command_disarmrequest(void* argpt
 	hal.uartC->write(telem_tx_buffer, 2);
 
 	return;
+	*/
 }
 
 __attribute__((weak)) void mincopter_telemetry_command_flightstaterequest(void* argptr)

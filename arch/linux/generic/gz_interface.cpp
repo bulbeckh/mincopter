@@ -17,12 +17,19 @@
 
 #include <sys/stat.h>
 #include <sys/socket.h>
+#include <sys/un.h>
 #include <fcntl.h>
+
+// TODO Maybe remove these two?
 #include <netinet/in.h>
 #include <arpa/inet.h>
+
 #include <unistd.h>
 
 #include <AP_Math.h>
+
+// Included from ap-gz/
+#include "SimulationMessage.h"
 
 using namespace generic;
 
@@ -44,14 +51,6 @@ void GenericGZInterface::tick(uint32_t /* unused */)
 	
 	send_control_output(false);
 
-	// After we (possibly) send a state to the gazebo driver, we clear the flags for each state update
-	position_update = false;
-	velocity_update = false;
-	attitude_update = false;
-	angvel_update = false;
-
-	reset_requested = false;
-	
 	// Receive next state and update internal simulation state
 	recv_state_input();
 
@@ -62,202 +61,55 @@ bool GenericGZInterface::setup_sim_socket(void)
 {
 	hal.console->printf("[HAL ] Initialising connection to Gazebo Simulator...\n");
 
-    // Create a UDP socket with arbitrary port
-    sockfd = socket(AF_INET, SOCK_DGRAM, 0);
-
-    if (sockfd < 0 ) {
-		hal.console->printf("Error: creating UDP socket\n");
+	if (!usocket.init_client()) {
+		hal.console->printf("[HAL ] Failed to initialise unix socket...\n");
 		return false;
-    }
+	}
 
-    memset(&servaddr, 0, sizeof(servaddr));
+	hal.console->printf("[HAL ] UNIX socket created successfully under %s\n", usocket.get_socket_path());
 
-    servaddr.sin_family = AF_INET;
-    //servaddr.sin_addr.s_addr = inet_addr("127.0.0.1");
-    inet_pton(AF_INET, "127.0.0.1", &servaddr.sin_addr);
-    // Use port zero to auto configure
-    servaddr.sin_port = htons(0);
-
-    if (bind(sockfd, (const struct sockaddr*)&servaddr, sizeof(servaddr)) < 0) {
-		hal.console->printf("Error: binding to UDP port\n");
-		close(sockfd);
-		return false;
-    }
-
-	hal.console->printf("[HAL ] Socket created successfully at 127.0.0.1\n");
-
-	// Setup a 1s timeout for the receive function
-	struct timeval _tv_timeout;
-	_tv_timeout.tv_sec=1;
-	_tv_timeout.tv_usec=0;
-	setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, &_tv_timeout, sizeof(_tv_timeout));
-
-    return true;
+    	return true;
 }
 
-void GenericGZInterface::prepare_control_packet(servo_packet_16& control_pkt)
-{
-    control_pkt.frame_count = frame_counter;
-    control_pkt.frame_rate  = 1001;
-
-	/* TODO NOTE We are now going to get the PWM signals directly from hal.rcout instead of mincopter.motors.get_raw_motor_out
-	 * as this makes it easy to work across multiple backends and also eliminate the need for AP_Motors */
-	
-	// TODO Update this
-
-    for (int16_t i=0;i<16;i++) {
-		// TODO Change how motor PWM signal is retrived - should be the output of mixer but unclear whether to use RCOutput PWM or elsewhere
-		//int16_t m_out = mincopter.motors.get_raw_motor_out(i);
-		//int16_t m_out = 0;
-
-		// NOTE The pkt entry is int16_t whereas m_out uint16_t
-		//control_pkt.pwm[i] = m_out;
-		// Send minimum
-		control_pkt.pwm[i] = 0;
-    }
-
-	// TODO PWM should be retrieved from the RCOutput HAL object and not the temporary hal.sim->motor_out array
-	// Read PWM signals to be sent
-	control_pkt.pwm[0] = hal.sim->motor_out[0];
-	control_pkt.pwm[1] = hal.sim->motor_out[1]; 
-	control_pkt.pwm[2] = hal.sim->motor_out[3];
-	control_pkt.pwm[3] = hal.sim->motor_out[2];
-
-	// Uncomment this to send a uniform constant PWM output
-	
-	/*
-	static uint32_t send_pwm=1100;
-	control_pkt.pwm[0] = send_pwm;
-	control_pkt.pwm[1] = send_pwm;
-	control_pkt.pwm[2] = send_pwm;
-	control_pkt.pwm[3] = send_pwm;
-	*/
-
-	// If we have set the state directly during this step, we add to the packet
-	uint8_t update_flag = 0x00;
-
-	if (position_update) {
-		update_flag |= (0x01 << 0);
-		control_pkt.update_position[0] = sim_new_position.x;
-		control_pkt.update_position[1] = sim_new_position.y;
-		control_pkt.update_position[2] = sim_new_position.z;
-	}
-
-	if (velocity_update) {
-		update_flag |= (0x01 << 1);
-		control_pkt.update_velocity[0] = sim_new_velocity.x;
-		control_pkt.update_velocity[1] = sim_new_velocity.y;
-		control_pkt.update_velocity[2] = sim_new_velocity.z;
-	}
-
-	if (attitude_update) {
-		update_flag |= (0x01 << 2);
-		control_pkt.update_attitude[0] = sim_new_attitude.x;
-		control_pkt.update_attitude[1] = sim_new_attitude.y;
-		control_pkt.update_attitude[2] = sim_new_attitude.z;
-	}
-
-	if (angvel_update) {
-		update_flag |= (0x01 << 3);
-		control_pkt.update_angvel[0] = sim_new_angvel.x;
-		control_pkt.update_angvel[1] = sim_new_angvel.y;
-		control_pkt.update_angvel[2] = sim_new_angvel.z;
-	}
-
-	// If a reset was requested, then flag that too by setting 5th bit of update_flag bitfield
-	if (reset_requested) {
-		update_flag |= (0x01 << 4);
-		hal.console->printf("Reset was requested\r\n");
-	}
-
-	// Add the update flag bitfield to the control packet
-	control_pkt.update_flag = update_flag;
-
-
-	return;
-}
-
-
-bool GenericGZInterface::send_control_output(bool retry)
+bool GenericGZInterface::send_control_output(bool /* retry */)
 {
 	// In the new formulation of the lightweight messaging system, this will instead create
 	// and serialize a control message and then send via the socket
 
+	mc::ControlMessage message;
 
+	message.pwm[0] = hal.sim->motor_out[0];
+	message.pwm[1] = hal.sim->motor_out[1]; 
+	message.pwm[2] = hal.sim->motor_out[3];
+	message.pwm[3] = hal.sim->motor_out[2];
 
-    /* These hold the roll, pitch, and yaw outputs but these are interpreted by the
-     * motors class into actual motor values.
-     *
-     * mincopter.rc_1.servo_out;
-     * mincopter.rc_2.servo_out;
-     * mincopter.rc_4.servo_out;
-     *
-     */
-    
-    servo_packet_16 control_pkt;
+	// Send message to socket
+	if (!usocket.send_message<mc::ControlMessage>(message)) {
+		std::cout << "Error sending control output packet\n";
+		return false;
+	}
 
-    // If we are not re-sending an existing control output, then update the packet
-    if (!retry) prepare_control_packet(control_pkt);
+	std::cout << "[HAL ] Sent control output packet\n";
 
-    // Send packet
-    struct sockaddr_in cliaddr;
-    memset(&cliaddr, 0, sizeof(cliaddr));
-
-    cliaddr.sin_family = AF_INET;
-    inet_pton(AF_INET, "127.0.0.1", &cliaddr.sin_addr);
-    cliaddr.sin_port = htons(9002);
-
-    socklen_t len = sizeof(cliaddr);
-
-    ssize_t sent_bytes = sendto(sockfd, &control_pkt, sizeof(servo_packet_16), 0, (const struct sockaddr*)&cliaddr, len);
-
-    if (static_cast<int>(sent_bytes) == -1) std::cout << "Failed to send packet during send control output\n";
-    
-    return false;
+	return true;
 }
 
 // TODO I still think this interface needs work, perhaps even an asynchronous callback,
 // checks that iteration count/timing is in sync, checks for missed packets, and re-try functionality
 bool GenericGZInterface::recv_state_input(void)
 {
-    socklen_t len = sizeof(servaddr);
 
-    while (true) {
-	ssize_t n_received = recvfrom(sockfd, buffer, 1024, 0,
-		    (struct sockaddr*)&servaddr, &len);
+	auto deserialized_msg = usocket.receive_message<mc::StateMessage>();
 
-	// NOTE TODO This works but may skip calls to update state during the loop as a call to ::tick
-	// won't increment the frame_counter but will reset the direct state update flags
-		
-	// If we timeout (1second) then we try to receive again
-	if (n_received<0) {
-		++receive_packet_retries;
-
-		std::cout << "Failed to receive packet during recv_state_input " << 
-			static_cast<int>(receive_packet_retries) << " times\n";
-
-		if (receive_packet_retries>4) {
-			std::cout << "Lost connection to gazebo simulator... closing MinCopter\n";
-			
-			connection_lost = true;
-			break;
-		}
-	} else {
-		// Reset retry counter
-		receive_packet_retries = 0;
-		break;
+	if (!deserialized_msg) {
+		std::cout << "in recv_state_input, failed to deserialize or receive the StateMessage\n";
+		return false;
 	}
-    }
-
-    // Iterate frame counter
-    frame_counter += 1;
-
-    // Unpack received data
-    mc_sim_state_packet* pkt = (mc_sim_state_packet*)buffer;
 
     // For now, just create a copy of the structure but maybe in future can have a more elegant solution
     // like separate structs for each sensor type
-    sensor_states[state_buffer_index] = *pkt;
+	// TODO Inefficient
+    sensor_states[state_buffer_index] = *deserialized_msg;
 	
 	// TODO We should really just be stopping here and exposing state retrieval functions for each of the sim driver in dev/
 	
@@ -283,7 +135,7 @@ bool GenericGZInterface::recv_state_input(void)
 	state_buffer_index += 1;
 	state_buffer_index %= GZ_INTERFACE_STATE_BUFFER_LENGTH;
 
-	last_sensor_state = *pkt;
+	last_sensor_state = *deserialized_msg;
 
 	// Set our valid flag, indicating that we have received data
 	valid = true;
@@ -341,73 +193,10 @@ void GenericGZInterface::log_state(uint8_t* data, uint8_t len, uint8_t type)
 	return;
 }
 
-void GenericGZInterface::reset(void)
-{
-	/* Implementing simulation timing and reset is complex because we not only need to set the internal
-	 * millisecond/microsecond counters back to 0 but also reset the sensor drivers, state estimators, and control/planning
-	 * algorithms.
-	 *
-	 * We have the following objects that keep track of time:
-	 *
-	 * On the mincopter side
-	 * -> hal.sim->last_sensor_state.timestamp : provided every tick by the gazebo environment
-	 *
-	 * On the gazebo side
-	 * -> simTime : equivalent to the last_sensor_state.timestamp
-	 * 
-	 * By triggering a reset message on the mincopter side, the timestamp should update automatically. What we really need to is to have
-	 * each of the simulated drivers recognise that the time has shifted and do a reset of their internal state.
-	 *
-	 */
-
-	// Flag that a reset was requested
-	reset_requested = true;
-
-	return;
-}
-
-void GenericGZInterface::set_mincopter_position(float x_ned_m, float y_ned_m, float z_ned_m)
-{
-	position_update = true;
-
-	sim_new_position.x = x_ned_m;
-	sim_new_position.y = y_ned_m;
-	sim_new_position.z = z_ned_m;
-
-	return;
-}
-
-void GenericGZInterface::set_mincopter_attitude(float roll_rad, float pitch_rad, float yaw_rad)
-{
-	attitude_update = true;
-
-	sim_new_attitude.x = roll_rad;
-	sim_new_attitude.y = pitch_rad;
-	sim_new_attitude.z = yaw_rad;
-
-	return;
-}
-
-void GenericGZInterface::set_mincopter_linvelocity(float dx_ned_ms, float dy_ned_ms, float dz_ned_ms)
-{
-	velocity_update = true;
-
-	sim_new_velocity.x = dx_ned_ms;
-	sim_new_velocity.y = dy_ned_ms;
-	sim_new_velocity.z = dz_ned_ms;
-
-	return;
-}
-
-void GenericGZInterface::set_mincopter_angvelocity(float droll_rads, float dpitch_rads, float dyaw_rads)
-{
-	angvel_update = true;
-
-	sim_new_angvel.x = droll_rads;
-	sim_new_angvel.y = dpitch_rads;
-	sim_new_angvel.z = dyaw_rads;
-
-	return;
-}
-
+// TODO Either remove the following from the interface or implement them
+void GenericGZInterface::reset(void) { }
+void GenericGZInterface::set_mincopter_position(float, float, float) { }
+void GenericGZInterface::set_mincopter_attitude(float, float, float) { }
+void GenericGZInterface::set_mincopter_linvelocity(float, float, float) { }
+void GenericGZInterface::set_mincopter_angvelocity(float, float, float) { }
 

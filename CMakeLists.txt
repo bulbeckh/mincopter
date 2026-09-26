@@ -936,15 +936,16 @@ list(APPEND MC_INCLUDE_DIRS
     ${CMAKE_SOURCE_DIR}/arch
     ${CMAKE_SOURCE_DIR}/arch/experimental
     ${CMAKE_SOURCE_DIR}/dev
-    ${CMAKE_SOURCE_DIR}/lib
-    ${CMAKE_SOURCE_DIR}/lib/AP_Math
-    ${CMAKE_SOURCE_DIR}/lib/AP_Common
-    ${CMAKE_SOURCE_DIR}/lib/AP_Curve
-    ${CMAKE_SOURCE_DIR}/lib/Filter
-    ${CMAKE_SOURCE_DIR}/lib/Telemetry
+    ${CMAKE_SOURCE_DIR}/common
+    ${CMAKE_SOURCE_DIR}/common/AP_Math
+    ${CMAKE_SOURCE_DIR}/common/AP_Common
+    ${CMAKE_SOURCE_DIR}/common/AP_Curve
+    ${CMAKE_SOURCE_DIR}/common/Filter
+    ${CMAKE_SOURCE_DIR}/common/Telemetry
     ${CMAKE_SOURCE_DIR}/dev/experimental
     ${CMAKE_SOURCE_DIR}/experimental
     ${CMAKE_SOURCE_DIR}/mincopter
+    ${CMAKE_SOURCE_DIR}/ap-gz/include
     ${MC_GENERATED_DIR}
 )
 
@@ -1135,12 +1136,13 @@ else()
         ${CMAKE_SOURCE_DIR}/arch/linux/beaglebone
         ${CMAKE_SOURCE_DIR}/arch/AP_Progmem
         ${CMAKE_SOURCE_DIR}/arch/AP_Scheduler
-        ${CMAKE_SOURCE_DIR}/lib/AP_Common
-        ${CMAKE_SOURCE_DIR}/lib/AP_Curve
-        ${CMAKE_SOURCE_DIR}/lib/AP_Math
-        ${CMAKE_SOURCE_DIR}/lib/Filter
-        ${CMAKE_SOURCE_DIR}/lib/Telemetry
-        ${CMAKE_SOURCE_DIR}/lib
+        ${CMAKE_SOURCE_DIR}/common/AP_Common
+        ${CMAKE_SOURCE_DIR}/common/AP_Curve
+        ${CMAKE_SOURCE_DIR}/common/AP_Math
+        ${CMAKE_SOURCE_DIR}/common/Filter
+        ${CMAKE_SOURCE_DIR}/common/Telemetry
+		${CMAKE_SOURCE_DIR}/common/Message/include
+        ${CMAKE_SOURCE_DIR}/common
         ${CMAKE_SOURCE_DIR}/state/ekf
         ${CMAKE_SOURCE_DIR}/state
         ${CMAKE_SOURCE_DIR}/dev/AP_ADC
@@ -1215,8 +1217,18 @@ else()
         message(FATAL_ERROR "Unsupported legacy TARGET_ARCH_FAMILY: ${TARGET_ARCH_FAMILY}")
     endif()
 
-    add_library(mc-arch STATIC ${MC_LIBS_ARCH} ${MC_ARCH_COMMON})
+    add_subdirectory(${CMAKE_SOURCE_DIR}/common)
+
+    add_library(mc-arch STATIC
+	    ${MC_LIBS_ARCH}
+	    ${MC_ARCH_COMMON}
+	)
+
     target_include_directories(mc-arch PUBLIC ${MC_INCLUDE_DIRS})
+
+    target_link_libraries(mc-arch
+	    mc-common
+    )
 
     if(${TARGET_ARCH_FAMILY} STREQUAL "stm32")
         target_include_directories(mc-arch PUBLIC
@@ -1231,7 +1243,6 @@ else()
     add_subdirectory(${CMAKE_SOURCE_DIR}/control)
     add_subdirectory(${CMAKE_SOURCE_DIR}/state)
     add_subdirectory(${CMAKE_SOURCE_DIR}/dev)
-    add_subdirectory(${CMAKE_SOURCE_DIR}/lib)
 
     ## Build Gazebo plugin if we are using simulation
     if (TARGET_ARCH STREQUAL "generic")

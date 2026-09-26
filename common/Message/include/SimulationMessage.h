@@ -3,6 +3,9 @@
 
 #pragma once
 
+// TODO This should probably form part of the AP_HAL::Sim abstraction as the message interface should
+// be independent of simulator choice
+
 /* Here we document the full message interface between Gazebo and MinCopter
  *
  * For a single iteration of the simulation loop, we send a control packet from MinCopter
@@ -41,6 +44,8 @@
 
 #include <cstdint>
 
+#include "ByteWriter.h"
+
 namespace mc {
 
 	enum class SimMessageType : uint16_t {
@@ -58,11 +63,11 @@ namespace mc {
 		uint16_t payload_size;
 	};
 
-	struct ControlMessagePayload {
+	struct ControlMessage {
 		uint16_t pwm[4];
 	};
 
-	struct StateUpdateMessagePayload {
+	struct StateUpdateMessage {
 		/* @brief Flag indicating which of the four state types we need to update */
 		bool update_flag[4];
 
@@ -72,15 +77,19 @@ namespace mc {
 		double angular_velocity[3];
 	};
 
-	struct ForceUpdateMessagePayload {
+	struct ForceUpdateMessage {
 		bool update_flag[2];
 
 		double force[3];
 		double torque[3];
 	};
 
+	// TODO Include flags to mark certain sensor readings as valid/invalid, last read time, etc. - on the
+	// simulation side, we have a callback that populates things like IMU readings so there may be a
+	// period of time in which certain readings are invalid.
+	
 	/* @brief Contents of StateMessage that is sent by Gazebo to MinCopter each iteration */
-	struct StateMessagePayload {
+	struct StateMessage {
 		// Information
 		double timestamp;
 		uint64_t iterations;
@@ -128,25 +137,46 @@ namespace mc {
 		double vel_up;
 	};
 
-	struct ControlMessage {
-		SimMessageHeader header;
-		ControlMessagePayload payload;
-	};
+	// Message Serialization
+	void write_header(ByteWriter& writer, const SimMessageType& type);
+	void serialize(ByteWriter& writer, const ControlMessage& message);
+	void serialize(ByteWriter& writer, const StateMessage& message);
+	void serialize(ByteWriter& writer, const StateUpdateMessage& message);
+	void serialize(ByteWriter& writer, const ForceUpdateMessage& message);
 
-	struct StateUpdateMessage {
-		SimMessageHeader header;
-		StateUpdateMessage payload;
-	};
+	// TODO Change the way we do this - we do not want to allow deserializations of arbitrary types
+	template <typename T>
+	const T deserialize(std::vector<std::byte>& bytes);
+	
+	/* The message creation pipeline should be something like
+	 *
+	 * ```c++
+	 * ControlMessage cmessage;
+	 *
+	 * cmessage.pwm[0] = 1000;
+	 * cmessage.pwm[1] = 1000;
+	 * cmessage.pwm[2] = 1000;
+	 * cmessage.pwm[3] = 1000;
+	 *
+	 * socket.send_message(cmessage);
+	 * ```
+	 *
+	 * Then the socket send_message function is responsible for serialization of the message
+	 * and then transmission of the sequence of bytes to the (UNIX domain) socket.
+	 *
+	 * ```c++
+	 * template <typename T>
+	 * void SocketUnix::send_message(const T& message) {
+	 *
+	 * 	ByteWriter writer; 
+	 * 	std::vector<std::byte> bytes = serialize(writer, message);
+	 * 	
+	 *	// ... Do send
+	 * }
+	 * ```
+	 *
+	 */
 
-	struct ForceUpdateMessage {
-		SimMessageHeader header;
-		ForceUpdateMessage payload;
-	};
-
-	struct StateMessage {
-		SimMessageHeader header;
-		StateMessagePayload payload;
-	}
 
 
 } // namespace mc

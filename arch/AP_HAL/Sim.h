@@ -5,6 +5,8 @@
 
 #include <cstdint>
 
+#include "SimulationMessage.h"
+
 // TODO Fix this as soon as possible - we should not be including AP_Math here and 
 // we should also not have specific methods for retrieving readings as below.
 //
@@ -41,61 +43,12 @@ class AP_HAL::Sim
 		virtual void tick(uint32_t tick_us) = 0;
 
 	public:
-		/* @brief Simulation state struct */
-		struct mc_sim_state_packet {
-
-			/* @brief Simulation timestamp in seconds. Taken from simTime in gazebo */
-			double timestamp;
-			uint64_t iterations;
-
-			/* IMU */
-			double imu_gyro_x;
-			double imu_gyro_y;
-			double imu_gyro_z;
-			double imu_accel_x;
-			double imu_accel_y;
-			double imu_accel_z;
-
-			double pos_x;
-			double pos_y;
-			double pos_z;
-
-			// Is this now intrisic or extrinsic rotation?? In which order?
-			double wldAbdyA_eul_x; // Roll
-			double wldAbdyA_eul_y; // Pitch
-			double wldAbdyA_eul_z; // Yaw
-			
-			double euler_rate_x;
-			double euler_rate_y;
-			double euler_rate_z;
-
-			double vel_x;
-			double vel_y;
-			double vel_z;
-
-			/* Magnetometer */
-			double field_x;
-			double field_y;
-			double field_z;
-
-			/* Barometer */
-			double pressure;
-
-			/* NavSat (GPS) */
-			double lat_deg;
-			double lng_deg;
-			double alt_met;
-			double vel_east;
-			double vel_north;
-			double vel_up;
-
-		};
 
 		/* @brief The struct containing all sensor information. This is accessed by each of the sim_* 
 		 * simulated sensor classes */
-		mc_sim_state_packet sensor_states[GZ_INTERFACE_STATE_BUFFER_LENGTH];
+		mc::StateMessage sensor_states[GZ_INTERFACE_STATE_BUFFER_LENGTH];
 
-		mc_sim_state_packet last_sensor_state;
+		mc::StateMessage last_sensor_state;
 
 		/* @brief The index in the buffer that we will next read sensor states to */
 		uint8_t state_buffer_index=0;

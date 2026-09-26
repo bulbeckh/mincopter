@@ -4,6 +4,8 @@
 #include <arch/linux/generic/AP_HAL_Generic_Namespace.h>
 #include <AP_HAL/Sim.h>
 
+#include "SocketUnix.hh"
+
 #include <netinet/in.h>
 
 #include <AP_Math.h>
@@ -16,49 +18,11 @@ class generic::GenericGZInterface : public AP_HAL::Sim {
 
 	public:
 		/* @brief Defines a socket connection between the Gazebo simulation and the mincopter runtime */
-		GenericGZInterface() : frame_counter(0) { }
+		GenericGZInterface() { }
 
     private:
-		/* @brief Struct to hold a control input (motor speeds) packet */
-		struct servo_packet_16 {
-			uint16_t magic = 18458; // constant magic value
-			uint16_t frame_rate;
-			uint32_t frame_count;
-			uint16_t pwm[4]; // See below for structure
-			
-			/* @brief update_flag is a bitfield for which elements we are updating
-			 * 0 : position
-			 * 1 : velocity (linear)
-			 * 2 : attitude
-			 * 3 : angular velocity
-			 * 4 : reset flag
-			 */
-			uint8_t  update_flag;
-
-			float    update_position[3];
-			float    update_velocity[3];
-			float    update_attitude[3];
-			float    update_angvel[3];
-		};
-
-		/* servo_packet_16 should contain
-		 *
-		 * 8b for x4 uint16_t pwm signals       : 4
-		 * 2b for update flags					: 1
-		 * 12,24,36,48b dependent on flags set  : 16
-		 *
-		 */
-
-		struct sockaddr_in servaddr;
-
-		/* @brief Number of iterations in the simulation */
-		uint32_t frame_counter;
-
-		/* @brief File descriptor for socket */
-		int sockfd;
-
-		/* @brief Holds the raw memory stream from a UDP packet */
-		char buffer[1024];
+		/* @brief UNIX Socket for communication with simulator */
+		SocketUnix usocket;
 
 		/* @brief File descriptor for log pipe */
 		int logfd;
@@ -68,20 +32,6 @@ class generic::GenericGZInterface : public AP_HAL::Sim {
 		uint16_t control_pwm[4];
 
 	private:
-		/* @brief Array of update flags for each state */
-		bool position_update;
-		bool velocity_update;
-		bool attitude_update;
-		bool angvel_update;
-
-		bool reset_requested;
-
-		/* @brief Vectors of new simulation states to be communicated to gazebo */
-		Vector3f sim_new_position;
-		Vector3f sim_new_velocity;
-		Vector3f sim_new_attitude;
-		Vector3f sim_new_angvel;
-
 		/* @brief Counter for how many times we have failed to receive a state packet */
 		uint8_t receive_packet_retries{0};
 
@@ -90,13 +40,8 @@ class generic::GenericGZInterface : public AP_HAL::Sim {
 		/* @brief Set up UDP socket between this and GZ server process */
 		bool setup_sim_socket(void) override;
 
-		bool setup_log_source(const char*, LogSource source) override;
-
-		void log_state(uint8_t* data, uint8_t len, uint8_t type) override;
-
 		/* @brief Send a motor control output PWM */
 		bool send_control_output(bool retry) override;
-
 
 		/* @brief Receive, parse, and store a GZ simulation state packet */
 		bool recv_state_input(void) override;
@@ -105,16 +50,19 @@ class generic::GenericGZInterface : public AP_HAL::Sim {
 		void tick(uint32_t tick_us) override;
 
 		/* @brief Reset the simulation back to default configuration including all model poses and simulation time */
+		//void reset(void) override;
+
+		// TODO Move these logging functions into a unified logger library
+
+		bool setup_log_source(const char*, LogSource source) override;
+		void log_state(uint8_t* data, uint8_t len, uint8_t type) override;
+
 		void reset(void) override;
+		void set_mincopter_position(float, float, float) override;
+		void set_mincopter_attitude(float, float, float) override;
+		void set_mincopter_linvelocity(float, float, float) override;
+		void set_mincopter_angvelocity(float, float, float) override;
 
-		/* @brief Simulation direct state update methods */
-		void set_mincopter_position(float x_ned_m, float y_ned_m, float z_ned_m) override;
-		void set_mincopter_attitude(float roll_rad, float pitch_rad, float yaw_rad) override;
-		void set_mincopter_linvelocity(float dx_ned_ms, float dy_ned_ms, float dz_ned_ms) override;
-		void set_mincopter_angvelocity(float droll_rads, float dpitch_rads, float dyaw_rads) override;
-
-    private:
-		void prepare_control_packet(servo_packet_16& control_pkt);
 
 };
 
