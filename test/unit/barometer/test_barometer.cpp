@@ -1,25 +1,16 @@
 
-/*
-#include <filesystem>
-#include <memory>
-
-#include <gz/sim/Server.hh>
-#include <gz/sim/ServerConfig.hh>
-#include <gz/common/Console.hh>
-*/
-
 #include <thread>
-// #include <cassert>
 
 #include <AP_HAL/AP_HAL.h>
 #include <arch/AP_HAL/HAL_Interface.h>
 
 #include "gazebo_simulation_test_base.h"
 
+#include <gz/common/Console.hh>
+
 #include <gtest/gtest.h>
 
-/* This test suite is responsible for ensuring that our gazebo interface is created successfully
- * and we are able to communicate with the gazebo simulation.
+/* This test suite is responsible for testing our barometer in simulation.
  *
  * NOTE Before running test executable, we need to source both a valid gz distribution (i.e. via
  * /opt/ros/jazzy/setup.bash and also the mincopter-specific gz setup via ${PROJECT_ROOT}/setup.bash */
@@ -29,19 +20,27 @@ using namespace sim;
 
 // TODO This is a bad hack which permeates different layers, and breaks the isolation the mc-arch is supposed
 // to have because mc-arch now depends on this HAL object
-//const AP_HAL::HAL& hal = AP_HAL_BOARD_DRIVER;
-
-// NOTE TODO We now have a case where the hal object is defined in the header, but statically
+const AP_HAL::HAL& hal = AP_HAL_BOARD_DRIVER;
 
 // NOTE Perhaps we don't need a separate test derived class here but if we need to add more functionality
 // then we should create one
-class GzInterfaceTest : public GazeboSimulationTestBase {
+class BarometerTest : public GazeboSimulationTestBase {
 	protected:
-		GzInterfaceTest() {}
+		BarometerTest() {}
+
+	protected:
+		// This is a good example of overriding a configuration without
+		// re-implementing the entire base class SetUp
+		void SetUp(void) override {
+			GazeboSimulationTestBase::SetUp();
+
+			// Set logging verbosity to 1 (error)
+			common::Console::SetVerbosity(4);
+		}
 
 };
 
-TEST_F(GzInterfaceTest, Startup) {
+TEST_F(BarometerTest, ExpectedStationaryValues) {
 
 	// Run 100 iterations in new thread - will block until MinCopter GZ Interface connects
 	std::thread serverThread([this]() {
@@ -51,26 +50,22 @@ TEST_F(GzInterfaceTest, Startup) {
 	});
 
 	// TODO Add trapping of signal ctrl+C so that we break the mincopter loop
-
-	std::cout << "Server setup complete" << std::endl;
+	
+	hal.init(0, NULL);
 	
 	// Loop the simulation for 1s. Note that here, the simulation loop real-time step is driven by
 	// Gazebo and is not limited here to a tightly 10ms loop as it is in the full executable.
 	for (int i=0;i<100;i++) {
-		if (!hal.sim->connected()) break;
 		hal.sim->tick(10000);
+		std::cout << "Tick " << i << std::endl;
 	}
 
 	serverThread.join();
 
 	// Run tests
 	//
-	// 1. Iterations is as expected
-	EXPECT_EQ(server->IterationCount(), 991);
-
-	// 2. Server is stopped at end of our desired number of iterations
-	EXPECT_EQ(server->Running(), false);
-
-	std::cout << "Finished sucessfully\n";
+	// 1. Barometer data is as expected for each axis
+	EXPECT_NEAR(hal.sim->last_sensor_state.pressure, 101323, 10.0);
 }
+
 

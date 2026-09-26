@@ -20,9 +20,7 @@ using namespace sim;
 
 // TODO This is a bad hack which permeates different layers, and breaks the isolation the mc-arch is supposed
 // to have because mc-arch now depends on this HAL object
-//const AP_HAL::HAL& hal = AP_HAL_BOARD_DRIVER;
-
-// NOTE TODO We now have a case where the hal object is defined in the header, but statically
+const AP_HAL::HAL& hal = AP_HAL_BOARD_DRIVER;
 
 // NOTE Perhaps we don't need a separate test derived class here but if we need to add more functionality
 // then we should create one
@@ -44,10 +42,6 @@ class ImuTest : public GazeboSimulationTestBase {
 
 TEST_F(ImuTest, ExpectedStationaryValues) {
 
-	// TODO Spawn new thread that is responsible for handling signals (and then propogating
-	// through to mincopter and gz server threads)
-	
-
 	// Run 100 iterations in new thread - will block until MinCopter GZ Interface connects
 	std::thread serverThread([this]() {
 		// NOTE There is a nuance in gazebo whereby the first run/iteration of system plugins (like the ardupilot plugin)
@@ -56,6 +50,8 @@ TEST_F(ImuTest, ExpectedStationaryValues) {
 	});
 
 	// TODO Add trapping of signal ctrl+C so that we break the mincopter loop
+	
+	hal.init(0, NULL);
 	
 	// Loop the simulation for 1s. Note that here, the simulation loop real-time step is driven by
 	// Gazebo and is not limited here to a tightly 10ms loop as it is in the full executable.
@@ -86,4 +82,5 @@ TEST_F(ImuTest, ExpectedStationaryValues) {
 
 	std::cout << "Finished sucessfully\n";
 }
+
 

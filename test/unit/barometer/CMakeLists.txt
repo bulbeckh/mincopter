@@ -1,24 +1,42 @@
-if(MC_EXPERIMENTAL_BUILD AND MC_BARO_TYPE STREQUAL "BME280")
-    add_executable(test-barometer-task
-        test_barometer_task.cpp
-        ${CMAKE_SOURCE_DIR}/dev/experimental/led/LedDevice.cpp
-        ${CMAKE_SOURCE_DIR}/experimental/mincopter/RuntimeConfig.cpp
-    )
+## Testing of Gazebo Simulation Interface
 
-    target_include_directories(test-barometer-task PUBLIC
-        ${MC_INCLUDE_DIRS}
-    )
+## TODO We should be moving all this configuration into a parent test cmake directory
+include(FetchContent)
+FetchContent_Declare(
+	googletest
+	URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip
+)
 
-    target_link_libraries(test-barometer-task
-        mc-experimental-arch
-        mc-experimental-dev
-    )
+FetchContent_MakeAvailable(googletest)
+enable_testing()
 
-    if(TARGET_ARCH_FAMILY STREQUAL "stm32")
-        target_link_libraries(test-barometer-task
-            -Wl,--whole-archive
-            stm32_platform
-            -Wl,--no-whole-archive
-        )
-    endif()
-endif()
+find_package(gz-cmake3 REQUIRED)
+
+gz_find_package(gz-sim8 REQUIRED)
+gz_find_package(gz-common5 REQUIRED)
+
+### Test Specifics ################
+
+add_executable(test-barometer
+	test_barometer.cpp
+)
+
+target_compile_definitions(test-barometer PRIVATE
+	PROJECT_SOURCE_DIR="${CMAKE_SOURCE_DIR}"
+)
+
+target_include_directories(test-barometer PUBLIC
+	${MC_INCLUDE_DIRS}
+	${MC_TEST_SIMULATION_INCLUDE}
+)
+
+target_link_libraries(test-barometer PRIVATE
+	mc-arch
+	gz-sim8::gz-sim8
+	gz-common5::gz-common5
+	GTest::gtest_main
+)
+
+include(GoogleTest)
+gtest_discover_tests(test-barometer)
+

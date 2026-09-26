@@ -9,9 +9,9 @@ We have the following HAL tests:
 - HAL GZ Interface can send each type of message
 - Simulator can communicate with HAL
 - Simulator and HAL can run n iterations via tick
-- HAL can timeout effectively
-- Simulator can timeout effectively
-- HAL can re-connect effectively
-- Simulator can re-connect effectively
+
+- HAL/Simulator can timeout effectively
+
+- HAL/Simulator can re-connect effectively
 
 
